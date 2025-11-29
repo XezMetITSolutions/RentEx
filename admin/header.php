@@ -41,11 +41,14 @@ if (!isset($_SESSION['user_id'])) {
                 <a href="pos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'pos.php' ? 'active' : ''; ?>">
                     <i class="fas fa-cash-register"></i> Kasse
                 </a>
-                <a href="#" class="">
+                <a href="customers.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'customers.php' ? 'active' : ''; ?>">
                     <i class="fas fa-users"></i> Kunden
                 </a>
-                <a href="#" class="">
+                <a href="finances.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'finances.php' ? 'active' : ''; ?>">
                     <i class="fas fa-file-invoice-dollar"></i> Finanzen
+                </a>
+                <a href="settings.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-cog"></i> Einstellungen
                 </a>
             </nav>
 

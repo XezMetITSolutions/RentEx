@@ -145,22 +145,22 @@ if (!$pending_bookings) $pending_bookings = 3; // Fallback
         <h3>Reservierungen</h3>
         <p>Buchungen verwalten und Kalender einsehen</p>
     </div>
-    <div class="quick-card">
+    <div class="quick-card" onclick="window.location.href='customers.php'">
         <div class="quick-icon icon-purple"><i class="fas fa-users"></i></div>
         <h3>Kunden</h3>
         <p>Kundendaten und Historie verwalten</p>
     </div>
-    <div class="quick-card">
+    <div class="quick-card" onclick="window.location.href='finances.php'">
         <div class="quick-icon icon-purple" style="background:#f3e8ff; color:#9333ea;"><i class="fas fa-euro-sign"></i></div>
         <h3>Finanzen</h3>
         <p>Rechnungen, Zahlungen und Berichte</p>
     </div>
-    <div class="quick-card">
+    <div class="quick-card" onclick="window.location.href='pos.php'">
         <div class="quick-icon icon-orange"><i class="fas fa-shopping-cart"></i></div>
         <h3>Registrierkasse</h3>
         <p>Barzahlungen, RKSV und Tagesabschluss</p>
     </div>
-    <div class="quick-card">
+    <div class="quick-card" onclick="window.location.href='settings.php'">
         <div class="quick-icon" style="background:#f1f5f9; color:#475569;"><i class="fas fa-cog"></i></div>
         <h3>Einstellungen</h3>
         <p>Systemkonfiguration und Benutzerverwaltung</p>
