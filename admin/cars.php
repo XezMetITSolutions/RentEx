@@ -1,9 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+require_once 'header.php';
 require_once '../includes/db.php';
 
 // Handle Add Car
@@ -25,107 +21,114 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_car'])) {
 // Fetch Cars
 $cars = $pdo->query("SELECT * FROM cars ORDER BY created_at DESC")->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Fahrzeugverwaltung</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="admin-container">
-        <?php include 'sidebar.php'; ?>
-        
-        <div class="main-content">
-            <div class="dashboard-header">
-                <h2>Fahrzeugverwaltung</h2>
-                <button onclick="document.getElementById('addCarModal').style.display='block'" class="btn btn-primary">Neues Fahrzeug hinzufügen</button>
-            </div>
 
-            <div style="overflow-x: auto;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Bild</th>
-                            <th>Marke/Modell</th>
-                            <th>Jahr</th>
-                            <th>Preis/Tag</th>
-                            <th>Status</th>
-                            <th>Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($cars as $car): ?>
-                        <tr>
-                            <td><img src="<?php echo $car['image_url']; ?>" style="width: 50px; height: 30px; object-fit: cover;"></td>
-                            <td><?php echo htmlspecialchars($car['brand'] . ' ' . $car['model']); ?></td>
-                            <td><?php echo $car['year']; ?></td>
-                            <td><?php echo number_format($car['price_per_day'], 0); ?> ₺</td>
-                            <td><span class="status-badge status-<?php echo $car['status'] == 'available' ? 'available' : 'rented'; ?>"><?php echo $car['status']; ?></span></td>
-                            <td>
-                                <a href="#" style="color: var(--primary-color);"><i class="fas fa-edit"></i></a>
-                                <a href="#" style="color: var(--danger); margin-left: 10px;"><i class="fas fa-trash"></i></a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>Fahrzeuge</h1>
+        <p>Verwalten Sie hier Ihren Fuhrpark.</p>
     </div>
+    <button onclick="document.getElementById('addCarModal').style.display='flex'" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Neues Fahrzeug
+    </button>
+</div>
 
-    <!-- Modal -->
-    <div id="addCarModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000;">
-        <div style="background:var(--card-bg); width:500px; margin: 100px auto; padding:2rem; border-radius:10px; border:1px solid #333;">
-            <h3 style="margin-bottom:1rem;">Neues Fahrzeug hinzufügen</h3>
-            <form method="POST">
-                <div class="form-group" style="margin-bottom:1rem;">
-                    <label>Marke</label>
-                    <input type="text" name="brand" required style="width:100%;">
-                </div>
-                <div class="form-group" style="margin-bottom:1rem;">
-                    <label>Modell</label>
-                    <input type="text" name="model" required style="width:100%;">
-                </div>
-                <div style="display:flex; gap:1rem;">
-                    <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Jahr</label>
-                        <input type="number" name="year" required style="width:100%;">
-                    </div>
-                    <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Preis (Täglich)</label>
-                        <input type="number" name="price" required style="width:100%;">
-                    </div>
-                </div>
-                <div style="display:flex; gap:1rem;">
-                    <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Kraftstoff</label>
-                        <select name="fuel" style="width:100%;">
-                            <option>Benzin</option>
-                            <option>Diesel</option>
-                            <option>Elektro</option>
-                            <option>Hybrid</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Getriebe</label>
-                        <select name="transmission" style="width:100%;">
-                            <option>Automatik</option>
-                            <option>Manuell</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-bottom:2rem;">
-                    <label>Bild URL</label>
-                    <input type="text" name="image_url" required style="width:100%;">
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:1rem;">
-                    <button type="button" onclick="document.getElementById('addCarModal').style.display='none'" class="btn btn-outline">Abbrechen</button>
-                    <button type="submit" name="add_car" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
-        </div>
+<div class="table-card">
+    <div class="table-header">
+        <h3>Fahrzeugliste</h3>
     </div>
-</body>
-</html>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Bild</th>
+                    <th>Marke/Modell</th>
+                    <th>Jahr</th>
+                    <th>Preis/Tag</th>
+                    <th>Status</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($cars as $car): ?>
+                <tr>
+                    <td><img src="<?php echo $car['image_url']; ?>" style="width: 60px; height: 40px; object-fit: cover; border-radius: 6px;"></td>
+                    <td>
+                        <div style="font-weight: 600;"><?php echo htmlspecialchars($car['brand']); ?></div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?php echo htmlspecialchars($car['model']); ?></div>
+                    </td>
+                    <td><?php echo $car['year']; ?></td>
+                    <td><?php echo number_format($car['price_per_day'], 0); ?> ₺</td>
+                    <td>
+                        <span class="status-badge status-<?php echo $car['status'] == 'available' ? 'available' : 'rented'; ?>">
+                            <?php echo ucfirst($car['status']); ?>
+                        </span>
+                    </td>
+                    <td>
+                        <a href="#" style="color: var(--accent); margin-right: 10px;"><i class="fas fa-edit"></i></a>
+                        <a href="#" style="color: var(--danger);"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="addCarModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center;">
+    <div style="background:var(--card-bg); width:500px; padding:2rem; border-radius:12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <h3 style="margin-bottom:1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Neues Fahrzeug hinzufügen</h3>
+        <form method="POST">
+            <div style="margin-bottom:1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Marke</label>
+                <input type="text" name="brand" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Modell</label>
+                <input type="text" name="model" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <div style="margin-bottom:1rem; flex:1;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Jahr</label>
+                    <input type="number" name="year" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+                </div>
+                <div style="margin-bottom:1rem; flex:1;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Preis (Täglich)</label>
+                    <input type="number" name="price" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <div style="margin-bottom:1rem; flex:1;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Kraftstoff</label>
+                    <select name="fuel" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+                        <option>Benzin</option>
+                        <option>Diesel</option>
+                        <option>Elektro</option>
+                        <option>Hybrid</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:1rem; flex:1;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Getriebe</label>
+                    <select name="transmission" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+                        <option>Automatik</option>
+                        <option>Manuell</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Bild URL</label>
+                <input type="text" name="image_url" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:1rem;">
+                <button type="button" onclick="document.getElementById('addCarModal').style.display='none'" style="padding: 0.6rem 1.2rem; border: 1px solid var(--border); background: transparent; border-radius: 6px; cursor: pointer;">Abbrechen</button>
+                <button type="submit" name="add_car" class="btn btn-primary">Speichern</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addCarModal').style.display = 'none';
+</script>
+
+<?php require_once 'footer.php'; ?>

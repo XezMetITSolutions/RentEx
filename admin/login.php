@@ -24,48 +24,85 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Login</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - LuxeAdmin</title>
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .login-container {
-            height: 100vh;
+        body {
+            background-color: var(--secondary-color);
             display: flex;
-            justify-content: center;
             align-items: center;
-            background: var(--background-color);
+            justify-content: center;
+            height: 100vh;
         }
         .login-box {
             background: var(--card-bg);
-            padding: 3rem;
-            border-radius: 10px;
+            padding: 2.5rem;
+            border-radius: 8px;
             width: 100%;
             max-width: 400px;
-            border: 1px solid #333;
+            box-shadow: var(--shadow-md);
+            border-top: 4px solid var(--primary-color);
         }
-        .login-box h2 {
+        .login-header {
             text-align: center;
             margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .login-header span {
             color: var(--primary-color);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-family: var(--font-main);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-login:hover {
+            background-color: var(--primary-dark);
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2>Admin Login</h2>
-            <?php if (isset($error)) echo "<p style='color:red; text-align:center; margin-bottom:1rem;'>$error</p>"; ?>
-            <form method="POST">
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>Benutzername</label>
-                    <input type="text" name="username" required style="width: 100%;">
-                </div>
-                <div class="form-group" style="margin-bottom: 2rem;">
-                    <label>Passwort</label>
-                    <input type="password" name="password" required style="width: 100%;">
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Anmelden</button>
-            </form>
+    <div class="login-box">
+        <div class="login-header">
+            <h2>Luxe<span>Admin</span></h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Bitte melden Sie sich an</p>
         </div>
+        <?php if (isset($error)) echo "<div style='background: rgba(220, 53, 69, 0.1); color: var(--danger); padding: 0.75rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.9rem; text-align: center;'>$error</div>"; ?>
+        <form method="POST">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Benutzername</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Passwort</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-login">Anmelden</button>
+        </form>
     </div>
 </body>
 </html>
