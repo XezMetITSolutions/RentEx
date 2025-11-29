@@ -544,6 +544,201 @@ ul {
     color: #10b981;
 }
 
+justify-content: center;
+flex-shrink: 0;
+}
+
+.icon-bg-red {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.icon-bg-blue {
+    background: #dbeafe;
+    color: #3b82f6;
+}
+
+.icon-bg-yellow {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-content h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+.alert-content p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.alert-action {
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.text-red {
+    color: #ef4444;
+}
+
+.text-blue {
+    color: #3b82f6;
+}
+
+/* Quick Access Grid */
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.quick-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.quick-card:hover {
+    transform: translateY(-5px);
+}
+
+.quick-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.quick-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.quick-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Footer */
+.main-footer {
+    background-color: var(--header-bg);
+    color: #cbd5e1;
+    padding: 4rem 2rem 1rem;
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.logo-red {
+    background: white;
+    color: var(--primary);
+    padding: 0.2rem 0.5rem;
+    font-weight: 800;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+}
+
+.footer-col h4 {
+    color: white;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.footer-col ul li {
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.footer-col ul li a:hover {
+    color: white;
+}
+
+.footer-col p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid #334155;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Tables (for cars/bookings pages) */
+.table-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.data-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-available {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
 .status-rented {
     background: #fff7ed;
     color: #f97316;
@@ -557,13 +752,231 @@ ul {
     cursor: pointer;
     border: none;
     transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-primary {
-    background: var(--header-bg);
+    background: var(--danger);
     color: white;
 }
 
+/* Red button as per image */
 .btn-primary:hover {
-    background: #1e293b;
+    background: #dc2626;
+}
+
+/* Cars Page Specifics */
+.filter-bar {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+}
+
+.search-input {
+    flex: 1;
+    position: relative;
+}
+
+.search-input input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.search-input i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.filter-select {
+    flex: 1;
+    position: relative;
+}
+
+.filter-select select {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    appearance: none;
+    background: white;
+}
+
+.filter-select i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+/* Cars Table */
+.cars-table-header {
+    background: #3b82f6;
+    /* Blue header */
+    color: white;
+    padding: 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1fr;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+}
+
+.cars-table-row {
+    background: white;
+    padding: 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1fr;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.cars-table-row:last-child {
+    border-bottom: none;
+}
+
+.cars-table-row:hover {
+    background: #f8fafc;
+}
+
+.car-name {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.license-plate {
+    background: #f1f5f9;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.price-tag {
+    color: #10b981;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-purple {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.btn-blue {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.btn-red {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* Status Badges */
+.badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.badge-available {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.badge-rented {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.badge-maintenance {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+/* Summary Cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.summary-card {
+    background: #f0fdf4;
+    /* Light Green */
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.summary-card.rented {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.summary-card.maintenance {
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.text-green {
+    color: #10b981;
+}
+
+.text-red {
+    color: #ef4444;
+}
+
+.text-orange {
+    color: #d97706;
 }
