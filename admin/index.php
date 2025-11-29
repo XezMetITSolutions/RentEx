@@ -13,7 +13,7 @@ $total_revenue = $pdo->query("SELECT SUM(total_price) FROM bookings WHERE status
 $recent_bookings = $pdo->query("SELECT b.*, c.brand, c.model FROM bookings b JOIN cars c ON b.car_id = c.id ORDER BY b.created_at DESC LIMIT 5")->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
@@ -26,38 +26,38 @@ $recent_bookings = $pdo->query("SELECT b.*, c.brand, c.model FROM bookings b JOI
         
         <div class="main-content">
             <div class="dashboard-header">
-                <h2>Genel Bakış</h2>
-                <div class="user-info">Merhaba, Admin</div>
+                <h2>Übersicht</h2>
+                <div class="user-info">Hallo, Admin</div>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Toplam Araç</h3>
+                    <h3>Fahrzeuge Gesamt</h3>
                     <div class="value"><?php echo $total_cars; ?></div>
                 </div>
                 <div class="stat-card">
-                    <h3>Aktif Rezervasyon</h3>
+                    <h3>Aktive Buchungen</h3>
                     <div class="value"><?php echo $active_bookings; ?></div>
                 </div>
                 <div class="stat-card">
-                    <h3>Toplam Gelir</h3>
+                    <h3>Gesamteinnahmen</h3>
                     <div class="value"><?php echo number_format($total_revenue ?? 0, 0, ',', '.'); ?> ₺</div>
                 </div>
             </div>
 
             <div class="section-title" style="text-align: left; margin-bottom: 1rem;">
-                <h3>Son Rezervasyonlar</h3>
+                <h3>Letzte Buchungen</h3>
             </div>
             
             <div style="overflow-x: auto;">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Müşteri</th>
-                            <th>Araç</th>
-                            <th>Tarih</th>
-                            <th>Tutar</th>
-                            <th>Durum</th>
+                            <th>Kunde</th>
+                            <th>Fahrzeug</th>
+                            <th>Datum</th>
+                            <th>Betrag</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,7 +70,7 @@ $recent_bookings = $pdo->query("SELECT b.*, c.brand, c.model FROM bookings b JOI
                             <td><span class="status-badge status-<?php echo $booking['status'] == 'confirmed' ? 'available' : 'rented'; ?>"><?php echo $booking['status']; ?></span></td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (empty($recent_bookings)) echo "<tr><td colspan='5'>Henüz rezervasyon yok.</td></tr>"; ?>
+                        <?php if (empty($recent_bookings)) echo "<tr><td colspan='5'>Keine Buchungen vorhanden.</td></tr>"; ?>
                     </tbody>
                 </table>
             </div>

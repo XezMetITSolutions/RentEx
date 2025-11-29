@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_car'])) {
 $cars = $pdo->query("SELECT * FROM cars ORDER BY created_at DESC")->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Araç Yönetimi</title>
+    <title>Fahrzeugverwaltung</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -39,20 +39,20 @@ $cars = $pdo->query("SELECT * FROM cars ORDER BY created_at DESC")->fetchAll();
         
         <div class="main-content">
             <div class="dashboard-header">
-                <h2>Araç Yönetimi</h2>
-                <button onclick="document.getElementById('addCarModal').style.display='block'" class="btn btn-primary">Yeni Araç Ekle</button>
+                <h2>Fahrzeugverwaltung</h2>
+                <button onclick="document.getElementById('addCarModal').style.display='block'" class="btn btn-primary">Neues Fahrzeug hinzufügen</button>
             </div>
 
             <div style="overflow-x: auto;">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Resim</th>
-                            <th>Marka/Model</th>
-                            <th>Yıl</th>
-                            <th>Fiyat/Gün</th>
-                            <th>Durum</th>
-                            <th>İşlem</th>
+                            <th>Bild</th>
+                            <th>Marke/Modell</th>
+                            <th>Jahr</th>
+                            <th>Preis/Tag</th>
+                            <th>Status</th>
+                            <th>Aktion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,51 +78,51 @@ $cars = $pdo->query("SELECT * FROM cars ORDER BY created_at DESC")->fetchAll();
     <!-- Modal -->
     <div id="addCarModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000;">
         <div style="background:var(--card-bg); width:500px; margin: 100px auto; padding:2rem; border-radius:10px; border:1px solid #333;">
-            <h3 style="margin-bottom:1rem;">Yeni Araç Ekle</h3>
+            <h3 style="margin-bottom:1rem;">Neues Fahrzeug hinzufügen</h3>
             <form method="POST">
                 <div class="form-group" style="margin-bottom:1rem;">
-                    <label>Marka</label>
+                    <label>Marke</label>
                     <input type="text" name="brand" required style="width:100%;">
                 </div>
                 <div class="form-group" style="margin-bottom:1rem;">
-                    <label>Model</label>
+                    <label>Modell</label>
                     <input type="text" name="model" required style="width:100%;">
                 </div>
                 <div style="display:flex; gap:1rem;">
                     <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Yıl</label>
+                        <label>Jahr</label>
                         <input type="number" name="year" required style="width:100%;">
                     </div>
                     <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Fiyat (Günlük)</label>
+                        <label>Preis (Täglich)</label>
                         <input type="number" name="price" required style="width:100%;">
                     </div>
                 </div>
                 <div style="display:flex; gap:1rem;">
                     <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Yakıt</label>
+                        <label>Kraftstoff</label>
                         <select name="fuel" style="width:100%;">
                             <option>Benzin</option>
-                            <option>Dizel</option>
-                            <option>Elektrik</option>
-                            <option>Hibrit</option>
+                            <option>Diesel</option>
+                            <option>Elektro</option>
+                            <option>Hybrid</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom:1rem; flex:1;">
-                        <label>Vites</label>
+                        <label>Getriebe</label>
                         <select name="transmission" style="width:100%;">
-                            <option>Otomatik</option>
-                            <option>Manuel</option>
+                            <option>Automatik</option>
+                            <option>Manuell</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom:2rem;">
-                    <label>Resim URL</label>
+                    <label>Bild URL</label>
                     <input type="text" name="image_url" required style="width:100%;">
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:1rem;">
-                    <button type="button" onclick="document.getElementById('addCarModal').style.display='none'" class="btn btn-outline">İptal</button>
-                    <button type="submit" name="add_car" class="btn btn-primary">Kaydet</button>
+                    <button type="button" onclick="document.getElementById('addCarModal').style.display='none'" class="btn btn-outline">Abbrechen</button>
+                    <button type="submit" name="add_car" class="btn btn-primary">Speichern</button>
                 </div>
             </form>
         </div>
