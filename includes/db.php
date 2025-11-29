@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$dbname = 'car_rental_db';
-$username = 'root';
-$password = '';
+$dbname = 'd0457ad0';
+$username = 'd0457ad0';
+$password = '01528797Mb##';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
