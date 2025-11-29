@@ -38,6 +38,9 @@ if (!isset($_SESSION['user_id'])) {
                 <a href="fahrtenbuch.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'fahrtenbuch.php' ? 'active' : ''; ?>">
                     <i class="fas fa-book"></i> Fahrtenbuch
                 </a>
+                <a href="pos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'pos.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-cash-register"></i> Kasse
+                </a>
                 <a href="#" class="">
                     <i class="fas fa-users"></i> Kunden
                 </a>
