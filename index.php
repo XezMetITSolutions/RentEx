@@ -39,10 +39,10 @@ if (empty($cars)) {
         <p class="hero-subtitle">Erleben Sie die Perfektion in Bewegung.</p>
         
         <div class="search-glass-container">
-            <form class="search-form-premium">
+            <form class="search-form-premium" action="search.php" method="GET">
                 <div class="input-group">
                     <i class="fas fa-map-marker-alt"></i>
-                    <select>
+                    <select name="location">
                         <option>Feldkirch (Illstraße 75a)</option>
                         <option>Dornbirn</option>
                         <option>Bregenz</option>
@@ -51,14 +51,14 @@ if (empty($cars)) {
                 <div class="divider"></div>
                 <div class="input-group">
                     <i class="fas fa-calendar-alt"></i>
-                    <input type="date" placeholder="Abholung">
+                    <input type="date" name="pickup_date" placeholder="Abholung">
                 </div>
                 <div class="divider"></div>
                 <div class="input-group">
                     <i class="fas fa-calendar-check"></i>
-                    <input type="date" placeholder="Rückgabe">
+                    <input type="date" name="return_date" placeholder="Rückgabe">
                 </div>
-                <button class="btn-search-premium">
+                <button class="btn-search-premium" type="submit">
                     <i class="fas fa-arrow-right"></i>
                 </button>
             </form>
