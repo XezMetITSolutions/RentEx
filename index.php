@@ -74,7 +74,7 @@ if (empty($cars)) {
                 </div>
 
                 <div style="flex-basis: 100%; text-align: center; margin-top: 1rem;">
-                    <button type="submit" style="width: 100%; background: var(--primary-color); color: #fff; padding: 1rem; border: none; border-radius: 10px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s;">
+                    <button type="submit" style="width: 100%; background: var(--primary-color); color: #fff; padding: 1rem; border: none; border-radius: 10px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 20px rgba(227,30,36,0.3);">
                         FAHRZEUG FINDEN <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
                     </button>
                 </div>
@@ -84,38 +84,38 @@ if (empty($cars)) {
 </section>
 
 <!-- FLEET PREVIEW -->
-<section style="padding: 6rem 0; background: #000;">
+<section style="padding: 8rem 0; background: #fff;">
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem;">
             <div>
-                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem;">Unsere <span class="text-primary">Flotte</span></h2>
+                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; color: #000;">Unsere <span class="text-primary">Flotte</span></h2>
                 <p style="color: #666; font-size: 1.2rem;">Wir bieten nur das Beste.</p>
             </div>
-            <a href="fleet.php" style="color: #fff; border-bottom: 1px solid var(--primary-color); padding-bottom: 5px; font-weight: 600;">ALLE ANZEIGEN</a>
+            <a href="fleet.php" style="color: #000; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; font-weight: 700;">ALLE ANZEIGEN</a>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
             <?php foreach ($cars as $car): ?>
-            <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 15px; overflow: hidden; transition: transform 0.3s;">
+            <div style="background: #fff; border-radius: 20px; overflow: hidden; transition: all 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05);">
                 <div style="height: 250px; overflow: hidden; position: relative;">
                     <img src="<?php echo $car['image_url']; ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                    <span style="position: absolute; top: 15px; right: 15px; background: #000; color: #fff; padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                    <span style="position: absolute; top: 15px; right: 15px; background: #fff; color: #000; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                         <?php echo $car['year']; ?>
                     </span>
                 </div>
                 <div style="padding: 2rem;">
-                    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;"><?php echo $car['brand']; ?> <?php echo $car['model']; ?></h3>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #000; font-weight: 700;"><?php echo $car['brand']; ?> <span style="font-weight: 400;"><?php echo $car['model']; ?></span></h3>
                     
                     <div style="display: flex; gap: 1rem; color: #666; font-size: 0.9rem; margin-bottom: 1.5rem;">
-                        <span><i class="fas fa-gas-pump"></i> <?php echo $car['fuel_type']; ?></span>
-                        <span><i class="fas fa-cogs"></i> <?php echo $car['transmission']; ?></span>
+                        <span><i class="fas fa-gas-pump" style="color: var(--primary-color);"></i> <?php echo $car['fuel_type']; ?></span>
+                        <span><i class="fas fa-cogs" style="color: var(--primary-color);"></i> <?php echo $car['transmission']; ?></span>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                            <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> ₺ <span style="font-size: 0.8rem; color: #666; font-weight: 400;">/Tag</span>
+                        <span style="font-size: 1.5rem; font-weight: 700; color: #000;">
+                            <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> ₺ <span style="font-size: 0.9rem; color: #888; font-weight: 400;">/Tag</span>
                         </span>
-                        <a href="rent.php?id=<?php echo $car['id']; ?>" style="background: var(--primary-color); color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                        <a href="rent.php?id=<?php echo $car['id']; ?>" style="background: #000; color: #fff; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: transform 0.2s;">
                             <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -127,22 +127,22 @@ if (empty($cars)) {
 </section>
 
 <!-- FEATURES -->
-<section style="padding: 6rem 0; background-color: #050505; border-top: 1px solid #111;">
+<section style="padding: 6rem 0; background-color: #f8f9fa;">
     <div class="container">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem;">
-            <div style="text-align: center;">
+            <div style="text-align: center; padding: 2rem; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
                 <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1.5rem;"></i>
-                <h3 style="margin-bottom: 1rem;">100% Sicher</h3>
+                <h3 style="margin-bottom: 1rem; color: #000;">100% Sicher</h3>
                 <p style="color: #666;">Vollkasko Versicherung und 24/7 Support für Ihre Sicherheit.</p>
             </div>
-            <div style="text-align: center;">
+            <div style="text-align: center; padding: 2rem; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
                 <i class="fas fa-stopwatch" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1.5rem;"></i>
-                <h3 style="margin-bottom: 1rem;">Schnelle Abwicklung</h3>
+                <h3 style="margin-bottom: 1rem; color: #000;">Schnelle Abwicklung</h3>
                 <p style="color: #666;">Keine Wartezeiten. Buchen Sie online und fahren Sie los.</p>
             </div>
-            <div style="text-align: center;">
+            <div style="text-align: center; padding: 2rem; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
                 <i class="fas fa-star" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1.5rem;"></i>
-                <h3 style="margin-bottom: 1rem;">Premium Service</h3>
+                <h3 style="margin-bottom: 1rem; color: #000;">Premium Service</h3>
                 <p style="color: #666;">Feldkirch's exklusivste Fahrzeugflotte zu Ihren Diensten.</p>
             </div>
         </div>
