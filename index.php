@@ -234,7 +234,7 @@ if (empty($cars)) {
                         <div>
                             <span style="display: block; font-size: 0.75rem; color: #999; font-weight: 600; margin-bottom: 0.3rem;">AB</span>
                             <span style="font-size: 2rem; font-weight: 900; color: #000;">
-                                <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> ₺
+                                <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> €
                             </span>
                             <span style="font-size: 0.9rem; color: #999; font-weight: 500;">/Tag</span>
                         </div>
