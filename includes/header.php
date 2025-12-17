@@ -10,7 +10,10 @@
 </head>
 <body>
     <header>
-        <div class="logo">Luxe<span style="color: #fff;">Drive</span></div>
+        <a href="index.php" class="logo-container">
+            <img src="assets/img/logo.png" alt="Rent-Ex Logo" class="logo-img">
+            <span class="logo-text">Rent-Ex</span>
+        </a>
         <nav>
             <ul>
                 <li><a href="index.php">Startseite</a></li>

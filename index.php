@@ -89,25 +89,25 @@ if (empty($cars)) {
     </div>
 </section>
 
-<section id="services" style="padding: 5rem 5%; background: var(--card-bg);">
+<section id="services" class="services">
     <div class="section-title">
         <h2>Warum <span>Wir?</span></h2>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: center;">
-        <div>
-            <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+    <div class="services-grid">
+        <div class="service-card">
+            <i class="fas fa-shield-alt"></i>
             <h3>Sichere Vermietung</h3>
-            <p style="color: var(--text-muted);">Alle unsere Fahrzeuge sind versichert und regelmäßig gewartet.</p>
+            <p>Alle unsere Fahrzeuge sind versichert und regelmäßig gewartet.</p>
         </div>
-        <div>
-            <i class="fas fa-clock" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+        <div class="service-card">
+            <i class="fas fa-clock"></i>
             <h3>24/7 Support</h3>
-            <p style="color: var(--text-muted);">Pannenhilfe und Kundenservice-Unterstützung.</p>
+            <p>Pannenhilfe und Kundenservice-Unterstützung.</p>
         </div>
-        <div>
-            <i class="fas fa-tag" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+        <div class="service-card">
+            <i class="fas fa-tag"></i>
             <h3>Bester Preis</h3>
-            <p style="color: var(--text-muted);">Keine versteckten Gebühren, transparente Preisgestaltung.</p>
+            <p>Keine versteckten Gebühren, transparente Preisgestaltung.</p>
         </div>
     </div>
 </section>
