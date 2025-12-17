@@ -1,16 +1,16 @@
 :root {
-    --primary-color: #d4af37;
-    /* Premium Gold */
-    --primary-hover: #b3902b;
-    --secondary-color: #0a0a0a;
-    /* Deep Black */
-    --background-color: #050505;
-    /* Darker Background */
+    --primary-color: #E31E24;
+    /* Vibrant Red */
+    --primary-hover: #b91c1c;
+    --secondary-color: #000000;
+    /* Pure Black */
+    --background-color: #0a0a0a;
+    /* Dark Background */
     --text-color: #ffffff;
-    --text-muted: #a0a0a0;
-    --card-bg: rgba(30, 30, 30, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --text-muted: #d1d5db;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     --accent-blue: #007bff;
     --success: #28a745;
     --danger: #dc3545;
