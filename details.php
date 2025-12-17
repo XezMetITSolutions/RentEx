@@ -64,6 +64,25 @@ if ($car_id == 2) {
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Customer Reviews -->
+                    <div style="margin-bottom: 3rem; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 10px;">
+                        <h4 style="margin-bottom: 1rem;">Kundenbewertungen</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="color: #f59e0b; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                            <p style="font-style: italic; color: #ccc;">"Ein unglaubliches Fahrzeug! Der Service war erstklassig."</p>
+                            <small style="color: #666;">- Michael S.</small>
+                        </div>
+                        <div>
+                            <div style="color: #f59e0b; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                            <p style="font-style: italic; color: #ccc;">"Sauber, schnell und unkompliziert. Gerne wieder."</p>
+                            <small style="color: #666;">- Sarah K.</small>
+                        </div>
+                    </div>
 
                     <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn btn-primary" style="width: 100%; padding: 1.5rem; text-align: center; font-size: 1.2rem;">
                         JETZT RESERVIEREN <i class="fas fa-arrow-right" style="margin-left: 1rem;"></i>

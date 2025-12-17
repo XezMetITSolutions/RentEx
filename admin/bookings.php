@@ -1,76 +1,56 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['admin_logged_in'])) {
+    header('Location: login.php');
     exit;
 }
-require_once '../includes/db.php';
+include 'header.php';
 
-$bookings = $pdo->query("SELECT b.*, c.brand, c.model FROM bookings b JOIN cars c ON b.car_id = c.id ORDER BY b.created_at DESC")->fetchAll();
-?>
-<?php
-require_once 'header.php';
-require_once '../includes/db.php';
-
-$bookings = $pdo->query("SELECT b.*, c.brand, c.model FROM bookings b JOIN cars c ON b.car_id = c.id ORDER BY b.created_at DESC")->fetchAll();
+// Mock Bookings Data
+$bookings = [
+    ['id' => 101, 'car' => 'Mercedes S-Class', 'user' => 'Ahmet Yilmaz', 'dates' => '20.12 - 25.12', 'status' => 'pending'],
+    ['id' => 102, 'car' => 'BMW M4', 'user' => 'Klaus Müller', 'dates' => '10.01 - 12.01', 'status' => 'confirmed']
+];
 ?>
 
-<div class="page-title">
-    <h1>Reservierungen</h1>
-    <p>Übersicht aller Buchungen und deren Status.</p>
-</div>
+<div class="admin-container" style="padding: 2rem; color: #fff;">
+    <h1 class="title-lg" style="color: #fff; margin-bottom: 2rem;">Buchungsverwaltung</h1>
 
-<div class="table-card">
-    <div class="table-header">
-        <h3>Alle Buchungen</h3>
-    </div>
-    <div class="table-responsive">
-        <table class="data-table">
+    <div class="glass" style="border-radius: 15px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; color: #fff;">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Kunde</th>
-                    <th>Fahrzeug</th>
-                    <th>Zeitraum</th>
-                    <th>Gesamtbetrag</th>
-                    <th>Status</th>
-                    <th>Aktion</th>
+                <tr style="background: rgba(255,255,255,0.1); text-align: left;">
+                    <th style="padding: 1rem;">ID</th>
+                    <th style="padding: 1rem;">Fahrzeug</th>
+                    <th style="padding: 1rem;">Kunde</th>
+                    <th style="padding: 1rem;">Datum</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem; text-align: right;">Aktionen</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($bookings as $booking): ?>
-                <tr>
-                    <td>#<?php echo $booking['id']; ?></td>
-                    <td>
-                        <div style="font-weight: 600;"><?php echo htmlspecialchars($booking['customer_name']); ?></div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted);"><?php echo htmlspecialchars($booking['customer_phone']); ?></div>
-                    </td>
-                    <td><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></td>
-                    <td>
-                        <div><?php echo date('d.m.Y', strtotime($booking['start_date'])); ?></div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);">bis <?php echo date('d.m.Y', strtotime($booking['end_date'])); ?></div>
-                    </td>
-                    <td style="font-weight: 600;"><?php echo number_format($booking['total_price'], 2); ?> ₺</td>
-                    <td>
-                        <?php
-                            $statusClass = 'status-rented'; // Default orange
-                            if ($booking['status'] == 'confirmed') $statusClass = 'status-available'; // Green
-                            if ($booking['status'] == 'completed') $statusClass = 'status-available';
-                            if ($booking['status'] == 'cancelled') $statusClass = 'status-rented'; // Red/Orange
-                        ?>
-                        <span class="status-badge <?php echo $statusClass; ?>">
-                            <?php echo ucfirst($booking['status']); ?>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">#<?php echo $booking['id']; ?></td>
+                    <td style="padding: 1rem;"><?php echo $booking['car']; ?></td>
+                    <td style="padding: 1rem;"><?php echo $booking['user']; ?></td>
+                    <td style="padding: 1rem;"><?php echo $booking['dates']; ?></td>
+                    <td style="padding: 1rem;">
+                        <span style="background: <?php echo $booking['status'] == 'confirmed' ? 'var(--success)' : '#f59e0b'; ?>; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.8rem; text-transform: capitalize;">
+                            <?php echo $booking['status']; ?>
                         </span>
                     </td>
-                    <td>
-                        <a href="#" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Details</a>
+                    <td style="padding: 1rem; text-align: right;">
+                        <?php if($booking['status'] == 'pending'): ?>
+                        <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--success); border:none;"><i class="fas fa-check"></i></button>
+                        <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--danger); border:none;"><i class="fas fa-times"></i></button>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($bookings)) echo "<tr><td colspan='7' style='text-align:center; padding: 2rem;'>Keine Buchungen gefunden.</td></tr>"; ?>
             </tbody>
         </table>
     </div>
 </div>
 
-<?php require_once 'footer.php'; ?>
+<?php include 'footer.php'; ?>
