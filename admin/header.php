@@ -26,7 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
             
             <nav class="sidebar-nav">
-                <a href="dashboard.php" class="<?php echo $current_page == 'dashboard.php' || $current_page == 'index.php' ? 'active' : ''; ?>">
+                <a href="index.php" class="<?php echo $current_page == 'index.php' ? 'active' : ''; ?>">
                     <i class="fas fa-th-large"></i> <span>Dashboard</span>
                 </a>
                 <a href="cars.php" class="<?php echo $current_page == 'cars.php' ? 'active' : ''; ?>">

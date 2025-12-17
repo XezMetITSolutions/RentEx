@@ -2,19 +2,38 @@
 require_once 'header.php';
 require_once '../includes/db.php';
 
-// Fetch stats
-$total_cars = $pdo->query("SELECT COUNT(*) FROM cars")->fetchColumn();
-$active_bookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'confirmed'")->fetchColumn();
-$pending_bookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'pending'")->fetchColumn(); // Assuming 'pending' status exists or use logic
-$total_customers = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn(); // Assuming users table has role
-if (!$total_customers) $total_customers = 48; // Fallback to match image if no data
-if (!$pending_bookings) $pending_bookings = 3; // Fallback
+// Fetch stats with error handling
+$total_cars = 0;
+$active_bookings = 0;
+$pending_bookings = 0;
+$total_customers = 0;
+
+try {
+    $total_cars = $pdo->query("SELECT COUNT(*) FROM cars")->fetchColumn();
+    $active_bookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'confirmed'")->fetchColumn();
+    $pending_bookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'pending'")->fetchColumn();
+    
+    // Check if customers table exists, otherwise fallback to users
+    $stmt = $pdo->query("SHOW TABLES LIKE 'customers'");
+    if ($stmt->rowCount() > 0) {
+        $total_customers = $pdo->query("SELECT COUNT(*) FROM customers")->fetchColumn();
+    } else {
+        $total_customers = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    }
+} catch (Exception $e) {
+    // Silent fail or log
+}
+
+// Fallback for demo if no data
+if (!$total_customers) $total_customers = 0;
+if (!$pending_bookings) $pending_bookings = 0;
 
 ?>
 
-<div class="page-title">
-    <h1>Dashboard</h1>
-    <p>Willkommen zurück, Admin User. Hier ist der aktuelle Status.</p>
+<!-- Dashboard Header -->
+<div style="margin-bottom: 2.5rem;">
+    <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1.5px; color: var(--secondary);">Dashboard</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem;">Willkommen im Rentex Management System.</p>
 </div>
 
 <!-- Stats Row -->
@@ -22,149 +41,116 @@ if (!$pending_bookings) $pending_bookings = 3; // Fallback
     <div class="stat-card">
         <div class="stat-header">
             <div class="stat-icon icon-blue"><i class="fas fa-car"></i></div>
-            <span class="stat-badge">↗ +2</span>
+            <span class="stat-badge">Aktiv</span>
         </div>
-        <div class="stat-label">Fahrzeuge</div>
+        <div class="stat-label">Gesamt Fuhrpark</div>
         <div class="stat-value"><?php echo $total_cars; ?></div>
     </div>
+    
     <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon icon-green"><i class="fas fa-clock"></i></div>
+            <div class="stat-icon icon-green"><i class="fas fa-key"></i></div>
         </div>
         <div class="stat-label">Aktive Mieten</div>
         <div class="stat-value"><?php echo $active_bookings; ?></div>
     </div>
+
     <div class="stat-card">
         <div class="stat-header">
-            <div class="stat-icon icon-orange"><i class="fas fa-calendar-check"></i></div>
-            <span class="stat-badge" style="background:#fff7ed; color:#f97316;">3 Neu</span>
+            <div class="stat-icon icon-orange"><i class="fas fa-hourglass-half"></i></div>
+            <?php if($pending_bookings > 0): ?>
+                <span class="stat-badge" style="background:#fff7ed; color:#f97316;"><?php echo $pending_bookings; ?> Neu</span>
+            <?php endif; ?>
         </div>
-        <div class="stat-label">Ausstehend</div>
+        <div class="stat-label">Offene Anfragen</div>
         <div class="stat-value"><?php echo $pending_bookings; ?></div>
     </div>
+
     <div class="stat-card">
         <div class="stat-header">
             <div class="stat-icon icon-purple"><i class="fas fa-users"></i></div>
-            <span class="stat-badge">↗ +12%</span>
         </div>
-        <div class="stat-label">Kunden</div>
+        <div class="stat-label">Kundenstamm</div>
         <div class="stat-value"><?php echo $total_customers; ?></div>
     </div>
 </div>
 
-<!-- Middle Section -->
+<!-- Main Dashboard Grid -->
 <div class="dashboard-grid">
-    <!-- Daily Overview -->
+    <!-- Tagesübersicht -->
     <div class="content-card">
         <div class="card-title">
-            <i class="fas fa-calendar-day" style="color:#3b82f6;"></i> Tagesübersicht (Heute)
+            <i class="fas fa-calendar-alt" style="color:#3b82f6;"></i> Heutige Aktivitäten
         </div>
         
-        <div style="margin-bottom: 1.5rem;">
-            <div style="font-size:0.75rem; font-weight:700; color:#94a3b8; margin-bottom:0.5rem; letter-spacing:1px;">GEPLANTE ABHOLUNGEN</div>
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size:0.7rem; font-weight:800; color:#94a3b8; margin-bottom:1rem; letter-spacing:1.5px; text-transform: uppercase;">GEPLANTE ÜBERGABEN</div>
             <div class="timeline-item">
                 <div style="display:flex; align-items:center;">
-                    <span class="time-badge">10:00</span>
+                    <span class="time-badge">Demodaten</span>
                     <div class="item-info">
-                        <h4>VW Polo</h4>
-                        <p>Max Mustermann</p>
+                        <h4>Beispiel Übergabe</h4>
+                        <p>Noch keine realen Daten heute</p>
                     </div>
                 </div>
-                <button class="btn-check">Check-in</button>
-            </div>
-            <div class="timeline-item">
-                <div style="display:flex; align-items:center;">
-                    <span class="time-badge">14:30</span>
-                    <div class="item-info">
-                        <h4>Ford Transit</h4>
-                        <p>Bau GmbH</p>
-                    </div>
-                </div>
-                <button class="btn-check">Check-in</button>
+                <button class="btn-check">Protokoll</button>
             </div>
         </div>
 
         <div>
-            <div style="font-size:0.75rem; font-weight:700; color:#94a3b8; margin-bottom:0.5rem; letter-spacing:1px;">ERWARTETE RÜCKGABEN</div>
-            <div class="timeline-item" style="background:#fffbeb; border-color:#fef3c7;">
-                <div style="display:flex; align-items:center;">
-                    <span class="time-badge" style="background:#fef3c7; color:#d97706;">09:00</span>
-                    <div class="item-info">
-                        <h4>BMW 3er</h4>
-                        <p>Anna Schmidt</p>
-                    </div>
-                </div>
-                <button class="btn-check btn-check-out">Check-out</button>
+            <div style="font-size:0.7rem; font-weight:800; color:#94a3b8; margin-bottom:1rem; letter-spacing:1.5px; text-transform: uppercase;">ERWARTETE RÜCKNAHMEN</div>
+            <div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 15px; color: #94a3b8; font-size: 0.9rem;">
+                Keine Rücknahmen für heute geplant.
             </div>
         </div>
     </div>
 
-    <!-- Warnings -->
+    <!-- Warnings / Info -->
     <div class="content-card">
         <div class="card-title">
-            <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Fahrzeugstatus & Warnungen
-        </div>
-
-        <div class="alert-item alert-red">
-            <div class="alert-icon icon-bg-red"><i class="fas fa-wrench"></i></div>
-            <div class="alert-content">
-                <h4>Wartung fällig</h4>
-                <p>Fiat Ducato (FK-EX 5791) - Service seit 2 Tagen überfällig</p>
-            </div>
-            <div class="alert-action text-red">Ansehen</div>
+            <i class="fas fa-info-circle" style="color:var(--primary);"></i> Systemhinweise
         </div>
 
         <div class="alert-item alert-blue">
             <div class="alert-icon icon-bg-blue"><i class="fas fa-snowflake"></i></div>
             <div class="alert-content">
-                <h4>Winterreifenpflicht (Österreich)</h4>
-                <p>Zeitraum: 1. Nov - 15. Apr.<br>3 Fahrzeuge haben noch Sommerreifen.</p>
+                <h4>Winterreifenpflicht</h4>
+                <p>Erinnerung: In Österreich gilt vom 1. Nov. bis 15. April die Winterreifenpflicht bei winterlichen Bedingungen.</p>
             </div>
-            <div class="alert-action text-blue">Liste prüfen</div>
         </div>
 
         <div class="alert-item alert-yellow">
-            <div class="alert-icon icon-bg-yellow"><i class="fas fa-ticket-alt"></i></div>
+            <div class="alert-icon icon-bg-yellow"><i class="fas fa-shield-alt"></i></div>
             <div class="alert-content">
-                <h4>Vignette 2024</h4>
-                <p>Jahresvignetten laufen bald ab. Bitte Bestand prüfen.</p>
+                <h4>Pickerl & Versicherung</h4>
+                <p>Bitte prüfen Sie regelmäßig die §57a-Begutachtungstermine Ihrer Fahrzeuge im System.</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Access Grid -->
+<!-- Quick Actions -->
 <div class="quick-grid">
-    <div class="quick-card" onclick="window.location.href='cars.php'">
-        <div class="quick-icon icon-blue"><i class="fas fa-car"></i></div>
-        <h3>Fahrzeugverwaltung</h3>
-        <p>Fahrzeuge hinzufügen, bearbeiten und Status prüfen</p>
-    </div>
-    <div class="quick-card" onclick="window.location.href='bookings.php'">
-        <div class="quick-icon icon-green"><i class="fas fa-calendar-alt"></i></div>
-        <h3>Reservierungen</h3>
-        <p>Buchungen verwalten und Kalender einsehen</p>
-    </div>
-    <div class="quick-card" onclick="window.location.href='customers.php'">
-        <div class="quick-icon icon-purple"><i class="fas fa-users"></i></div>
-        <h3>Kunden</h3>
-        <p>Kundendaten und Historie verwalten</p>
-    </div>
-    <div class="quick-card" onclick="window.location.href='finances.php'">
-        <div class="quick-icon icon-purple" style="background:#f3e8ff; color:#9333ea;"><i class="fas fa-euro-sign"></i></div>
-        <h3>Finanzen</h3>
-        <p>Rechnungen, Zahlungen und Berichte</p>
-    </div>
-    <div class="quick-card" onclick="window.location.href='pos.php'">
-        <div class="quick-icon icon-orange"><i class="fas fa-shopping-cart"></i></div>
-        <h3>Registrierkasse</h3>
-        <p>Barzahlungen, RKSV und Tagesabschluss</p>
-    </div>
-    <div class="quick-card" onclick="window.location.href='settings.php'">
-        <div class="quick-icon" style="background:#f1f5f9; color:#475569;"><i class="fas fa-cog"></i></div>
-        <h3>Einstellungen</h3>
-        <p>Systemkonfiguration und Benutzerverwaltung</p>
-    </div>
+    <a href="cars.php" class="quick-card">
+        <div class="quick-icon icon-blue"><i class="fas fa-car-side"></i></div>
+        <h3>Fahrzeuge</h3>
+        <p>Bestand verwalten & neue Autos anlegen</p>
+    </a>
+    <a href="bookings.php" class="quick-card">
+        <div class="quick-icon icon-green"><i class="fas fa-calendar-check"></i></div>
+        <h3>Buchungen</h3>
+        <p>Reservierungen prüfen & bestätigen</p>
+    </a>
+    <a href="pos.php" class="quick-card">
+        <div class="quick-icon icon-orange"><i class="fas fa-cash-register"></i></div>
+        <h3>Kasse</h3>
+        <p>Einnahmen & Ausgaben erfassen</p>
+    </a>
+    <a href="settings.php" class="quick-card">
+        <div class="quick-icon" style="background:#f1f5f9; color:#475569;"><i class="fas fa-tools"></i></div>
+        <h3>System</h3>
+        <p>Einstellungen & Nutzerverwaltung</p>
+    </a>
 </div>
 
 <?php require_once 'footer.php'; ?>
