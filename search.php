@@ -2,12 +2,12 @@
 require_once 'includes/db.php';
 include 'includes/header.php';
 
-// Arama Mantığı (Örnek)
+// Suchlogik (Beispiel)
 $cars = [];
-// Gerçek bir uygulamada $_GET'den gelen filtreler burada SQL sorgusuna uygulanır
+// In einer echten App würden hier Filter aus $_GET auf die SQL-Abfrage angewendet
 $cars = [
-    ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 5000, 'fuel_type' => 'Dizel', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-    ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 4500, 'fuel_type' => 'Benzin', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+    ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 250, 'fuel_type' => 'Diesel', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+    ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 180, 'fuel_type' => 'Benzin', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
 ];
 ?>
 
@@ -70,8 +70,8 @@ $cars = [
 
 <div class="page-header">
     <div class="container">
-        <h1 style="font-size: 3.5rem; font-weight: 900;">Arama <span style="color: #E31E24;">Sonuçları</span></h1>
-        <p style="color: rgba(255,255,255,0.6);">Seçtiğiniz tarihler için uygun araçlar listeleniyor.</p>
+        <h1 style="font-size: 3.5rem; font-weight: 900;">Such<span style="color: #E31E24;">ergebnisse</span></h1>
+        <p style="color: rgba(255,255,255,0.6);">Verfügbare Fahrzeuge für Ihre Auswahl werden angezeigt.</p>
     </div>
 </div>
 
@@ -79,9 +79,9 @@ $cars = [
     <?php if (empty($cars)): ?>
         <div style="text-align: center; padding: 100px 0;">
             <i class="fas fa-search" style="font-size: 4rem; color: #eee; margin-bottom: 20px;"></i>
-            <h3>Üzgünüz, kriterlerinize uygun araç bulunamadı.</h3>
-            <p style="color: #666;">Lütfen farklı tarihler veya filtreler deneyin.</p>
-            <a href="index.php" class="btn btn-primary" style="margin-top: 20px;">ANA SAYFAYA DÖN</a>
+            <h3>Entschuldigung, es wurden keine passenden Fahrzeuge gefunden.</h3>
+            <p style="color: #666;">Bitte versuchen Sie es mit anderen Daten oder Filtern.</p>
+            <a href="index.php" class="btn btn-primary" style="margin-top: 20px;">ZURÜCK ZUR STARTSEITE</a>
         </div>
     <?php else: ?>
         <div class="search-results-grid">
@@ -103,8 +103,8 @@ $cars = [
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div class="price-tag"><?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> TL <span style="font-size: 0.9rem; color: #999;">/gün</span></div>
-                        <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn btn-primary" style="border-radius: 12px; padding: 10px 20px;">ŞİMDİ KİRALA</a>
+                        <div class="price-tag">€ <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> <span style="font-size: 0.9rem; color: #999;">/Tag</span></div>
+                        <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn btn-primary" style="border-radius: 12px; padding: 10px 20px;">JETZT BUCHEN</a>
                     </div>
                 </div>
             </div>

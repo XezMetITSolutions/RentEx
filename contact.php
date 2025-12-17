@@ -72,8 +72,8 @@
 
 <div class="page-header">
     <div class="container">
-        <h1 style="font-size: 3.5rem; font-weight: 900;">Bize <span style="color: #E31E24;">Ulaşın</span></h1>
-        <p style="color: rgba(255,255,255,0.6);">Sorularınız için her zaman buradayız. Size yardımcı olmaktan mutluluk duyarız.</p>
+        <h1 style="font-size: 3.5rem; font-weight: 900;">Kontaktieren Sie <span style="color: #E31E24;">Uns</span></h1>
+        <p style="color: rgba(255,255,255,0.6);">Wir sind jederzeit für Ihre Fragen da. Wir helfen Ihnen gerne weiter.</p>
     </div>
 </div>
 
@@ -83,13 +83,13 @@
             
             <!-- Contact Info -->
             <div class="contact-card">
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 40px;">İletişim Bilgileri</h2>
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 40px;">Kontaktinformationen</h2>
                 
                 <div class="contact-info-item">
                     <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
                     <div>
-                        <h4 style="margin-bottom: 5px;">Adres</h4>
-                        <p style="color: #666;">Rentex e.U.<br>Illstraße 75a<br>6800 Feldkirch</p>
+                        <h4 style="margin-bottom: 5px;">Adresse</h4>
+                        <p style="color: #666;">Rentex e.U.<br>Illstraße 75a<br>6800 Feldkirch, Österreich</p>
                     </div>
                 </div>
 
@@ -104,38 +104,37 @@
                 <div class="contact-info-item">
                     <div class="contact-icon"><i class="fas fa-envelope"></i></div>
                     <div>
-                        <h4 style="margin-bottom: 5px;">E-posta</h4>
-                        <p style="color: #666;">info@rentex.com</p>
+                        <h4 style="margin-bottom: 5px;">E-Mail</h4>
+                        <p style="color: #666;">info@rentex.at</p>
                     </div>
                 </div>
 
                 <div style="width: 100%; height: 250px; background: #eee; border-radius: 20px; overflow: hidden; margin-top: 20px;">
-                    <!-- Google Maps Placeholder -->
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2707.4124977465!2d9.5932!3d47.2372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDfCsDE0JzEzLjMiTiA5wrAzNSczNS41IkU!5e0!3m2!1str!2str!4v1639730000000!5m2!1str!2str" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2707.4124977465!2d9.5932!3d47.2372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x479b165f1712a32d%3A0xf62a3f9e9a3f9e!2sIllstra%C3%9Fe%2075a%2C%206800%20Feldkirch%2C%20%C3%96sterreich!5e0!3m2!1sde!2sat!4v1639730000000!5m2!1sde!2sat" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
             </div>
 
             <!-- Contact Form -->
             <div class="contact-card">
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 40px;">Mesaj Gönderin</h2>
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 40px;">Senden Sie uns eine Nachricht</h2>
                 <form action="send_contact.php" method="POST">
                     <div class="form-group-modern">
-                        <label>Adınız Soyadınız</label>
-                        <input type="text" name="name" placeholder="Örn: Ahmet Yılmaz" required>
+                        <label>Ihr Vor- und Nachname</label>
+                        <input type="text" name="name" placeholder="z.B. Max Mustermann" required>
                     </div>
                     <div class="form-group-modern">
-                        <label>E-posta Adresiniz</label>
-                        <input type="email" name="email" placeholder="Örn: ahmet@example.com" required>
+                        <label>Ihre E-Mail-Adresse</label>
+                        <input type="email" name="email" placeholder="z.B. max@example.com" required>
                     </div>
                     <div class="form-group-modern">
-                        <label>Konu</label>
-                        <input type="text" name="subject" placeholder="Nasıl yardımcı olabiliriz?" required>
+                        <label>Betreff</label>
+                        <input type="text" name="subject" placeholder="Wie können wir helfen?" required>
                     </div>
                     <div class="form-group-modern">
-                        <label>Mesajınız</label>
-                        <textarea name="message" rows="5" placeholder="Mesajınızı buraya yazın..." required></textarea>
+                        <label>Ihre Nachricht</label>
+                        <textarea name="message" rows="5" placeholder="Schreiben Sie Ihre Nachricht hier..." required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 1rem; border-radius: 12px; margin-top: 10px;">MESAJI GÖNDER</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 1rem; border-radius: 12px; margin-top: 10px;">NACHRICHT SENDEN</button>
                 </form>
             </div>
 

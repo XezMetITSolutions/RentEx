@@ -52,8 +52,8 @@
 
 <div class="page-header">
     <div class="container">
-        <h1 style="font-size: 3.5rem; font-weight: 900;">Hakkımızda <span style="color: #E31E24;">Rentex</span></h1>
-        <p style="color: rgba(255,255,255,0.6);">Lüks ve konforun buluştuğu nokta. Bizimle yolculuğun tadını çıkarın.</p>
+        <h1 style="font-size: 3.5rem; font-weight: 900;">Über <span style="color: #E31E24;">Rentex</span></h1>
+        <p style="color: rgba(255,255,255,0.6);">Wo Luxus auf Komfort trifft. Genießen Sie die Fahrt mit uns.</p>
     </div>
 </div>
 
@@ -61,33 +61,33 @@
     <div class="container">
         <div class="about-card">
             <div style="max-width: 800px;">
-                <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 30px; line-height: 1.2;">Ayrıcalıklı Mobilite Deneyiminde <span style="color: #E31E24;">Güvenilir Ortağınız</span></h2>
+                <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 30px; line-height: 1.2;">Ihr zuverlässiger Partner für <span style="color: #E31E24;">exklusive Mobilität</span></h2>
                 
                 <p style="font-size: 1.15rem; color: #555; line-height: 1.8; margin-bottom: 25px;">
-                    Rentex, premium araç kiralama sektöründe yenilikçi ve müşteri odaklı yaklaşımıyla öne çıkan bir markadır. Geniş ve her geçen gün büyüyen lüks araç filomuzla, sadece bir ulaşım aracı değil, unutulmaz bir deneyim sunuyoruz.
+                    Rentex ist eine Marke, die sich durch ihren innovativen und kundenorientierten Ansatz in der Premium-Autovermietungsbranche auszeichnet. Mit unserer großen und stetig wachsenden Luxusflotte bieten wir nicht nur ein Transportmittel, sondern ein unvergessliches Erlebnis.
                 </p>
                 
                 <p style="font-size: 1.15rem; color: #555; line-height: 1.8; margin-bottom: 25px;">
-                    Merkezimiz ve stratejik noktalarımızla, iş seyahatlerinizden tatil kaçamaklarınıza kadar her türlü yolculuğunuzda size en yüksek standartlarda hizmet vermeyi amaçlıyoruz. Güvenlik, konfor ve şıklık Rentex'in temel taşlarıdır.
+                    Von unserem Hauptsitz in Vorarlberg und unseren strategischen Standorten aus möchten wir Ihnen bei jeder Reise – ob Geschäftsreise oder Kurzurlaub – den höchsten Standard an Service bieten. Sicherheit, Komfort und Eleganz sind die Grundpfeiler von Rentex.
                 </p>
             </div>
 
             <div class="stat-grid-modern">
                 <div class="stat-box">
                     <span class="stat-val">45+</span>
-                    <span class="stat-tit">Lüks Araç</span>
+                    <span class="stat-tit">Luxusautos</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-val">12</span>
-                    <span class="stat-tit">Yıllık Tecrübe</span>
+                    <span class="stat-tit">Jahre Erfahrung</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-val">7/24</span>
-                    <span class="stat-tit">Müşteri Desteği</span>
+                    <span class="stat-val">24/7</span>
+                    <span class="stat-tit">Kundenbetreuung</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-val">%100</span>
-                    <span class="stat-tit">Müşteri Memnuniyeti</span>
+                    <span class="stat-val">100%</span>
+                    <span class="stat-tit">Kundenzufriedenheit</span>
                 </div>
             </div>
         </div>

@@ -2,20 +2,20 @@
 require_once 'includes/db.php';
 include 'includes/header.php';
 
-// Öne çıkan araçları getir
+// Featured cars holen
 $cars = [];
 try {
     $stmt = $pdo->query("SELECT * FROM cars WHERE status = 'available' LIMIT 3");
     $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    // Hata durumunda boş dizi
+    // Fallback
 }
 
 if (empty($cars)) {
     $cars = [
-        ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 5000, 'fuel_type' => 'Dizel', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 4500, 'fuel_type' => 'Benzin', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 3, 'brand' => 'Audi', 'model' => 'RS7', 'year' => 2024, 'price_per_day' => 4800, 'fuel_type' => 'Benzin', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80']
+        ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 250, 'fuel_type' => 'Diesel', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 180, 'fuel_type' => 'Benzin', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 3, 'brand' => 'Audi', 'model' => 'RS7', 'year' => 2024, 'price_per_day' => 220, 'fuel_type' => 'Benzin', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80']
     ];
 }
 ?>
@@ -29,11 +29,6 @@ if (empty($cars)) {
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
 }
 
 .hero-modern {
@@ -96,7 +91,6 @@ if (empty($cars)) {
     animation: fadeInUp 0.8s ease-out 0.4s backwards;
 }
 
-/* Modern Search Bar */
 .search-container {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(20px);
@@ -140,12 +134,6 @@ if (empty($cars)) {
     transition: all 0.3s;
 }
 
-.input-group-modern select:focus,
-.input-group-modern input:focus {
-    background: rgba(255,255,255,0.15);
-    border-color: #E31E24;
-}
-
 .btn-search {
     background: var(--primary-gradient);
     color: #fff;
@@ -162,12 +150,6 @@ if (empty($cars)) {
     gap: 10px;
 }
 
-.btn-search:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(227,30,36,0.3);
-}
-
-/* Stats Section */
 .stats-section {
     padding: 80px 0;
     background: var(--dark-bg);
@@ -195,7 +177,6 @@ if (empty($cars)) {
     letter-spacing: 2px;
 }
 
-/* Fleet Section */
 .fleet-section {
     padding: 100px 0;
     background: #f8f9fa;
@@ -248,10 +229,6 @@ if (empty($cars)) {
     height: 100%;
     object-fit: cover;
     transition: transform 0.6s;
-}
-
-.car-card-modern:hover .car-image-container img {
-    transform: scale(1.1);
 }
 
 .car-info {
@@ -338,11 +315,6 @@ if (empty($cars)) {
     transition: all 0.3s;
 }
 
-.car-card-modern:hover .btn-rent {
-    background: #E31E24;
-}
-
-/* Features Section */
 .features-section {
     padding: 100px 0;
     background: #fff;
@@ -377,12 +349,6 @@ if (empty($cars)) {
     transition: all 0.3s;
 }
 
-.feature-box:hover .feature-icon {
-    background: #E31E24;
-    color: #fff;
-    transform: rotateY(180deg);
-}
-
 .feature-title {
     font-size: 1.4rem;
     font-weight: 800;
@@ -395,11 +361,9 @@ if (empty($cars)) {
     line-height: 1.6;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .hero-title { font-size: 3.5rem; }
     .section-title { font-size: 2.2rem; }
-    .search-container { padding: 20px; border-radius: 20px; }
 }
 </style>
 
@@ -407,35 +371,35 @@ if (empty($cars)) {
 <section class="hero-modern">
     <div class="container">
         <div class="hero-content">
-            <span class="hero-badge">Ayrıcalıklı Araç Kiralama</span>
-            <h1 class="hero-title">Özel Anlar İçin<br><span>Eşsiz Sürüş Deneyimi</span></h1>
+            <span class="hero-badge">Exklusive Autovermietung</span>
+            <h1 class="hero-title">Fahren Sie das<br><span>Besondere</span></h1>
             <p class="hero-subtitle">
-                Rentex ile lüksü keşfedin. Premium araç filomuz ve kusursuz hizmet anlayışımızla yolculuklarınızı unutulmaz kılıyoruz.
+                Erleben Sie Luxus mit Rentex. Unsere Premium-Flotte und erstklassiger Service machen jede Fahrt unvergesslich.
             </p>
 
             <div class="search-container">
                 <form action="search.php" method="GET" class="search-form">
                     <div class="input-group-modern">
-                        <label>Teslim Alış Noktası</label>
+                        <label>Abholort</label>
                         <select name="location">
-                            <option>Merkez Ofis (İstanbul)</option>
-                            <option>Havalimanı</option>
-                            <option>Kadıköy</option>
-                            <option>Beşiktaş</option>
+                            <option>Feldkirch (Zentrale)</option>
+                            <option>Dornbirn</option>
+                            <option>Bregenz</option>
+                            <option>Innsbruck</option>
                         </select>
                     </div>
                     <div class="input-group-modern">
-                        <label>Alış Tarihi</label>
+                        <label>Abholdatum</label>
                         <input type="date" name="pickup_date" required>
                     </div>
                     <div class="input-group-modern">
-                        <label>Dönüş Tarihi</label>
+                        <label>Rückgabedatum</label>
                         <input type="date" name="return_date" required>
                     </div>
                     <div class="input-group-modern">
                         <label>&nbsp;</label>
                         <button type="submit" class="btn-search">
-                            <span>ARA</span>
+                            <span>SUCHEN</span>
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -451,19 +415,19 @@ if (empty($cars)) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
             <div class="stat-item">
                 <span class="stat-number">1200+</span>
-                <span class="stat-label">Mutlu Müşteri</span>
+                <span class="stat-label">Zufriedene Kunden</span>
             </div>
             <div class="stat-item">
                 <span class="stat-number">45+</span>
-                <span class="stat-label">Lüks Araç</span>
+                <span class="stat-label">Luxusautos</span>
             </div>
             <div class="stat-item">
                 <span class="stat-number">12</span>
-                <span class="stat-label">Yıllık Tecrübe</span>
+                <span class="stat-label">Jahre Erfahrung</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">7/24</span>
-                <span class="stat-label">Destek</span>
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Support</span>
             </div>
         </div>
     </div>
@@ -473,9 +437,9 @@ if (empty($cars)) {
 <section class="fleet-section">
     <div class="container">
         <div class="section-header">
-            <span class="section-badge">Araç Filomuz</span>
-            <h2 class="section-title">Size Özel Seçenekler</h2>
-            <p style="color: #666; max-width: 600px; margin: 0 auto;">En yeni modeller ve en iyi markalarla konforlu bir sürüşe hazır olun.</p>
+            <span class="section-badge">Unsere Flotte</span>
+            <h2 class="section-title">Exklusive Auswahl</h2>
+            <p style="color: #666; max-width: 600px; margin: 0 auto;">Bereit für eine komfortable Fahrt mit den neuesten Modellen und besten Marken.</p>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
@@ -504,7 +468,7 @@ if (empty($cars)) {
 
                     <div class="price-container">
                         <div class="price-tag">
-                            <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> TL <span>/gün</span>
+                            € <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> <span>/Tag</span>
                         </div>
                         <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn-rent">
                             <i class="fas fa-arrow-right"></i>
@@ -516,7 +480,7 @@ if (empty($cars)) {
         </div>
 
         <div style="text-align: center; margin-top: 60px;">
-            <a href="fleet.php" class="btn btn-primary" style="padding: 15px 40px; font-size: 1rem;">TÜM ARAÇLARI GÖR</a>
+            <a href="fleet.php" class="btn btn-primary" style="padding: 15px 40px; font-size: 1rem;">ALLE FAHRZEUGE ANSEHEN</a>
         </div>
     </div>
 </section>
@@ -525,8 +489,8 @@ if (empty($cars)) {
 <section class="features-section">
     <div class="container">
         <div class="section-header">
-            <span class="section-badge">Neden Biz?</span>
-            <h2 class="section-title">Kaliteli Hizmetin Adresi</h2>
+            <span class="section-badge">Warum wir?</span>
+            <h2 class="section-title">Qualität & Service</h2>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
@@ -534,24 +498,24 @@ if (empty($cars)) {
                 <div class="feature-icon">
                     <i class="fas fa-shield-alt"></i>
                 </div>
-                <h3 class="feature-title">Tam Sigorta</h3>
-                <p class="feature-desc">Tüm araçlarımız kapsamlı kasko ve sigorta ile güvence altındadır. Güvenle sürün.</p>
+                <h3 class="feature-title">Vollkasko</h3>
+                <p class="feature-desc">Alle unsere Fahrzeuge sind umfassend versichert. Fahren Sie mit gutem Gefühl.</p>
             </div>
 
             <div class="feature-box">
                 <div class="feature-icon">
                     <i class="fas fa-headset"></i>
                 </div>
-                <h3 class="feature-title">7/24 Destek</h3>
-                <p class="feature-desc">Yolculuğunuzun her anında yanınızdayız. Canlı destek hattımız her zaman açık.</p>
+                <h3 class="feature-title">24/7 Support</h3>
+                <p class="feature-desc">Wir sind jederzeit für Sie da. Unser Support ist rund um die Uhr erreichbar.</p>
             </div>
 
             <div class="feature-box">
                 <div class="feature-icon">
                     <i class="fas fa-car"></i>
                 </div>
-                <h3 class="feature-title">Yeni Filo</h3>
-                <p class="feature-desc">Araçlarımızın tamamı düşük kilometreli ve en son modellerden oluşmaktadır.</p>
+                <h3 class="feature-title">Neue Flotte</h3>
+                <p class="feature-desc">Unsere Fahrzeuge sind topgepflegt und bestehen aus den aktuellsten Modellen.</p>
             </div>
         </div>
     </div>
@@ -562,11 +526,11 @@ if (empty($cars)) {
     <div style="position: absolute; top: -50%; left: -10%; width: 500px; height: 500px; background: rgba(227,30,36,0.1); filter: blur(100px); border-radius: 50%;"></div>
     <div class="container">
         <div style="text-align: center; color: #fff; position: relative; z-index: 2;">
-            <h2 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 30px;">Yola Çıkmaya Hazır Mısınız?</h2>
-            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 40px;">Hemen rezervasyon yapın, hayalinizdeki araca en uygun fiyatlarla sahip olun.</p>
+            <h2 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 30px;">Bereit für die Fahrt?</h2>
+            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 40px;">Buchen Sie jetzt und sichern Sie sich Ihr Traumauto zu Top-Konditionen.</p>
             <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                <a href="search.php" class="btn btn-primary" style="padding: 18px 45px;">ŞİMDİ REZERVE ET</a>
-                <a href="contact.php" class="btn btn-outline" style="padding: 18px 45px; border-color: #fff; color: #fff;">BİZE ULAŞIN</a>
+                <a href="search.php" class="btn btn-primary" style="padding: 18px 45px;">JETZT BUCHEN</a>
+                <a href="contact.php" class="btn btn-outline" style="padding: 18px 45px; border-color: #fff; color: #fff;">KONTAKTIEREN</a>
             </div>
         </div>
     </div>

@@ -2,22 +2,22 @@
 require_once 'includes/db.php';
 include 'includes/header.php';
 
-// Araçları getir
+// Fahrzeuge holen
 $cars = [];
 try {
     $stmt = $pdo->query("SELECT * FROM cars WHERE status = 'available'");
     $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    // Hata durumunda boş dizi
+    // Fallback
 }
 
 if (empty($cars)) {
     $cars = [
-        ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 5000, 'fuel_type' => 'Dizel', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 4500, 'fuel_type' => 'Benzin', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 3, 'brand' => 'Audi', 'model' => 'RS7', 'year' => 2024, 'price_per_day' => 4800, 'fuel_type' => 'Benzin', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 4, 'brand' => 'Porsche', 'model' => '911 Carrera', 'year' => 2023, 'price_per_day' => 6000, 'fuel_type' => 'Benzin', 'transmission' => 'PDK', 'image_url' => 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
-        ['id' => 5, 'brand' => 'Range Rover', 'model' => 'Autobiography', 'year' => 2024, 'price_per_day' => 5500, 'fuel_type' => 'Hybrid', 'transmission' => 'Otomatik', 'image_url' => 'https://images.unsplash.com/photo-1605218457224-6aa16dc5517a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80']
+        ['id' => 1, 'brand' => 'Mercedes-Benz', 'model' => 'S-Class', 'year' => 2024, 'price_per_day' => 250, 'fuel_type' => 'Diesel', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 2, 'brand' => 'BMW', 'model' => 'M4 Competition', 'year' => 2023, 'price_per_day' => 180, 'fuel_type' => 'Benzin', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 3, 'brand' => 'Audi', 'model' => 'RS7', 'year' => 2024, 'price_per_day' => 220, 'fuel_type' => 'Benzin', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 4, 'brand' => 'Porsche', 'model' => '911 Carrera', 'year' => 2023, 'price_per_day' => 300, 'fuel_type' => 'Benzin', 'transmission' => 'PDK', 'image_url' => 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'],
+        ['id' => 5, 'brand' => 'Range Rover', 'model' => 'Autobiography', 'year' => 2024, 'price_per_day' => 280, 'fuel_type' => 'Hybrid', 'transmission' => 'Automatik', 'image_url' => 'https://images.unsplash.com/photo-1605218457224-6aa16dc5517a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80']
     ];
 }
 ?>
@@ -124,8 +124,8 @@ if (empty($cars)) {
 
 <div class="page-header">
     <div class="container">
-        <h1 style="font-size: 3.5rem; font-weight: 900;">Araç <span style="color: #E31E24;">Filomuz</span></h1>
-        <p style="color: rgba(255,255,255,0.6);">Her ihtiyaca uygun, premium araç seçeneklerimizi keşfedin.</p>
+        <h1 style="font-size: 3.5rem; font-weight: 900;">Unsere <span style="color: #E31E24;">Fahrzeugflotte</span></h1>
+        <p style="color: rgba(255,255,255,0.6);">Entdecken Sie unsere Auswahl an Premium-Fahrzeugen für jeden Bedarf.</p>
     </div>
 </div>
 
@@ -149,8 +149,8 @@ if (empty($cars)) {
                 </div>
 
                 <div class="price-container">
-                    <div class="price-tag"><?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> TL <span style="font-size: 0.9rem; color: #999;">/gün</span></div>
-                    <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn btn-primary" style="border-radius: 12px; padding: 10px 20px;">KİRALA</a>
+                    <div class="price-tag">€ <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> <span style="font-size: 0.9rem; color: #999;">/Tag</span></div>
+                    <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn btn-primary" style="border-radius: 12px; padding: 10px 20px;">MIETEN</a>
                 </div>
             </div>
         </div>
