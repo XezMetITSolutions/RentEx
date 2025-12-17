@@ -12,18 +12,18 @@
     <header>
         <a href="index.php" class="logo-container">
             <img src="assets/img/logo.png" alt="Rent-Ex Logo" class="logo-img">
-            <span class="logo-text">Rent-Ex</span>
+            <span class="logo-text">Rentex</span>
         </a>
         <nav>
             <ul>
-                <li><a href="index.php">Startseite</a></li>
-                <li><a href="fleet.php">Fahrzeuge</a></li>
-                <li><a href="search.php">Suche</a></li>
-                <li><a href="contact.php">Kontakt</a></li>
+                <li><a href="index.php">Ana Sayfa</a></li>
+                <li><a href="fleet.php">Araç Filosu</a></li>
+                <li><a href="search.php">Araç Ara</a></li>
+                <li><a href="contact.php">İletişim</a></li>
             </ul>
         </nav>
         <div class="auth-buttons">
-            <a href="admin/login.php" class="btn btn-outline">Anmelden</a>
-            <a href="register.php" class="btn btn-primary">Registrieren</a>
+            <a href="admin/login.php" class="btn btn-outline">Giriş Yap</a>
+            <a href="register.php" class="btn btn-primary">Kayıt Ol</a>
         </div>
     </header>

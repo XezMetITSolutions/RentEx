@@ -2,13 +2,13 @@
 require_once 'includes/db.php';
 include 'includes/header.php';
 
-// Fetch featured cars
+// Öne çıkan araçları getir
 $cars = [];
 try {
     $stmt = $pdo->query("SELECT * FROM cars WHERE status = 'available' LIMIT 3");
     $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    // Fallback
+    // Hata durumunda boş dizi
 }
 
 if (empty($cars)) {
@@ -21,271 +21,553 @@ if (empty($cars)) {
 ?>
 
 <style>
+:root {
+    --primary-gradient: linear-gradient(135deg, #E31E24 0%, #8B0000 100%);
+    --dark-bg: #0a0a0a;
+}
+
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+.hero-modern {
+    min-height: 100vh;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    position: relative;
+    padding: 100px 20px;
 }
 
-.hero-section {
-    animation: fadeIn 0.8s ease-out;
+.hero-content {
+    max-width: 1000px;
+    text-align: center;
+    z-index: 2;
 }
 
-.fade-in-up {
-    animation: fadeInUp 0.8s ease-out forwards;
-    opacity: 0;
+.hero-badge {
+    background: rgba(227,30,36,0.2);
+    color: #E31E24;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 25px;
+    border: 1px solid rgba(227,30,36,0.3);
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.8s ease-out;
 }
 
-.delay-1 { animation-delay: 0.2s; }
-.delay-2 { animation-delay: 0.4s; }
-.delay-3 { animation-delay: 0.6s; }
+.hero-title {
+    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 25px;
+    letter-spacing: -2px;
+    animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
 
-.car-card {
+.hero-title span {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.8);
+    max-width: 700px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+/* Modern Search Bar */
+.search-container {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    padding: 30px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.8s ease-out 0.6s backwards;
+}
+
+.search-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.input-group-modern {
+    text-align: left;
+}
+
+.input-group-modern label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #E31E24;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-group-modern select,
+.input-group-modern input {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-group-modern select:focus,
+.input-group-modern input:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: #E31E24;
+}
+
+.btn-search {
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    padding: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-search:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(227,30,36,0.3);
+}
+
+/* Stats Section */
+.stats-section {
+    padding: 80px 0;
+    background: var(--dark-bg);
+}
+
+.stat-item {
+    text-align: center;
+    color: #fff;
+}
+
+.stat-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Fleet Section */
+.fleet-section {
+    padding: 100px 0;
+    background: #f8f9fa;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-badge {
+    color: #E31E24;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.section-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.car-card-modern {
+    background: #fff;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.05);
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    height: 100%;
 }
 
-.car-card:hover {
+.car-card-modern:hover {
     transform: translateY(-15px);
-    box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
 }
 
-.car-card:hover img {
+.car-image-container {
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+
+.car-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s;
+}
+
+.car-card-modern:hover .car-image-container img {
     transform: scale(1.1);
 }
 
-.car-card img {
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+.car-info {
+    padding: 30px;
 }
 
-.btn-primary-modern {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+.car-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-.btn-primary-modern::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s ease;
+.brand-badge {
+    color: #E31E24;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
 }
 
-.btn-primary-modern:hover::before {
-    left: 100%;
+.year-badge {
+    background: #f1f1f1;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
-.gradient-text {
-    background: linear-gradient(135deg, #E31E24 0%, #8B0000 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.car-name {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: #000;
+}
+
+.specs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    margin-bottom: 25px;
+}
+
+.spec-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.spec-item i {
+    color: #E31E24;
+}
+
+.price-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price-tag {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #000;
+}
+
+.price-tag span {
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 500;
+}
+
+.btn-rent {
+    width: 50px;
+    height: 50px;
+    background: #000;
+    color: #fff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.car-card-modern:hover .btn-rent {
+    background: #E31E24;
+}
+
+/* Features Section */
+.features-section {
+    padding: 100px 0;
+    background: #fff;
+}
+
+.feature-box {
+    text-align: center;
+    padding: 40px;
+    border-radius: 30px;
+    transition: all 0.3s;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+}
+
+.feature-box:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    border-color: #E31E24;
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(227,30,36,0.05);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    color: #E31E24;
+    font-size: 2rem;
+    transition: all 0.3s;
+}
+
+.feature-box:hover .feature-icon {
+    background: #E31E24;
+    color: #fff;
+    transform: rotateY(180deg);
+}
+
+.feature-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.feature-desc {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-title { font-size: 3.5rem; }
+    .section-title { font-size: 2.2rem; }
+    .search-container { padding: 20px; border-radius: 20px; }
 }
 </style>
 
-<!-- HERO SECTION -->
-<section class="hero-section" style="min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
-    
-    <!-- Animated Background Elements -->
-    <div style="position: absolute; top: 10%; right: 5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(227,30,36,0.05) 0%, transparent 70%); border-radius: 50%; animation: float 6s ease-in-out infinite;"></div>
-    <div style="position: absolute; bottom: 10%; left: 5%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,0,0,0.02) 0%, transparent 70%); border-radius: 50%; animation: float 8s ease-in-out infinite;"></div>
-
-    <div class="container" style="position: relative; z-index: 2;">
-        <div style="max-width: 1200px; margin: 0 auto; text-align: center; padding: 2rem 0;">
-            
-            <div class="fade-in-up" style="margin-bottom: 2rem;">
-                <span style="display: inline-block; padding: 0.7rem 2rem; background: rgba(227,30,36,0.1); color: var(--primary-color); font-weight: 700; font-size: 0.9rem; border-radius: 50px; letter-spacing: 2px;">
-                    PREMIUM CAR RENTAL • FELDKIRCH
-                </span>
-            </div>
-
-            <h1 class="fade-in-up delay-1" style="font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; line-height: 1.1; margin-bottom: 2rem; letter-spacing: -3px;">
-                Fahre das<br>
-                <span class="gradient-text">Außergewöhnliche</span>
-            </h1>
-
-            <p class="fade-in-up delay-2" style="font-size: 1.3rem; color: #666; max-width: 700px; margin: 0 auto 4rem; line-height: 1.8;">
-                Erleben Sie Luxus auf Rädern. Premium Fahrzeuge. Erstklassiger Service. Unvergessliche Momente.
+<!-- Hero Section -->
+<section class="hero-modern">
+    <div class="container">
+        <div class="hero-content">
+            <span class="hero-badge">Ayrıcalıklı Araç Kiralama</span>
+            <h1 class="hero-title">Özel Anlar İçin<br><span>Eşsiz Sürüş Deneyimi</span></h1>
+            <p class="hero-subtitle">
+                Rentex ile lüksü keşfedin. Premium araç filomuz ve kusursuz hizmet anlayışımızla yolculuklarınızı unutulmaz kılıyoruz.
             </p>
 
-            <!-- Search Bar -->
-            <div class="fade-in-up delay-3" style="background: #fff; max-width: 900px; margin: 0 auto; padding: 2rem; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); backdrop-filter: blur(10px);">
-                <form action="search.php" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; align-items: end;">
-                    
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #999; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Standort</label>
-                        <select name="location" style="width: 100%; padding: 0.8rem; border: 2px solid #f0f0f0; border-radius: 10px; font-size: 1rem; font-weight: 600; color: #000; outline: none; transition: all 0.3s;">
-                            <option>Feldkirch (Illstraße 75a)</option>
-                            <option>Dornbirn</option>
-                            <option>Bregenz</option>
+            <div class="search-container">
+                <form action="search.php" method="GET" class="search-form">
+                    <div class="input-group-modern">
+                        <label>Teslim Alış Noktası</label>
+                        <select name="location">
+                            <option>Merkez Ofis (İstanbul)</option>
+                            <option>Havalimanı</option>
+                            <option>Kadıköy</option>
+                            <option>Beşiktaş</option>
                         </select>
                     </div>
-
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #999; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Abholung</label>
-                        <input type="date" name="pickup_date" style="width: 100%; padding: 0.8rem; border: 2px solid #f0f0f0; border-radius: 10px; font-size: 1rem; font-weight: 600; color: #000; outline: none; transition: all 0.3s;">
+                    <div class="input-group-modern">
+                        <label>Alış Tarihi</label>
+                        <input type="date" name="pickup_date" required>
                     </div>
-
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #999; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Rückgabe</label>
-                        <input type="date" name="return_date" style="width: 100%; padding: 0.8rem; border: 2px solid #f0f0f0; border-radius: 10px; font-size: 1rem; font-weight: 600; color: #000; outline: none; transition: all 0.3s;">
+                    <div class="input-group-modern">
+                        <label>Dönüş Tarihi</label>
+                        <input type="date" name="return_date" required>
                     </div>
-
-                    <button type="submit" class="btn-primary-modern" style="padding: 1rem 2.5rem; background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%); color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(227,30,36,0.3);">
-                        SUCHEN <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
-                    </button>
+                    <div class="input-group-modern">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn-search">
+                            <span>ARA</span>
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </form>
             </div>
-
         </div>
     </div>
 </section>
 
-<!-- STATS SECTION -->
-<section style="padding: 6rem 0; background: #000; color: #fff;">
+<!-- Stats Section -->
+<section class="stats-section">
     <div class="container">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4rem; text-align: center;">
-            <div>
-                <h3 style="font-size: 4rem; font-weight: 900; margin-bottom: 0.5rem; background: linear-gradient(135deg, #E31E24 0%, #ff4d4d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">500+</h3>
-                <p style="color: #888; font-size: 1.1rem;">Zufriedene Kunden</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
+            <div class="stat-item">
+                <span class="stat-number">1200+</span>
+                <span class="stat-label">Mutlu Müşteri</span>
             </div>
-            <div>
-                <h3 style="font-size: 4rem; font-weight: 900; margin-bottom: 0.5rem; background: linear-gradient(135deg, #E31E24 0%, #ff4d4d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">50+</h3>
-                <p style="color: #888; font-size: 1.1rem;">Premium Fahrzeuge</p>
+            <div class="stat-item">
+                <span class="stat-number">45+</span>
+                <span class="stat-label">Lüks Araç</span>
             </div>
-            <div>
-                <h3 style="font-size: 4rem; font-weight: 900; margin-bottom: 0.5rem; background: linear-gradient(135deg, #E31E24 0%, #ff4d4d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">24/7</h3>
-                <p style="color: #888; font-size: 1.1rem;">Kundenservice</p>
+            <div class="stat-item">
+                <span class="stat-number">12</span>
+                <span class="stat-label">Yıllık Tecrübe</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">7/24</span>
+                <span class="stat-label">Destek</span>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CAR SHOWCASE -->
-<section style="padding: 8rem 0; background: #fafafa;">
+<!-- Our Fleet -->
+<section class="fleet-section">
     <div class="container">
-        
-        <div style="max-width: 800px; margin-bottom: 6rem;">
-            <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(227,30,36,0.1); color: var(--primary-color); font-weight: 700; font-size: 0.85rem; border-radius: 50px; margin-bottom: 1.5rem;">
-                UNSERE KOLLEKTION
-            </span>
-            <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; color: #000; line-height: 1.2; margin-bottom: 1.5rem; letter-spacing: -2px;">
-                Exklusive Fahrzeuge für besondere Momente
-            </h2>
-            <p style="font-size: 1.2rem; color: #666; line-height: 1.8;">
-                Jedes Fahrzeug in unserer Flotte wurde sorgfältig ausgewählt, um Ihnen ein unvergessliches Fahrerlebnis zu bieten.
-            </p>
+        <div class="section-header">
+            <span class="section-badge">Araç Filomuz</span>
+            <h2 class="section-title">Size Özel Seçenekler</h2>
+            <p style="color: #666; max-width: 600px; margin: 0 auto;">En yeni modeller ve en iyi markalarla konforlu bir sürüşe hazır olun.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 3rem;">
-            <?php foreach ($cars as $index => $car): ?>
-            <div class="car-card" style="background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.08);">
-                
-                <div style="height: 280px; overflow: hidden; position: relative; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);">
-                    <img src="<?php echo $car['image_url']; ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);"></div>
-                    
-                    <div style="position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 0.5rem 1rem; border-radius: 50px; font-weight: 700; font-size: 0.9rem; color: #000;">
-                        <?php echo $car['year']; ?>
-                    </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+            <?php foreach ($cars as $car): ?>
+            <div class="car-card-modern">
+                <div class="car-image-container">
+                    <img src="<?php echo $car['image_url']; ?>" alt="<?php echo $car['brand'] . ' ' . $car['model']; ?>">
                 </div>
-
-                <div style="padding: 2.5rem;">
+                <div class="car-info">
+                    <div class="car-meta">
+                        <span class="brand-badge"><?php echo $car['brand']; ?></span>
+                        <span class="year-badge"><?php echo $car['year']; ?></span>
+                    </div>
+                    <h3 class="car-name"><?php echo $car['model']; ?></h3>
                     
-                    <div style="margin-bottom: 2rem;">
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px;">
-                            <?php echo $car['brand']; ?>
-                        </span>
-                        <h3 style="font-size: 2rem; font-weight: 800; color: #000; margin-top: 0.5rem;">
-                            <?php echo $car['model']; ?>
-                        </h3>
-                    </div>
-
-                    <div style="display: flex; gap: 2rem; padding: 1.5rem 0; border-top: 2px solid #f5f5f5; border-bottom: 2px solid #f5f5f5; margin-bottom: 2rem;">
-                        <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <i class="fas fa-gas-pump" style="color: #ccc; font-size: 1rem;"></i>
-                            <span style="color: #666; font-weight: 600; font-size: 0.95rem;"><?php echo $car['fuel_type']; ?></span>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <i class="fas fa-gas-pump"></i>
+                            <span><?php echo $car['fuel_type']; ?></span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <i class="fas fa-cogs" style="color: #ccc; font-size: 1rem;"></i>
-                            <span style="color: #666; font-weight: 600; font-size: 0.95rem;"><?php echo $car['transmission']; ?></span>
+                        <div class="spec-item">
+                            <i class="fas fa-cog"></i>
+                            <span><?php echo $car['transmission']; ?></span>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="display: block; font-size: 0.75rem; color: #999; font-weight: 600; margin-bottom: 0.3rem;">AB</span>
-                            <span style="font-size: 2rem; font-weight: 900; color: #000;">
-                                <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> €
-                            </span>
-                            <span style="font-size: 0.9rem; color: #999; font-weight: 500;">/Tag</span>
+                    <div class="price-container">
+                        <div class="price-tag">
+                            <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> TL <span>/gün</span>
                         </div>
-                        <a href="rent.php?id=<?php echo $car['id']; ?>" style="width: 60px; height: 60px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.background='var(--primary-color)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='#000'; this.style.transform='scale(1)'">
-                            <i class="fas fa-arrow-right" style="font-size: 1.2rem;"></i>
+                        <a href="rent.php?id=<?php echo $car['id']; ?>" class="btn-rent">
+                            <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
-
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
 
-        <div style="text-align: center; margin-top: 5rem;">
-            <a href="fleet.php" style="display: inline-block; padding: 1.2rem 3rem; background: #000; color: #fff; border-radius: 12px; font-weight: 700; font-size: 1.1rem; transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)'">
-                ALLE FAHRZEUGE ANSEHEN <i class="fas fa-arrow-right" style="margin-left: 0.8rem;"></i>
-            </a>
+        <div style="text-align: center; margin-top: 60px;">
+            <a href="fleet.php" class="btn btn-primary" style="padding: 15px 40px; font-size: 1rem;">TÜM ARAÇLARI GÖR</a>
         </div>
-
     </div>
 </section>
 
-<!-- FEATURES SECTION -->
-<section style="padding: 8rem 0; background: #fff;">
+<!-- Features Section -->
+<section class="features-section">
     <div class="container">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4rem;">
-            
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, rgba(227,30,36,0.1) 0%, rgba(227,30,36,0.05) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-                    <i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--primary-color);"></i>
+        <div class="section-header">
+            <span class="section-badge">Neden Biz?</span>
+            <h2 class="section-title">Kaliteli Hizmetin Adresi</h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
                 </div>
-                <h3 style="font-size: 1.5rem; font-weight: 800; color: #000; margin-bottom: 1rem;">Vollkasko inklusive</h3>
-                <p style="color: #666; font-size: 1.05rem; line-height: 1.7;">Fahren Sie sorgenfrei mit unserer umfassenden Versicherung.</p>
+                <h3 class="feature-title">Tam Sigorta</h3>
+                <p class="feature-desc">Tüm araçlarımız kapsamlı kasko ve sigorta ile güvence altındadır. Güvenle sürün.</p>
             </div>
 
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, rgba(227,30,36,0.1) 0%, rgba(227,30,36,0.05) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-                    <i class="fas fa-clock" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-headset"></i>
                 </div>
-                <h3 style="font-size: 1.5rem; font-weight: 800; color: #000; margin-bottom: 1rem;">Flexible Zeiten</h3>
-                <p style="color: #666; font-size: 1.05rem; line-height: 1.7;">Buchen Sie tageweise, wochenweise oder langfristig.</p>
+                <h3 class="feature-title">7/24 Destek</h3>
+                <p class="feature-desc">Yolculuğunuzun her anında yanınızdayız. Canlı destek hattımız her zaman açık.</p>
             </div>
 
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, rgba(227,30,36,0.1) 0%, rgba(227,30,36,0.05) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-                    <i class="fas fa-star" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-car"></i>
                 </div>
-                <h3 style="font-size: 1.5rem; font-weight: 800; color: #000; margin-bottom: 1rem;">Premium Service</h3>
-                <p style="color: #666; font-size: 1.05rem; line-height: 1.7;">Persönliche Beratung und erstklassiger Kundenservice.</p>
+                <h3 class="feature-title">Yeni Filo</h3>
+                <p class="feature-desc">Araçlarımızın tamamı düşük kilometreli ve en son modellerden oluşmaktadır.</p>
             </div>
+        </div>
+    </div>
+</section>
 
+<!-- Call to Action -->
+<section style="padding: 100px 0; background: var(--dark-bg); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -50%; left: -10%; width: 500px; height: 500px; background: rgba(227,30,36,0.1); filter: blur(100px); border-radius: 50%;"></div>
+    <div class="container">
+        <div style="text-align: center; color: #fff; position: relative; z-index: 2;">
+            <h2 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 30px;">Yola Çıkmaya Hazır Mısınız?</h2>
+            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 40px;">Hemen rezervasyon yapın, hayalinizdeki araca en uygun fiyatlarla sahip olun.</p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="search.php" class="btn btn-primary" style="padding: 18px 45px;">ŞİMDİ REZERVE ET</a>
+                <a href="contact.php" class="btn btn-outline" style="padding: 18px 45px; border-color: #fff; color: #fff;">BİZE ULAŞIN</a>
+            </div>
         </div>
     </div>
 </section>
