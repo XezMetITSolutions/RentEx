@@ -30,12 +30,6 @@ if (!$pending_bookings) $pending_bookings = 0;
 
 ?>
 
-<!-- Dashboard Header -->
-<div style="margin-bottom: 2.5rem;">
-    <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1.5px; color: var(--secondary);">Dashboard</h1>
-    <p style="color: var(--text-muted); font-size: 1.1rem;">Willkommen im Rentex Management System.</p>
-</div>
-
 <!-- Stats Row -->
 <div class="stats-row">
     <div class="stat-card">

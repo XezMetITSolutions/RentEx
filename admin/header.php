@@ -22,6 +22,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="admin-layout">
         <aside class="sidebar">
             <div class="sidebar-logo">
+                <img src="../assets/img/logo.png" alt="Logo" style="height: 35px; width: auto;">
                 RENT<span>EX</span>
             </div>
             
