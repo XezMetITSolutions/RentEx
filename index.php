@@ -510,63 +510,239 @@ if (empty($cars)) {
 }
 </style>
 
-<!-- Hero Section -->
-<section class="hero-modern">
-    <!-- Animated background elements -->
-    <div class="floating-shape" style="width: 600px; height: 600px; top: -10%; right: -5%;"></div>
-    <div class="floating-shape" style="width: 400px; height: 400px; bottom: 5%; left: -5%; animation-delay: -2s;"></div>
-    
-    <div class="hero-bg-media">
-        <img src="https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" alt="Premium Car">
+<style>
+/* Hero Sophistication */
+.hero-split {
+    min-height: 100vh;
+    background: #000;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-visual {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 60%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hero-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    mask-image: linear-gradient(to right, transparent, black 40%);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40%);
+}
+
+.hero-visual-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-text-side {
+    position: relative;
+    z-index: 5;
+    text-align: left;
+    max-width: 800px;
+    padding-top: 50px;
+}
+
+.hero-title-main {
+    font-size: clamp(3.5rem, 8vw, 6.5rem);
+    font-weight: 950;
+    line-height: 0.85;
+    letter-spacing: -5px;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+}
+
+.hero-title-main span {
+    display: block;
+    color: #fff;
+}
+
+.hero-title-main .outline-text {
+    -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+    color: transparent;
+}
+
+.hero-search-bar {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 30px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 50px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s backwards;
+}
+
+.search-field {
+    flex: 1;
+    padding: 15px 25px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.search-field:last-child {
+    border-right: none;
+}
+
+.search-field label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+.search-field input, .search-field select {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    outline: none;
+    width: 100%;
+}
+
+.btn-hero-action {
+    background: var(--primary);
+    color: #fff;
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-hero-action:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 15px 30px rgba(227, 30, 36, 0.3);
+}
+
+.social-links-vertical {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    z-index: 10;
+}
+
+.social-links-vertical a {
+    color: rgba(255,255,255,0.3);
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.social-links-vertical a:hover {
+    color: var(--primary);
+}
+
+.scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    z-index: 10;
+}
+
+.scroll-indicator::after {
+    content: '';
+    width: 2px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--primary), transparent);
+}
+</style>
+
+<div class="social-links-vertical">
+    <a href="#"><i class="fab fa-instagram"></i></a>
+    <a href="#"><i class="fab fa-facebook-f"></i></a>
+    <a href="#"><i class="fab fa-twitter"></i></a>
+</div>
+
+<section class="hero-split">
+    <div class="hero-visual">
+        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" alt="Supercar">
+        <div class="hero-visual-overlay"></div>
     </div>
-    <div class="hero-bg-overlay"></div>
 
     <div class="container">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <i class="fas fa-circle"></i> EXKLUSIVE AUTOVERMIETUNG <i class="fas fa-circle"></i>
+        <div class="hero-text-side">
+            <div class="hero-badge" style="background: rgba(227, 30, 36, 0.1); border-color: rgba(227, 30, 36, 0.2); color: var(--primary);">
+                <i class="fas fa-bolt"></i> NEXT GENERATION RENTALS
             </div>
-            <h1 class="hero-title">
-                <span>FAHREN SIE DAS</span>
-                <span class="accent-text">BESONDERE</span>
+            
+            <h1 class="hero-title-main">
+                <span class="fade-in-up">DRIVE INTO</span>
+                <span class="outline-text fade-in-up delay-1">THE FUTURE</span>
+                <span class="accent-text fade-in-up delay-2">WITHOUT LIMITS</span>
             </h1>
-            <p class="hero-subtitle">
-                Erleben Sie Luxus auf einem neuen Level. Unsere handverlesene Premium-Flotte wartet auf Sie.
+
+            <p class="hero-subtitle fade-in-up delay-3" style="text-align: left; margin: 0; max-width: 500px;">
+                Eleganz trifft Performance. Entdecken Sie die exklusivste Auswahl an High-End Fahrzeugen in Österreich.
             </p>
 
-            <div class="search-container">
-                <form action="search.php" method="GET" class="search-form-inner">
-                    <div class="search-input-group">
-                        <label><i class="far fa-calendar-alt"></i> Abholdatum</label>
-                        <input type="date" name="pickup_date" required>
-                    </div>
-                    <div class="search-input-group">
-                        <label><i class="far fa-clock"></i> Zeit</label>
-                        <input type="time" name="pickup_time" required>
-                    </div>
-                    <div class="search-input-group">
-                        <label><i class="far fa-calendar-check"></i> Rückgabe</label>
-                        <input type="date" name="return_date" required>
-                    </div>
-                    <div class="search-input-group">
-                        <label><i class="fas fa-layer-group"></i> Kategorie</label>
-                        <select name="category">
-                            <option value="all">Alle Klassen</option>
-                            <option value="luxus">Premium</option>
-                            <option value="sport">Sport</option>
-                            <option value="suv">SUV</option>
+            <div class="hero-search-bar">
+                <form action="search.php" method="GET" style="display:content; width:100%; display:flex;">
+                    <div class="search-field">
+                        <label>Location</label>
+                        <select name="location">
+                            <option>Feldkirch</option>
+                            <option>Dornbirn</option>
+                            <option>Bregenz</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-search-modern">
-                        VERFÜGBARKEIT PRÜFEN
+                    <div class="search-field">
+                        <label>Period</label>
+                        <input type="date" name="pickup_date" placeholder="Start Date">
+                    </div>
+                    <div class="search-field">
+                        <label>Type</label>
+                        <select name="category">
+                            <option value="all">Luxury / Sport</option>
+                            <option value="suv">Elite SUV</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-hero-action">
+                        <i class="fas fa-search"></i>
                     </button>
                 </form>
             </div>
-            
-            <div class="location-tag">
-                <i class="fas fa-map-marker-alt"></i> <span>STATION: <strong>FELDKIRCH, ÖSTERREICH</strong></span>
-            </div>
         </div>
+    </div>
+
+    <div class="scroll-indicator">
+        SCROLL
     </div>
 </section>
 

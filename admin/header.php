@@ -22,7 +22,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="admin-layout">
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <img src="../assets/img/logo.png" alt="Logo" style="height: 35px; width: auto;">
                 RENT<span>EX</span>
             </div>
             
@@ -61,19 +60,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </aside>
 
         <main class="main-area">
-            <header class="top-bar">
+            <header class="top-bar" id="adminTopBar">
                 <div class="page-info">
                     <h1><?php 
                         switch($current_page) {
-                            case 'dashboard.php': case 'index.php': echo 'Dashboard'; break;
-                            case 'cars.php': echo 'Fahrzeugverwaltung'; break;
+                            case 'dashboard.php': case 'index.php': echo 'Dashboard Overview'; break;
+                            case 'cars.php': case 'car_form.php': echo 'Fahrzeugverwaltung'; break;
                             case 'bookings.php': echo 'Reservierungen'; break;
                             case 'fahrtenbuch.php': echo 'Fahrtenbuch'; break;
-                            case 'pos.php': echo 'Point of Sale'; break;
-                            case 'customers.php': echo 'Kundenstamm'; break;
-                            case 'finances.php': echo 'Finanzübersicht'; break;
+                            case 'pos.php': echo 'Kassen-System'; break;
+                            case 'customers.php': echo 'Kundenverwaltung'; break;
+                            case 'finances.php': echo 'Finanzen & Statistik'; break;
                             case 'settings.php': echo 'Systemeinstellungen'; break;
-                            default: echo 'Admin Panel';
+                            default: echo 'Admin Portal';
                         }
                     ?></h1>
                     <p>Willkommen zurück, Administrator</p>
@@ -84,3 +83,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="user-name">Admin User</span>
                 </div>
             </header>
+
+            <div class="content-wrapper">
+
+            <script>
+                window.onscroll = function() {
+                    const topBar = document.getElementById('adminTopBar');
+                    if (window.pageYOffset > 20) {
+                        topBar.classList.add('scrolled');
+                    } else {
+                        topBar.classList.remove('scrolled');
+                    }
+                };
+            </script>

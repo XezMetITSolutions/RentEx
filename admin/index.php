@@ -30,6 +30,8 @@ if (!$pending_bookings) $pending_bookings = 0;
 
 ?>
 
+
+
 <!-- Stats Row -->
 <div class="stats-row">
     <div class="stat-card">
