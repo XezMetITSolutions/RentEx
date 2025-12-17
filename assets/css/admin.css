@@ -24,14 +24,13 @@ body {
     font-family: 'Outfit', 'Inter', sans-serif;
     background-color: #f8fafc;
     color: var(--text-main);
-    display: flex;
-    min-height: 100vh;
+    margin: 0;
+    padding: 0;
 }
 
-/* Sidebar */
 .admin-layout {
     display: flex;
-    width: 100%;
+    min-height: 100vh;
 }
 
 .sidebar {
