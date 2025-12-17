@@ -378,32 +378,44 @@ if (empty($cars)) {
             </p>
 
             <div class="search-container">
-                <form action="search.php" method="GET" class="search-form">
-                    <div class="input-group-modern">
-                        <label>Abholort</label>
-                        <select name="location">
-                            <option>Feldkirch (Zentrale)</option>
-                            <option>Dornbirn</option>
-                            <option>Bregenz</option>
-                            <option>Innsbruck</option>
-                        </select>
-                    </div>
+                <form action="search.php" method="GET" class="search-form" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                     <div class="input-group-modern">
                         <label>Abholdatum</label>
                         <input type="date" name="pickup_date" required>
+                    </div>
+                    <div class="input-group-modern">
+                        <label>Abholzeit</label>
+                        <input type="time" name="pickup_time" required>
                     </div>
                     <div class="input-group-modern">
                         <label>Rückgabedatum</label>
                         <input type="date" name="return_date" required>
                     </div>
                     <div class="input-group-modern">
+                        <label>Rückgabezeit</label>
+                        <input type="time" name="return_time" required>
+                    </div>
+                    <div class="input-group-modern">
+                        <label>Kategorie</label>
+                        <select name="category">
+                            <option value="all">Alle Kategorien</option>
+                            <option value="luxus">Luxuslimousine</option>
+                            <option value="sport">Sportwagen</option>
+                            <option value="suv">SUV / Offroad</option>
+                            <option value="cabrio">Cabriolet</option>
+                        </select>
+                    </div>
+                    <div class="input-group-modern">
                         <label>&nbsp;</label>
                         <button type="submit" class="btn-search">
-                            <span>SUCHEN</span>
+                            <span>VERFÜGBARKEIT</span>
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </form>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 15px; text-align: left;">
+                    <i class="fas fa-info-circle"></i> Abholung und Rückgabe in <strong>Feldkirch</strong>.
+                </p>
             </div>
         </div>
     </div>
