@@ -35,103 +35,103 @@ $stmt->execute($params);
 $customers = $stmt->fetchAll();
 ?>
 
-<div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-        <div style="display:flex; align-items:center; gap:1rem;">
-            <div style="background:#8b5cf6; color:white; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
-                <i class="fas fa-users"></i>
-            </div>
-            <h1 style="margin:0; color:#8b5cf6;">Kundenverwaltung</h1>
-        </div>
-        <p style="margin-left: 3.5rem; margin-top: 0.2rem;">Kundendaten und Historie verwalten</p>
+<div style="display: flex; gap: 2rem; margin-bottom: 2rem; align-items: center; background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow);">
+    <div style="flex: 1; position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+        <input type="text" placeholder="Kunden suchen (Name, Email...)" value="<?php echo htmlspecialchars($search); ?>" onkeyup="if(event.key === 'Enter') window.location.href='?search='+this.value" style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 15px; border: 1px solid var(--border); background: #f8fafc; outline: none; font-weight: 600;">
     </div>
-    <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="btn btn-primary" style="background-color: #8b5cf6; border-color: #8b5cf6;">
-        <i class="fas fa-plus"></i> Neuer Kunde
+    <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="btn btn-primary" style="background: #8b5cf6; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);">
+        <i class="fas fa-user-plus"></i> Neuer Kunde
     </button>
 </div>
 
-<!-- Search Bar -->
-<div class="filter-bar">
-    <div class="search-input">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Suche nach Name oder Email..." value="<?php echo htmlspecialchars($search); ?>" onkeyup="if(event.key === 'Enter') window.location.href='?search='+this.value">
-    </div>
-</div>
-
-<!-- Customers Table -->
-<div style="background:white; border-radius:var(--radius); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow:hidden;">
-    <div class="cars-table-header" style="grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr;">
-        <div>Name</div>
-        <div>Kontakt</div>
-        <div>Adresse</div>
-        <div>Führerschein</div>
-        <div>Aktionen</div>
-    </div>
-    
-    <?php foreach ($customers as $c): ?>
-    <div class="cars-table-row" style="grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr;">
-        <div style="font-weight:700;">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-                <div style="width:32px; height:32px; background:#f3e8ff; color:#8b5cf6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">
-                    <?php echo strtoupper(substr($c['firstname'], 0, 1) . substr($c['lastname'], 0, 1)); ?>
-                </div>
-                <?php echo htmlspecialchars($c['firstname'] . ' ' . $c['lastname']); ?>
-            </div>
-        </div>
-        <div>
-            <div style="font-size:0.9rem;"><i class="fas fa-envelope" style="color:#94a3b8; width:16px;"></i> <?php echo htmlspecialchars($c['email']); ?></div>
-            <div style="font-size:0.9rem;"><i class="fas fa-phone" style="color:#94a3b8; width:16px;"></i> <?php echo htmlspecialchars($c['phone']); ?></div>
-        </div>
-        <div style="font-size:0.9rem; color:#64748b;"><?php echo htmlspecialchars($c['address']); ?></div>
-        <div style="font-family:monospace; background:#f1f5f9; padding:0.2rem 0.5rem; border-radius:4px; display:inline-block;"><?php echo htmlspecialchars($c['license_number']); ?></div>
-        <div style="display:flex; gap:0.5rem;">
-            <button class="action-btn btn-blue"><i class="fas fa-edit"></i></button>
-            <a href="?delete=<?php echo $c['id']; ?>" onclick="return confirm('Kunde wirklich löschen?')" class="action-btn btn-red"><i class="fas fa-trash"></i></a>
-        </div>
-    </div>
-    <?php endforeach; ?>
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Kunde</th>
+                <th>Kontakt</th>
+                <th>Adresse</th>
+                <th>Führerschein</th>
+                <th style="text-align: right;">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($customers as $c): ?>
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">
+                            <?php echo strtoupper(substr($c['firstname'], 0, 1) . substr($c['lastname'], 0, 1)); ?>
+                        </div>
+                        <div>
+                            <div style="font-weight: 800; color: var(--secondary);"><?php echo htmlspecialchars($c['firstname'] . ' ' . $c['lastname']); ?></div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Seit <?php echo date('d.m.Y', strtotime($c['created_at'])); ?></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.9rem; font-weight: 600;"><i class="fas fa-envelope" style="color: #94a3b8; width: 20px;"></i> <?php echo htmlspecialchars($c['email']); ?></div>
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-top: 4px;"><i class="fas fa-phone" style="color: #94a3b8; width: 20px;"></i> <?php echo htmlspecialchars($c['phone']); ?></div>
+                </td>
+                <td>
+                    <div style="font-size: 0.85rem; color: #475569; max-width: 200px;"><?php echo htmlspecialchars($c['address']); ?></div>
+                </td>
+                <td>
+                    <div style="font-family: monospace; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: 700; color: #475569;"><?php echo htmlspecialchars($c['license_number']); ?></div>
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn" style="background: #f1f5f9; color: #475569; padding: 10px;"><i class="fas fa-edit"></i></button>
+                        <a href="?delete=<?php echo $c['id']; ?>" onclick="return confirm('Kunde wirklich löschen?')" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 10px;"><i class="fas fa-trash"></i></a>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
 
 <!-- Add Customer Modal -->
-<div id="addCustomerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items: center; justify-content: center;">
-    <div style="background:var(--card-bg); width:500px; padding:2rem; border-radius:12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-        <h3 style="margin-bottom:1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Neuen Kunden anlegen</h3>
+<div id="addCustomerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index:2000; align-items: center; justify-content: center;">
+    <div style="background:white; width:550px; padding:3rem; border-radius:30px; box-shadow: 0 30px 60px rgba(0,0,0,0.2);">
+        <h2 style="margin-bottom:2rem; font-weight: 800; letter-spacing: -1px;">Neuen Kunden anlegen</h2>
         <form method="POST">
-            <div style="display:flex; gap:1rem;">
-                <div style="margin-bottom:1rem; flex:1;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Vorname</label>
-                    <input type="text" name="firstname" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Vorname</label>
+                    <input type="text" name="firstname" required style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
                 </div>
-                <div style="margin-bottom:1rem; flex:1;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Nachname</label>
-                    <input type="text" name="lastname" required style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
-                </div>
-            </div>
-
-            <div style="display:flex; gap:1rem;">
-                <div style="margin-bottom:1rem; flex:1;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Email</label>
-                    <input type="email" name="email" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
-                </div>
-                <div style="margin-bottom:1rem; flex:1;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Telefon</label>
-                    <input type="text" name="phone" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Nachname</label>
+                    <input type="text" name="lastname" required style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
                 </div>
             </div>
 
-            <div style="margin-bottom:1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Adresse</label>
-                <input type="text" name="address" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Email</label>
+                    <input type="email" name="email" style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Telefon</label>
+                    <input type="text" name="phone" style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
+                </div>
             </div>
 
-            <div style="margin-bottom:2rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight:500;">Führerschein-Nr.</label>
-                <input type="text" name="license" style="width:100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px;">
+            <div style="margin-bottom:1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Adresse</label>
+                <input type="text" name="address" style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
+            </div>
+
+            <div style="margin-bottom:2.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight:700; color: #8b5cf6; text-transform: uppercase;">Führerschein-Nr.</label>
+                <input type="text" name="license" style="width:100%; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: #f8fafc; font-weight: 600;">
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:1rem;">
-                <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" style="padding: 0.6rem 1.2rem; border: 1px solid var(--border); background: transparent; border-radius: 6px; cursor: pointer;">Abbrechen</button>
-                <button type="submit" name="add_customer" class="btn btn-primary" style="background-color: #8b5cf6; border-color: #8b5cf6;">Speichern</button>
+                <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" class="btn" style="background: #f1f5f9; color: #475569;">Abbrechen</button>
+                <button type="submit" name="add_customer" class="btn btn-primary" style="background: #8b5cf6;">Kunde speichern</button>
             </div>
         </form>
     </div>

@@ -18,48 +18,50 @@ if (isset($_GET['delete'])) {
 $cars = $pdo->query("SELECT * FROM cars")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="admin-container" style="padding: 2rem; color: #fff;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1 class="title-lg" style="color: #fff;">Fahrzeugverwaltung</h1>
+<div class="table-container">
+    <div class="table-header">
+        <h2>Fahrzeugliste</h2>
         <a href="car_form.php" class="btn btn-primary"><i class="fas fa-plus"></i> Neues Fahrzeug</a>
     </div>
 
-    <div class="glass" style="border-radius: 15px; overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; color: #fff;">
-            <thead>
-                <tr style="background: rgba(255,255,255,0.1); text-align: left;">
-                    <th style="padding: 1rem;">Bild</th>
-                    <th style="padding: 1rem;">Marke & Modell</th>
-                    <th style="padding: 1rem;">Preis/Tag</th>
-                    <th style="padding: 1rem;">Status</th>
-                    <th style="padding: 1rem; text-align: right;">Aktionen</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($cars as $car): ?>
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 1rem;">
-                        <img src="<?php echo $car['image_url']; ?>" style="width: 60px; height: 40px; object-fit: cover; border-radius: 5px;">
-                    </td>
-                    <td style="padding: 1rem;">
-                        <strong><?php echo $car['brand']; ?></strong> <?php echo $car['model']; ?>
-                        <div style="font-size: 0.8rem; color: #888;"><?php echo $car['year']; ?></div>
-                    </td>
-                    <td style="padding: 1rem;"><?php echo number_format($car['price_per_day'], 0, ',', '.'); ?> ₺</td>
-                    <td style="padding: 1rem;">
-                        <span style="background: <?php echo $car['status'] == 'available' ? 'var(--success)' : 'var(--danger)'; ?>; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.8rem;">
-                            <?php echo $car['status']; ?>
-                        </span>
-                    </td>
-                    <td style="padding: 1rem; text-align: right;">
-                        <a href="car_form.php?id=<?php echo $car['id']; ?>" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"><i class="fas fa-edit"></i></a>
-                        <a href="?delete=<?php echo $car['id']; ?>" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--danger); border: none;" onclick="return confirm('Wirklich löschen?');"><i class="fas fa-trash"></i></a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Bild</th>
+                <th>Marke & Modell</th>
+                <th>Preis/Tag</th>
+                <th>Status</th>
+                <th style="text-align: right;">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($cars as $car): ?>
+            <tr>
+                <td>
+                    <img src="<?php echo $car['image_url']; ?>" style="width: 80px; height: 50px; object-fit: cover; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                </td>
+                <td>
+                    <div style="font-weight: 800; font-size: 1rem; color: var(--secondary);"><?php echo $car['brand']; ?> <?php echo $car['model']; ?></div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);"><?php echo $car['year']; ?> • <?php echo $car['fuel_type']; ?></div>
+                </td>
+                <td>
+                    <div style="font-weight: 800; color: var(--primary);">€ <?php echo number_format($car['price_per_day'], 0, ',', '.'); ?></div>
+                </td>
+                <td>
+                    <span class="status-pill <?php echo $car['status'] == 'available' ? 'status-active' : 'status-rented'; ?>">
+                        <?php echo $car['status'] == 'available' ? 'Verfügbar' : 'Vermietet'; ?>
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="car_form.php?id=<?php echo $car['id']; ?>" class="btn" style="background: #f1f5f9; color: #475569; padding: 10px;"><i class="fas fa-edit"></i></a>
+                        <a href="?delete=<?php echo $car['id']; ?>" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 10px;" onclick="return confirm('Wirklich löschen?');"><i class="fas fa-trash"></i></a>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
 
 <?php include 'footer.php'; ?>
