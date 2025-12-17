@@ -17,13 +17,13 @@
         <nav>
             <ul>
                 <li><a href="index.php">Startseite</a></li>
-                <li><a href="#fleet">Fahrzeuge</a></li>
-                <li><a href="#services">Dienstleistungen</a></li>
-                <li><a href="#contact">Kontakt</a></li>
+                <li><a href="fleet.php">Fahrzeuge</a></li>
+                <li><a href="search.php">Suche</a></li>
+                <li><a href="contact.php">Kontakt</a></li>
             </ul>
         </nav>
         <div class="auth-buttons">
             <a href="admin/login.php" class="btn btn-outline">Anmelden</a>
-            <a href="#" class="btn btn-primary">Registrieren</a>
+            <a href="register.php" class="btn btn-primary">Registrieren</a>
         </div>
     </header>

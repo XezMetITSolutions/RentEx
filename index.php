@@ -43,9 +43,9 @@ if (empty($cars)) {
                 <div class="input-group">
                     <i class="fas fa-map-marker-alt"></i>
                     <select>
-                        <option>Istanbul Flughafen</option>
-                        <option>Sabiha Gökçen</option>
-                        <option>Stadtzentrum</option>
+                        <option>Feldkirch (Illstraße 75a)</option>
+                        <option>Dornbirn</option>
+                        <option>Bregenz</option>
                     </select>
                 </div>
                 <div class="divider"></div>
