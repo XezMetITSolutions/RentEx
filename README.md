@@ -1,4 +1,4 @@
-# LuxeDrive Araç Kiralama Sistemi
+# Rent-Ex Araç Kiralama Sistemi
 
 Modern ve profesyonel bir araç kiralama web sitesi altyapısı.
 

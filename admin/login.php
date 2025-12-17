@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - LuxeAdmin</title>
+    <title>Admin Login - Rent-Ex</title>
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <div class="login-box">
         <div class="login-header">
-            <h2>Luxe<span>Admin</span></h2>
+            <h2>Rent-Ex <span>Admin</span></h2>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Bitte melden Sie sich an</p>
         </div>
         <?php if (isset($error)) echo "<div style='background: rgba(220, 53, 69, 0.1); color: var(--danger); padding: 0.75rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.9rem; text-align: center;'>$error</div>"; ?>

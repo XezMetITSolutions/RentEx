@@ -68,7 +68,7 @@ header {
     top: 0;
     z-index: 1000;
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid rgba(227, 30, 36, 0.3);
 }
 
 .logo-container {
@@ -148,14 +148,14 @@ nav a:hover::after {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), #b3902b);
-    color: var(--secondary-color);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    background: linear-gradient(135deg, var(--primary-color), #b91c1c);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+    box-shadow: 0 8px 25px rgba(227, 30, 36, 0.5);
 }
 
 .btn-outline {
@@ -166,8 +166,8 @@ nav a:hover::after {
 
 .btn-outline:hover {
     background: var(--primary-color);
-    color: var(--secondary-color);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(227, 30, 36, 0.4);
 }
 
 /* Hero Section */
@@ -441,7 +441,7 @@ nav a:hover::after {
     color: var(--primary-color);
     font-weight: 700;
     font-size: 1.2rem;
-    background: rgba(212, 175, 55, 0.1);
+    background: rgba(227, 30, 36, 0.1);
     padding: 0.2rem 0.6rem;
     border-radius: 8px;
 }
