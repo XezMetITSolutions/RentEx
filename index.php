@@ -82,7 +82,7 @@ if (empty($cars)) {
                     <div class="spec-item"><i class="fas fa-gas-pump"></i> <?php echo $car['fuel_type']; ?></div>
                     <div class="spec-item"><i class="fas fa-cogs"></i> <?php echo $car['transmission']; ?></div>
                 </div>
-                <button class="btn btn-outline" style="width: 100%;">Jetzt mieten</button>
+                <a href="rent.php?id=<?php echo isset($car['id']) ? $car['id'] : 1; ?>" class="btn btn-outline" style="width: 100%; text-align: center;">Jetzt mieten</a>
             </div>
         </div>
         <?php endforeach; ?>
