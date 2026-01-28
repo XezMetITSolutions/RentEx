@@ -1,0 +1,295 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Car {
+  id            Int           @id @default(autoincrement())
+  
+  // Basic Information
+  brand         String
+  model         String
+  plate         String        @unique
+  year          Int
+  color         String
+  
+  // Technical Specifications
+  fuelType      String        // Benzin, Diesel, Elektro, Hybrid, Plug-in Hybrid
+  transmission  String?       // Automatik, Manuell
+  category      String?       // Kleinwagen, Mittelklasse, SUV, Limousine, Kombi, Van, Sportwagen, Cabrio
+  doors         Int?          // Number of doors
+  seats         Int?          // Number of seats
+  engineSize    String?       // e.g., "2.0L", "1.6L"
+  horsePower    Int?          // PS
+  fuelConsumption String?     // L/100km or kWh/100km
+  co2Emission   String?       // g/km
+  
+  // Status & Identification
+  status        String        // Active, Maintenance, Rented, Reserved, Inactive
+  vin           String?       @unique // Vehicle Identification Number (17 chars)
+  chassisNumber String?
+  
+  // Pricing
+  dailyRate         Decimal
+  weeklyRate        Decimal?
+  monthlyRate       Decimal?
+  longTermRate      Decimal?
+  minDaysForLongTerm Int?
+  depositAmount     Decimal?
+  
+  // Promotional Pricing
+  promoPrice        Decimal?
+  promoStartDate    DateTime?
+  promoEndDate      DateTime?
+  
+  // Insurance & Documents
+  insuranceCompany  String?
+  insurancePolicyNumber String?
+  insuranceValidUntil DateTime?
+  registrationDate  DateTime?
+  nextInspection    DateTime?    // TÜV/HU
+  
+  // Mileage & Usage
+  currentMileage    Int?         // in km
+  purchaseMileage   Int?
+  maxMileagePerDay  Int?         // km limit per rental day
+  
+  // Content & Media
+  imageUrl          String?
+  images            String?      // JSON array of image URLs
+  description       String?
+  features          String?      // Comma separated: GPS, Klimaanlage, Sitzheizung, etc.
+  
+  // Equipment & Features (Boolean flags for common features)
+  hasAirConditioning Boolean @default(false)
+  hasGPS            Boolean @default(false)
+  hasHeatedSeats    Boolean @default(false)
+  hasParkingSensors Boolean @default(false)
+  hasBackupCamera   Boolean @default(false)
+  hasCruiseControl  Boolean @default(false)
+  hasBluetoothAudio Boolean @default(false)
+  hasUSBPorts       Boolean @default(false)
+  hasChildSeatAnchors Boolean @default(false)
+  hasSkiRack        Boolean @default(false)
+  hasTowHitch       Boolean @default(false)
+  
+  // Maintenance & Services
+  vignetteValidUntil DateTime?
+  vignetteType      String?      // Jahresvignette, 2-Monatsvignette, etc.
+  lastOilChange     DateTime?
+  nextOilChange     DateTime?
+  lastTireChange    DateTime?
+  tireType          String?      // Sommerreifen, Winterreifen, Allwetter
+  nextServiceDate   DateTime?
+  lastServiceDate   DateTime?
+  
+  // Location & Availability
+  currentLocation   String?      // Office/Branch name
+  homeLocation      String?      // Default location
+  
+  // Financial
+  purchasePrice     Decimal?
+  purchaseDate      DateTime?
+  currentValue      Decimal?
+  
+  // Internal Management
+  internalNotes     String?
+  damageHistory     String?      // JSON or text log
+  isActive          Boolean @default(true)
+  
+  // Timestamps
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  rentals       Rental[]
+  maintenanceRecords MaintenanceRecord[]
+}
+
+model Customer {
+  id            Int           @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String        @unique
+  phone         String?
+  address       String?
+  city          String?
+  postalCode    String?
+  country       String?       @default("Deutschland")
+  
+  // Identification
+  idType        String?       // Personalausweis, Reisepass, Führerschein
+  idNumber      String?
+  licenseNumber String?       // Führerscheinnummer
+  licenseIssueDate DateTime?
+  licenseExpiryDate DateTime?
+  
+  // Additional Info
+  dateOfBirth   DateTime?
+  nationality   String?
+  company       String?       // For business customers
+  taxId         String?       // For business customers
+  
+  // Customer Status
+  isBlacklisted Boolean @default(false)
+  blacklistReason String?
+  customerType  String?       // Private, Business, VIP
+  notes         String?
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  rentals       Rental[]
+}
+
+model Rental {
+  id            Int           @id @default(autoincrement())
+  carId         Int
+  customerId    Int
+  
+  // Rental Period
+  startDate     DateTime
+  endDate       DateTime
+  actualReturnDate DateTime?
+  
+  // Pickup & Return
+  pickupLocation String?
+  returnLocation String?
+  pickupMileage  Int?
+  returnMileage  Int?
+  
+  // Pricing
+  dailyRate     Decimal
+  totalDays     Int
+  totalAmount   Decimal
+  depositPaid   Decimal?
+  depositReturned Decimal?
+  
+  // Additional Charges
+  extraCharges  Decimal?      @default(0)
+  extraChargesNote String?
+  discountAmount Decimal?     @default(0)
+  discountReason String?
+  
+  // Insurance & Extras
+  insuranceType String?       // Vollkasko, Teilkasko, Basis
+  insuranceCost Decimal?
+  hasGPS        Boolean       @default(false)
+  hasChildSeat  Boolean       @default(false)
+  hasSkiRack    Boolean       @default(false)
+  extrasCost    Decimal?      @default(0)
+  
+  // Fuel Policy
+  fuelLevelPickup String?     // Full, 3/4, 1/2, 1/4, Empty
+  fuelLevelReturn String?
+  fuelCharge      Decimal?    @default(0)
+  
+  // Payment
+  paymentStatus String        // Pending, Partial, Paid, Refunded
+  paymentMethod String?       // Cash, Card, Transfer, Online
+  
+  // Status & Notes
+  status        String        // Active, Completed, Pending, Cancelled
+  contractNumber String?      @unique
+  notes         String?
+  damageReport  String?
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  car           Car           @relation(fields: [carId], references: [id])
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  payments      Payment[]
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  rentalId      Int
+  
+  amount        Decimal
+  paymentMethod String        // Cash, Card, Transfer, Online
+  paymentDate   DateTime      @default(now())
+  
+  transactionId String?
+  notes         String?
+  
+  createdAt     DateTime      @default(now())
+  
+  rental        Rental        @relation(fields: [rentalId], references: [id])
+}
+
+model MaintenanceRecord {
+  id            Int           @id @default(autoincrement())
+  carId         Int
+  
+  maintenanceType String      // Oil Change, Tire Change, Inspection, Repair, Service
+  description   String
+  cost          Decimal?
+  mileage       Int?
+  
+  performedBy   String?       // Workshop name or technician
+  performedDate DateTime
+  nextDueDate   DateTime?
+  nextDueMileage Int?
+  
+  invoiceNumber String?
+  notes         String?
+  
+  createdAt     DateTime      @default(now())
+  
+  car           Car           @relation(fields: [carId], references: [id])
+}
+
+model Notification {
+  id            Int           @id @default(autoincrement())
+  
+  type          String        // Email, SMS, Push, System
+  recipient     String        // Email or phone number
+  subject       String?
+  message       String
+  
+  status        String        // Pending, Sent, Failed
+  sentAt        DateTime?
+  errorMessage  String?
+  
+  // Related entities
+  relatedType   String?       // Rental, Car, Customer, Payment
+  relatedId     Int?
+  
+  createdAt     DateTime      @default(now())
+}
+
+model ActivityLog {
+  id            Int           @id @default(autoincrement())
+  
+  userId        String?       // User who performed the action
+  userName      String?
+  action        String        // Created, Updated, Deleted, Viewed, etc.
+  entityType    String        // Car, Rental, Customer, etc.
+  entityId      Int?
+  
+  description   String        // Human-readable description
+  metadata      String?       // JSON with additional details
+  
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime      @default(now())
+}
+
+model SystemSettings {
+  id            Int           @id @default(autoincrement())
+  key           String        @unique
+  value         String
+  description   String?
+  category      String?       // General, Email, SMS, Payment, etc.
+  
+  updatedAt     DateTime      @updatedAt
+  updatedBy     String?
+}
