@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { differenceInDays } from 'date-fns';
 
 export async function createCar(formData: FormData) {
     const rawData = {
@@ -193,4 +194,103 @@ export async function updateCar(id: number, formData: FormData) {
     revalidatePath('/admin/fleet');
     revalidatePath(`/admin/fleet/${id}`);
     redirect(`/admin/fleet/${id}`);
+}
+
+export async function createCustomer(formData: FormData) {
+    const data = {
+        firstName: formData.get('firstName') as string,
+        lastName: formData.get('lastName') as string,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string || null,
+        address: formData.get('address') as string || null,
+        city: formData.get('city') as string || null,
+        postalCode: formData.get('postalCode') as string || null,
+        country: formData.get('country') as string || 'Deutschland',
+        licenseNumber: formData.get('licenseNumber') as string || null,
+        dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
+        notes: formData.get('notes') as string || null,
+    };
+
+    await prisma.customer.create({
+        data
+    });
+
+    revalidatePath('/admin/customers');
+    redirect('/admin/customers');
+}
+
+export async function createRental(formData: FormData) {
+    const carId = Number(formData.get('carId'));
+    const customerId = Number(formData.get('customerId'));
+    const startDate = new Date(formData.get('startDate') as string);
+    const endDate = new Date(formData.get('endDate') as string);
+
+    // Fetch car for rate calculation
+    const car = await prisma.car.findUnique({ where: { id: carId } });
+    if (!car) throw new Error('Car not found');
+
+    const days = differenceInDays(endDate, startDate) || 1;
+    const totalAmount = Number(car.dailyRate) * days;
+
+    const data = {
+        carId,
+        customerId,
+        startDate,
+        endDate,
+        dailyRate: car.dailyRate,
+        totalDays: days,
+        totalAmount,
+        status: 'Active',
+        paymentStatus: 'Pending',
+        fuelLevelPickup: formData.get('fuelLevelPickup') as string || 'Full',
+        pickupLocationId: formData.get('pickupLocationId') ? Number(formData.get('pickupLocationId')) : null,
+        returnLocationId: formData.get('returnLocationId') ? Number(formData.get('returnLocationId')) : null,
+        depositPaid: formData.get('depositPaid') ? Number(formData.get('depositPaid')) : null,
+        notes: formData.get('notes') as string || null,
+    };
+
+    await prisma.rental.create({
+        data
+    });
+
+    await prisma.car.update({
+        where: { id: carId },
+        data: { status: 'Rented' }
+    });
+
+    revalidatePath('/admin/reservations');
+    revalidatePath('/admin/fleet');
+    redirect('/admin/reservations');
+}
+
+export async function createMaintenance(formData: FormData) {
+    const carId = Number(formData.get('carId'));
+    const data = {
+        carId,
+        maintenanceType: formData.get('maintenanceType') as string,
+        description: formData.get('description') as string,
+        cost: formData.get('cost') ? Number(formData.get('cost')) : null,
+        performedBy: formData.get('performedBy') as string || null,
+        performedDate: new Date(formData.get('performedDate') as string),
+        mileage: formData.get('mileage') ? Number(formData.get('mileage')) : null,
+        notes: formData.get('notes') as string || null,
+    };
+
+    await prisma.maintenanceRecord.create({
+        data
+    });
+
+    // Optionally update car status to 'Maintenance' if date is today or present
+    if (data.maintenanceType === 'Repair' || data.maintenanceType === 'Service') {
+        const isToday = new Date().toDateString() === data.performedDate.toDateString();
+        if (isToday) {
+            await prisma.car.update({
+                where: { id: carId },
+                data: { status: 'Maintenance' }
+            });
+        }
+    }
+
+    revalidatePath('/admin/maintenance');
+    redirect('/admin/maintenance');
 }
