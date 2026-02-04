@@ -294,3 +294,42 @@ export async function createMaintenance(formData: FormData) {
     revalidatePath('/admin/maintenance');
     redirect('/admin/maintenance');
 }
+
+export async function updateCompetitorPrices() {
+    // 1. Get unique car models from our fleet
+    const cars = await prisma.car.findMany({
+        select: {
+            brand: true,
+            model: true,
+            category: true,
+            dailyRate: true,
+        },
+        distinct: ['brand', 'model']
+    });
+
+    const competitors = ['Sixt', 'Europcar', 'Hertz', 'Avis'];
+
+    for (const car of cars) {
+        const carModelName = `${car.brand} ${car.model}`;
+        const basePrice = Number(car.dailyRate) || 100;
+
+        for (const competitor of competitors) {
+            // Generate a price roughly +/- 20% of our price
+            // Simulating real market variations
+            const variance = (Math.random() * 0.4) - 0.2; // -0.2 to +0.2
+            const simulatedPrice = basePrice * (1 + variance);
+
+            await prisma.competitorPrice.create({
+                data: {
+                    carModel: carModelName,
+                    competitorName: competitor,
+                    dailyRate: simulatedPrice,
+                    category: car.category,
+                    fetchedAt: new Date(),
+                }
+            });
+        }
+    }
+
+    revalidatePath('/admin/pricing');
+}

@@ -352,3 +352,19 @@ model SystemSettings {
   updatedAt     DateTime      @updatedAt
   updatedBy     String?
 }
+
+model CompetitorPrice {
+  id              Int      @id @default(autoincrement())
+  carModel        String   // e.g. "BMW 320i", "VW Golf" - Araba modelini eşleştirmek için
+  competitorName  String   // e.g. "Sixt", "Europcar", "Hertz"
+  dailyRate       Decimal  // Günlük fiyat
+  currency        String   @default("EUR")
+  sourceUrl       String?  // Fiyatın alındığı kaynak URL
+  fetchedAt       DateTime @default(now())
+  
+  // Opsiyonel: Bizim veritabanımızdaki bir araç kategorisi ile eşleştirme
+  category        String?  // Kleinwagen, Limousine, SUV
+  
+  @@index([carModel])
+  @@index([fetchedAt])
+}
