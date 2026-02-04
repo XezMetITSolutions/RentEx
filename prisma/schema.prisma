@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // Vercel Postgres connection pool
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Direct connection for migrations
 }
 
 model Car {
@@ -91,8 +92,10 @@ model Car {
   lastServiceDate   DateTime?
   
   // Location & Availability
-  currentLocation   String?      // Office/Branch name
-  homeLocation      String?      // Default location
+  locationId        Int?
+  currentLocation   Location?    @relation("CarLocation", fields: [locationId], references: [id])
+  homeLocationId    Int?
+  homeLocation      Location?    @relation("CarHomeLocation", fields: [homeLocationId], references: [id])
   
   // Financial
   purchasePrice     Decimal?
@@ -112,6 +115,61 @@ model Car {
   rentals       Rental[]
   maintenanceRecords MaintenanceRecord[]
 }
+
+model Location {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String?  @unique
+  address     String?
+  city        String?
+  country     String?  @default("Deutschland")
+  phone       String?
+  email       String?
+  
+  // Coordinates
+  latitude    Float?
+  longitude   Float?
+  
+  // Operations
+  openingTime String?
+  closingTime String?
+  isOpenSundays Boolean @default(false)
+  
+  status      String   @default("active")
+  
+  cars        Car[]    @relation("CarLocation")
+  homeCars    Car[]    @relation("CarHomeLocation")
+  
+  pickups     Rental[] @relation("PickupLocation")
+  returns     Rental[] @relation("ReturnLocation")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Option {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal 
+  type        String?  // 'package', 'insurance', 'extra', 'driver'
+  
+  // Pricing Rules
+  isPerDay    Boolean  @default(false)
+  maxPrice    Decimal? // Cap on total cost
+  maxDays     Int?     // Charge only for first X days
+  
+  // Constraints
+  isMandatory Boolean  @default(false)
+  maxQuantity Int      @default(1)
+  
+  status      String   @default("active")
+  imageUrl    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 
 model Customer {
   id            Int           @id @default(autoincrement())
@@ -159,8 +217,10 @@ model Rental {
   actualReturnDate DateTime?
   
   // Pickup & Return
-  pickupLocation String?
-  returnLocation String?
+  pickupLocationId  Int?
+  pickupLocation    Location?    @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  returnLocationId  Int?
+  returnLocation    Location?    @relation("ReturnLocation", fields: [returnLocationId], references: [id])
   pickupMileage  Int?
   returnMileage  Int?
   

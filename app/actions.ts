@@ -77,8 +77,9 @@ export async function createCar(formData: FormData) {
         lastServiceDate: formData.get('lastServiceDate') ? new Date(formData.get('lastServiceDate') as string) : null,
 
         // Location & Availability
-        currentLocation: formData.get('currentLocation') as string || null,
-        homeLocation: formData.get('currentLocation') as string || null,
+        // Location & Availability
+        locationId: formData.get('locationId') ? Number(formData.get('locationId')) : null,
+        homeLocationId: formData.get('homeLocationId') ? Number(formData.get('homeLocationId')) : null,
 
         // Financial
         purchasePrice: formData.get('purchasePrice') ? Number(formData.get('purchasePrice')) : null,

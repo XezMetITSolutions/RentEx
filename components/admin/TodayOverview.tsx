@@ -41,7 +41,9 @@ async function getTodayEvents() {
         },
         include: {
             car: true,
-            customer: true
+            customer: true,
+            pickupLocation: true,
+            returnLocation: true
         },
         orderBy: {
             startDate: 'asc'
@@ -50,13 +52,18 @@ async function getTodayEvents() {
 
     return rentals.map(rental => {
         const isPickup = rental.startDate >= startDay && rental.startDate <= endDay;
+        // Access name safely
+        const locName = isPickup
+            ? rental.pickupLocation?.name
+            : rental.returnLocation?.name;
+
         return {
             id: rental.id,
             type: isPickup ? 'pickup' as const : 'return' as const,
             time: format(isPickup ? rental.startDate : rental.endDate, 'HH:mm'),
             car: `${rental.car.brand} ${rental.car.model}`,
             customer: `${rental.customer.firstName} ${rental.customer.lastName}`,
-            location: isPickup ? rental.pickupLocation : rental.returnLocation,
+            location: locName, // Use the name string
             status: 'upcoming' as const
         };
     });

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import prisma from '@/lib/prisma';
 import { BadgeCheck, BadgeAlert, Fuel, Calendar, Palette } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -28,10 +29,18 @@ export default async function FleetPage() {
                 {cars.map((car) => (
                     <div key={car.id} className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md">
 
-                        {/* Image Placeholder */}
-                        <div className="aspect-video w-full bg-gray-100 flex items-center justify-center text-gray-400">
-                            {/* In a real app, use car.imageUrl */}
-                            <CarIcon className="h-16 w-16 opacity-20" />
+                        {/* Car Image */}
+                        <div className="aspect-video w-full bg-gray-100 relative items-center justify-center text-gray-400 flex overflow-hidden">
+                            {car.imageUrl ? (
+                                <Image
+                                    src={car.imageUrl}
+                                    alt={`${car.brand} ${car.model}`}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                            ) : (
+                                <CarIcon className="h-16 w-16 opacity-20" />
+                            )}
                         </div>
 
                         <div className="flex-1 p-5 flex flex-col">
@@ -72,9 +81,12 @@ export default async function FleetPage() {
                                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                     </span>
                                 </div>
-                                <button className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 transition-colors">
+                                <Link
+                                    href={`/admin/fleet/${car.id}`}
+                                    className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 transition-colors"
+                                >
                                     Details
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
