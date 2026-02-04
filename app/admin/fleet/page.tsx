@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma';
 import { BadgeCheck, BadgeAlert, Fuel, Calendar, Palette } from 'lucide-react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
+import { revalidatePath } from 'next/cache'; // Not used directly but good practice if we add actions
+
+export const dynamic = 'force-dynamic';
 
 async function getCars() {
     const cars = await prisma.car.findMany({
