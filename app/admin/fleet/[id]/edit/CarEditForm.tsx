@@ -1,0 +1,381 @@
+'use client';
+
+import { updateCar } from '@/app/actions';
+import { Car as CarIcon, Save, Tag, ShieldCheck, Wrench, DollarSign, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Car as CarType } from '@prisma/client';
+import Link from 'next/link';
+
+export default function CarEditForm({ car }: { car: CarType }) {
+    const [activeTab, setActiveTab] = useState('basic');
+    const updateCarWithId = updateCar.bind(null, car.id);
+
+    const formatDate = (date: Date | null) => {
+        if (!date) return '';
+        return new Date(date).toISOString().split('T')[0];
+    };
+
+    const tabs = [
+        { id: 'basic', label: 'Basis & Design', icon: CarIcon },
+        { id: 'technical', label: 'Technische Daten', icon: SettingsIcon },
+        { id: 'features', label: 'Ausstattung', icon: CheckCircle },
+        { id: 'pricing', label: 'Preise & Kampagnen', icon: Tag },
+        { id: 'insurance', label: 'Versicherung & Dokumente', icon: ShieldCheck },
+        { id: 'maintenance', label: 'Wartung & Service', icon: Wrench },
+        { id: 'financial', label: 'Finanzielle Daten', icon: DollarSign },
+    ];
+
+    return (
+        <>
+            {/* Tabs */}
+            <div className="mb-8 overflow-x-auto">
+                <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
+                                    ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <form action={updateCarWithId} className="space-y-8">
+                {/* Tab: Basis & Design */}
+                {activeTab === 'basic' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Grundinformationen</h3>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marke *</label>
+                                        <input name="brand" type="text" required defaultValue={car.brand} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modell *</label>
+                                        <input name="model" type="text" required defaultValue={car.model} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baujahr *</label>
+                                        <input name="year" type="number" required defaultValue={car.year} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Farbe *</label>
+                                        <input name="color" type="text" required defaultValue={car.color} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kennzeichen *</label>
+                                        <input name="plate" type="text" required defaultValue={car.plate} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategorie</label>
+                                        <select name="category" defaultValue={car.category} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                            <option>Kleinwagen</option>
+                                            <option>Mittelklasse</option>
+                                            <option>Limousine</option>
+                                            <option>SUV</option>
+                                            <option>Van</option>
+                                            <option>Sportwagen</option>
+                                            <option>Cabrio</option>
+                                            <option>Kombi</option>
+                                            <option>Bus</option>
+                                            <option>Kastenwagen</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                                        <select name="status" defaultValue={car.status} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                            <option value="Active">Verfügbar</option>
+                                            <option value="Maintenance">Wartung</option>
+                                            <option value="Rented">Vermietet</option>
+                                            <option value="Reserved">Reserviert</option>
+                                            <option value="Inactive">Inaktiv</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
+                                    <input name="vin" type="text" maxLength={17} defaultValue={car.vin || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Beschreibung</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Öffentliche Beschreibung</label>
+                                    <textarea name="description" rows={6} defaultValue={car.description || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interne Notizen</label>
+                                    <textarea name="internalNotes" rows={4} defaultValue={car.internalNotes || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Technical Data */}
+                {activeTab === 'technical' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Technische Spezifikationen</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kraftstoffart</label>
+                                <select name="fuelType" defaultValue={car.fuelType} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                    <option>Benzin</option>
+                                    <option>Diesel</option>
+                                    <option>Elektro</option>
+                                    <option>Hybrid</option>
+                                    <option>Plug-in Hybrid</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Getriebe</label>
+                                <select name="transmission" defaultValue={car.transmission} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                    <option>Automatik</option>
+                                    <option>Manuell</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Motorhubraum</label>
+                                <input name="engineSize" type="text" defaultValue={car.engineSize || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leistung (PS)</label>
+                                <input name="horsePower" type="number" defaultValue={car.horsePower || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verbrauch (L/100km)</label>
+                                <input name="fuelConsumption" type="text" defaultValue={car.fuelConsumption || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CO₂-Emission (g/km)</label>
+                                <input name="co2Emission" type="text" defaultValue={car.co2Emission || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Türen</label>
+                                <input name="doors" type="number" defaultValue={car.doors || 4} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitzplätze</label>
+                                <input name="seats" type="number" defaultValue={car.seats || 5} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand</label>
+                                <input name="currentMileage" type="number" defaultValue={car.currentMileage || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Features */}
+                {activeTab === 'features' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Fahrzeugausstattung</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[
+                                { name: 'hasAirConditioning', label: 'Klimaanlage' },
+                                { name: 'hasGPS', label: 'GPS Navigation' },
+                                { name: 'hasHeatedSeats', label: 'Sitzheizung' },
+                                { name: 'hasParkingSensors', label: 'Parksensoren' },
+                                { name: 'hasBackupCamera', label: 'Rückfahrkamera' },
+                                { name: 'hasCruiseControl', label: 'Tempomat' },
+                                { name: 'hasBluetoothAudio', label: 'Bluetooth' },
+                                { name: 'hasUSBPorts', label: 'USB-Anschlüsse' },
+                                { name: 'hasChildSeatAnchors', label: 'Kindersitz-Befestigung' },
+                                { name: 'hasSkiRack', label: 'Skiträger' },
+                                { name: 'hasTowHitch', label: 'Anhängerkupplung' },
+                            ].map((feature) => (
+                                <label key={feature.name} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                                    <input type="checkbox" name={feature.name} defaultChecked={!!car[feature.name as keyof CarType]} className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{feature.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Weitere Ausstattung (kommasepariert)</label>
+                            <input name="features" type="text" defaultValue={car.features || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Pricing & Campaigns */}
+                {activeTab === 'pricing' && (
+                    <div className="space-y-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Mietpreise</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tagespreis (€) *</label>
+                                    <input name="dailyRate" type="number" step="0.01" required defaultValue={Number(car.dailyRate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Wochenpreis (€)</label>
+                                    <input name="weeklyRate" type="number" step="0.01" defaultValue={Number(car.weeklyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monatspreis (€)</label>
+                                    <input name="monthlyRate" type="number" step="0.01" defaultValue={Number(car.monthlyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kaution (€)</label>
+                                    <input name="depositAmount" type="number" step="0.01" defaultValue={Number(car.depositAmount) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">🎉 Kampagnen & Sonderaktionen</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktionspreis (€/Tag)</label>
+                                    <input name="promoPrice" type="number" step="0.01" defaultValue={Number(car.promoPrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig von</label>
+                                    <input name="promoStartDate" type="date" defaultValue={formatDate(car.promoStartDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig bis</label>
+                                    <input name="promoEndDate" type="date" defaultValue={formatDate(car.promoEndDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Insurance & Documents */}
+                {activeTab === 'insurance' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Versicherung & Dokumente</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherungsgesellschaft</label>
+                                <input name="insuranceCompany" type="text" defaultValue={car.insuranceCompany || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherungsnummer</label>
+                                <input name="insurancePolicyNumber" type="text" defaultValue={car.insurancePolicyNumber || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherung gültig bis</label>
+                                <input name="insuranceValidUntil" type="date" defaultValue={formatDate(car.insuranceValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Erstzulassung</label>
+                                <input name="registrationDate" type="date" defaultValue={formatDate(car.registrationDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächste TÜV/HU</label>
+                                <input name="nextInspection" type="date" defaultValue={formatDate(car.nextInspection)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette gültig bis</label>
+                                <input name="vignetteValidUntil" type="date" defaultValue={formatDate(car.vignetteValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Maintenance */}
+                {activeTab === 'maintenance' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Wartung & Service</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Ölwechsel</label>
+                                <input name="lastOilChange" type="date" defaultValue={formatDate(car.lastOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Ölwechsel</label>
+                                <input name="nextOilChange" type="date" defaultValue={formatDate(car.nextOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Reifenwechsel</label>
+                                <input name="lastTireChange" type="date" defaultValue={formatDate(car.lastTireChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reifentyp</label>
+                                <select name="tireType" defaultValue={car.tireType || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                    <option>Sommerreifen</option>
+                                    <option>Winterreifen</option>
+                                    <option>Allwetter</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Service</label>
+                                <input name="lastServiceDate" type="date" defaultValue={formatDate(car.lastServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Service</label>
+                                <input name="nextServiceDate" type="date" defaultValue={formatDate(car.nextServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Financial */}
+                {activeTab === 'financial' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Finanzielle Daten</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungspreis (€)</label>
+                                <input name="purchasePrice" type="number" step="0.01" defaultValue={Number(car.purchasePrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungsdatum</label>
+                                <input name="purchaseDate" type="date" defaultValue={formatDate(car.purchaseDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktueller Wert (€)</label>
+                                <input name="currentValue" type="number" step="0.01" defaultValue={Number(car.currentValue) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand bei Kauf</label>
+                                <input name="purchaseMileage" type="number" defaultValue={Number(car.purchaseMileage) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Link
+                        href={`/admin/fleet/${car.id}`}
+                        className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                    >
+                        Abbrechen
+                    </Link>
+                    <button
+                        type="submit"
+                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg shadow-red-500/30 transition-all hover:scale-105"
+                    >
+                        <Save className="w-5 h-5" />
+                        Änderungen speichern
+                    </button>
+                </div>
+            </form>
+        </>
+    );
+}
