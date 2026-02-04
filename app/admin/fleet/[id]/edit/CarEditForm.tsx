@@ -151,7 +151,7 @@ export default function CarEditForm({ car }: { car: CarType }) {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Getriebe</label>
-                                <select name="transmission" defaultValue={car.transmission} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                <select name="transmission" defaultValue={car.transmission || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                     <option>Automatik</option>
                                     <option>Manuell</option>
                                 </select>
