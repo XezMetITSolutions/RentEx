@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "RentEx - Autovermietung Verwaltungssystem",
   description: "Professionelles Verwaltungssystem für Autovermietungen",
+  icons: {
+    icon: "/assets/logo.png",
+  },
 };
 
 export default function RootLayout({

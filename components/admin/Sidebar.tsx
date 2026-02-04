@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
@@ -41,8 +42,8 @@ export default function Sidebar() {
             {/* Logo Area */}
             <div className="flex items-center justify-center h-20 border-b border-slate-800 dark:border-gray-800 bg-slate-950 dark:bg-gray-900">
                 <div className="flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg">
-                        <Car className="h-6 w-6 text-white" />
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-lg overflow-hidden shadow-lg">
+                        <Image src="/assets/logo.png" alt="RentEx Logo" fill className="object-contain p-1" />
                     </div>
                     <div>
                         <h1 className="text-xl font-bold tracking-tight">

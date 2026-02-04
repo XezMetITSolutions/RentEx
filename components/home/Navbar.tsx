@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Car, Menu, X } from "lucide-react";
 import { useState } from "react";
 import ThemeToggle from "../ThemeToggle";
@@ -14,8 +15,13 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-500 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-red-500/50 transition-all duration-300">
-                            <Car className="text-white w-6 h-6" />
+                        <div className="relative w-10 h-10 rounded-xl overflow-hidden group-hover:shadow-lg group-hover:shadow-red-500/50 transition-all duration-300">
+                            <Image
+                                src="/assets/logo.png"
+                                alt="Rent-Ex Logo"
+                                fill
+                                className="object-contain p-1"
+                            />
                         </div>
                         <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                             Rent-Ex GmbH

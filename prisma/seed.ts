@@ -147,7 +147,7 @@ async function main() {
             hasParkingSensors: true,
             description: 'Großer Transporter für Umzüge und gewerbliche Transporte.',
             features: 'Klimaanlage, Parksensoren, Hohes Dach',
-            imageUrl: 'https://images.unsplash.com/photo-1626322749449-65158a12822d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -184,7 +184,7 @@ async function main() {
             hasBackupCamera: true,
             description: 'Maximaler Stauraum für große Transporte.',
             features: 'Rückfahrkamera, Navi, Klimaanlage',
-            imageUrl: 'https://images.unsplash.com/photo-1626322749449-65158a12822d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -220,7 +220,7 @@ async function main() {
             hasBluetoothAudio: true,
             description: 'Komfortabler 9-Sitzer für Gruppenreisen.',
             features: '9 Sitze, Bluetooth, Klimaanlage',
-            imageUrl: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/ford_transit.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -257,7 +257,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Langversion mit Automatikgetriebe für maximalen Komfort.',
             features: 'Automatik, Navi, Langversion, Tempomat',
-            imageUrl: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/ford_transit.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -294,7 +294,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Geräumiger Kombi mit Premium-Ausstattung.',
             features: 'Navi, Sitzheizung, Automatik, Viel Platz',
-            imageUrl: 'https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/skoda_superb.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -438,7 +438,7 @@ async function main() {
             hasParkingSensors: true,
             description: 'Plus-Version mit extra Ausstattung für Profis.',
             features: 'Verstärkte Federung, Großer Laderaum',
-            imageUrl: 'https://images.unsplash.com/photo-1626322749449-65158a12822d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -513,7 +513,7 @@ async function main() {
             hasBackupCamera: true,
             description: 'Reisen mit französischem Komfort.',
             features: '8 Sitze, Automatik, Schiebetüren beidseitig',
-            imageUrl: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/peugeot_traveller.jpg',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }

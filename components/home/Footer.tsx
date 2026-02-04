@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Car, Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -12,8 +13,13 @@ export default function Footer() {
                     {/* Brand Info */}
                     <div>
                         <Link href="/" className="flex items-center gap-2 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-500 flex items-center justify-center">
-                                <Car className="text-white w-6 h-6" />
+                            <div className="relative w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+                                <Image
+                                    src="/assets/logo.png"
+                                    alt="Rent-Ex Logo"
+                                    fill
+                                    className="object-contain p-1"
+                                />
                             </div>
                             <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                                 Rent-Ex GmbH
