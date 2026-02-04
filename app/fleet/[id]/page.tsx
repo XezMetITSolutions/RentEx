@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
+import BookingWidget from "@/components/fleet/BookingWidget";
 import Footer from "@/components/home/Footer";
 import {
     Fuel,
@@ -39,10 +40,15 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
         notFound();
     }
 
-    const [car, options] = await Promise.all([
+    const [car, rawOptions] = await Promise.all([
         getCar(carId),
         getOptions()
     ]);
+
+    const options = rawOptions.map(opt => ({
+        ...opt,
+        price: Number(opt.price)
+    }));
 
     if (!car) {
         notFound();
@@ -50,16 +56,6 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
 
     // Parse features from CSV string
     const featuresList = car.features ? car.features.split(',').map(f => f.trim()) : [];
-
-    // Map DB options to UI format (simulated icons for categories)
-    const getOptionIcon = (type: string | null) => {
-        switch (type) {
-            case 'insurance': return ShieldCheck;
-            case 'driver': return Users;
-            case 'equipment': return Baby; // Proxy for generic equipment
-            default: return Zap;
-        }
-    };
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
@@ -167,78 +163,7 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
 
                         {/* Right Column: Booking & Extras */}
                         <div className="lg:col-span-1">
-                            <div className="sticky top-24 space-y-6">
-
-                                {/* Price Card */}
-                                <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl">
-                                    <div className="flex justify-between items-end mb-6 border-b border-white/10 pb-6">
-                                        <div>
-                                            <p className="text-gray-400 text-sm">Tagespreis ab</p>
-                                            <p className="text-4xl font-bold text-white">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
-                                            </p>
-                                        </div>
-                                        <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs font-semibold">
-                                            Verfügbar
-                                        </span>
-                                    </div>
-
-                                    {/* Date Selection Placeholder (Simple) */}
-                                    <div className="space-y-4 mb-6">
-                                        <div className="bg-black/40 rounded-xl p-3 border border-white/5">
-                                            <label className="text-xs text-gray-500 uppercase font-semibold">Abholung</label>
-                                            <div className="flex justify-between items-center mt-1">
-                                                <span className="text-white">Heute</span>
-                                                <span className="text-gray-400">10:00</span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-black/40 rounded-xl p-3 border border-white/5">
-                                            <label className="text-xs text-gray-500 uppercase font-semibold">Rückgabe</label>
-                                            <div className="flex justify-between items-center mt-1">
-                                                <span className="text-white">Morgen</span>
-                                                <span className="text-gray-400">10:00</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]">
-                                        Jetzt Reservieren
-                                    </button>
-                                    <p className="text-center text-xs text-gray-500 mt-3">
-                                        Keine Kreditkarte für Reservierung erforderlich
-                                    </p>
-                                </div>
-
-                                {/* Extras Selection */}
-                                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-6">
-                                    <h3 className="text-lg font-semibold text-white mb-4">Zusatzpakete</h3>
-                                    <div className="space-y-3">
-                                        {options.map((option) => {
-                                            const Icon = getOptionIcon(option.type);
-                                            return (
-                                                <label key={option.id} className="flex items-start gap-3 p-3 rounded-xl border border-white/5 hover:bg-white/5 cursor-pointer transition-colors group">
-                                                    <input type="checkbox" className="mt-1" />
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <span className="font-medium text-white flex items-center gap-2">
-                                                                <Icon className="w-4 h-4 text-gray-500" />
-                                                                {option.name}
-                                                            </span>
-                                                            <span className="text-sm font-semibold text-gray-300">
-                                                                +{Number(option.price)}€
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
-                                                            {option.description}
-                                                        </p>
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                            </div>
+                            <BookingWidget car={car} options={options} />
                         </div>
 
                     </div>
