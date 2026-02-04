@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Car, CalendarClock, CreditCard, Settings, LogOut, User } from "lucide-react";
 
 const navigation = [
-    { name: "Genel Bakış", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Kiralamalarım", href: "/dashboard/rentals", icon: Car },
-    { name: "Rezervasyonlar", href: "/dashboard/reservations", icon: CalendarClock },
-    { name: "Ödemeler", href: "/dashboard/payments", icon: CreditCard },
-    { name: "Profil Ayarları", href: "/dashboard/profile", icon: User },
-    { name: "Ayarlar", href: "/dashboard/settings", icon: Settings },
+    { name: "Übersicht", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Meine Anmietungen", href: "/dashboard/rentals", icon: Car },
+    { name: "Reservierungen", href: "/dashboard/reservations", icon: CalendarClock },
+    { name: "Zahlungen", href: "/dashboard/payments", icon: CreditCard },
+    { name: "Profileinstellungen", href: "/dashboard/profile", icon: User },
+    { name: "Einstellungen", href: "/dashboard/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -49,7 +49,7 @@ export default function Sidebar() {
             <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
                 <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/10">
                     <LogOut className="h-5 w-5" />
-                    Çıkış Yap
+                    Abmelden
                 </button>
             </div>
         </div>

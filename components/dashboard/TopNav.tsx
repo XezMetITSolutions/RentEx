@@ -13,7 +13,7 @@ export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Menu className="h-6 w-6" />
                 </button>
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hidden sm:inline-block">
-                    Hoş geldiniz, Ahmet Yılmaz
+                    Willkommen
                 </span>
             </div>
 
@@ -29,7 +29,7 @@ export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
                         <User className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                     </div>
-                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Hesabım</span>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Mein Konto</span>
                 </button>
             </div>
         </header>
