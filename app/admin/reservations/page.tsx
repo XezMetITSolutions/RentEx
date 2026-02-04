@@ -1,139 +1,122 @@
 import prisma from '@/lib/prisma';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { Search, Filter, Calendar, List } from 'lucide-react';
-import { clsx } from 'clsx';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
+import Link from 'next/link';
+import { Plus, Filter, Calendar as CalendarIcon, List } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 async function getRentals() {
-    const rentals = await prisma.rental.findMany({
-        orderBy: {
-            createdAt: 'desc'
+    return await prisma.rental.findMany({
+        where: {
+            // Fetch both active and reserved, maybe completed past ones too for calendar history
+            OR: [
+                { status: 'Active' },
+                { status: 'Reserved' },
+                { status: 'Completed' },
+                { status: 'Pending' }
+            ]
         },
         include: {
             car: true,
             customer: true
+        },
+        orderBy: {
+            startDate: 'desc'
         }
     });
-    return rentals;
 }
 
-export default async function ReservationsPage({ searchParams }: { searchParams: { view?: string } }) {
+export default async function ReservationsPage() {
     const rentals = await getRentals();
-    const view = searchParams.view || 'list';
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Reservierungen</h1>
-                <div className="flex gap-2">
-                    <div className="relative hidden sm:block">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Suchen..."
-                            className="h-9 w-64 rounded-lg border border-gray-300 pl-9 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-                    </div>
-                    <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        <Filter className="h-4 w-4" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Reservierungen</h1>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Verwalten Sie Buchungen und Verfügbarkeiten</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
+                        <Filter className="w-4 h-4" />
                         Filter
                     </button>
-
-                    {/* View Toggle */}
-                    <div className="flex rounded-lg border border-gray-300 bg-white overflow-hidden">
-                        <a
-                            href="/admin/reservations?view=list"
-                            className={clsx(
-                                "flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors",
-                                view === 'list' ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                            )}
-                        >
-                            <List className="h-4 w-4" />
-                            Liste
-                        </a>
-                        <a
-                            href="/admin/reservations?view=calendar"
-                            className={clsx(
-                                "flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-300",
-                                view === 'calendar' ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                            )}
-                        >
-                            <Calendar className="h-4 w-4" />
-                            Kalender
-                        </a>
-                    </div>
-
-                    <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                        + Reservierung
-                    </button>
+                    <Link
+                        href="/admin/reservations/new"
+                        className="flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Neue Reservierung
+                    </Link>
                 </div>
             </div>
 
-            {view === 'calendar' ? (
-                <ReservationCalendar />
-            ) : (
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-gray-600">
-                            <thead className="bg-gray-50 text-gray-900 font-semibold border-b border-gray-200">
-                                <tr>
-                                    <th className="px-6 py-4">ID</th>
-                                    <th className="px-6 py-4">Fahrzeug</th>
-                                    <th className="px-6 py-4">Kunde</th>
-                                    <th className="px-6 py-4">Zeitraum</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Betrag</th>
-                                    <th className="px-6 py-4"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {rentals.map((rental) => {
-                                    const startDate = format(new Date(rental.startDate), 'dd MMM yyyy', { locale: de });
-                                    const endDate = format(new Date(rental.endDate), 'dd MMM yyyy', { locale: de });
+            {/* Tabs for List/Calendar view could go here, for now we show Calendar primarily */}
 
-                                    return (
-                                        <tr key={rental.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4 font-mono text-xs">#{rental.id.toString().padStart(4, '0')}</td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-gray-900">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="text-xs text-gray-500">{rental.car.plate}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-gray-900">{rental.customer.firstName} {rental.customer.lastName}</div>
-                                                <div className="text-xs text-gray-500">{rental.customer.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-gray-900">{startDate}</div>
-                                                <div className="text-xs text-gray-500">bis {endDate}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={clsx(
-                                                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                                                    rental.status === 'Active' && "bg-blue-50 text-blue-700",
-                                                    rental.status === 'Completed' && "bg-gray-100 text-gray-700",
-                                                    rental.status === 'Pending' && "bg-yellow-50 text-yellow-700",
-                                                    rental.status === 'Cancelled' && "bg-red-50 text-red-700"
-                                                )}>
-                                                    {rental.status === 'Active' ? 'Aktiv' :
-                                                        rental.status === 'Completed' ? 'Abgeschlossen' :
-                                                            rental.status === 'Pending' ? 'Ausstehend' : 'Storniert'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-medium text-gray-900">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button className="text-blue-600 hover:text-blue-800 font-medium text-xs">Bearbeiten</button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+            <ReservationCalendar rentals={rentals} />
+
+            {/* Recent Reservations List */}
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <List className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
+                        <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">Aktuelle Buchungsliste</h2>
                     </div>
                 </div>
-            )}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-zinc-600 dark:text-zinc-400">
+                        <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-xs uppercase font-medium text-zinc-500 dark:text-zinc-400">
+                            <tr>
+                                <th className="px-6 py-3">Kunde</th>
+                                <th className="px-6 py-3">Fahrzeug</th>
+                                <th className="px-6 py-3">Zeitraum</th>
+                                <th className="px-6 py-3">Status</th>
+                                <th className="px-6 py-3 text-right">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                            {rentals.slice(0, 10).map((rental) => (
+                                <tr key={rental.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-zinc-900 dark:text-zinc-100">
+                                        {rental.customer.firstName} {rental.customer.lastName}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {rental.car.brand} {rental.car.model}
+                                        <div className="text-xs text-zinc-400 mt-0.5">{rental.car.plate}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col">
+                                            <span>{new Date(rental.startDate).toLocaleDateString('de-DE')}</span>
+                                            <span className="text-xs text-zinc-400">bis {new Date(rental.endDate).toLocaleDateString('de-DE')}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${rental.status === 'Active' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' :
+                                                rental.status === 'Completed' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700' :
+                                                    rental.status === 'Reserved' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800' :
+                                                        'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                                            }`}>
+                                            {rental.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <Link href={`/admin/reservations/${rental.id}`} className="text-zinc-900 dark:text-zinc-100 font-medium hover:underline">
+                                            Details
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                            {rentals.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-8 text-center text-zinc-500 italic">
+                                        Keine Reservierungen gefunden.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }
