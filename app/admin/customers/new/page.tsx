@@ -1,7 +1,7 @@
 'use client';
 
 import { createCustomer } from '@/app/actions';
-import { User, Mail, Phone, MapPin, Calendar, FileText, Save, ArrowLeft, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, FileText, Save, ArrowLeft, AlertCircle, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -10,9 +10,16 @@ export default function NewCustomerPage() {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
+    const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);
+
+        // Add license files to formData
+        licenseFiles.forEach((file, index) => {
+            formData.append(`licenseFile${index}`, file);
+        });
+
         startTransition(async () => {
             try {
                 await createCustomer(formData);
@@ -20,6 +27,17 @@ export default function NewCustomerPage() {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
             }
         });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setLicenseFiles(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setLicenseFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     return (
@@ -110,6 +128,66 @@ export default function NewCustomerPage() {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stadt</label>
                             <input name="city" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
                         </div>
+                    </div>
+                </div>
+
+                {/* Document Upload Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                        <Upload className="w-5 h-5 text-gray-400" />
+                        Führerschein / Ausweis
+                    </h2>
+
+                    <div className="space-y-4">
+                        {/* Upload Area */}
+                        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                            <input
+                                type="file"
+                                id="licenseUpload"
+                                multiple
+                                accept="image/*,.pdf"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                            <label htmlFor="licenseUpload" className="cursor-pointer">
+                                <Upload className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Klicken Sie hier oder ziehen Sie Dateien hierher
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    PNG, JPG, PDF bis zu 10MB
+                                </p>
+                            </label>
+                        </div>
+
+                        {/* File List */}
+                        {licenseFiles.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Hochgeladene Dateien ({licenseFiles.length})
+                                </p>
+                                {licenseFiles.map((file, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {(file.size / 1024).toFixed(2)} KB
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFile(index)}
+                                            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                                        >
+                                            <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
