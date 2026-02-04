@@ -4,6 +4,8 @@ import { clsx } from 'clsx';
 import { format, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 
+import Link from 'next/link';
+
 async function getCustomers() {
     const customers = await prisma.customer.findMany({
         orderBy: {
@@ -92,9 +94,12 @@ export default async function CustomersPage() {
                             className="h-9 w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 pl-9 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
                         />
                     </div>
-                    <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <Link
+                        href="/admin/customers/new"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                    >
                         + Neuer Kunde
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -266,12 +271,12 @@ export default async function CustomersPage() {
                                         {/* Actions */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                                <Link href={`/admin/customers/${customer.id}`} className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                                                     Profil
-                                                </button>
-                                                <button className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                                                </Link>
+                                                <Link href={`/admin/customers/${customer.id}/rentals`} className="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                                                     Historie
-                                                </button>
+                                                </Link>
                                             </div>
                                         </td>
                                     </tr>

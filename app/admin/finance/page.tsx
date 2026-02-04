@@ -1,6 +1,7 @@
+'use client';
+
 import { Wallet, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { clsx } from 'clsx';
-import prisma from '@/lib/prisma';
 
 // Mock data for finance charts (until we have a real transactions table)
 const monthlyRevenue = [
@@ -12,27 +13,15 @@ const monthlyRevenue = [
     { month: 'Jun', amount: 24500 },
 ];
 
-async function getFinanceStats() {
-    const totalRevenue = await prisma.rental.aggregate({
-        _sum: { totalAmount: true },
-        where: { status: { not: 'Cancelled' } }
-    });
+// Mock stats data (in production, fetch from API)
+const mockStats = {
+    total: 105700,
+    pending: 24500,
+    average: 450
+};
 
-    // Calculate pending revenue (Active + Pending)
-    const pendingRevenue = await prisma.rental.aggregate({
-        _sum: { totalAmount: true },
-        where: { status: { in: ['Active', 'Pending'] } }
-    });
-
-    return {
-        total: totalRevenue._sum.totalAmount || 0,
-        pending: pendingRevenue._sum.totalAmount || 0,
-        average: 450 // Hardcoded average for now
-    };
-}
-
-export default async function FinancePage() {
-    const stats = await getFinanceStats();
+export default function FinancePage() {
+    const stats = mockStats;
 
     return (
         <div className="space-y-8">
@@ -44,7 +33,10 @@ export default async function FinancePage() {
                         <option selected>Diesen Monat</option>
                         <option>Dieses Jahr</option>
                     </select>
-                    <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <button
+                        onClick={() => alert('Export-Funktion wird in Kürze verfügbar sein')}
+                        className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                    >
                         Bericht exportieren
                     </button>
                 </div>

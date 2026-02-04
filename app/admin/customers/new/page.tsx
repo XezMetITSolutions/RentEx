@@ -1,12 +1,26 @@
 'use client';
 
 import { createCustomer } from '@/app/actions';
-import { User, Mail, Phone, MapPin, Calendar, FileText, Save, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, FileText, Save, ArrowLeft, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 export default function NewCustomerPage() {
     const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (formData: FormData) => {
+        setError(null);
+        startTransition(async () => {
+            try {
+                await createCustomer(formData);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+            }
+        });
+    };
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -23,7 +37,16 @@ export default function NewCustomerPage() {
                 </div>
             </div>
 
-            <form action={createCustomer} className="space-y-6">
+            <form action={handleSubmit} className="space-y-6">
+                {error && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">Fehler</h3>
+                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+                        </div>
+                    </div>
+                )}
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <User className="w-5 h-5 text-gray-400" />
@@ -104,10 +127,11 @@ export default function NewCustomerPage() {
                     </Link>
                     <button
                         type="submit"
-                        className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
+                        disabled={isPending}
+                        className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                        <Save className="w-5 h-5" />
-                        Kunde erstellen
+                        <Save className={`w-5 h-5 ${isPending ? 'animate-spin' : ''}`} />
+                        {isPending ? 'Wird erstellt...' : 'Kunde erstellen'}
                     </button>
                 </div>
             </form>

@@ -4,6 +4,7 @@ import { de } from 'date-fns/locale';
 import { Search, Filter, Calendar, List } from 'lucide-react';
 import { clsx } from 'clsx';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
+import Link from 'next/link';
 
 async function getRentals() {
     const rentals = await prisma.rental.findMany({
@@ -64,9 +65,9 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
                         </a>
                     </div>
 
-                    <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <Link href="/admin/reservations/new" className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                         + Reservierung
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -124,7 +125,7 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
                                                 {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button className="text-blue-600 hover:text-blue-800 font-medium text-xs">Bearbeiten</button>
+                                                <Link href={`/admin/reservations/${rental.id}`} className="text-blue-600 hover:text-blue-800 font-medium text-xs">Details</Link>
                                             </td>
                                         </tr>
                                     );

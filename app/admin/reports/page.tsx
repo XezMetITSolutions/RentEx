@@ -165,7 +165,10 @@ export default function ReportsPage() {
                     <div className="text-center py-12">
                         <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                         <p className="text-gray-500 dark:text-gray-400">Keine geplanten Berichte</p>
-                        <button className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        <button
+                            onClick={() => alert('Berichtplanung wird in Kürze verfügbar sein')}
+                            className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
                             Bericht planen
                         </button>
                     </div>

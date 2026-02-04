@@ -138,7 +138,10 @@ export default function PricingAnalysisPage() {
                         Vergleichen Sie Ihre Preise mit der Konkurrenz
                     </p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                <button
+                    onClick={() => alert('Preisaktualisierung wird in Kürze verfügbar sein')}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
                     <RefreshCw className="h-4 w-4" />
                     Preise aktualisieren
                 </button>

@@ -67,7 +67,10 @@ export default function SettingsPage() {
                             <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold">
                                 AU
                             </div>
-                            <button className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            <button
+                                onClick={() => alert('Bild-Upload wird in Kürze verfügbar sein')}
+                                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
                                 Bild ändern
                             </button>
                         </div>
@@ -87,7 +90,10 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="sm:col-span-2 flex justify-end">
-                                <button className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
+                                <button
+                                    onClick={(e) => { e.preventDefault(); alert('Profil-Speicherung wird in Kürze verfügbar sein'); }}
+                                    className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                                >
                                     Speichern
                                 </button>
                             </div>

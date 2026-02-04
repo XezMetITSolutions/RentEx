@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import DashboardCharts from '@/components/admin/DashboardCharts';
 import TodayOverview from '@/components/admin/TodayOverview';
+import Link from 'next/link';
 
 async function getStats() {
     const totalRevenue = await prisma.rental.aggregate({
@@ -189,18 +190,18 @@ export default async function AdminDashboard() {
                         <h3 className="text-lg font-semibold text-gray-900">Schnellzugriff</h3>
                     </div>
                     <div className="p-6 space-y-4">
-                        <button className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
+                        <Link href="/admin/reservations/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
                             <span className="font-medium text-gray-700">Neue Reservierung</span>
                             <ArrowUpRight className="h-5 w-5 text-gray-400" />
-                        </button>
-                        <button className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
+                        </Link>
+                        <Link href="/admin/fleet/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
                             <span className="font-medium text-gray-700">Fahrzeug hinzufügen</span>
                             <ArrowUpRight className="h-5 w-5 text-gray-400" />
-                        </button>
-                        <button className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
+                        </Link>
+                        <Link href="/admin/customers" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
                             <span className="font-medium text-gray-700">Kunde suchen</span>
                             <ArrowUpRight className="h-5 w-5 text-gray-400" />
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="border-t border-gray-100 px-6 py-5">
