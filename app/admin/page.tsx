@@ -190,17 +190,17 @@ export default async function AdminDashboard() {
                         <h3 className="text-lg font-semibold text-gray-900">Schnellzugriff</h3>
                     </div>
                     <div className="p-6 space-y-4">
-                        <Link href="/admin/reservations/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
-                            <span className="font-medium text-gray-700">Neue Reservierung</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                        <Link href="/admin/reservations/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">Neue Reservierung</span>
+                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
                         </Link>
-                        <Link href="/admin/fleet/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
-                            <span className="font-medium text-gray-700">Fahrzeug hinzufügen</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                        <Link href="/admin/fleet/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">Fahrzeug hinzufügen</span>
+                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
                         </Link>
-                        <Link href="/admin/customers" className="w-full flex items-center justify-between rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100">
-                            <span className="font-medium text-gray-700">Kunde suchen</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                        <Link href="/admin/customers" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">Kunde suchen</span>
+                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
                         </Link>
                     </div>
 
