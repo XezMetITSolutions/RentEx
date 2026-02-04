@@ -74,39 +74,39 @@ export default function Hero() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-400 ml-1">Abholort</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                         <input
                                             type="text"
                                             placeholder="Stadt oder Flughafen wählen"
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors"
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors text-base"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-400 ml-1">Abholdatum</label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                             <input
                                                 type="date"
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert text-base"
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-400 ml-1">Rückgabedatum</label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                             <input
                                                 type="date"
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert text-base"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <Link href="/fleet" className="block text-center w-full py-4 mt-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-900/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                <Link href="/fleet" className="block text-center w-full py-4 mt-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] text-lg">
                                     Verfügbare Fahrzeuge anzeigen
                                 </Link>
                             </div>
