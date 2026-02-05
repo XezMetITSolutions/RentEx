@@ -1,9 +1,25 @@
 "use client";
 
-import { Calendar, MapPin, Search } from "lucide-react";
+import { Calendar, Car, MapPin, Search, Truck } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+
+type VehicleType = "pkw" | "kastenwagen";
 
 export default function Hero() {
+    const [vehicleType, setVehicleType] = useState<VehicleType>("pkw");
+    const [pickupDate, setPickupDate] = useState("");
+    const [returnDate, setReturnDate] = useState("");
+
+    const handleSearch = () => {
+        const params = new URLSearchParams({
+            type: vehicleType,
+            ...(pickupDate && { pickup: pickupDate }),
+            ...(returnDate && { return: returnDate }),
+        });
+        return `/fleet?${params.toString()}`;
+    };
+
     return (
         <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
             {/* Background Effects */}
@@ -57,7 +73,7 @@ export default function Hero() {
                         </div>
                     </div>
 
-                    {/* Search Box / Image Placeholder */}
+                    {/* Search Box */}
                     <div className="flex-1 w-full max-w-lg lg:max-w-none">
 
                         {/* Search Card */}
@@ -70,19 +86,47 @@ export default function Hero() {
                                 Fahrzeug finden
                             </h3>
 
-                            <div className="space-y-4">
+                            <div className="space-y-5">
+                                {/* Vehicle Type Selector */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-400 ml-1">Abholort</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input
-                                            type="text"
-                                            placeholder="Stadt oder Flughafen wählen"
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors text-base"
-                                        />
+                                    <label className="text-sm font-medium text-gray-400 ml-1">Fahrzeugtyp</label>
+                                    <div className="grid grid-cols-2 gap-3 p-1.5 bg-black/40 rounded-xl border border-white/10">
+                                        <button
+                                            onClick={() => setVehicleType("pkw")}
+                                            className={`relative flex items-center justify-center gap-2 py-3.5 px-4 rounded-lg font-medium transition-all duration-300 ${vehicleType === "pkw"
+                                                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-900/30 scale-[1.02]"
+                                                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                                                }`}
+                                        >
+                                            <Car className="w-5 h-5" />
+                                            <span className="font-semibold">PKW</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setVehicleType("kastenwagen")}
+                                            className={`relative flex items-center justify-center gap-2 py-3.5 px-4 rounded-lg font-medium transition-all duration-300 ${vehicleType === "kastenwagen"
+                                                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-900/30 scale-[1.02]"
+                                                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                                                }`}
+                                        >
+                                            <Truck className="w-5 h-5" />
+                                            <span className="font-semibold">Kastenwagen</span>
+                                        </button>
                                     </div>
                                 </div>
 
+                                {/* Abholort - Fixed to Feldkirch */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400 ml-1">Abholort</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                                        <div className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-base flex items-center">
+                                            Feldkirch
+                                            <span className="ml-auto text-xs text-gray-500 bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20">Standard</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Date Inputs */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-400 ml-1">Abholdatum</label>
@@ -90,6 +134,8 @@ export default function Hero() {
                                             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                             <input
                                                 type="date"
+                                                value={pickupDate}
+                                                onChange={(e) => setPickupDate(e.target.value)}
                                                 className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert text-base"
                                             />
                                         </div>
@@ -100,13 +146,18 @@ export default function Hero() {
                                             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                             <input
                                                 type="date"
+                                                value={returnDate}
+                                                onChange={(e) => setReturnDate(e.target.value)}
                                                 className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 transition-colors [&::-webkit-calendar-picker-indicator]:invert text-base"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <Link href="/fleet" className="block text-center w-full py-4 mt-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] text-lg">
+                                <Link
+                                    href={handleSearch()}
+                                    className="block text-center w-full py-4 mt-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] text-lg"
+                                >
                                     Verfügbare Fahrzeuge anzeigen
                                 </Link>
                             </div>

@@ -2,13 +2,33 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import { Fuel, Gauge, Users } from "lucide-react";
+import { Fuel, Gauge, Users, Car, Truck } from "lucide-react";
 import prisma from "@/lib/prisma";
 
-async function getCars() {
+type VehicleType = "pkw" | "kastenwagen" | "all";
+
+// PKW categories (passenger cars)
+const PKW_CATEGORIES = ["Kleinwagen", "Mittelklasse", "SUV", "Limousine", "Kombi", "Sportwagen", "Cabrio"];
+// Kastenwagen category (vans)
+const VAN_CATEGORIES = ["Van"];
+
+async function getCars(vehicleType?: VehicleType) {
+    let categories: string[] = [];
+
+    if (vehicleType === "pkw") {
+        categories = PKW_CATEGORIES;
+    } else if (vehicleType === "kastenwagen") {
+        categories = VAN_CATEGORIES;
+    }
+
     const cars = await prisma.car.findMany({
         where: {
-            status: 'Active'
+            status: 'Active',
+            ...(categories.length > 0 && {
+                category: {
+                    in: categories
+                }
+            })
         },
         orderBy: {
             dailyRate: 'asc'
@@ -17,8 +37,13 @@ async function getCars() {
     return cars;
 }
 
-export default async function FleetPage() {
-    const cars = await getCars();
+export default async function FleetPage({
+    searchParams,
+}: {
+    searchParams: { type?: string; pickup?: string; return?: string };
+}) {
+    const vehicleType = (searchParams.type as VehicleType) || "all";
+    const cars = await getCars(vehicleType);
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
@@ -27,6 +52,29 @@ export default async function FleetPage() {
             <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <div className="mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Unsere Fahrzeugflotte</h1>
+                    <div className="flex items-center gap-4 mb-4">
+                        {vehicleType !== "all" && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
+                                {vehicleType === "pkw" ? (
+                                    <>
+                                        <Car className="w-4 h-4" />
+                                        <span className="font-medium">PKW Filterung aktiv</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Truck className="w-4 h-4" />
+                                        <span className="font-medium">Kastenwagen Filterung aktiv</span>
+                                    </>
+                                )}
+                                <Link
+                                    href="/fleet"
+                                    className="ml-2 text-xs underline hover:text-red-300"
+                                >
+                                    Entfernen
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                     <p className="text-gray-400 max-w-2xl text-lg">
                         Wählen Sie aus unserer exklusiven Auswahl an Premium-Fahrzeugen.
                         Vom sportlichen Cabrio bis zum geräumigen SUV – wir haben das passende Auto für Ihre Bedürfnisse.
