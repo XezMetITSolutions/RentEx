@@ -16,13 +16,15 @@ import {
     FileText,
     BarChart3,
     Wrench,
-    TrendingUp
+    TrendingUp,
+    MapPin
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
+    { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
     { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
     { name: 'Kunden', icon: Users, href: '/admin/customers' },
     { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
