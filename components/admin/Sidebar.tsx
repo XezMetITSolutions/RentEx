@@ -24,15 +24,17 @@ import { clsx } from 'clsx';
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
+    { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badge: 'Live' },
+    { name: 'Schäden', icon: Wrench, href: '/admin/damage' },
+    { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
+    { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
     { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
     { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
     { name: 'Kunden', icon: Users, href: '/admin/customers' },
     { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
-    { name: 'Preisanalyse', icon: TrendingUp, href: '/admin/pricing', badge: 'Neu' },
     { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
-    { name: 'Berichte', icon: BarChart3, href: '/admin/reports', badge: 'Neu' },
+    { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
     { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badge: '3' },
-    { name: 'Aktivitäten', icon: Activity, href: '/admin/activity' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
 ];
 
