@@ -50,7 +50,7 @@ export default async function CarFleetPreview() {
                             {/* Image Area - Placeholder if no image */}
                             <div className="h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center relative overflow-hidden p-6">
                                 {car.imageUrl ? (
-                                    <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-cover" />
+                                    <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-contain p-4" />
                                 ) : (
                                     <div className="text-zinc-600 text-sm font-mono">Kein Bild verfügbar</div>
                                 )}
