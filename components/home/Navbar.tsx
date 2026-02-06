@@ -15,17 +15,14 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="relative w-10 h-10 rounded-xl overflow-hidden group-hover:shadow-lg group-hover:shadow-red-500/50 transition-all duration-300">
+                        <div className="relative w-32 h-16 rounded-xl overflow-hidden group-hover:shadow-lg group-hover:shadow-red-500/50 transition-all duration-300">
                             <Image
                                 src="/assets/logo.png"
                                 alt="Rent-Ex Logo"
                                 fill
-                                className="object-contain p-1"
+                                className="object-contain"
                             />
                         </div>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-                            Rent-Ex GmbH
-                        </span>
                     </Link>
 
                     {/* Desktop Menu */}
