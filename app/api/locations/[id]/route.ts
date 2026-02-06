@@ -4,8 +4,9 @@ import prisma from '@/lib/prisma';
 // GET - Single location
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const location = await prisma.location.findUnique({
             where: { id: parseInt(params.id) },
@@ -39,8 +40,9 @@ export async function GET(
 // PUT - Update location
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const body = await request.json();
 
@@ -76,8 +78,9 @@ export async function PUT(
 // DELETE - Delete location
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         // Check if there are any cars assigned to this location
         const carsAtLocation = await prisma.car.count({

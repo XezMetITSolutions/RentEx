@@ -27,11 +27,11 @@ const features = [
 
 export default function Features() {
     return (
-        <div className="py-24 bg-black/50">
+        <div className="py-24 bg-gray-50 dark:bg-black/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold text-white mb-4">Warum RentEx?</h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Warum RentEx?</h2>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                         Wir vermieten nicht nur Autos, wir bieten Ihnen ein perfektes Reiseerlebnis.
                     </p>
                 </div>
@@ -40,17 +40,17 @@ export default function Features() {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="group p-6 md:p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-red-500/30 transition-all duration-300 hover:-translate-y-1"
+                            className="group p-6 md:p-8 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-red-500/30 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-gray-200/50 dark:shadow-none"
                         >
-                            <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center mb-6 group-hover:bg-red-500/20 transition-colors">
-                                <feature.icon className="w-6 h-6 text-red-500" />
+                            <div className="w-12 h-12 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center mb-6 group-hover:bg-red-100 dark:group-hover:bg-red-500/20 transition-colors">
+                                <feature.icon className="w-6 h-6 text-red-600 dark:text-red-500" />
                             </div>
 
-                            <h3 className="text-xl font-semibold text-white mb-3">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                                 {feature.title}
                             </h3>
 
-                            <p className="text-gray-400 leading-relaxed text-sm">
+                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
                                 {feature.description}
                             </p>
                         </div>
