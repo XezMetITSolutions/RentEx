@@ -106,6 +106,10 @@ model Car {
   damageHistory     String?      // JSON or text log
   isActive          Boolean @default(true)
   
+  // GPS / Tracking
+  latitude          Float?
+  longitude         Float?
+
   // Timestamps
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -113,6 +117,8 @@ model Car {
   // Relations
   rentals       Rental[]
   maintenanceRecords MaintenanceRecord[]
+  damageRecords DamageRecord[]
+  tasks         Task[]
 }
 
 model Location {
@@ -144,6 +150,67 @@ model Location {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model DamageRecord {
+  id            Int      @id @default(autoincrement())
+  carId         Int
+  rentalId      Int?
+  
+  type          String   // Scratch, Dent, Broken Glass, Missing Part, etc.
+  description   String?
+  severity      String?  // Low, Medium, High
+  
+  photoUrl      String?
+  locationOnCar String?  // front-left, rear-bumper, roof, etc.
+  xPosition     Float?   // X coordinate on the visual blueprint (0-100%)
+  yPosition     Float?   // Y coordinate on the visual blueprint (0-100%)
+  
+  reportedDate  DateTime @default(now())
+  status        String   @default("open") // open, repaired, ignored
+  repairCost    Decimal?
+  
+  car           Car      @relation(fields: [carId], references: [id])
+  rental        Rental?  @relation(fields: [rentalId], references: [id])
+}
+
+model DiscountCoupon {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  description String?
+  
+  discountType String   // PERCENTAGE, FIXED_AMOUNT
+  discountValue Decimal
+  
+  validFrom   DateTime?
+  validUntil  DateTime?
+  
+  minOrderAmount Decimal?
+  usageLimit     Int?    // Max total usages
+  usedCount      Int     @default(0)
+  
+  isActive    Boolean   @default(true)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Task {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  
+  priority      String   @default("medium") // low, medium, high, urgent
+  status        String   @default("todo")    // todo, in_progress, done
+  
+  dueDate       DateTime?
+  assignedTo    String?  // Username or User ID string
+  
+  relatedCarId  Int?
+  car           Car?     @relation(fields: [relatedCarId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Option {
@@ -265,6 +332,7 @@ model Rental {
   car           Car           @relation(fields: [carId], references: [id])
   customer      Customer      @relation(fields: [customerId], references: [id])
   payments      Payment[]
+  damageRecords DamageRecord[]
 }
 
 model Payment {
