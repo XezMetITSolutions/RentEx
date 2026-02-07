@@ -120,7 +120,6 @@ export default async function ActivityLogPanel() {
                         </div>
                     );
                 })}
-                )}
             </div>
 
             <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-4">
