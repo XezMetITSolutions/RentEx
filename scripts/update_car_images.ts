@@ -10,7 +10,7 @@ async function main() {
             model: { contains: 'Golf Kombi' },
         },
         data: {
-            imageUrl: 'https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/vw_golf_kombi.jpg',
         },
     });
 

@@ -14,3 +14,4 @@ export default async function SettingsPage() {
 
     return <SettingsView initialSettings={settings} />;
 }
+ 

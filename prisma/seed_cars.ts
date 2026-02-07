@@ -67,7 +67,7 @@ const carsToCreate = [
 ];
 
 const carImages: Record<string, string> = {
-    'VW Golf Kombi': 'https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=800',
+    'VW Golf Kombi': '/assets/cars/vw_golf_kombi.jpg',
     'Skoda Superb Kombi': '/assets/cars/skoda_superb.png',
     'Ford Transit Custom Langversion': '/assets/cars/ford_transit.png',
     'Ford Transit Custom L1': '/assets/cars/ford_transit.png',
