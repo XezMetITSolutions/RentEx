@@ -66,6 +66,15 @@ const carsToCreate = [
     },
 ];
 
+const carImages: Record<string, string> = {
+    'VW Golf Kombi': 'https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=800',
+    'Skoda Superb Kombi': '/assets/cars/skoda_superb.png',
+    'Ford Transit Custom Langversion': '/assets/cars/ford_transit.png',
+    'Ford Transit Custom L1': '/assets/cars/ford_transit.png',
+    'Fiat Ducato L4H2': '/assets/cars/fiat_ducato.png',
+    'Fiat Ducato L3H2': '/assets/cars/fiat_ducato.png',
+};
+
 function generatePlate() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nums = '0123456789';
@@ -83,6 +92,8 @@ async function main() {
             const plate = generatePlate();
 
             console.log(`Creating ${carType.brand} ${carType.model} (${plate})...`);
+
+            const image = carImages[carType.model] || 'https://placehold.co/800x600?text=Car';
 
             await prisma.car.create({
                 data: {
@@ -103,6 +114,7 @@ async function main() {
                     hasGPS: true,
                     description: `${carType.brand} ${carType.model} - Zuverlässiges Fahrzeug für Ihre Bedürfnisse.`,
                     features: 'Klimaanlage, Bluetooth, GPS, ABS',
+                    imageUrl: image,
                     // Random dummy VIN
                     vin: Math.random().toString(36).substring(2, 15).toUpperCase(),
                 },

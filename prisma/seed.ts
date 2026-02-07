@@ -330,7 +330,7 @@ async function main() {
             hasBluetoothAudio: true,
             description: 'Der Klassiker unter den Kombis.',
             features: 'Klimaanlage, Navi, Isofix',
-            imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: 'https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=800',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -365,7 +365,7 @@ async function main() {
             hasBluetoothAudio: true,
             description: 'Wendiger Kleinwagen für die Stadt.',
             features: 'Klimaanlage, Bluetooth, Kompakt',
-            imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: 'https://images.unsplash.com/photo-1591112611240-540af4ee74db?auto=format&fit=crop&q=80&w=800',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -402,7 +402,7 @@ async function main() {
             hasBackupCamera: true,
             description: 'Umweltfreundlich und effizient.',
             features: 'Elektroantrieb, Navi, Sitzheizung',
-            imageUrl: 'https://images.unsplash.com/photo-1593051313385-d6ca74d75d27?auto=format&fit=crop&q=80&w=800',
+            imageUrl: 'https://images.unsplash.com/photo-1609529669235-c07e4e1bd6e9?auto=format&fit=crop&q=80&w=800',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -476,7 +476,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Vollelektrische Performance mit GT-Power.',
             features: '487 PS, Allrad, 0-100 in 3.7s, Panoramadach',
-            imageUrl: 'https://images.unsplash.com/photo-1698504037583-05c74284b1d9?auto=format&fit=crop&q=80&w=800',
+            imageUrl: 'https://images.unsplash.com/photo-1570733577530-363675629c41?auto=format&fit=crop&q=80&w=800',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -586,7 +586,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Der beliebteste Kombi für Business und Familie.',
             features: 'Automatik, Navi, ACC, Sitzheizung',
-            imageUrl: 'https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&q=80&w=800',
+            imageUrl: 'https://images.unsplash.com/photo-1580273916550-e323be2ebcc3?auto=format&fit=crop&q=80&w=800',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
