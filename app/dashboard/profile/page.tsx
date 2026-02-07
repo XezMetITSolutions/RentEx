@@ -4,6 +4,7 @@ import { User, Mail, Phone, MapPin, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import Link from 'next/link';
+import ProfileEditForm from './ProfileEditForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,16 +55,15 @@ export default async function ProfilePage() {
                     ))}
                 </dl>
 
+                <ProfileEditForm customer={customer} />
+
                 <div className="p-6 sm:p-8 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                        Um Ihre Daten zu ändern, wenden Sie sich bitte an unseren Support oder besuchen Sie eine unserer Filialen.
+                        E-Mail-Änderung oder Support:{' '}
+                        <Link href="/contact" className="text-blue-600 dark:text-blue-400 hover:underline">
+                            Kontakt aufnehmen →
+                        </Link>
                     </p>
-                    <a
-                        href="/contact"
-                        className="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                        Kontakt aufnehmen →
-                    </a>
                 </div>
             </div>
         </div>

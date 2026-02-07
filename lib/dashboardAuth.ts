@@ -1,9 +1,9 @@
 import prisma from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
-/**
- * Gets the current customer for dashboard pages.
- * In production this would use auth session (e.g. NextAuth, Clerk).
- */
+/** Gets the current customer from session cookie. */
 export async function getCurrentCustomer() {
-    return prisma.customer.findFirst();
+    const customerId = await getSession();
+    if (customerId == null) return null;
+    return prisma.customer.findUnique({ where: { id: customerId } });
 }

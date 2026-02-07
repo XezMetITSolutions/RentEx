@@ -165,7 +165,7 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                         </div>
 
                         {/* Price Breakdown */}
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-3 mb-4">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-400">Fahrzeugmiete</span>
                                 <span className="text-white">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(days * Number(car.dailyRate))}</span>
@@ -181,6 +181,11 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                                     </span>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="mb-4 pb-4 border-b border-white/10">
+                            <label className="block text-xs text-gray-400 mb-1">Gutscheincode</label>
+                            <input name="couponCode" type="text" placeholder="Code eingeben" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-red-500 outline-none" />
                         </div>
 
                         <div className="pt-4 border-t border-white/10">

@@ -10,7 +10,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const startDate = new Date(formData.get('startDate') as string);
     const endDate = new Date(formData.get('endDate') as string);
     const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
-    const totalAmount = parseFloat(formData.get('totalAmount') as string);
+    const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
 
     // Customer Data
     const firstName = formData.get('firstName') as string;
@@ -80,6 +80,37 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
+    let baseTotal = Number(car.dailyRate) * days + extrasCost + insuranceCost;
+    let discountAmount = 0;
+    let discountReason: string | null = null;
+
+    if (couponCode) {
+        const coupon = await prisma.discountCoupon.findFirst({
+            where: { code: couponCode, isActive: true }
+        });
+        if (coupon) {
+            const now = new Date();
+            const validFrom = coupon.validFrom ? new Date(coupon.validFrom) : null;
+            const validUntil = coupon.validUntil ? new Date(coupon.validUntil) : null;
+            if ((!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)) {
+                if (coupon.usageLimit == null || coupon.usedCount < coupon.usageLimit) {
+                    if (coupon.discountType === 'PERCENTAGE') {
+                        discountAmount = baseTotal * (Number(coupon.discountValue) / 100);
+                    } else {
+                        discountAmount = Math.min(Number(coupon.discountValue), baseTotal);
+                    }
+                    discountReason = `Gutschein ${coupon.code}`;
+                    await prisma.discountCoupon.update({
+                        where: { id: coupon.id },
+                        data: { usedCount: coupon.usedCount + 1 }
+                    });
+                }
+            }
+        }
+    }
+
+    const totalAmount = Math.max(0, baseTotal - discountAmount);
+
     const rental = await prisma.rental.create({
         data: {
             carId,
@@ -88,15 +119,16 @@ export async function createBooking(prevState: any, formData: FormData) {
             endDate,
             dailyRate: car.dailyRate,
             totalDays: days,
-            totalAmount: totalAmount,
+            totalAmount,
+            discountAmount: discountAmount || undefined,
+            discountReason: discountReason || undefined,
             status: 'Pending',
             paymentStatus: 'Pending',
-            paymentMethod: 'arrival', // Custom flag
+            paymentMethod: 'arrival',
             contractNumber,
             extrasCost: extrasCost,
             insuranceCost: insuranceCost,
             insuranceType: selectedInsuranceType,
-            // Assuming home location for pickup/return for simple flow
             pickupLocationId: car.locationId,
             returnLocationId: car.locationId
         }

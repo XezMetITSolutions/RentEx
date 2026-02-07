@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import { Car, Calendar, MapPin, ArrowLeft } from 'lucide-react';
+import { cancelReservation } from '@/app/actions/dashboard';
+import CancelReservationButton from './CancelReservationButton';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { notFound } from 'next/navigation';
@@ -64,7 +66,12 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                                 <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                                     {rental.contractNumber ? `Vertrag #${rental.contractNumber}` : `Buchung #${rental.id}`}
                                 </p>
-                                <span className="inline-block mt-2 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
+                                <span className={`inline-block mt-2 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                    rental.status === 'Active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
+                                    rental.status === 'Pending' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' :
+                                    rental.status === 'Cancelled' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
+                                    'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300'
+                                }`}>
                                     {statusLabels[rental.status] ?? rental.status}
                                 </span>
                             </div>
@@ -106,6 +113,12 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                                 </li>
                             ))}
                         </ul>
+                    </div>
+                )}
+
+                {rental.status === 'Pending' && (
+                    <div className="border-t border-zinc-200 dark:border-zinc-800 p-6">
+                        <CancelReservationButton rentalId={rental.id} />
                     </div>
                 )}
             </div>

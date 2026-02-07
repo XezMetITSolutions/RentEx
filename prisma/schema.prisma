@@ -170,6 +170,28 @@ model DamageRecord {
   status        String   @default("open") // open, repaired, ignored
   repairCost    Decimal?
   
+  // Europäischer Unfallbericht (ÖAMTC)
+  accidentDate     DateTime?
+  accidentTime     String?
+  accidentPlace    String?
+  accidentCountry  String?   @default("Österreich")
+  injuries         Boolean?  @default(false)
+  otherPartyDriverName   String?
+  otherPartyAddress      String?
+  otherPartyPhone        String?
+  otherPartyRegistration String?
+  otherPartyVehicle      String?
+  otherPartyInsurance    String?
+  otherPartyPolicyNumber String?
+  otherPartyDamage       String?
+  witnessName    String?
+  witnessAddress String?
+  witnessPhone   String?
+  circumstances  String?
+  sketchNotes    String?
+  reportedByCustomerId Int?
+  reportedByCustomer   Customer? @relation(fields: [reportedByCustomerId], references: [id])
+  
   car           Car      @relation(fields: [carId], references: [id])
   rental        Rental?  @relation(fields: [rentalId], references: [id])
 }
@@ -266,10 +288,14 @@ model Customer {
   blacklistReason String?
   customerType  String?       // Private, Business, VIP
   notes         String?
-  
+
+  // Auth (optional – for login/register)
+  passwordHash  String?       // scrypt hash for dashboard login
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   rentals       Rental[]
+  damageReports DamageRecord[]
 }
 
 model Rental {
