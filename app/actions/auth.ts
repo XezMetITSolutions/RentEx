@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { setSession, clearSession, verifyPassword, hashPassword } from '@/lib/auth';
+import { setSession, getSession, clearSession, verifyPassword, hashPassword } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export async function login(formData: FormData) {
