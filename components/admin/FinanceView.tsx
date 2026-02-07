@@ -26,12 +26,12 @@ export default function FinanceView({ stats }: { stats: FinanceStats }) {
                         <option selected>Diesen Monat</option>
                         <option>Dieses Jahr</option>
                     </select>
-                    <button
-                        onClick={() => alert('Export-Funktion wird in Kürze verfügbar sein')}
-                        className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                    <a
+                        href="/api/admin/finance-export"
+                        className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors inline-block"
                     >
                         Bericht exportieren
-                    </button>
+                    </a>
                 </div>
             </div>
 

@@ -1,5 +1,6 @@
 
 import prisma from '@/lib/prisma';
+import Link from 'next/link';
 import { Tag, Plus, Trash, Edit, Percent, DollarSign, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -36,10 +37,10 @@ export default async function MarketingPage() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Marketing & Gutscheine</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Verwalten Sie Aktionscodes und Rabatte</p>
                 </div>
-                <button className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
+                <Link href="/admin/marketing/new" className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
                     <Plus className="h-4 w-4" />
                     Neuer Gutschein
-                </button>
+                </Link>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

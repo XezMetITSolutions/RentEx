@@ -1,5 +1,6 @@
 
 import prisma from '@/lib/prisma';
+import Link from 'next/link';
 import { Plus, MoreHorizontal, Calendar, CheckSquare, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -67,10 +68,10 @@ export default async function TasksPage() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Aufgaben</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Team-Organisation & To-Dos</p>
                 </div>
-                <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                <Link href="/admin/tasks/new" className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                     <Plus className="h-4 w-4" />
                     Neue Aufgabe
-                </button>
+                </Link>
             </div>
 
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
