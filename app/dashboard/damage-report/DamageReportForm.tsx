@@ -1,8 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { submitDamageReport } from '@/app/actions/dashboard';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import type { Rental, Car, Customer, Location } from '@prisma/client';
 
 type RentalWithRelations = Rental & {
