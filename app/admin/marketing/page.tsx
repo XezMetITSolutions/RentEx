@@ -10,11 +10,24 @@ async function getCoupons() {
     });
 }
 
+async function getRedeemedDiscountTotal() {
+    const result = await prisma.rental.aggregate({
+        _sum: { discountAmount: true },
+        where: {
+            status: { not: 'Cancelled' },
+        },
+    });
+    return Number(result._sum.discountAmount ?? 0);
+}
+
 // Ensure this page is dynamic so it fetches fresh data
 export const dynamic = 'force-dynamic';
 
 export default async function MarketingPage() {
-    const coupons = await getCoupons();
+    const [coupons, redeemedValue] = await Promise.all([
+        getCoupons(),
+        getRedeemedDiscountTotal(),
+    ]);
 
     return (
         <div className="space-y-6">
@@ -49,7 +62,9 @@ export default async function MarketingPage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-rose-100">Eingelöster Wert</p>
-                            <h3 className="text-2xl font-bold">€1,250</h3>
+                            <h3 className="text-2xl font-bold">
+                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(redeemedValue)}
+                            </h3>
                         </div>
                     </div>
                 </div>

@@ -4,44 +4,20 @@ import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 async function getActivityLogs() {
-    // In production, fetch from ActivityLog table
-    // For now, generate from recent database activity
-    const recentRentals = await prisma.rental.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: {
-            car: true,
-            customer: true
-        }
-    });
-
-    const recentCars = await prisma.car.findMany({
-        take: 3,
+    const logs = await prisma.activityLog.findMany({
+        take: 20,
         orderBy: { createdAt: 'desc' }
     });
 
-    const logs = [
-        ...recentRentals.map(rental => ({
-            id: `rental-${rental.id}`,
-            userName: 'Admin User',
-            action: rental.status === 'Completed' ? 'Completed' : rental.status === 'Active' ? 'Updated' : 'Created',
-            entityType: 'Rental',
-            description: `Reservierung #${rental.contractNumber || rental.id} - ${rental.car.brand} ${rental.car.model} für ${rental.customer.firstName} ${rental.customer.lastName}`,
-            createdAt: rental.createdAt,
-            ipAddress: '192.168.1.100'
-        })),
-        ...recentCars.map(car => ({
-            id: `car-${car.id}`,
-            userName: 'Admin User',
-            action: 'Created',
-            entityType: 'Car',
-            description: `Neues Fahrzeug hinzugefügt: ${car.brand} ${car.model} (${car.plate})`,
-            createdAt: car.createdAt,
-            ipAddress: '192.168.1.100'
-        }))
-    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 10);
-
-    return logs;
+    return logs.map(log => ({
+        id: String(log.id),
+        userName: log.userName ?? undefined,
+        action: log.action,
+        entityType: log.entityType,
+        description: log.description,
+        createdAt: log.createdAt,
+        ipAddress: log.ipAddress ?? undefined
+    }));
 }
 
 export default async function ActivityLogPanel() {
@@ -104,7 +80,11 @@ export default async function ActivityLogPanel() {
             </div>
 
             <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                {logs.map((log) => {
+                {logs.length === 0 ? (
+                    <div className="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Keine Aktivitäten vorhanden.
+                    </div>
+                ) : logs.map((log) => {
                     const Icon = getIcon(log.entityType);
                     return (
                         <div key={log.id} className="px-6 py-4 hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
@@ -115,7 +95,7 @@ export default async function ActivityLogPanel() {
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{log.userName}</span>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{log.userName ?? 'System'}</span>
                                         <span className="text-xs text-gray-400">•</span>
                                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getActionColor(log.action)}`}>
                                             {log.action}
@@ -140,6 +120,7 @@ export default async function ActivityLogPanel() {
                         </div>
                     );
                 })}
+                )}
             </div>
 
             <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-4">

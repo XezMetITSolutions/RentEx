@@ -1,6 +1,8 @@
 import { ArrowRight, Car, Calendar, CreditCard, ChevronRight, Clock, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { getCurrentCustomer } from "@/lib/dashboardAuth";
+import NoCustomer from "@/components/dashboard/NoCustomer";
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -13,22 +15,8 @@ const formatDate = (date: Date) => {
 };
 
 export default async function DashboardPage() {
-    // Normally we would get the userId from auth session.
-    // Since we are not using a specific auth library here, we'll try to get the first customer as a placeholder
-    // or handle the empty state.
-    const customer = await prisma.customer.findFirst();
-
-    if (!customer) {
-        return (
-            <div className="flex flex-col items-center justify-center p-12">
-                <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Keine Kundendaten gefunden</h2>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-6">Bitte registrieren Sie sich oder legen Sie einen Kunden an.</p>
-                <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                    Registrieren
-                </Link>
-            </div>
-        )
-    }
+    const customer = await getCurrentCustomer();
+    if (!customer) return <NoCustomer />;
 
     // Fetch real data for this customer
     const activeRentals = await prisma.rental.findMany({
@@ -58,6 +46,12 @@ export default async function DashboardPage() {
         where: { customerId: customer.id }
     });
 
+    // Loyalty points: 10 points per completed rental (from DB)
+    const completedRentalsCount = await prisma.rental.count({
+        where: { customerId: customer.id, status: 'Completed' }
+    });
+    const loyaltyPoints = completedRentalsCount * 10;
+
     // Calculate upcoming reservation (future start date)
     const upcomingReservationCount = await prisma.rental.count({
         where: {
@@ -85,7 +79,7 @@ export default async function DashboardPage() {
                 {[
                     { label: "Aktive Mieten", value: activeRentals.length.toString(), icon: Car, color: "text-blue-600 dark:text-blue-500" },
                     { label: "Gesamtfahrten", value: totalRentalsCount.toString(), icon: Clock, color: "text-emerald-600 dark:text-emerald-500" },
-                    { label: "Meine Punkte", value: "0", icon: ShieldCheck, color: "text-amber-600 dark:text-amber-500" }, // Placeholder for loyalty points
+                    { label: "Meine Punkte", value: loyaltyPoints.toString(), icon: ShieldCheck, color: "text-amber-600 dark:text-amber-500" },
                     { label: "Reservierungen", value: upcomingReservationCount.toString(), icon: Calendar, color: "text-purple-600 dark:text-purple-500" },
                 ].map((stat, i) => (
                     <div
@@ -166,14 +160,23 @@ export default async function DashboardPage() {
                                     </div>
 
                                     <div className="mt-auto">
-                                        {/* Simple progress bar logic could be added based on dates */}
-                                        <div className="w-full bg-zinc-100 rounded-full h-2.5 dark:bg-zinc-800 mb-2">
-                                            <div className="bg-blue-600 h-2.5 rounded-full w-[50%]"></div>
-                                        </div>
-                                        <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                                            <span>Status: Läuft</span>
-                                            <span>Bereit zur Rückgabe</span>
-                                        </div>
+                                        {(() => {
+                                            const start = new Date(activeRental.startDate).getTime();
+                                            const end = new Date(activeRental.endDate).getTime();
+                                            const now = Date.now();
+                                            const progress = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
+                                            return (
+                                                <>
+                                                    <div className="w-full bg-zinc-100 rounded-full h-2.5 dark:bg-zinc-800 mb-2">
+                                                        <div className="bg-blue-600 h-2.5 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                                                        <span>Status: Läuft</span>
+                                                        <span>{progress >= 100 ? 'Rückgabe fällig' : 'Bereit zur Rückgabe'}</span>
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>

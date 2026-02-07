@@ -24,7 +24,7 @@ import { clsx } from 'clsx';
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
-    { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badge: 'Live' },
+    { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
     { name: 'Schäden', icon: Wrench, href: '/admin/damage' },
     { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
     { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
@@ -34,12 +34,24 @@ const menuItems = [
     { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
     { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
     { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
-    { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badge: '3' },
+    { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+    activeRentals: number;
+    todayRevenue: number;
+    pendingNotifications: number;
+}
+
+export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications }: SidebarProps) {
     const pathname = usePathname();
+
+    const getBadge = (item: (typeof menuItems)[0]) => {
+        if (item.badgeKey === 'live') return 'Live';
+        if (item.badgeKey === 'notifications' && pendingNotifications > 0) return String(pendingNotifications);
+        return null;
+    };
 
     return (
         <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 dark:bg-gray-950 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-xl flex flex-col border-r border-slate-800 dark:border-gray-800">
@@ -81,14 +93,14 @@ export default function Sidebar() {
                                 )} />
                                 {item.name}
                             </div>
-                            {item.badge && (
+                            {getBadge(item) && (
                                 <span className={clsx(
                                     'px-2 py-0.5 text-[10px] font-bold rounded-full',
                                     isActive
                                         ? 'bg-white text-red-600'
                                         : 'bg-red-500 text-white'
                                 )}>
-                                    {item.badge}
+                                    {getBadge(item)}
                                 </span>
                             )}
                         </Link>
@@ -96,16 +108,20 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Quick Stats */}
+            {/* Quick Stats - from DB */}
             <div className="px-6 py-4 border-t border-slate-800 dark:border-gray-800 bg-slate-950/50 dark:bg-gray-900/50">
                 <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3">
                         <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Aktive</div>
-                        <div className="text-lg font-bold text-white">12</div>
+                        <div className="text-lg font-bold text-white">{activeRentals}</div>
                     </div>
                     <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3">
                         <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Heute</div>
-                        <div className="text-lg font-bold text-green-400">€2.4k</div>
+                        <div className="text-lg font-bold text-green-400">
+                            {todayRevenue >= 1000
+                                ? `€${(todayRevenue / 1000).toFixed(1)}k`
+                                : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(todayRevenue)}
+                        </div>
                     </div>
                 </div>
             </div>

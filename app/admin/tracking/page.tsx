@@ -4,11 +4,13 @@ import { Car } from '@prisma/client';
 import Link from 'next/link';
 import { Car as CarIcon, MapPin, Navigation, Signal } from 'lucide-react';
 
-async function getActiveCars() {
+async function getActiveCarsWithGps() {
     const cars = await prisma.car.findMany({
         where: {
             isActive: true,
-            status: { not: 'Sold' }
+            status: { not: 'Sold' },
+            latitude: { not: null },
+            longitude: { not: null },
         },
         include: {
             currentLocation: true
@@ -17,15 +19,15 @@ async function getActiveCars() {
     return cars;
 }
 
-// Mock coordinates for Feldkirch area (approx 47.237, 9.598)
-const CENTER_LAT = 47.237;
-const CENTER_LNG = 9.598;
-const ZOOM_SCALE = 10000; // arbitrary scale for the mock map
+// Map center (Feldkirch area) – used only for viewport when no locations in DB
+const DEFAULT_CENTER_LAT = 47.237;
+const DEFAULT_CENTER_LNG = 9.598;
+const ZOOM_SCALE = 10000;
 
 export const dynamic = 'force-dynamic';
 
 export default async function TrackingPage() {
-    const cars = await getActiveCars();
+    const cars = await getActiveCarsWithGps();
 
     return (
         <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col">
@@ -66,17 +68,13 @@ export default async function TrackingPage() {
                     <path d="M0 500 L 1600 400" fill="none" stroke="currentColor" strokeWidth="10" />
                 </svg>
 
-                {/* Markers */}
-                {cars.map((car, index) => {
-                    // Generate pseudo-random position if no real GPS data
-                    // Use index to scatter them if lat/lng missing
-                    const lat = car.latitude || (CENTER_LAT + (Math.sin(index * 123) * 0.02));
-                    const lng = car.longitude || (CENTER_LNG + (Math.cos(index * 321) * 0.03));
+                {/* Markers - only cars with GPS from DB */}
+                {cars.map((car) => {
+                    const lat = car.latitude!;
+                    const lng = car.longitude!;
 
-                    // Simple projection to % (clamped to 10-90% to stay on screen)
-                    // This is huge oversimplification but works for demo
-                    const left = 50 + (lng - CENTER_LNG) * ZOOM_SCALE;
-                    const top = 50 - (lat - CENTER_LAT) * ZOOM_SCALE * 1.5;
+                    const left = 50 + (lng - DEFAULT_CENTER_LNG) * ZOOM_SCALE;
+                    const top = 50 - (lat - DEFAULT_CENTER_LAT) * ZOOM_SCALE * 1.5;
 
                     return (
                         <div
@@ -104,16 +102,9 @@ export default async function TrackingPage() {
                                         <Signal className="h-3 w-3" />
                                         <span>Verbunden</span>
                                     </div>
-                                    <div className="mt-2 text-xs text-gray-400">
-                                        <div className="flex justify-between">
-                                            <span>Batterie:</span>
-                                            <span className="text-gray-900 dark:text-gray-300">94%</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Geschw.:</span>
-                                            <span className="text-gray-900 dark:text-gray-300">0 km/h</span>
-                                        </div>
-                                    </div>
+                                    <p className="mt-1 text-xs text-gray-400">
+                                        {lat.toFixed(5)}, {lng.toFixed(5)}
+                                    </p>
                                 </div>
                             </div>
                         </div>
