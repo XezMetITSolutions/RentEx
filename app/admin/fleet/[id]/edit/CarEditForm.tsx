@@ -115,6 +115,16 @@ export default function CarEditForm({ car }: { car: CarType }) {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
                                     <input name="vin" type="text" maxLength={17} defaultValue={car.vin || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fahrzeugfoto (URL)</label>
+                                    <input name="imageUrl" type="url" defaultValue={car.imageUrl || ''} placeholder="/assets/cars/beispiel.jpg oder https://…" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    {car.imageUrl && (
+                                        <div className="mt-2 relative w-32 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={car.imageUrl} alt="" className="object-cover w-full h-full" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

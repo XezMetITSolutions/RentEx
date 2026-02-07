@@ -19,14 +19,19 @@ const FLEET_CARS = [
 ];
 
 const CAR_IMAGES: Record<string, string> = {
-    'Fiat Ducato L3H2': '/assets/cars/fiat_ducato.png',
-    'Fiat Ducato L4H2': '/assets/cars/fiat_ducato.png',
-    'Fiat Ducato L3H2 Plus': '/assets/cars/fiat_ducato.png',
-    'Ford Transit Custom L1': '/assets/cars/ford_transit.png',
-    'Ford Transit Custom Langversion Automatik': '/assets/cars/ford_transit.png',
+    'Seat Leon Kombi': '/assets/cars/seat_leon_kombi.jpg',
     'Peugeot Traveller Automatic': '/assets/cars/peugeot_traveller.jpg',
-    'Skoda Superb Kombi': '/assets/cars/skoda_superb.png',
+    'Ford Mustang Mach-E GT': '/assets/cars/kleinwagen.jpg',
+    'Fiat Ducato L3H2 Plus': '/assets/cars/fiat_ducato.png',
+    'Hyundai Ioniq Elektro': '/assets/cars/hyundai_ioniq.jpg',
+    'VW Polo': '/assets/cars/kleinwagen.jpg',
+    'Opel Corsa': '/assets/cars/kleinwagen.jpg',
     'VW Golf Kombi': '/assets/cars/vw_golf_kombi.jpg',
+    'Skoda Superb Kombi': '/assets/cars/skoda_superb.png',
+    'Ford Transit Custom Langversion Automatik': '/assets/cars/ford_transit.png',
+    'Ford Transit Custom L1': '/assets/cars/ford_transit.png',
+    'Fiat Ducato L4H2': '/assets/cars/fiat_ducato.png',
+    'Fiat Ducato L3H2': '/assets/cars/fiat_ducato.png',
 };
 
 const PLATE_SUFFIXES = ['SL', 'PT', 'FM', 'FD', 'HI', 'VP', 'OC', 'VG', 'SS', 'FT', 'F1', 'D4', 'D3'];
@@ -47,7 +52,7 @@ async function main() {
     for (let i = 0; i < FLEET_CARS.length; i++) {
         const car = FLEET_CARS[i];
         const plate = plateForIndex(i + 1);
-        const imageUrl = CAR_IMAGES[`${car.brand} ${car.model}`] ?? '/assets/cars/fiat_ducato.png';
+        const imageUrl = CAR_IMAGES[`${car.brand} ${car.model}`] ?? '/assets/cars/kleinwagen.jpg';
 
         console.log(`Creating ${car.brand} ${car.model} (${plate})...`);
 

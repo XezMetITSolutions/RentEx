@@ -120,6 +120,10 @@ export default function NewCarPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
                                     <input name="vin" type="text" maxLength={17} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="17-stellig" />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fahrzeugfoto (URL)</label>
+                                    <input name="imageUrl" type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="/assets/cars/beispiel.jpg oder https://…" />
+                                </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Standort</label>

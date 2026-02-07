@@ -54,6 +54,7 @@ export async function createCar(formData: FormData) {
         // Content & Media
         description: formData.get('description') as string || null,
         features: formData.get('features') as string || null,
+        imageUrl: (formData.get('imageUrl') as string)?.trim() || null,
 
         // Equipment & Features
         hasAirConditioning: formData.get('hasAirConditioning') === 'on',
