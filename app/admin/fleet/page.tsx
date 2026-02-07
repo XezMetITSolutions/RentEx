@@ -1,19 +1,20 @@
 import Image from 'next/image';
 import prisma from '@/lib/prisma';
-import { BadgeCheck, BadgeAlert, Fuel, Calendar, Palette, Car as CarIconLucide } from 'lucide-react';
+import { Fuel, Calendar, Palette, Car as CarIconLucide, MapPin } from 'lucide-react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
-import { revalidatePath } from 'next/cache';
+import { AssignFeldkirchButton } from './AssignFeldkirchButton';
 
 export const dynamic = 'force-dynamic';
 
 async function getCars() {
-    const cars = await prisma.car.findMany({
-        orderBy: {
-            createdAt: 'desc'
+    return prisma.car.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+            currentLocation: true,
+            homeLocation: true
         }
     });
-    return cars;
 }
 
 export default async function FleetPage() {
@@ -21,11 +22,14 @@ export default async function FleetPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Fahrzeugflotte</h1>
-                <Link href="/admin/fleet/new" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                    + Neues Fahrzeug
-                </Link>
+                <div className="flex flex-wrap items-center gap-3">
+                    <AssignFeldkirchButton />
+                    <Link href="/admin/fleet/new" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                        + Neues Fahrzeug
+                    </Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -74,6 +78,10 @@ export default async function FleetPage() {
                                 <div className="flex items-center gap-1.5">
                                     <Palette className="h-3.5 w-3.5" />
                                     <span>{car.color}</span>
+                                </div>
+                                <div className="col-span-2 flex items-center gap-1.5">
+                                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                                    <span>{car.currentLocation?.name ?? car.homeLocation?.name ?? '– Kein Standort'}</span>
                                 </div>
                             </div>
 

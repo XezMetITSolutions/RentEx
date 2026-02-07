@@ -7,7 +7,8 @@
     "build": "npx prisma db push && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "assign-cars-feldkirch": "tsx prisma/assign-cars-location-only.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
