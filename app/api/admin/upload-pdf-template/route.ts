@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,12 +20,22 @@ export async function POST(request: NextRequest) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const filePath = path.join(process.cwd(), 'public', 'damage-report-template.pdf');
+        // Ensure public directory exists
+        const publicDir = path.join(process.cwd(), 'public');
+        await mkdir(publicDir, { recursive: true });
+
+        const filePath = path.join(publicDir, 'damage-report-template.pdf');
         await writeFile(filePath, buffer);
+
+        console.log('PDF successfully uploaded to:', filePath);
 
         return NextResponse.json({ success: true, message: 'PDF erfolgreich hochgeladen' });
     } catch (error) {
         console.error('PDF Upload Error:', error);
-        return NextResponse.json({ error: 'Upload fehlgeschlagen' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({
+            error: 'Upload fehlgeschlagen',
+            details: errorMessage
+        }, { status: 500 });
     }
 }
