@@ -57,7 +57,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
 
             <form action={updateCarWithId} className="space-y-8">
                 {/* Tab: Basis & Design */}
-                {activeTab === 'basic' && (
+                <div className={activeTab === 'basic' ? 'block' : 'hidden'}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Grundinformationen</h3>
@@ -147,10 +147,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Technical Data */}
-                {activeTab === 'technical' && (
+                <div className={activeTab === 'technical' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Technische Spezifikationen</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -201,10 +201,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Features */}
-                {activeTab === 'features' && (
+                <div className={activeTab === 'features' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Fahrzeugausstattung</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -232,10 +232,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <input name="features" type="text" defaultValue={car.features || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Zusatzoptionen (Extras & Packages) */}
-                {activeTab === 'options' && (
+                <div className={activeTab === 'options' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
@@ -303,10 +303,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Pricing & Campaigns */}
-                {activeTab === 'pricing' && (
+                <div className={activeTab === 'pricing' ? 'block' : 'hidden'}>
                     <div className="space-y-6">
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Mietpreise</h3>
@@ -348,10 +348,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Insurance & Documents */}
-                {activeTab === 'insurance' && (
+                <div className={activeTab === 'insurance' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Versicherung & Dokumente</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -381,10 +381,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Maintenance */}
-                {activeTab === 'maintenance' && (
+                <div className={activeTab === 'maintenance' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Wartung & Service</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -418,10 +418,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Tab: Financial */}
-                {activeTab === 'financial' && (
+                <div className={activeTab === 'financial' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Finanzielle Daten</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -443,7 +443,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Submit Button */}
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
