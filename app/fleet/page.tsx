@@ -34,7 +34,25 @@ async function getCars(vehicleType?: VehicleType) {
             dailyRate: 'asc'
         }
     });
-    return cars;
+
+    // Group by model (Brand + Model)
+    const grouped = cars.reduce((acc, car) => {
+        const key = `${car.brand}-${car.model}`;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(car);
+        return acc;
+    }, {} as Record<string, typeof cars>);
+
+    // Select one random car from each group
+    const uniqueCars = Object.values(grouped).map(group => {
+        const randomIndex = Math.floor(Math.random() * group.length);
+        return group[randomIndex];
+    });
+
+    // Sort by price
+    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
 }
 
 export default async function FleetPage({

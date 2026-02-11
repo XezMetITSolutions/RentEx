@@ -8,12 +8,29 @@ async function getFeaturedCars() {
         where: {
             status: 'Active'
         },
-        take: 3,
         orderBy: {
             dailyRate: 'asc'
         }
     });
-    return cars;
+
+    // Group by model (Brand + Model)
+    const grouped = cars.reduce((acc, car) => {
+        const key = `${car.brand}-${car.model}`;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(car);
+        return acc;
+    }, {} as Record<string, typeof cars>);
+
+    // Select one random car from each group
+    const uniqueCars = Object.values(grouped).map(group => {
+        const randomIndex = Math.floor(Math.random() * group.length);
+        return group[randomIndex];
+    });
+
+    // Sort by price and take top 3
+    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate)).slice(0, 3);
 }
 
 export default async function CarFleetPreview() {
