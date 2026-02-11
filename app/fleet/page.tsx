@@ -101,7 +101,7 @@ export default async function FleetPage({
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {cars.map((car) => (
-                        <div key={car.id} className="bg-zinc-900/50 border border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
+                        <Link key={car.id} href={`/fleet/${car.id}`} className="block bg-zinc-900/50 border border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
                             {/* Image Area */}
                             <div className="h-56 bg-zinc-800 relative">
                                 {car.imageUrl ? (
@@ -149,14 +149,13 @@ export default async function FleetPage({
                                     </div>
                                 </div>
 
-                                <Link
-                                    href={`/fleet/${car.id}`}
-                                    className="block w-full text-center py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
+                                <div
+                                    className="block w-full text-center py-3 bg-white/5 group-hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
                                 >
                                     Details ansehen
-                                </Link>
+                                </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </main>
