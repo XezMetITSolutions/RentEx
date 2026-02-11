@@ -80,6 +80,7 @@ export default function BookingWidget({ car, options }: BookingWidgetProps) {
             case 'insurance': return ShieldCheck;
             case 'driver': return Users;
             case 'equipment': return Baby;
+            case 'package': return Zap;
             default: return Zap;
         }
     };
@@ -171,8 +172,8 @@ export default function BookingWidget({ car, options }: BookingWidgetProps) {
                                             {option.name}
                                         </span>
                                         <span className="text-sm font-semibold text-gray-300">
-                                            +{Number(option.price)}€
-                                            {option.isPerDay && <span className="text-[10px] text-gray-500 ml-1">/Tag</span>}
+                                            +{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                            {option.isPerDay && <span className="text-[10px] text-zinc-500 ml-1">/Tag</span>}
                                         </span>
                                     </div>
                                     <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
