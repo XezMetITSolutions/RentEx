@@ -7,9 +7,19 @@ import CarEditForm from './CarEditForm';
 
 async function getCar(id: number) {
     const car = await prisma.car.findUnique({
-        where: { id }
+        where: { id },
+        include: {
+            options: true
+        }
     });
     return car;
+}
+
+async function getAllOptions() {
+    return prisma.option.findMany({
+        where: { status: 'active' },
+        orderBy: { name: 'asc' }
+    });
 }
 
 export default async function EditCarPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,9 +28,15 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
 
     if (isNaN(carId)) notFound();
 
-    const car = await getCar(carId);
+    const [car, allOptions] = await Promise.all([
+        getCar(carId),
+        getAllOptions()
+    ]);
 
     if (!car) notFound();
+
+    const plainCar = JSON.parse(JSON.stringify(car));
+    const plainOptions = JSON.parse(JSON.stringify(allOptions));
 
     return (
         <div className="max-w-7xl mx-auto pb-12">
@@ -39,7 +55,7 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
                 </Link>
             </div>
 
-            <CarEditForm car={car} />
+            <CarEditForm car={plainCar} allOptions={plainOptions} />
         </div>
     );
 }

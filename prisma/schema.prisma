@@ -120,6 +120,7 @@ model Car {
   damageRecords DamageRecord[]
   tasks         Task[]
   fahrtenbuchEntries FahrtenbuchEntry[]
+  options       Option[]
 }
 
 model Location {
@@ -273,6 +274,9 @@ model Option {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations
+  cars        Car[]
 }
 
 

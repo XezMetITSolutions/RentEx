@@ -93,8 +93,15 @@ export async function createCar(formData: FormData) {
         isActive: true,
     };
 
+    const optionIds = formData.getAll('options').map(id => Number(id));
+
     await prisma.car.create({
-        data: rawData
+        data: {
+            ...rawData,
+            options: {
+                connect: optionIds.map(id => ({ id }))
+            }
+        }
     });
 
     revalidatePath('/admin/fleet');
@@ -187,9 +194,16 @@ export async function updateCar(id: number, formData: FormData) {
         internalNotes: formData.get('internalNotes') as string || null,
     };
 
+    const optionIds = formData.getAll('options').map(id => Number(id));
+
     await prisma.car.update({
         where: { id },
-        data: rawData
+        data: {
+            ...rawData,
+            options: {
+                set: optionIds.map(id => ({ id }))
+            }
+        }
     });
 
     revalidatePath('/admin/fleet');

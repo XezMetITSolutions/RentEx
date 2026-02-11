@@ -1,26 +1,16 @@
 'use client';
 
-import { updateCar } from '@/app/actions';
-import { Car as CarIcon, Save, Tag, ShieldCheck, Wrench, DollarSign, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
-import { Car as CarType, Option as OptionType } from '@prisma/client';
+import { createCar } from '@/app/actions';
+import { ArrowLeft, Car, Save, Tag, ShieldCheck, Wrench, DollarSign, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Option as OptionType } from '@prisma/client';
 
-interface ExtendedCar extends CarType {
-    options?: OptionType[];
-}
-
-export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, allOptions: OptionType[] }) {
+export default function NewCarForm({ allOptions }: { allOptions: OptionType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
-    const updateCarWithId = updateCar.bind(null, car.id);
-
-    const formatDate = (date: Date | null) => {
-        if (!date) return '';
-        return new Date(date).toISOString().split('T')[0];
-    };
 
     const tabs = [
-        { id: 'basic', label: 'Basis & Design', icon: CarIcon },
+        { id: 'basic', label: 'Basis & Design', icon: Car },
         { id: 'technical', label: 'Technische Daten', icon: SettingsIcon },
         { id: 'features', label: 'Ausstattung', icon: CheckCircle },
         { id: 'options', label: 'Zusatzoptionen', icon: Tag },
@@ -31,7 +21,22 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
     ];
 
     return (
-        <>
+        <div className="max-w-7xl mx-auto pb-12">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Neues Fahrzeug erfassen</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Vollständige Verwaltung inklusive Wartungshistorie und Kampagnen</p>
+                </div>
+                <Link
+                    href="/admin/fleet"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Abbrechen
+                </Link>
+            </div>
+
             {/* Tabs */}
             <div className="mb-8 overflow-x-auto">
                 <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
@@ -55,7 +60,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                 </div>
             </div>
 
-            <form action={updateCarWithId} className="space-y-8">
+            <form action={createCar} className="space-y-8">
                 {/* Tab: Basis & Design */}
                 {activeTab === 'basic' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -65,33 +70,33 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marke *</label>
-                                        <input name="brand" type="text" required defaultValue={car.brand} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="brand" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. BMW" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modell *</label>
-                                        <input name="model" type="text" required defaultValue={car.model} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="model" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 320i" />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baujahr *</label>
-                                        <input name="year" type="number" required defaultValue={car.year} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="year" type="number" required defaultValue={2024} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Farbe *</label>
-                                        <input name="color" type="text" required defaultValue={car.color} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="color" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="Schwarz" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kennzeichen *</label>
-                                        <input name="plate" type="text" required defaultValue={car.plate} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="plate" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="M-AB 1234" />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategorie</label>
-                                        <select name="category" defaultValue={car.category || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                        <select name="category" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                             <option>Kleinwagen</option>
                                             <option>Mittelklasse</option>
                                             <option>Limousine</option>
@@ -100,13 +105,12 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                                             <option>Sportwagen</option>
                                             <option>Cabrio</option>
                                             <option>Kombi</option>
-                                            <option>Bus</option>
-                                            <option>Kastenwagen</option>
+                                            <option>Elektro</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                                        <select name="status" defaultValue={car.status} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                        <select name="status" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                             <option value="Active">Verfügbar</option>
                                             <option value="Maintenance">Wartung</option>
                                             <option value="Rented">Vermietet</option>
@@ -118,17 +122,19 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
-                                    <input name="vin" type="text" maxLength={17} defaultValue={car.vin || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="vin" type="text" maxLength={17} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="17-stellig" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fahrzeugfoto (URL)</label>
-                                    <input name="imageUrl" type="url" defaultValue={car.imageUrl || ''} placeholder="/assets/cars/beispiel.jpg oder https://…" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
-                                    {car.imageUrl && (
-                                        <div className="mt-2 relative w-32 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={car.imageUrl} alt="" className="object-cover w-full h-full" />
-                                        </div>
-                                    )}
+                                    <input name="imageUrl" type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="/assets/cars/beispiel.jpg oder https://…" />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Standort</label>
+                                    <select name="locationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                        <option value="">– Kein Standort –</option>
+                                        <option value="1">Hauptfiliale Feldkirch</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -138,11 +144,11 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Öffentliche Beschreibung</label>
-                                    <textarea name="description" rows={6} defaultValue={car.description || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                    <textarea name="description" rows={6} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none" placeholder="Highlight-Features, Fahrgefühl..."></textarea>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interne Notizen</label>
-                                    <textarea name="internalNotes" rows={4} defaultValue={car.internalNotes || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                    <textarea name="internalNotes" rows={4} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none" placeholder="Schäden, Besonderheiten..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -156,7 +162,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kraftstoffart</label>
-                                <select name="fuelType" defaultValue={car.fuelType} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                <select name="fuelType" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                     <option>Benzin</option>
                                     <option>Diesel</option>
                                     <option>Elektro</option>
@@ -166,38 +172,38 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Getriebe</label>
-                                <select name="transmission" defaultValue={car.transmission || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                <select name="transmission" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                     <option>Automatik</option>
                                     <option>Manuell</option>
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Motorhubraum</label>
-                                <input name="engineSize" type="text" defaultValue={car.engineSize || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="engineSize" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 2.0L" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leistung (PS)</label>
-                                <input name="horsePower" type="number" defaultValue={car.horsePower || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="horsePower" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="184" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verbrauch (L/100km)</label>
-                                <input name="fuelConsumption" type="text" defaultValue={car.fuelConsumption || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="fuelConsumption" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="6.2" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CO₂-Emission (g/km)</label>
-                                <input name="co2Emission" type="text" defaultValue={car.co2Emission || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="co2Emission" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="142" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Türen</label>
-                                <input name="doors" type="number" defaultValue={car.doors || 4} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="doors" type="number" defaultValue={4} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitzplätze</label>
-                                <input name="seats" type="number" defaultValue={car.seats || 5} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="seats" type="number" defaultValue={5} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand</label>
-                                <input name="currentMileage" type="number" defaultValue={car.currentMileage || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="currentMileage" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="15000" />
                             </div>
                         </div>
                     </div>
@@ -222,14 +228,14 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                                 { name: 'hasTowHitch', label: 'Anhängerkupplung' },
                             ].map((feature) => (
                                 <label key={feature.name} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-                                    <input type="checkbox" name={feature.name} defaultChecked={!!car[feature.name as keyof CarType]} className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500" />
+                                    <input type="checkbox" name={feature.name} className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500" />
                                     <span className="text-sm text-gray-700 dark:text-gray-300">{feature.label}</span>
                                 </label>
                             ))}
                         </div>
                         <div className="mt-6">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Weitere Ausstattung (kommasepariert)</label>
-                            <input name="features" type="text" defaultValue={car.features || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            <input name="features" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="LED-Scheinwerfer, Ledersitze, Panoramadach" />
                         </div>
                     </div>
                 )}
@@ -239,7 +245,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Hier können Sie festlegen, welche Optionen für dieses Fahrzeug verfügbar sind.</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Wählen Sie die verfügbaren Optionen für dieses neue Fahrzeug.</span>
                         </div>
 
                         <div className="space-y-8">
@@ -247,13 +253,12 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2">Mehrkilometer-Pakete</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type === 'package').map((option) => (
+                                    {allOptions?.filter(o => o.type === 'package').map((option: any) => (
                                         <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all">
                                             <input
                                                 type="checkbox"
                                                 name="options"
                                                 value={option.id}
-                                                defaultChecked={car.options?.some(o => o.id === option.id)}
                                                 className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500"
                                             />
                                             <div>
@@ -271,34 +276,22 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2">Zusatzoptionen & Schutz</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type !== 'package').map((option) => {
-                                        const isExtra = option.type === 'extra';
-                                        const isInsurance = option.type === 'insurance';
-                                        const isDriver = option.type === 'driver';
-
-                                        return (
-                                            <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all">
-                                                <input
-                                                    type="checkbox"
-                                                    name="options"
-                                                    value={option.id}
-                                                    defaultChecked={car.options?.some(o => o.id === option.id)}
-                                                    className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
-                                                        {isInsurance && <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />}
-                                                        {isDriver && <CheckCircle className="w-3.5 h-3.5 text-green-500" />}
-                                                        {isExtra && <Tag className="w-3.5 h-3.5 text-orange-500" />}
-                                                    </div>
-                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
-                                                    </span>
-                                                </div>
-                                            </label>
-                                        );
-                                    })}
+                                    {allOptions?.filter(o => o.type !== 'package').map((option: any) => (
+                                        <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all">
+                                            <input
+                                                type="checkbox"
+                                                name="options"
+                                                value={option.id}
+                                                className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500"
+                                            />
+                                            <div>
+                                                <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
+                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -313,19 +306,19 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tagespreis (€) *</label>
-                                    <input name="dailyRate" type="number" step="0.01" required defaultValue={Number(car.dailyRate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="dailyRate" type="number" step="0.01" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="150.00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Wochenpreis (€)</label>
-                                    <input name="weeklyRate" type="number" step="0.01" defaultValue={Number(car.weeklyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="weeklyRate" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="900.00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monatspreis (€)</label>
-                                    <input name="monthlyRate" type="number" step="0.01" defaultValue={Number(car.monthlyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="monthlyRate" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="3200.00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kaution (€)</label>
-                                    <input name="depositAmount" type="number" step="0.01" defaultValue={Number(car.depositAmount) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="depositAmount" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="500.00" />
                                 </div>
                             </div>
                         </div>
@@ -335,15 +328,15 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktionspreis (€/Tag)</label>
-                                    <input name="promoPrice" type="number" step="0.01" defaultValue={Number(car.promoPrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="promoPrice" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="99.00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig von</label>
-                                    <input name="promoStartDate" type="date" defaultValue={formatDate(car.promoStartDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="promoStartDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig bis</label>
-                                    <input name="promoEndDate" type="date" defaultValue={formatDate(car.promoEndDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                    <input name="promoEndDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                             </div>
                         </div>
@@ -357,27 +350,27 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherungsgesellschaft</label>
-                                <input name="insuranceCompany" type="text" defaultValue={car.insuranceCompany || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="insuranceCompany" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="Allianz" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherungsnummer</label>
-                                <input name="insurancePolicyNumber" type="text" defaultValue={car.insurancePolicyNumber || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="insurancePolicyNumber" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherung gültig bis</label>
-                                <input name="insuranceValidUntil" type="date" defaultValue={formatDate(car.insuranceValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="insuranceValidUntil" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Erstzulassung</label>
-                                <input name="registrationDate" type="date" defaultValue={formatDate(car.registrationDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="registrationDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächste TÜV/HU</label>
-                                <input name="nextInspection" type="date" defaultValue={formatDate(car.nextInspection)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="nextInspection" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette gültig bis</label>
-                                <input name="vignetteValidUntil" type="date" defaultValue={formatDate(car.vignetteValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="vignetteValidUntil" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                         </div>
                     </div>
@@ -390,19 +383,19 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Ölwechsel</label>
-                                <input name="lastOilChange" type="date" defaultValue={formatDate(car.lastOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="lastOilChange" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Ölwechsel</label>
-                                <input name="nextOilChange" type="date" defaultValue={formatDate(car.nextOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="nextOilChange" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Reifenwechsel</label>
-                                <input name="lastTireChange" type="date" defaultValue={formatDate(car.lastTireChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="lastTireChange" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reifentyp</label>
-                                <select name="tireType" defaultValue={car.tireType || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                <select name="tireType" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                     <option>Sommerreifen</option>
                                     <option>Winterreifen</option>
                                     <option>Allwetter</option>
@@ -410,11 +403,11 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Service</label>
-                                <input name="lastServiceDate" type="date" defaultValue={formatDate(car.lastServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="lastServiceDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Service</label>
-                                <input name="nextServiceDate" type="date" defaultValue={formatDate(car.nextServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="nextServiceDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                         </div>
                     </div>
@@ -427,19 +420,19 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungspreis (€)</label>
-                                <input name="purchasePrice" type="number" step="0.01" defaultValue={Number(car.purchasePrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="purchasePrice" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="45000.00" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungsdatum</label>
-                                <input name="purchaseDate" type="date" defaultValue={formatDate(car.purchaseDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="purchaseDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktueller Wert (€)</label>
-                                <input name="currentValue" type="number" step="0.01" defaultValue={Number(car.currentValue) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="currentValue" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="38000.00" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand bei Kauf</label>
-                                <input name="purchaseMileage" type="number" defaultValue={Number(car.purchaseMileage) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <input name="purchaseMileage" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="0" />
                             </div>
                         </div>
                     </div>
@@ -448,7 +441,7 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                 {/* Submit Button */}
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <Link
-                        href={`/admin/fleet/${car.id}`}
+                        href="/admin/fleet"
                         className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
                     >
                         Abbrechen
@@ -458,10 +451,10 @@ export default function CarEditForm({ car, allOptions }: { car: ExtendedCar, all
                         className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg shadow-red-500/30 transition-all hover:scale-105"
                     >
                         <Save className="w-5 h-5" />
-                        Änderungen speichern
+                        Fahrzeug speichern
                     </button>
                 </div>
             </form>
-        </>
+        </div>
     );
 }

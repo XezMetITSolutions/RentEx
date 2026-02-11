@@ -20,16 +20,14 @@ import prisma from "@/lib/prisma";
 
 async function getCar(id: number) {
     const car = await prisma.car.findUnique({
-        where: { id: id }
+        where: { id: id },
+        include: {
+            options: {
+                where: { status: 'active' }
+            }
+        }
     });
     return car;
-}
-
-async function getOptions() {
-    const options = await prisma.option.findMany({
-        where: { status: 'active' }
-    });
-    return options;
 }
 
 export default async function CarDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,12 +38,13 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
         notFound();
     }
 
-    const [car, rawOptions] = await Promise.all([
-        getCar(carId),
-        getOptions()
-    ]);
+    const car = await getCar(carId);
 
-    const options = rawOptions.map(opt => ({
+    if (!car) {
+        notFound();
+    }
+
+    const options = (car.options || []).map(opt => ({
         ...opt,
         price: Number(opt.price)
     }));
