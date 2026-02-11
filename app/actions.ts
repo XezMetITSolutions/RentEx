@@ -116,7 +116,7 @@ export async function createCar(formData: FormData) {
             options: {
                 connect: optionIds.map(id => ({ id }))
             }
-        }
+        } as any
     });
 
     revalidatePath('/admin/fleet');
@@ -134,7 +134,7 @@ export async function updateCar(id: number, formData: FormData) {
             options: {
                 set: optionIds.map(id => ({ id }))
             }
-        }
+        } as any
     });
 
     revalidatePath('/admin/fleet');
@@ -333,9 +333,31 @@ export async function deleteOption(id: number) {
             where: { id }
         });
         revalidatePath('/admin/options');
+        revalidatePath('/admin/fleet');
         return { success: true };
     } catch (error) {
         console.error('Error deleting option:', error);
         return { success: false, error: 'Failed to delete option' };
+    }
+}
+
+export async function updateOption(id: number, formData: FormData) {
+    try {
+        await prisma.option.update({
+            where: { id },
+            data: {
+                name: formData.get('name') as string,
+                description: formData.get('description') as string || null,
+                price: Number(formData.get('price')),
+                type: formData.get('type') as string,
+                isPerDay: formData.get('isPerDay') === 'on',
+            }
+        });
+        revalidatePath('/admin/options');
+        revalidatePath('/admin/fleet');
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating option:', error);
+        return { success: false, error: 'Failed to update option' };
     }
 }

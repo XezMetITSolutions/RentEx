@@ -1,13 +1,57 @@
 'use client';
 
-import { createCar } from '@/app/actions';
-import { ArrowLeft, Car, Save, Tag, ShieldCheck, Wrench, DollarSign, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
+import { createCar, deleteOption, createOption, updateOption } from '@/app/actions';
+import {
+    ArrowLeft,
+    Car,
+    Save,
+    Tag,
+    ShieldCheck,
+    Wrench,
+    DollarSign,
+    Settings as SettingsIcon,
+    CheckCircle,
+    Plus,
+    Trash2,
+    Edit2,
+    X,
+    Loader2
+} from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Option as OptionType } from '@prisma/client';
 
 export default function NewCarForm({ allOptions }: { allOptions: OptionType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
+    const [isPending, startTransition] = useTransition();
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingOption, setEditingOption] = useState<OptionType | null>(null);
+
+    const handleDeleteOption = (id: number) => {
+        if (!confirm('Diesen Zusatz global löschen?')) return;
+        startTransition(async () => {
+            await deleteOption(id);
+        });
+    };
+
+    const handleCreateOption = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(async () => {
+            const result = await createOption(formData);
+            if (result.success) setIsAddModalOpen(false);
+        });
+    };
+
+    const handleUpdateOption = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!editingOption) return;
+        const formData = new FormData(e.currentTarget);
+        startTransition(async () => {
+            const result = await updateOption(editingOption.id, formData);
+            if (result.success) setEditingOption(null);
+        });
+    };
 
     const tabs = [
         { id: 'basic', label: 'Basis & Design', icon: Car },
@@ -244,59 +288,189 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                 <div className={activeTab === 'options' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Wählen Sie die verfügbaren Optionen für dieses neue Fahrzeug.</span>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Wählen Sie die verfügbaren Optionen für dieses neue Fahrzeug.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Neue Option
+                            </button>
                         </div>
 
                         <div className="space-y-8">
                             {/* Packages (Kilometer) */}
                             <div>
-                                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2">Mehrkilometer-Pakete</h4>
+                                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                                    <Tag className="w-4 h-4" />
+                                    Mehrkilometer-Pakete
+                                </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type === 'package').map((option: any) => (
-                                        <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all">
-                                            <input
-                                                type="checkbox"
-                                                name="options"
-                                                value={option.id}
-                                                className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                                            />
-                                            <div>
-                                                <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
-                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
-                                                </span>
+                                    {allOptions?.filter(o => o.type === 'package').map((option) => (
+                                        <div key={option.id} className="relative group p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                                            <div className="flex items-start gap-3">
+                                                <input
+                                                    type="checkbox"
+                                                    name="options"
+                                                    value={option.id}
+                                                    className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer"
+                                                />
+                                                <div className="flex-1">
+                                                    <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
+                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                                    </span>
+                                                </div>
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button type="button" onClick={() => setEditingOption(option)} className="p-1.5 text-gray-400 hover:text-blue-500"><Edit2 className="w-3.5 h-3.5" /></button>
+                                                    <button type="button" onClick={() => handleDeleteOption(option.id)} className="p-1.5 text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                </div>
                                             </div>
-                                        </label>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Extras & Insurance */}
                             <div>
-                                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2">Zusatzoptionen & Schutz</h4>
+                                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4" />
+                                    Zusatzoptionen & Schutz
+                                </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type !== 'package').map((option: any) => (
-                                        <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-all">
-                                            <input
-                                                type="checkbox"
-                                                name="options"
-                                                value={option.id}
-                                                className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                                            />
-                                            <div>
-                                                <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
-                                                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
-                                                </span>
+                                    {allOptions?.filter(o => o.type !== 'package').map((option) => {
+                                        const isExtra = option.type === 'extra';
+                                        const isInsurance = option.type === 'insurance';
+                                        const isDriver = option.type === 'driver';
+
+                                        return (
+                                            <div key={option.id} className="relative group p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                                                <div className="flex items-start gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="options"
+                                                        value={option.id}
+                                                        className="mt-1 w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
+                                                            {isInsurance && <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />}
+                                                            {isDriver && <CheckCircle className="w-3.5 h-3.5 text-green-500" />}
+                                                            {isExtra && <Tag className="w-3.5 h-3.5 text-orange-500" />}
+                                                        </div>
+                                                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button type="button" onClick={() => setEditingOption(option)} className="p-1.5 text-gray-400 hover:text-blue-500"><Edit2 className="w-3.5 h-3.5" /></button>
+                                                        <button type="button" onClick={() => handleDeleteOption(option.id)} className="p-1.5 text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </label>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Modals for Options */}
+                {isAddModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Neue Option erstellen</h2>
+                                <button type="button" onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCreateOption} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                                    <input name="name" type="text" required className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ</label>
+                                        <select name="type" className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500">
+                                            <option value="package">Kilometer-Paket</option>
+                                            <option value="extra">Extra</option>
+                                            <option value="insurance">Versicherung</option>
+                                            <option value="driver">Fahrer</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (€)</label>
+                                        <input name="price" type="number" step="0.01" required className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500" />
+                                    </div>
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input name="isPerDay" type="checkbox" className="w-4 h-4 text-red-600 rounded" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Pro Tag berechnen</span>
+                                </label>
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-sm text-gray-500">Abbrechen</button>
+                                    <button type="submit" disabled={isPending} className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                                        {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        Erstellen
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {editingOption && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Option bearbeiten</h2>
+                                <button type="button" onClick={() => setEditingOption(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleUpdateOption} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                                    <input name="name" type="text" required defaultValue={editingOption.name} className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ</label>
+                                        <select name="type" defaultValue={editingOption.type || 'extra'} className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500">
+                                            <option value="package">Kilometer-Paket</option>
+                                            <option value="extra">Extra</option>
+                                            <option value="insurance">Versicherung</option>
+                                            <option value="driver">Fahrer</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (€)</label>
+                                        <input name="price" type="number" step="0.01" required defaultValue={Number(editingOption.price)} className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500" />
+                                    </div>
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input name="isPerDay" type="checkbox" defaultChecked={editingOption.isPerDay} className="w-4 h-4 text-red-600 rounded" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Pro Tag berechnen</span>
+                                </label>
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button type="button" onClick={() => setEditingOption(null)} className="px-4 py-2 text-sm text-gray-500">Abbrechen</button>
+                                    <button type="submit" disabled={isPending} className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                                        {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        Speichern
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {/* Tab: Pricing & Campaigns */}
                 <div className={activeTab === 'pricing' ? 'block' : 'hidden'}>
