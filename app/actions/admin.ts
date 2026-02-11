@@ -98,3 +98,100 @@ export async function createCoupon(formData: FormData) {
     revalidatePath('/admin/marketing');
     redirect('/admin/marketing');
 }
+
+/** Fahrtenbuch-Eintrag anlegen (Finanzamt) */
+export async function createFahrtenbuchEntry(formData: FormData) {
+    const carId = parseInt(formData.get('carId') as string);
+    const datum = new Date(formData.get('datum') as string);
+    const startKm = parseInt(formData.get('startKm') as string);
+    const endKm = parseInt(formData.get('endKm') as string);
+    const zweck = (formData.get('zweck') as string) || 'DIENSTFAHRT';
+    const fahrtzweck = (formData.get('fahrtzweck') as string)?.trim() || null;
+    const rentalIdStr = formData.get('rentalId') as string;
+    const rentalId = rentalIdStr ? parseInt(rentalIdStr, 10) : null;
+
+    if (!carId || isNaN(startKm) || isNaN(endKm) || endKm < startKm) {
+        return { error: 'Ungültige Daten (Fahrzeug, Start-/End-Kilometer).' };
+    }
+
+    await prisma.fahrtenbuchEntry.create({
+        data: {
+            carId,
+            rentalId: rentalId && !Number.isNaN(rentalId) ? rentalId : undefined,
+            datum,
+            startKm,
+            endKm,
+            zweck: zweck === 'PRIVATFAHRT' ? 'PRIVATFAHRT' : 'DIENSTFAHRT',
+            fahrtzweck,
+        },
+    });
+    revalidatePath('/admin/fahrtenbuch');
+    redirect('/admin/fahrtenbuch');
+}
+
+/** Nächste Rechnungsnummer (RE-JJJJ-NNNNN) */
+async function getNextInvoiceNumber(): Promise<string> {
+    const year = new Date().getFullYear();
+    const prefix = `RE-${year}-`;
+    const last = await prisma.invoice.findFirst({
+        where: { invoiceNumber: { startsWith: prefix } },
+        orderBy: { id: 'desc' },
+        select: { invoiceNumber: true },
+    });
+    const nextNum = last
+        ? parseInt(last.invoiceNumber.slice(prefix.length), 10) + 1
+        : 1;
+    return `${prefix}${String(nextNum).padStart(5, '0')}`;
+}
+
+/** Rechnung erstellen (aus Formular: rentalId im FormData) */
+export async function createInvoiceFormAction(formData: FormData) {
+    const rentalId = parseInt(formData.get('rentalId') as string);
+    if (Number.isNaN(rentalId)) {
+        redirect('/admin/rechnungen?error=invalid');
+        return;
+    }
+    await createInvoiceForRental(rentalId);
+}
+
+/** Rechnung für eine Miete erstellen (Registrierkassa-ready) */
+export async function createInvoiceForRental(rentalId: number) {
+    const rental = await prisma.rental.findUnique({
+        where: { id: rentalId },
+        include: { car: true, customer: true },
+    });
+    if (!rental) {
+        redirect('/admin/rechnungen?error=notfound');
+        return;
+    }
+
+    const existing = await prisma.invoice.findUnique({
+        where: { rentalId },
+    });
+    if (existing) {
+        redirect('/admin/rechnungen?error=duplicate');
+        return;
+    }
+
+    const total = Number(rental.totalAmount);
+    const taxRate = 20; // Österreich USt 20 %
+    const subtotal = Math.round((total / (1 + taxRate / 100)) * 100) / 100;
+    const taxAmount = Math.round((total - subtotal) * 100) / 100;
+
+    const invoiceNumber = await getNextInvoiceNumber();
+
+    await prisma.invoice.create({
+        data: {
+            rentalId,
+            invoiceNumber,
+            subtotal,
+            taxRate,
+            taxAmount,
+            total,
+            status: 'ISSUED',
+        },
+    });
+    revalidatePath('/admin/rechnungen');
+    revalidatePath(`/admin/reservations`);
+    redirect('/admin/rechnungen');
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Car, CalendarClock, CreditCard, Settings, LogOut, User, AlertTriangle } from "lucide-react";
 import { logout } from "@/app/actions/auth";
@@ -21,8 +22,8 @@ export default function Sidebar() {
     return (
         <div className="flex h-full w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
             <div className="flex h-16 items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-zinc-900 dark:text-zinc-100">
-                    <span className="text-blue-600">Rent</span>Ex
+                <Link href="/" className="flex items-center">
+                    <Image src="/assets/logo.png" alt="Rent-Ex" width={120} height={40} className="h-8 w-auto object-contain" priority />
                 </Link>
             </div>
 

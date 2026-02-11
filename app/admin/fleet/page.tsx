@@ -4,6 +4,7 @@ import { Fuel, Calendar, Palette, Car as CarIconLucide, MapPin } from 'lucide-re
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import { AssignFeldkirchButton } from './AssignFeldkirchButton';
+import { DeleteCarButton } from './DeleteCarButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,12 +93,15 @@ export default async function FleetPage() {
                                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                     </span>
                                 </div>
-                                <Link
-                                    href={`/admin/fleet/${car.id}`}
-                                    className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-xs font-medium text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                                >
-                                    Details
-                                </Link>
+                                <div className="flex gap-2">
+                                    <DeleteCarButton carId={car.id} />
+                                    <Link
+                                        href={`/admin/fleet/${car.id}`}
+                                        className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-xs font-medium text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                                    >
+                                        Details
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -17,7 +17,9 @@ import {
     BarChart3,
     Wrench,
     TrendingUp,
-    MapPin
+    MapPin,
+    BookOpen,
+    Receipt
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -33,6 +35,8 @@ const menuItems = [
     { name: 'Kunden', icon: Users, href: '/admin/customers' },
     { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
     { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
+    { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
+    { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
     { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
     { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },

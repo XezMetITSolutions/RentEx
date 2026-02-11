@@ -119,6 +119,7 @@ model Car {
   maintenanceRecords MaintenanceRecord[]
   damageRecords DamageRecord[]
   tasks         Task[]
+  fahrtenbuchEntries FahrtenbuchEntry[]
 }
 
 model Location {
@@ -194,6 +195,22 @@ model DamageRecord {
   
   car           Car      @relation(fields: [carId], references: [id])
   rental        Rental?  @relation(fields: [rentalId], references: [id])
+}
+
+/// Finanzamt: Fahrtenbuch pro Fahrzeug (Dienst-/Privatfahrten)
+model FahrtenbuchEntry {
+  id          Int       @id @default(autoincrement())
+  carId       Int
+  rentalId    Int?
+  datum       DateTime
+  startKm     Int
+  endKm       Int
+  zweck       String    // DIENSTFAHRT | PRIVATFAHRT
+  fahrtzweck  String?
+  createdAt   DateTime  @default(now())
+  car         Car       @relation(fields: [carId], references: [id])
+  rental      Rental?   @relation(fields: [rentalId], references: [id])
+  @@index([carId, datum])
 }
 
 model DiscountCoupon {
@@ -359,6 +376,33 @@ model Rental {
   customer      Customer      @relation(fields: [customerId], references: [id])
   payments      Payment[]
   damageRecords DamageRecord[]
+  invoices      Invoice[]
+  fahrtenbuchEntries FahrtenbuchEntry[]
+}
+
+/// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)
+model Invoice {
+  id                 Int      @id @default(autoincrement())
+  rentalId           Int      @unique
+  invoiceNumber      String   @unique // fortlaufende Belegnummer (z.B. RE-2026-00001)
+  issuedAt           DateTime @default(now())
+  
+  // Beträge (zum Belegzeitpunkt)
+  subtotal           Decimal  // Netto
+  taxRate            Decimal  @default(20)   // USt % (Österreich z.B. 20)
+  taxAmount          Decimal  // USt-Betrag
+  total              Decimal  // Brutto
+  
+  status             String   @default("ISSUED") // DRAFT | ISSUED
+  pdfPath            String?  // optional: gespeichertes PDF
+  
+  // Registrierkassa / BMF-Anbindung (später)
+  registrierkassaExportedAt DateTime?  // wann an RKSV/BMF übermittelt
+  registrierkassaBelegId    String?   // Beleg-ID von der Kasse
+  
+  createdAt          DateTime @default(now())
+  
+  rental             Rental   @relation(fields: [rentalId], references: [id])
 }
 
 model Payment {

@@ -349,3 +349,16 @@ export async function updateSystemSetting(key: string, value: string) {
         return { success: false, error: 'Failed to update setting' };
     }
 }
+
+export async function deleteCar(id: number) {
+    try {
+        await prisma.car.delete({
+            where: { id }
+        });
+        revalidatePath('/admin/fleet');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting car:', error);
+        return { success: false, error: 'Failed to delete car. It might have related records.' };
+    }
+}
