@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-    Search, Filter, MapPin, Fuel, Calendar,
-    Settings2, ChevronDown, Car as CarIcon,
-    Euro, Activity, FileText, CheckCircle,
-    AlertCircle, Clock, Trash2, Edit2, LayoutGrid, List
+    Search, MapPin, Fuel, Calendar,
+    Settings2, Car as CarIcon,
+    Edit2, LayoutGrid, List,
+    BookOpen, Wrench, X, Save, Loader2
 } from 'lucide-react';
-import { AssignFeldkirchButton } from '@/app/admin/fleet/AssignFeldkirchButton';
 import { DeleteCarButton } from '@/app/admin/fleet/DeleteCarButton';
 
 interface Car {
@@ -39,6 +38,13 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [fuelFilter, setFuelFilter] = useState<string>('all');
     const [locationFilter, setLocationFilter] = useState<string>('all');
+
+    // Modal States
+    const [fahrtenbuchCar, setFahrtenbuchCar] = useState<Car | null>(null);
+    const [wartungCar, setWartungCar] = useState<Car | null>(null);
+    const [isPending, startTransition] = useTransition();
+    const [formSuccess, setFormSuccess] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
 
     // Extract unique values for filters
     const brands = useMemo(() => Array.from(new Set(initialCars.map(c => c.brand))).sort(), [initialCars]);
@@ -91,6 +97,84 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
             case 'Inactive': return 'Inaktiv';
             default: return status;
         }
+    };
+
+    const handleFahrtenbuchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setFormError(null);
+        setFormSuccess(null);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+
+        startTransition(async () => {
+            try {
+                const res = await fetch('/api/admin/fahrtenbuch', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        carId: Number(formData.get('carId')),
+                        datum: formData.get('datum'),
+                        startKm: Number(formData.get('startKm')),
+                        endKm: Number(formData.get('endKm')),
+                        zweck: formData.get('zweck'),
+                        fahrtzweck: formData.get('fahrtzweck') || null,
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.error) {
+                    setFormError(data.error);
+                } else {
+                    setFormSuccess('Fahrtenbuch-Eintrag gespeichert!');
+                    form.reset();
+                    setTimeout(() => {
+                        setFahrtenbuchCar(null);
+                        setFormSuccess(null);
+                    }, 1500);
+                }
+            } catch {
+                setFormError('Fehler beim Speichern.');
+            }
+        });
+    };
+
+    const handleWartungSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setFormError(null);
+        setFormSuccess(null);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+
+        startTransition(async () => {
+            try {
+                const res = await fetch('/api/admin/maintenance', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        carId: Number(formData.get('carId')),
+                        maintenanceType: formData.get('maintenanceType'),
+                        description: formData.get('description'),
+                        performedDate: formData.get('performedDate'),
+                        cost: formData.get('cost') ? Number(formData.get('cost')) : null,
+                        mileage: formData.get('mileage') ? Number(formData.get('mileage')) : null,
+                        performedBy: formData.get('performedBy') || null,
+                        notes: formData.get('notes') || null,
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.error) {
+                    setFormError(data.error);
+                } else {
+                    setFormSuccess('Wartungseintrag gespeichert!');
+                    form.reset();
+                    setTimeout(() => {
+                        setWartungCar(null);
+                        setFormSuccess(null);
+                    }, 1500);
+                }
+            } catch {
+                setFormError('Fehler beim Speichern.');
+            }
+        });
     };
 
     return (
@@ -287,7 +371,21 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                             <div className="text-[10px] text-gray-400">pro Tag</div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => { setFahrtenbuchCar(car); setFormError(null); setFormSuccess(null); }}
+                                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                                    title="Fahrtenbuch"
+                                                >
+                                                    <BookOpen className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setWartungCar(car); setFormError(null); setFormSuccess(null); }}
+                                                    className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                                    title="Wartung"
+                                                >
+                                                    <Wrench className="w-4 h-4" />
+                                                </button>
                                                 <Link href={`/admin/fleet/${car.id}`} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                                                     <Edit2 className="w-4 h-4" />
                                                 </Link>
@@ -314,7 +412,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                 </div>
             )}
 
-            {/* Grid View (Existing Layout) */}
+            {/* Grid View */}
             {viewMode === 'grid' && (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredCars.map((car) => (
@@ -371,7 +469,21 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                             {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                         </span>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => { setFahrtenbuchCar(car); setFormError(null); setFormSuccess(null); }}
+                                            className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                            title="Fahrtenbuch"
+                                        >
+                                            <BookOpen className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => { setWartungCar(car); setFormError(null); setFormSuccess(null); }}
+                                            className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                            title="Wartung"
+                                        >
+                                            <Wrench className="w-4 h-4" />
+                                        </button>
                                         <DeleteCarButton carId={car.id} />
                                         <Link
                                             href={`/admin/fleet/${car.id}`}
@@ -384,6 +496,146 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* ===== FAHRTENBUCH MODAL ===== */}
+            {fahrtenbuchCar && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setFahrtenbuchCar(null)}>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-emerald-50 dark:bg-emerald-900/20 rounded-t-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                                    <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Fahrtenbuch</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{fahrtenbuchCar.brand} {fahrtenbuchCar.model} · {fahrtenbuchCar.plate}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setFahrtenbuchCar(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleFahrtenbuchSubmit} className="p-6 space-y-4">
+                            <input type="hidden" name="carId" value={fahrtenbuchCar.id} />
+
+                            {formError && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{formError}</p>}
+                            {formSuccess && <p className="text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg">{formSuccess}</p>}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Datum *</label>
+                                <input name="datum" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:text-white" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start km *</label>
+                                    <input name="startKm" type="number" required min={0} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ende km *</label>
+                                    <input name="endKm" type="number" required min={0} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:text-white" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Zweck *</label>
+                                <select name="zweck" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:text-white">
+                                    <option value="DIENSTFAHRT">Dienstfahrt</option>
+                                    <option value="PRIVATFAHRT">Privatfahrt</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fahrtzweck (z.B. Strecke)</label>
+                                <input name="fahrtzweck" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:text-white" placeholder="z.B. Feldkirch – Wien" />
+                            </div>
+
+                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60 transition-all">
+                                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Eintrag speichern
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== WARTUNG MODAL ===== */}
+            {wartungCar && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setWartungCar(null)}>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/20 rounded-t-2xl sticky top-0 z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                                    <Wrench className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Wartung eintragen</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{wartungCar.brand} {wartungCar.model} · {wartungCar.plate}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setWartungCar(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleWartungSubmit} className="p-6 space-y-4">
+                            <input type="hidden" name="carId" value={wartungCar.id} />
+
+                            {formError && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{formError}</p>}
+                            {formSuccess && <p className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg">{formSuccess}</p>}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Art der Wartung *</label>
+                                <select name="maintenanceType" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white">
+                                    <option value="Oil Change">Ölwechsel</option>
+                                    <option value="Tire Change">Reifenwechsel</option>
+                                    <option value="Inspection">Inspektion</option>
+                                    <option value="Repair">Reparatur</option>
+                                    <option value="Service">Service</option>
+                                    <option value="Other">Sonstiges</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Datum der Durchführung *</label>
+                                <input name="performedDate" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white" />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung *</label>
+                                <input name="description" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white" placeholder="z.B. Bremsbeläge vorne gewechselt" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kosten (€)</label>
+                                    <input name="cost" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kilometerstand</label>
+                                    <input name="mileage" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Durchgeführt von</label>
+                                <input name="performedBy" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white" placeholder="Werkstatt / Person" />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notizen</label>
+                                <textarea name="notes" rows={2} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 dark:text-white resize-none"></textarea>
+                            </div>
+
+                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-bold text-white hover:bg-amber-700 disabled:opacity-60 transition-all">
+                                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Wartung speichern
+                            </button>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>
