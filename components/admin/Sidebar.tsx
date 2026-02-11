@@ -19,7 +19,8 @@ import {
     TrendingUp,
     MapPin,
     BookOpen,
-    Receipt
+    Receipt,
+    Tag
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -39,6 +40,7 @@ const menuItems = [
     { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
     { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
     { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
+    { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
 ];
 

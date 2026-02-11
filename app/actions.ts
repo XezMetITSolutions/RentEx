@@ -373,6 +373,39 @@ export async function deleteCar(id: number) {
         return { success: true };
     } catch (error) {
         console.error('Error deleting car:', error);
-        return { success: false, error: 'Failed to delete car. It might have related records.' };
+        return { success: false, error: 'Failed to delete vehicle' };
+    }
+}
+
+export async function createOption(formData: FormData) {
+    try {
+        await prisma.option.create({
+            data: {
+                name: formData.get('name') as string,
+                description: formData.get('description') as string || null,
+                price: Number(formData.get('price')),
+                type: formData.get('type') as string,
+                isPerDay: formData.get('isPerDay') === 'on',
+                status: 'active'
+            }
+        });
+        revalidatePath('/admin/options');
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating option:', error);
+        return { success: false, error: 'Failed to create option' };
+    }
+}
+
+export async function deleteOption(id: number) {
+    try {
+        await prisma.option.delete({
+            where: { id }
+        });
+        revalidatePath('/admin/options');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting option:', error);
+        return { success: false, error: 'Failed to delete option' };
     }
 }
