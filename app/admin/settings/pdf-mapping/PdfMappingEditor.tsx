@@ -5,8 +5,6 @@ import { PdfFieldMapping } from '@/lib/pdfMapping';
 import { Save, Loader2, Info, Upload, X, Plus, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -188,10 +186,10 @@ export default function PdfMappingEditor({ initialMapping }: { initialMapping: P
                                     key={field.field}
                                     onClick={() => setSelectedField(field.field)}
                                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${isSelected
-                                            ? 'bg-blue-600 text-white'
-                                            : hasMarker
-                                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                                                : 'bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        ? 'bg-blue-600 text-white'
+                                        : hasMarker
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                                            : 'bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
