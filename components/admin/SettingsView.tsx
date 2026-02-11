@@ -10,7 +10,8 @@ import {
     CheckCircle2,
     ChevronRight,
     Save,
-    Loader2
+    Loader2,
+    FileText
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useState, useTransition } from 'react';
@@ -93,6 +94,17 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                             </button>
                         );
                     })}
+
+                    <a
+                        href="/admin/settings/pdf-mapping"
+                        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-gray-400" />
+                            PDF Mapping
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </a>
                 </nav>
             </div>
 

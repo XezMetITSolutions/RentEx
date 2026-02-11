@@ -223,7 +223,7 @@ export default function DamageReportForm({ rental, customer }: { rental: RentalW
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <button
                     type="submit"
                     disabled={loading}
@@ -231,10 +231,60 @@ export default function DamageReportForm({ rental, customer }: { rental: RentalW
                 >
                     {loading ? 'Wird gesendet…' : 'Schadenmeldung absenden'}
                 </button>
+
+                <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-6 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200 dark:hover:bg-amber-900/30 transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+                    PDF Vorschau
+                </button>
+
                 <Link href="/dashboard/rentals" className="rounded-xl border border-zinc-300 dark:border-zinc-600 px-6 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                     Abbrechen
                 </Link>
             </div>
         </form>
     );
+
+    async function handleDownloadPdf() {
+        // Collect all form data manually since we need to include read-only props
+        const form = document.querySelector('form') as HTMLFormElement;
+        if (!form) return;
+
+        const formData = new FormData(form);
+
+        // Add manual fields that are not inputs but displayed text (from props)
+        formData.append('rental.car.plate', rental.car.plate);
+        formData.append('rental.car.brand', rental.car.brand + ' ' + rental.car.model);
+        formData.append('rental.car.insuranceCompany', rental.car.insuranceCompany || '');
+        formData.append('customer.firstName', customer.firstName);
+        formData.append('customer.lastName', customer.lastName);
+        formData.append('customerAddress', [customer.address, customer.postalCode, customer.city].filter(Boolean).join(', '));
+        formData.append('customer.phone', customer.phone || '');
+        formData.append('rental.pickupLocation.name', rental.pickupLocation?.name || 'RentEx');
+
+        try {
+            const res = await fetch('/api/dashboard/damage-report-pdf', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error('PDF generation failed');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Schadenmeldung_${rental.id}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+            setMessage({ type: 'error', text: 'PDF konnte nicht erstellt werden.' });
+        }
+    }
 }
