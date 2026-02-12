@@ -123,7 +123,7 @@ export default function Footer() {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-red-500 shrink-0" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">info@rent-ex-gmbh.at</span>
+                                <span className="text-gray-600 dark:text-gray-400 text-sm">info@rent-ex.at</span>
                             </li>
                         </ul>
                     </div>

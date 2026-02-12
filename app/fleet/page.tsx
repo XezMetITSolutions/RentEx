@@ -64,12 +64,12 @@ export default async function FleetPage({
     const cars = await getCars(vehicleType);
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
             <Navbar />
 
             <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <div className="mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Unsere Fahrzeugflotte</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">Unsere Fahrzeugflotte</h1>
                     <div className="flex items-center gap-4 mb-4">
                         {vehicleType !== "all" && (
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
@@ -93,7 +93,7 @@ export default async function FleetPage({
                             </div>
                         )}
                     </div>
-                    <p className="text-gray-400 max-w-2xl text-lg">
+                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl text-lg">
                         Wählen Sie aus unserer exklusiven Auswahl an Premium-Fahrzeugen.
                         Vom sportlichen Cabrio bis zum geräumigen SUV – wir haben das passende Auto für Ihre Bedürfnisse.
                     </p>
@@ -101,7 +101,7 @@ export default async function FleetPage({
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {cars.map((car) => (
-                        <Link key={car.id} href={`/fleet/${car.id}`} className="block bg-zinc-900/50 border border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
+                        <Link key={car.id} href={`/fleet/${car.id}`} className="block bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
                             {/* Image Area */}
                             <div className="h-56 bg-zinc-800 relative">
                                 {car.imageUrl ? (
@@ -124,33 +124,33 @@ export default async function FleetPage({
                                         <span className="text-xs font-semibold text-red-500 uppercase tracking-wider">
                                             {car.category}
                                         </span>
-                                        <h3 className="text-xl font-bold text-white mt-1">{car.brand} {car.model}</h3>
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">{car.brand} {car.model}</h3>
                                     </div>
                                     <div className="text-right">
-                                        <span className="block text-xl font-bold text-white">
+                                        <span className="block text-xl font-bold text-gray-900 dark:text-white">
                                             {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                         </span>
                                         <span className="text-xs text-gray-500">/Tag</span>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4 border-t border-white/10 py-4 mb-4">
+                                <div className="grid grid-cols-3 gap-4 border-t border-gray-200 dark:border-white/10 py-4 mb-4">
                                     <div className="flex flex-col items-center gap-1 text-center">
                                         <Fuel className="w-4 h-4 text-gray-500" />
                                         <span className="text-xs text-gray-400">{car.fuelType}</span>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1 text-center border-l border-white/10">
+                                    <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
                                         <Gauge className="w-4 h-4 text-gray-500" />
                                         <span className="text-xs text-gray-400">{car.transmission}</span>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1 text-center border-l border-white/10">
+                                    <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
                                         <Users className="w-4 h-4 text-gray-500" />
                                         <span className="text-xs text-gray-400">{car.seats} Personen</span>
                                     </div>
                                 </div>
 
                                 <div
-                                    className="block w-full text-center py-3 bg-white/5 group-hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
+                                    className="block w-full text-center py-3 bg-gray-200/50 dark:bg-white/5 group-hover:bg-gray-200 dark:group-hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white font-medium transition-colors"
                                 >
                                     Details ansehen
                                 </div>

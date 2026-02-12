@@ -4,18 +4,18 @@ import Link from "next/link";
 
 export default function PrivacyPage() {
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
             <Navbar />
 
             <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Datenschutzerklärung</h1>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Datenschutzerklärung</h1>
                 <p className="text-gray-400 mb-10">Stand: Januar 2026</p>
 
-                <div className="prose prose-invert prose-lg max-w-none text-gray-300 space-y-12">
+                <div className="prose dark:prose-invert prose-lg max-w-none text-gray-700 dark:text-gray-300 space-y-12">
 
                     {/* Einleitung */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Einleitung und Überblick</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Einleitung und Überblick</h2>
                         <p>
                             Wir haben diese Datenschutzerklärung (Fassung 27.11.2021-111888685) verfasst, um Ihnen gemäß der Vorgaben der Datenschutz-Grundverordnung (EU) 2016/679 und anwendbaren nationalen Gesetzen zu erklären, welche personenbezogenen Daten (kurz Daten) wir als Verantwortliche – und die von uns beauftragten Auftragsverarbeiter (z. B. Provider) – verarbeiten, zukünftig verarbeiten werden und welche rechtmäßigen Möglichkeiten Sie haben. Die verwendeten Begriffe sind geschlechtsneutral zu verstehen.
                             <br /><strong>Kurz gesagt:</strong> Wir informieren Sie umfassend über Daten, die wir über Sie verarbeiten.
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
 
                     {/* Anwendungsbereich */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Anwendungsbereich</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Anwendungsbereich</h2>
                         <p>
                             Diese Datenschutzerklärung gilt für alle von uns im Unternehmen verarbeiteten personenbezogenen Daten und für alle personenbezogenen Daten, die von uns beauftragte Firmen (Auftragsverarbeiter) verarbeiten. Mit personenbezogenen Daten meinen wir Informationen im Sinne des Art. 4 Nr. 1 DSGVO wie zum Beispiel Name, E-Mail-Adresse und postalische Anschrift einer Person. Die Verarbeitung personenbezogener Daten sorgt dafür, dass wir unsere Dienstleistungen und Produkte anbieten und abrechnen können, sei es online oder offline. Der Anwendungsbereich dieser Datenschutzerklärung umfasst:
                         </p>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
 
                     {/* Rechtsgrundlagen */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Rechtsgrundlagen</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Rechtsgrundlagen</h2>
                         <p>
                             In der folgenden Datenschutzerklärung geben wir Ihnen transparente Informationen zu den rechtlichen Grundsätzen und Vorschriften, also den Rechtsgrundlagen der Datenschutz-Grundverordnung, die uns ermöglichen, personenbezogene Daten zu verarbeiten.
                             Was das EU-Recht betrifft, beziehen wir uns auf die VERORDNUNG (EU) 2016/679 DES EUROPÄISCHEN PARLAMENTS UND DES RATES vom 27. April 2016. Diese Datenschutz-Grundverordnung der EU können Sie selbstverständlich online auf EUR-Lex, dem Zugang zum EU-Recht, unter <a href="https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=celex%3A32016R0679" target="_blank" className="text-red-400 hover:text-red-300">https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=celex%3A32016R0679</a> nachlesen.
@@ -68,8 +68,8 @@ export default function PrivacyPage() {
                     </section>
 
                     {/* Kontaktdaten */}
-                    <section className="bg-zinc-900/50 p-6 rounded-2xl border border-white/10">
-                        <h2 className="text-2xl font-bold text-white mb-4">Kontaktdaten des Verantwortlichen</h2>
+                    <section className="bg-gray-50 dark:bg-zinc-900/50 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Kontaktdaten des Verantwortlichen</h2>
                         <p>Sollten Sie Fragen zum Datenschutz haben, finden Sie nachfolgend die Kontaktdaten der verantwortlichen Person bzw. Stelle:</p>
                         <p className="mt-4">
                             <strong>RENT-EX GmbH</strong><br />
@@ -78,15 +78,15 @@ export default function PrivacyPage() {
                             Österreich
                         </p>
                         <p className="mt-2">
-                            <strong>E-Mail:</strong> <a href="mailto:info@rent-ex.metechnik.at" className="text-red-400">info@rent-ex.metechnik.at</a><br />
+                            <strong>E-Mail:</strong> <a href="mailto:info@rent-ex.at" className="text-red-500 hover:text-red-600">info@rent-ex.at</a><br />
                             <strong>Telefon:</strong> 0660 999 6800<br />
-                            <strong>Impressum:</strong> <Link href="/impressum" className="text-red-400">http://rent-ex.metechnik.at/impressum/</Link>
+                            <strong>Impressum:</strong> <Link href="/impressum" className="text-red-500 hover:text-red-600">http://rent-ex.at/impressum/</Link>
                         </p>
                     </section>
 
                     {/* Speicherdauer */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Speicherdauer</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Speicherdauer</h2>
                         <p>
                             Dass wir personenbezogene Daten nur so lange speichern, wie es für die Bereitstellung unserer Dienstleistungen und Produkte unbedingt notwendig ist, gilt als generelles Kriterium bei uns. Das bedeutet, dass wir personenbezogene Daten löschen, sobald der Grund für die Datenverarbeitung nicht mehr vorhanden ist. In einigen Fällen sind wir gesetzlich dazu verpflichtet, bestimmte Daten auch nach Wegfall des ursprüngliches Zwecks zu speichern, zum Beispiel zu Zwecken der Buchführung.
                         </p>
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
 
                     {/* Rechte */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Rechte laut Datenschutz-Grundverordnung</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Rechte laut Datenschutz-Grundverordnung</h2>
                         <p>Laut Artikel 13 DSGVO stehen Ihnen die folgenden Rechte zu, damit es zu einer fairen und transparenten Verarbeitung von Daten kommt:</p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                             <li>Sie haben laut Artikel 15 DSGVO ein Auskunftsrecht darüber, ob wir Daten von Ihnen verarbeiten.</li>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
                         </ul>
                         <p className="mt-4"><strong>Kurz gesagt:</strong> Sie haben Rechte – zögern Sie nicht, die oben gelistete verantwortliche Stelle bei uns zu kontaktieren!</p>
 
-                        <div className="mt-8 bg-zinc-900/50 p-6 rounded-2xl border border-white/10">
+                        <div className="mt-8 bg-gray-50 dark:bg-zinc-900/50 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
                             <h3 className="text-xl font-bold text-white mb-2">Zuständige Aufsichtsbehörde</h3>
                             <p>Österreich Datenschutzbehörde<br />Leiterin: Mag. Dr. Andrea Jelinek</p>
                             <p className="mt-2">Adresse: Barichgasse 40-42, 1030 Wien</p>
@@ -122,8 +122,8 @@ export default function PrivacyPage() {
 
                     {/* Cookies */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Cookies</h2>
-                        <div className="bg-zinc-900/30 p-4 rounded-xl mb-4 border-l-4 border-red-500">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Cookies</h2>
+                        <div className="bg-gray-100 dark:bg-zinc-900/30 p-4 rounded-xl mb-4 border-l-4 border-red-500">
                             <p><strong>Cookies Zusammenfassung</strong></p>
                             <ul className="list-none space-y-1 mt-2 text-sm">
                                 <li>👥 <strong>Betroffene:</strong> Besucher der Website</li>
@@ -137,7 +137,7 @@ export default function PrivacyPage() {
                             Unsere Website verwendet HTTP-Cookies, um nutzerspezifische Daten zu speichern. Cookies sind kleine Text-Dateien, die von unserer Website auf Ihrem Computer gespeichert werden.
                         </p>
 
-                        <h3 className="text-xl font-bold text-white mt-6 mb-2">Welche Arten von Cookies gibt es?</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-2">Welche Arten von Cookies gibt es?</h3>
                         <ul className="list-disc pl-5 space-y-1">
                             <li><strong>Unerlässliche Cookies:</strong> Diese Cookies sind nötig, um grundlegende Funktionen der Website sicherzustellen.</li>
                             <li><strong>Zweckmäßige Cookies:</strong> Diese Cookies sammeln Infos über das Userverhalten.</li>
@@ -145,7 +145,7 @@ export default function PrivacyPage() {
                             <li><strong>Werbe-Cookies:</strong> Diese Cookies dienen dazu dem User individuell angepasste Werbung zu liefern.</li>
                         </ul>
 
-                        <h3 className="text-xl font-bold text-white mt-6 mb-2">Widerspruchsrecht – wie kann ich Cookies löschen?</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-2">Widerspruchsrecht – wie kann ich Cookies löschen?</h3>
                         <p>
                             Wie und ob Sie Cookies verwenden wollen, entscheiden Sie selbst. Unabhängig von welchem Service oder welcher Website die Cookies stammen, haben Sie immer die Möglichkeit Cookies zu löschen, zu deaktivieren oder nur teilweise zuzulassen.
                         </p>
@@ -153,8 +153,8 @@ export default function PrivacyPage() {
 
                     {/* Webhosting */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Webhosting</h2>
-                        <div className="bg-zinc-900/30 p-4 rounded-xl mb-4 border-l-4 border-red-500">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Webhosting</h2>
+                        <div className="bg-gray-100 dark:bg-zinc-900/30 p-4 rounded-xl mb-4 border-l-4 border-red-500">
                             <p><strong>Webhosting Zusammenfassung</strong></p>
                             <ul className="list-none space-y-1 mt-2 text-sm">
                                 <li>👥 <strong>Betroffene:</strong> Besucher der Website</li>
@@ -171,16 +171,16 @@ export default function PrivacyPage() {
 
                     {/* Services */}
                     <section>
-                        <h2 className="text-2xl font-bold text-white mb-4">Dienste und Integrationen</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Dienste und Integrationen</h2>
 
                         <div className="space-y-8">
                             {/* Website Baukastensysteme */}
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Website Baukastensysteme</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Website Baukastensysteme</h3>
                                 <p>
                                     Wir verwenden für unsere Website ein Website Baukastensystem. Wir haben ein berechtigtes Interesse daran, ein Website Baukastensystem zu verwenden, um unseren Online-Service zu optimieren und für Sie effizient und nutzeransprechend darzustellen.
                                 </p>
-                                <h4 className="font-bold text-white mt-2">WordPress.com</h4>
+                                <h4 className="font-bold text-gray-900 dark:text-white mt-2">WordPress.com</h4>
                                 <p>
                                     Wir nutzen für unsere Website WordPress.com. Dienstanbieter ist das amerikanische Unternehmen Automattic Inc., 60 29th Street #343, San Francisco, CA 94110, USA.
                                     WordPress verarbeitet Daten von Ihnen u.a. auch in den USA. Wir weisen darauf hin, dass nach Meinung des Europäischen Gerichtshofs derzeit kein angemessenes Schutzniveau für den Datentransfer in die USA besteht.
@@ -189,7 +189,7 @@ export default function PrivacyPage() {
 
                             {/* PayPal */}
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">PayPal</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">PayPal</h3>
                                 <p>
                                     Wir nutzen auf unserer Website den Online-Bezahldienst PayPal. Dienstanbieter ist das amerikanische Unternehmen PayPal Inc. Für den europäischen Raum ist das Unternehmen PayPal Europe (S.à r.l. et Cie, S.C.A., 22-24 Boulevard Royal, L-2449 Luxembourg) verantwortlich.
                                 </p>
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
 
                             {/* Stripe */}
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Stripe</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Stripe</h3>
                                 <p>
                                     Wir verwenden auf unserer Website ein Zahlungstool des amerikanischen Technologieunternehmens und Online-Bezahldienstes Stripe. Für Kunden innerhalb von der EU ist Stripe Payments Europe (Europe Ltd., 1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irland) verantwortlich.
                                 </p>
@@ -205,7 +205,7 @@ export default function PrivacyPage() {
 
                             {/* Font Awesome */}
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Font Awesome</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Font Awesome</h3>
                                 <p>
                                     Wir verwenden auf unserer Website Font Awesome des amerikanischen Unternehmens Fonticons (307 S. Main St., Suite 202, Bentonville, AR 72712, USA). Wenn Sie eine unserer Webseite aufrufen, wird die Web-Schriftart Font Awesome (im Speziellen Icons) über das Font Awesome Content Delivery Netzwerk (CDN) geladen.
                                 </p>
@@ -213,7 +213,7 @@ export default function PrivacyPage() {
 
                             {/* OpenStreetMap */}
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">OpenStreetMap</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">OpenStreetMap</h3>
                                 <p>
                                     Wir haben auf unserer Website Kartenausschnitte des Online-Kartentools „OpenStreetMap“ eingebunden. Angeboten wird diese Funktion von OpenStreetMap Foundation, St John’s Innovation Centre, Cowley Road, Cambridge, CB4 0WS, United Kingdom. Durch die Verwendung dieser Kartenfunktion wird Ihre IP-Adresse an OpenStreetMap weitergeleitet.
                                 </p>
