@@ -629,26 +629,32 @@ async function main() {
 
     console.log('✅ Created 14 real cars based on fleet')
 
+    // Create Option Groups
+    const pkwGroup = await prisma.optionGroup.create({
+        data: {
+            name: 'PKW',
+            description: 'Personenkraftwagen Optionen'
+        }
+    })
+
+    console.log('✅ Created Option Groups')
+
     // Create Options
     await prisma.option.createMany({
         data: [
-            { name: 'Mehrkilometer 200 Paket', price: 66.00, type: 'package' },
-            { name: 'Mehrkilometer 500 Paket', price: 150.00, type: 'package' },
-            { name: 'Mehrkilometer 900 Paket', price: 247.00, type: 'package' },
-            { name: 'Selbstbehalt Ermäßigung', price: 8.64, type: 'insurance', isPerDay: true },
-            { name: 'Zusatzfahrer', price: 4.80, type: 'driver', isPerDay: true },
-            { name: 'Mehrkilometer 1500 Paket', price: 400.00, type: 'package' },
-            { name: 'Mehrkilometer 200 Paket Kleinwagen', price: 50.00, type: 'package' },
-            { name: 'Mehrkilometer 500 Paket Kleinwagen', price: 125.00, type: 'package' },
-            { name: 'Mehrkilometer 900 Paket Kleinwagen', price: 225.00, type: 'package' },
-            { name: 'Mehrkilometer 1500 Paket Kleinwagen', price: 375.00, type: 'package' },
-            { name: 'Mehrkilometer 2000 Paket', price: 519.00, type: 'package' },
+            { name: 'Mehrkilometer 200 Paket', description: 'Zur Ihrer Buchung werden 200km Mehrkilometer hinzugefügt', price: 66.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 500 Paket', description: 'Zur Ihrer Buchung werden 500km Mehrkilometer hinzugefügt', price: 150.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 900 Paket', description: 'Zur Ihrer Buchung werden 900km Mehrkilometer hinzugefügt', price: 247.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 1500 Paket', description: 'Zur Ihrer Buchung werden 1500km Mehrkilometer hinzugefügt', price: 400.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 2000 Paket', description: 'Zur Ihrer Buchung werden 2000km Mehrkilometer hinzugefügt', price: 519.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Selbstbehalt Ermäßigung', description: 'Diese Ermäßigung reduziert den Selbstbehalt auf 500€. Gilt für den gesamten Mietzeitraum', price: 60.48, type: 'insurance', isPerDay: false, groupId: pkwGroup.id },
+            { name: 'Zusatzfahrer', description: 'Ein Zusatzfahrer für den gesamten Mietzeitraum', price: 33.60, type: 'driver', isPerDay: false, groupId: pkwGroup.id },
             { name: 'Kindersitz 9-18 kg', price: 4.80, type: 'equipment', isPerDay: true },
             { name: 'Kindersitzerhöhung 15-36 kg', price: 2.40, type: 'equipment', isPerDay: true }
         ]
     })
 
-    console.log('✅ Created 13 options')
+    console.log('✅ Created 9 options')
 
 
     // Create Customers
