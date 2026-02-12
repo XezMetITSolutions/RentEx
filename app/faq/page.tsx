@@ -18,41 +18,73 @@ export default function FAQPage() {
                 <div className="space-y-6">
                     {/* FAQ Item 1 */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Welche Dokumente benötige ich für die Anmietung?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Welche Dokumente und Voraussetzungen gibt es für die Anmietung?</h3>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Sie benötigen einen gültigen Führerschein (seit mindestens 2 Jahren), einen Personalausweis oder Reisepass sowie eine Kreditkarte für die Kaution. Bei internationalen Anmietungen kann ein internationaler Führerschein erforderlich sein.
+                            Sie benötigen einen gültigen Führerschein, den Sie seit mindestens zwei Jahren ununterbrochen besitzen, sowie einen Personalausweis oder Reisepass. Alle Fahrer müssen uneingeschränkt fahrtüchtig sein.
                         </p>
                     </div>
 
                     {/* FAQ Item 2 */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Wie hoch ist die Kaution?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Wie hoch ist die Kaution und wie wird sie hinterlegt?</h3>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Die Kautionshöhe hängt von der Fahrzeugklasse ab. Für Standardfahrzeuge beträgt sie in der Regel zwischen 500€ und 1000€. Bei Luxusfahrzeugen kann die Kaution höher ausfallen. Der Betrag wird auf Ihrer Kreditkarte reserviert und nach Rückgabe wieder freigegeben.
+                            Die Mietsicherstellung (Kaution) wird bei Beginn des Mietverhältnisses geleistet. Dies erfolgt in der Regel durch die Autorisierung einer akzeptierten Kreditkarte. Die genaue Höhe wird vom Vermieter je nach Fahrzeugkategorie festgelegt.
                         </p>
                     </div>
 
                     {/* FAQ Item 3 */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Sind die Kilometer begrenzt?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Darf ich mit dem Mietwagen ins Ausland fahren?</h3>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Die meisten unserer Tarife beinhalten eine großzügige Kilometerpauschale oder sind sogar unbegrenzt. Details finden Sie in den spezifischen Mietbedingungen des gewählten Fahrzeugs.
+                            Auslandsfahrten sind ausschließlich mit schriftlicher Genehmigung des Vermieters zulässig. Bitte beachten Sie, dass in bestimmten Ländern (z.B. Italien, Polen, Türkei, Russland) die Haftungsreduzierung für Diebstahl und Einbruch ihre Wirksamkeit verliert.
                         </p>
                     </div>
 
                     {/* FAQ Item 4 */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Kann ich das Fahrzeug an einem anderen Ort zurückgeben?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Wie funktioniert die Tankregelung?</h3>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Ja, Einwegmieten sind gegen eine Gebühr möglich. Bitte geben Sie den gewünschten Rückgabeort bei der Buchung an, um die Verfügbarkeit und Kosten zu prüfen.
+                            Sie übernehmen das Fahrzeug vollgetankt (bzw. voll geladen) und geben es ebenso voll wieder zurück. Falls das Fahrzeug nicht vollgetankt zurückgebracht wird, berechnen wir eine Aufwandspauschale von 18,00 € inkl. MwSt. zuzüglich der Kraftstoffkosten.
                         </p>
                     </div>
 
                     {/* FAQ Item 5 */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Was passiert im Falle einer Panne oder eines Unfalls?</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Darf ich mein Haustier im Fahrzeug mitnehmen?</h3>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Ihre Sicherheit hat Priorität. Kontaktieren Sie bitte sofort unseren 24/7 Notfall-Support. Wir kümmern uns um Pannenhilfe, Ersatzfahrzeug und die weitere Abwicklung. Alle unsere Fahrzeuge sind vollkaskoversichert.
+                            Die Beförderung von Tieren ist nur mit ausdrücklicher Genehmigung und in geeigneten Transportbehältern gestattet. Bei Missachtung oder Verunreinigung fällt eine erhöhte Reinigungsgebühr von mindestens 78,00 € inkl. MwSt. an.
+                        </p>
+                    </div>
+
+                    {/* FAQ Item 6 */}
+                    <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Gibt es Geschwindigkeitsbegrenzungen?</h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            Ja, zum Schutz unserer Fahrzeuge gelten folgende Limits: Lieferwagen (120 km/h), Busse (130 km/h), Kleinwagen (140 km/h) und sonstige PKW (160 km/h). Überschreitungen können zum Verlust der Haftungsreduzierung führen.
+                        </p>
+                    </div>
+
+                    {/* FAQ Item 7 */}
+                    <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Was passiert bei Mehrkilometern?</h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            Zusätzliche Kilometer werden je nach Fahrzeugmodell mit 0,33 € bis 0,45 € pro Kilometer berechnet, sofern im Mietvertrag keine anderen Vereinbarungen getroffen wurden.
+                        </p>
+                    </div>
+
+                    {/* FAQ Item 8 */}
+                    <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Muss das Fahrzeug gereinigt zurückgegeben werden?</h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            Ja, das Fahrzeug muss im übernommenen, sauberen Zustand zurückgegeben werden. Bei erforderlichen Reinigungsarbeiten stellen wir mindestens 58,00 € inkl. MwSt. in Rechnung.
+                        </p>
+                    </div>
+
+                    {/* FAQ Item 9 */}
+                    <div className="bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Was ist bei einem Unfall oder einer Panne zu tun?</h3>
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            Informieren Sie umgehend den Vermieter und ziehen Sie bei jedem Schadensfall die Polizei hinzu. Fertigen Sie einen Unfallbericht an und geben Sie keine Schuldanerkenntnisse gegenüber Dritten ab.
                         </p>
                     </div>
                 </div>
