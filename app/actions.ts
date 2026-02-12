@@ -105,16 +105,38 @@ const extractCarData = (formData: FormData) => {
     };
 };
 
+
 export async function createCar(formData: FormData) {
     const rawData = extractCarData(formData);
     const optionIds = formData.getAll('options').map(id => Number(id));
+
+    // Fetch the templates to clone
+    const templates = await prisma.option.findMany({
+        where: { id: { in: optionIds } }
+    });
+
+    const optionsToCreate = templates.map(t => ({
+        name: t.name,
+        description: t.description,
+        price: Number(t.price),
+        type: t.type,
+        carCategory: t.carCategory,
+        isPerDay: t.isPerDay,
+        maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
+        maxDays: t.maxDays,
+        isMandatory: t.isMandatory,
+        maxQuantity: t.maxQuantity,
+        status: t.status,
+        imageUrl: t.imageUrl,
+        groupId: t.groupId,
+    }));
 
     await prisma.car.create({
         data: {
             ...rawData,
             isActive: true,
             options: {
-                connect: optionIds.map(id => ({ id }))
+                create: optionsToCreate
             }
         } as any
     });
@@ -125,17 +147,59 @@ export async function createCar(formData: FormData) {
 
 export async function updateCar(id: number, formData: FormData) {
     const rawData = extractCarData(formData);
-    const optionIds = formData.getAll('options').map(id => Number(id));
+    const submittedOptionIds = formData.getAll('options').map(oid => Number(oid));
 
-    await prisma.car.update({
+    // 1. Fetch current car options to know what to delete
+    const currentCar = await prisma.car.findUnique({
         where: { id },
-        data: {
-            ...rawData,
-            options: {
-                set: optionIds.map(id => ({ id }))
-            }
-        } as any
+        include: { options: true }
     });
+
+    if (!currentCar) throw new Error("Car not found");
+
+    const currentOptionIds = currentCar.options.map(o => o.id);
+
+    // Options to DELETE: belonging to car but NOT in submitted
+    const optionsToDeleteIds = currentOptionIds.filter(cid => !submittedOptionIds.includes(cid));
+
+    // Options to ADD (Clone): submitted IDs that are NOT belonging to this car (i.e., Templates)
+    const optionsToCloneIds = submittedOptionIds.filter(sid => !currentOptionIds.includes(sid));
+
+    // Fetch templates for cloning
+    const templatesToClone = await prisma.option.findMany({
+        where: { id: { in: optionsToCloneIds } }
+    });
+
+    await prisma.$transaction([
+        // Delete removed options
+        prisma.option.deleteMany({
+            where: { id: { in: optionsToDeleteIds } }
+        }),
+        // Create new clones
+        prisma.option.createMany({
+            data: templatesToClone.map(t => ({
+                name: t.name,
+                description: t.description,
+                price: Number(t.price),
+                type: t.type,
+                carCategory: t.carCategory,
+                isPerDay: t.isPerDay,
+                maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
+                maxDays: t.maxDays,
+                isMandatory: t.isMandatory,
+                maxQuantity: t.maxQuantity,
+                status: t.status,
+                imageUrl: t.imageUrl,
+                groupId: t.groupId,
+                carId: id
+            }))
+        }),
+        // Update car details
+        prisma.car.update({
+            where: { id },
+            data: rawData as any
+        })
+    ]);
 
     revalidatePath('/admin/fleet');
     revalidatePath(`/admin/fleet/${id}`);
@@ -309,14 +373,19 @@ export async function deleteCar(id: number) {
 
 export async function createOption(formData: FormData) {
     try {
+        const carId = formData.get('carId') ? Number(formData.get('carId')) : null;
+        const groupId = formData.get('groupId') ? Number(formData.get('groupId')) : null;
         await prisma.option.create({
             data: {
                 name: formData.get('name') as string,
                 description: formData.get('description') as string || null,
                 price: Number(formData.get('price')),
                 type: formData.get('type') as string,
+                carCategory: formData.get('carCategory') as string || null,
                 isPerDay: formData.get('isPerDay') === 'on',
-                status: 'active'
+                status: 'active',
+                carId: carId,
+                groupId: groupId
             }
         });
         revalidatePath('/admin/options');
@@ -343,6 +412,7 @@ export async function deleteOption(id: number) {
 
 export async function updateOption(id: number, formData: FormData) {
     try {
+        const groupId = formData.get('groupId') ? Number(formData.get('groupId')) : null;
         await prisma.option.update({
             where: { id },
             data: {
@@ -350,7 +420,9 @@ export async function updateOption(id: number, formData: FormData) {
                 description: formData.get('description') as string || null,
                 price: Number(formData.get('price')),
                 type: formData.get('type') as string,
+                carCategory: formData.get('carCategory') as string || null,
                 isPerDay: formData.get('isPerDay') === 'on',
+                groupId: groupId
             }
         });
         revalidatePath('/admin/options');
@@ -359,5 +431,31 @@ export async function updateOption(id: number, formData: FormData) {
     } catch (error) {
         console.error('Error updating option:', error);
         return { success: false, error: 'Failed to update option' };
+    }
+}
+
+export async function createOptionGroup(formData: FormData) {
+    try {
+        await prisma.optionGroup.create({
+            data: {
+                name: formData.get('name') as string,
+                description: formData.get('description') as string || null,
+            }
+        });
+        revalidatePath('/admin/options');
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating group:', error);
+        return { success: false, error: 'Failed' };
+    }
+}
+
+export async function deleteOptionGroup(id: number) {
+    try {
+        await prisma.optionGroup.delete({ where: { id } });
+        revalidatePath('/admin/options');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Failed' };
     }
 }

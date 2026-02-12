@@ -1,17 +1,25 @@
 import prisma from '@/lib/prisma';
 import NewCarForm from './NewCarForm';
 
-async function getAllOptions() {
-    return prisma.option.findMany({
-        where: { status: 'active' },
-        orderBy: { name: 'asc' }
-    });
+async function getData() {
+    const [options, groups] = await Promise.all([
+        prisma.option.findMany({
+            where: { status: 'active' },
+            orderBy: { name: 'asc' }
+        }),
+        prisma.optionGroup.findMany({
+            orderBy: { name: 'asc' }
+        })
+    ]);
+    return { options, groups };
 }
 
 export default async function NewCarPage() {
-    const allOptions = await getAllOptions();
-    // Convert Decimal to Number for client component
-    const plainOptions = JSON.parse(JSON.stringify(allOptions));
+    const { options, groups } = await getData();
 
-    return <NewCarForm allOptions={plainOptions} />;
+    // Convert Decimal to Number for client component
+    const plainOptions = JSON.parse(JSON.stringify(options));
+    const plainGroups = JSON.parse(JSON.stringify(groups));
+
+    return <NewCarForm allOptions={plainOptions} groups={plainGroups} />;
 }

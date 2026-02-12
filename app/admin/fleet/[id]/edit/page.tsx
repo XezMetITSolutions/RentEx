@@ -15,11 +15,17 @@ async function getCar(id: number) {
     return car;
 }
 
-async function getAllOptions() {
-    return prisma.option.findMany({
-        where: { status: 'active' },
-        orderBy: { name: 'asc' }
-    });
+async function getData() {
+    const [options, groups] = await Promise.all([
+        prisma.option.findMany({
+            where: { status: 'active' },
+            orderBy: { name: 'asc' }
+        }),
+        prisma.optionGroup.findMany({
+            orderBy: { name: 'asc' }
+        })
+    ]);
+    return { options, groups };
 }
 
 export default async function EditCarPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,15 +34,16 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
 
     if (isNaN(carId)) notFound();
 
-    const [car, allOptions] = await Promise.all([
+    const [car, { options, groups }] = await Promise.all([
         getCar(carId),
-        getAllOptions()
+        getData()
     ]);
 
     if (!car) notFound();
 
     const plainCar = JSON.parse(JSON.stringify(car));
-    const plainOptions = JSON.parse(JSON.stringify(allOptions));
+    const plainOptions = JSON.parse(JSON.stringify(options));
+    const plainGroups = JSON.parse(JSON.stringify(groups));
 
     return (
         <div className="max-w-7xl mx-auto pb-12">
@@ -55,7 +62,7 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
                 </Link>
             </div>
 
-            <CarEditForm car={plainCar} allOptions={plainOptions} />
+            <CarEditForm car={plainCar} allOptions={plainOptions} groups={plainGroups} />
         </div>
     );
 }

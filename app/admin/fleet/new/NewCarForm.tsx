@@ -19,16 +19,21 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
-import { Option as OptionType } from '@prisma/client';
+import { Option as OptionType, OptionGroup as GroupType } from '@prisma/client';
+import ImageUpload from '@/components/admin/ImageUpload';
 
-export default function NewCarForm({ allOptions }: { allOptions: OptionType[] }) {
+interface ExtendedOption extends OptionType {
+    group?: GroupType;
+}
+
+export default function NewCarForm({ allOptions, groups }: { allOptions: ExtendedOption[], groups: GroupType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingOption, setEditingOption] = useState<OptionType | null>(null);
 
     const handleDeleteOption = (id: number) => {
-        if (!confirm('Diesen Zusatz global löschen?')) return;
+        if (!confirm('Diesen Zusatz löschen?')) return;
         startTransition(async () => {
             await deleteOption(id);
         });
@@ -149,7 +154,8 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                             <option>Sportwagen</option>
                                             <option>Cabrio</option>
                                             <option>Kombi</option>
-                                            <option>Elektro</option>
+                                            <option>Bus</option>
+                                            <option>Kastenwagen</option>
                                         </select>
                                     </div>
                                     <div>
@@ -168,10 +174,7 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
                                     <input name="vin" type="text" maxLength={17} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="17-stellig" />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fahrzeugfoto (URL)</label>
-                                    <input name="imageUrl" type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="/assets/cars/beispiel.jpg oder https://…" />
-                                </div>
+                                <ImageUpload name="imageUrl" />
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Standort</label>
@@ -287,22 +290,46 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                 {/* Tab: Zusatzoptionen (Extras & Packages) */}
                 <div className={activeTab === 'options' ? 'block' : 'hidden'}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Wählen Sie die verfügbaren Optionen für dieses neue Fahrzeug.</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Wählen Sie Vorlagen aus oder erstellen Sie neue für dieses Auto.</p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsAddModalOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Neue Option
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Neu
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-8">
+                            {/* Filter based on group/category for quick selection if needed */}
+                            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700 mb-6">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Schnellwahl nach Gruppen</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {groups.map(g => (
+                                        <button
+                                            key={g.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const groupOptionIds = allOptions.filter(o => o.groupId === g.id).map(o => o.id);
+                                                const checkboxes = document.querySelectorAll('input[name="options"]');
+                                                checkboxes.forEach((cb: any) => {
+                                                    if (groupOptionIds.includes(Number(cb.value))) cb.checked = true;
+                                                });
+                                            }}
+                                            className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-[11px] font-bold hover:bg-red-50 hover:border-red-200 transition-all"
+                                        >
+                                            {g.name} wählen
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             {/* Packages (Kilometer) */}
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 border-b dark:border-gray-700 pb-2 flex items-center gap-2">
@@ -310,7 +337,7 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                     Mehrkilometer-Pakete
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type === 'package').map((option) => (
+                                    {allOptions?.filter(o => o.carId === null && o.type === 'package').map((option) => (
                                         <div key={option.id} className="relative group p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
                                             <div className="flex items-start gap-3">
                                                 <input
@@ -325,6 +352,7 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
                                                     </span>
                                                 </div>
+                                                {/* Only allow editing if it's not a global template or if we are in a context that allows it. In NewCarForm, everything shown is carId null */}
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button type="button" onClick={() => setEditingOption(option)} className="p-1.5 text-gray-400 hover:text-blue-500"><Edit2 className="w-3.5 h-3.5" /></button>
                                                     <button type="button" onClick={() => handleDeleteOption(option.id)} className="p-1.5 text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -342,7 +370,7 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                     Zusatzoptionen & Schutz
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => o.type !== 'package').map((option) => {
+                                    {allOptions?.filter(o => o.carId === null && o.type !== 'package').map((option) => {
                                         const isExtra = option.type === 'extra';
                                         const isInsurance = option.type === 'insurance';
                                         const isDriver = option.type === 'driver';
@@ -404,6 +432,13 @@ export default function NewCarForm({ allOptions }: { allOptions: OptionType[] })
                                             <option value="extra">Extra</option>
                                             <option value="insurance">Versicherung</option>
                                             <option value="driver">Fahrer</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gruppe</label>
+                                        <select name="groupId" className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500">
+                                            <option value="">Keine Gruppe</option>
+                                            {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
