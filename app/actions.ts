@@ -459,3 +459,39 @@ export async function deleteOptionGroup(id: number) {
         return { success: false, error: 'Failed' };
     }
 }
+
+export async function fixDatabaseSchema() {
+    try {
+        console.log('Running manual schema correction (One-to-Many)...');
+
+        // 1. Add carId column to Option if it doesn't exist
+        await prisma.$executeRawUnsafe(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Option' AND column_name='carId') THEN
+                    ALTER TABLE "Option" ADD COLUMN "carId" INTEGER;
+                END IF;
+            END $$;
+        `);
+
+        // 2. Ensure foreign key constraint
+        await prisma.$executeRawUnsafe(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name='Option_carId_fkey') THEN
+                    ALTER TABLE "Option" ADD CONSTRAINT "Option_carId_fkey" FOREIGN KEY ("carId") REFERENCES "Car"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+                END IF;
+            END $$;
+        `);
+
+        // 3. Drop the many-to-many join table if it exists
+        await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "_CarOptions";`);
+        await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "_CarToOption";`);
+
+        console.log('Schema correction completed.');
+        return { success: true };
+    } catch (error: any) {
+        console.error('Schema correction failed:', error);
+        return { success: false, error: error.message };
+    }
+}

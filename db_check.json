@@ -1,0 +1,17 @@
+{
+  "options": [
+    "Mehrkilometer 1500 Paket (Kleinwagen)",
+    "Mehrkilometer 900 Paket (Kleinwagen)",
+    "Mehrkilometer 500 Paket (Kleinwagen)",
+    "Mehrkilometer 200 Paket (Kleinwagen)"
+  ],
+  "categories": [
+    "Van",
+    "Kombi",
+    "Bus",
+    "Transporter",
+    "SUV",
+    "Kleinwagen",
+    "Mittelklasse"
+  ]
+}
