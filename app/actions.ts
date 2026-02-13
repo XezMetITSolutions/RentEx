@@ -511,7 +511,8 @@ export async function runDiagnostics() {
     const results: any = {
         database: { status: 'unknown', error: null },
         models: {},
-        schema: []
+        schema: [],
+        updateTest: { status: 'not_run', error: null }
     };
 
     try {
@@ -532,14 +533,34 @@ export async function runDiagnostics() {
 
         // 3. Detailed Column Check for 'Option'
         const columns: any = await prisma.$queryRaw`
-            SELECT column_name, data_type 
+            SELECT column_name, data_type, is_nullable
             FROM information_schema.columns 
-            WHERE table_name = 'Option';
+            WHERE table_name = 'Option'
+            ORDER BY ordinal_position;
         `;
         results.schema = columns;
 
         return { success: true, results };
     } catch (error: any) {
         return { success: false, error: error.message, results };
+    }
+}
+
+export async function testUpdateCarAction(id: number) {
+    try {
+        console.log('Testing update for car:', id);
+        // Sadece status güncelleyerek testi yapalım
+        const car = await prisma.car.findUnique({ where: { id } });
+        if (!car) return { success: false, error: 'Araç bulunamadı (ID 48)' };
+
+        await prisma.car.update({
+            where: { id },
+            data: { status: car.status } // Mevcut durumu tekrar yazıyoruz
+        });
+
+        return { success: true, message: 'Veritabanı yazma testi başarılı!' };
+    } catch (error: any) {
+        console.error('Test update failed:', error);
+        return { success: false, error: error.message, stack: error.stack };
     }
 }

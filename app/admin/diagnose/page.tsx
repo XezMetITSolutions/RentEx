@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, ShieldAlert, CheckCircle, XCircle, ChevronDown, List, Database, Code } from 'lucide-react';
-import { runDiagnostics } from '@/app/actions';
+import { Activity, ShieldAlert, CheckCircle, XCircle, ChevronDown, List, Database, Code, RefreshCw, Send } from 'lucide-react';
+import { runDiagnostics, testUpdateCarAction } from '@/app/actions';
 
 export default function DiagnosisPage() {
     const [report, setReport] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [testLoading, setTestLoading] = useState(false);
+    const [testResult, setTestResult] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
 
     async function fetchReport() {
@@ -26,6 +28,19 @@ export default function DiagnosisPage() {
         }
     }
 
+    async function runUpdateTest() {
+        setTestLoading(true);
+        setTestResult(null);
+        try {
+            const result = await testUpdateCarAction(48);
+            setTestResult(result);
+        } catch (err: any) {
+            setTestResult({ success: false, error: err.message });
+        } finally {
+            setTestLoading(false);
+        }
+    }
+
     useEffect(() => {
         fetchReport();
     }, []);
@@ -42,15 +57,49 @@ export default function DiagnosisPage() {
                         Veritabanı uyuşmazlıklarını ve runtime hatalarını analiz edin.
                     </p>
                 </div>
-                <button
-                    onClick={fetchReport}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all disabled:opacity-50"
-                >
-                    <Activity className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                    Yeniden Analiz Et
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={runUpdateTest}
+                        disabled={testLoading}
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all disabled:opacity-50"
+                    >
+                        {testLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                        Update Testi Yap (ID 48)
+                    </button>
+                    <button
+                        onClick={fetchReport}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all disabled:opacity-50"
+                    >
+                        <Activity className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        Yeniden Analiz Et
+                    </button>
+                </div>
             </div>
+
+            {testResult && (
+                <div className={`p-6 rounded-2xl border flex items-start gap-4 ${testResult.success ? 'bg-green-900/10 border-green-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
+                    {testResult.success ? <CheckCircle className="w-6 h-6 text-green-500 mt-1" /> : <ShieldAlert className="w-6 h-6 text-red-500 mt-1" />}
+                    <div className="flex-1 overflow-hidden">
+                        <h3 className={`font-bold text-lg ${testResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                            {testResult.success ? 'Yazma Testi Başarılı' : 'Yazma Testi Başarısız (TÜM HATA DETAYI)'}
+                        </h3>
+                        {testResult.error && (
+                            <div className="mt-4 space-y-2">
+                                <p className="text-red-400 font-mono text-xs p-3 bg-black/40 border border-red-900/20 rounded-lg whitespace-pre-wrap">
+                                    {testResult.error}
+                                </p>
+                                {testResult.stack && (
+                                    <p className="text-gray-500 font-mono text-[10px] p-3 bg-black/20 rounded-lg overflow-x-auto whitespace-pre">
+                                        {testResult.stack}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                        {testResult.message && <p className="text-green-400 font-medium mt-1">{testResult.message}</p>}
+                    </div>
+                </div>
+            )}
 
             {error && (
                 <div className="p-6 bg-red-900/10 border border-red-900/30 rounded-2xl flex items-start gap-4">
@@ -119,6 +168,7 @@ export default function DiagnosisPage() {
                                     <tr>
                                         <th className="px-4 py-2 text-zinc-500">Sütun Adı</th>
                                         <th className="px-4 py-2 text-zinc-500">Veri Tipi</th>
+                                        <th className="px-4 py-2 text-zinc-500">Boş Geçilebilir</th>
                                         <th className="px-4 py-2 text-zinc-500 text-right">Durum</th>
                                     </tr>
                                 </thead>
@@ -127,6 +177,7 @@ export default function DiagnosisPage() {
                                         <tr key={col.column_name} className="border-t border-zinc-100 dark:border-zinc-800">
                                             <td className="px-4 py-2 font-bold text-zinc-700 dark:text-zinc-300">{col.column_name}</td>
                                             <td className="px-4 py-2 text-zinc-500">{col.data_type}</td>
+                                            <td className="px-4 py-2 text-zinc-500">{col.is_nullable}</td>
                                             <td className="px-4 py-2 text-right">
                                                 {['carId', 'carCategory', 'groupId'].includes(col.column_name) ? (
                                                     <span className="px-2 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px] font-bold">GEREKLİ</span>
@@ -137,12 +188,6 @@ export default function DiagnosisPage() {
                                 </tbody>
                             </table>
                         </div>
-                        {!report.schema.some((c: any) => c.column_name === 'carId') && (
-                            <div className="mt-4 p-4 bg-red-900/10 border border-red-900/30 rounded-xl flex items-center gap-3">
-                                <ShieldAlert className="w-5 h-5 text-red-500" />
-                                <span className="text-sm text-red-400 font-bold">EKSİK SÜTUN: 'carId' bulunamadı! Lütfen db-fix aracını kullanın.</span>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
