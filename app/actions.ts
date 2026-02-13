@@ -546,21 +546,47 @@ export async function runDiagnostics() {
     }
 }
 
+
 export async function testUpdateCarAction(id: number) {
     try {
-        console.log('Testing update for car:', id);
-        // Sadece status güncelleyerek testi yapalım
-        const car = await prisma.car.findUnique({ where: { id } });
-        if (!car) return { success: false, error: 'Araç bulunamadı (ID 48)' };
+        console.log('--- STARTING REAL-WORLD TEST FOR CAR ', id, ' ---');
 
-        await prisma.car.update({
+        // 1. Fetch the car with options
+        const car = await prisma.car.findUnique({
             where: { id },
-            data: { status: car.status } // Mevcut durumu tekrar yazıyoruz
+            include: { options: true }
         });
 
-        return { success: true, message: 'Veritabanı yazma testi başarılı!' };
+        if (!car) return { success: false, error: `Araç bulunamadı (ID ${id})` };
+
+        // 2. Perform a transaction that mimics the actual updateCar action
+        await prisma.$transaction(async (tx) => {
+            // Mimic option update (cloning/setting)
+            // Just updated something simple to see if relations fail
+            await tx.car.update({
+                where: { id },
+                data: {
+                    updatedAt: new Date(),
+                    fuelType: car.fuelType || 'Benzin'
+                }
+            });
+
+            // Count options
+            const optionCount = await tx.option.count({ where: { carId: id } });
+            console.log(`Current option count for car: ${optionCount}`);
+        });
+
+        return {
+            success: true,
+            message: 'Tam kapsamlı yazma testi (Transaction dahil) başarılı! Sorun başka bir yerde olabilir (örneğin redirect).'
+        };
     } catch (error: any) {
-        console.error('Test update failed:', error);
-        return { success: false, error: error.message, stack: error.stack };
+        console.error('CRITICAL ERROR DURING TEST UPDATE:', error);
+        return {
+            success: false,
+            error: `Teknik Hata: ${error.message}`,
+            stack: error.stack,
+            code: error.code // Prisma error code (e.g., P2002)
+        };
     }
 }
