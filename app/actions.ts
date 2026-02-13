@@ -506,3 +506,40 @@ export async function runDebugQuery(sql: string) {
         return { success: false, error: error.message };
     }
 }
+
+export async function runDiagnostics() {
+    const results: any = {
+        database: { status: 'unknown', error: null },
+        models: {},
+        schema: []
+    };
+
+    try {
+        // 1. Connection Test
+        await prisma.$connect();
+        results.database.status = 'connected';
+
+        // 2. Model Availability Test
+        const models = ['car', 'option', 'optionGroup', 'customer', 'rental', 'location'];
+        for (const model of models) {
+            try {
+                const count = await (prisma as any)[model].count();
+                results.models[model] = { status: 'ok', count };
+            } catch (err: any) {
+                results.models[model] = { status: 'error', error: err.message };
+            }
+        }
+
+        // 3. Detailed Column Check for 'Option'
+        const columns: any = await prisma.$queryRaw`
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'Option';
+        `;
+        results.schema = columns;
+
+        return { success: true, results };
+    } catch (error: any) {
+        return { success: false, error: error.message, results };
+    }
+}
