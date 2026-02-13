@@ -495,3 +495,14 @@ export async function fixDatabaseSchema() {
         return { success: false, error: error.message };
     }
 }
+
+export async function runDebugQuery(sql: string) {
+    try {
+        console.log('Running debug query:', sql);
+        const data = await prisma.$queryRawUnsafe(sql);
+        return { success: true, data };
+    } catch (error: any) {
+        console.error('Debug query failed:', error);
+        return { success: false, error: error.message };
+    }
+}
