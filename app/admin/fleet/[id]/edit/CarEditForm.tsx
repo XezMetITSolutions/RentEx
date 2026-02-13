@@ -29,7 +29,10 @@ interface ExtendedOption extends OptionType {
     group?: GroupType;
 }
 
+import { useFormState } from 'react-dom';
+
 export default function CarEditForm({ car, allOptions, groups }: { car: ExtendedCar, allOptions: ExtendedOption[], groups: GroupType[] }) {
+    const [state, formAction] = useFormState(updateCar, null);
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -638,6 +641,17 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                         </div>
                     </div>
                 </div>
+
+                {/* Error Display */}
+                {state?.error && (
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-xl flex items-start gap-3 mb-6">
+                        <ShieldAlert className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
+                        <div>
+                            <h3 className="text-red-800 dark:text-red-300 font-bold">Speichern fehlgeschlagen</h3>
+                            <p className="text-red-700 dark:text-red-400 text-sm mt-1 font-mono uppercase text-xs">{state.error}</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Submit Button */}
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
