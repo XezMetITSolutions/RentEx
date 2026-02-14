@@ -209,6 +209,10 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                         <PlusIcon className="w-4 h-4" />
                         Neues Fahrzeug
                     </Link>
+                    <Link href="/admin/fleet/columns-compare" className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors">
+                        <Settings2 className="w-4 h-4" />
+                        Spalten-Vergleich
+                    </Link>
                 </div>
             </div>
 
