@@ -17,9 +17,34 @@ import {
     Loader2
 } from 'lucide-react';
 import { useState, useTransition } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Car as CarType, Option as OptionType, OptionGroup as GroupType } from '@prisma/client';
 import Link from 'next/link';
 import ImageUpload from '@/components/admin/ImageUpload';
+
+function SaveCarButton() {
+    const { pending } = useFormStatus();
+    return (
+        <button
+            type="submit"
+            disabled={pending}
+            title="Änderungen speichern"
+            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg shadow-red-500/30 transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100 cursor-pointer"
+        >
+            {pending ? (
+                <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Speichern…
+                </>
+            ) : (
+                <>
+                    <Save className="w-5 h-5" />
+                    Änderungen speichern
+                </>
+            )}
+        </button>
+    );
+}
 
 interface ExtendedCar extends CarType {
     options?: OptionType[];
@@ -713,17 +738,11 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <Link
                         href={`/admin/fleet/${car.id}`}
-                        className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                        className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors cursor-pointer"
                     >
                         Abbrechen
                     </Link>
-                    <button
-                        type="submit"
-                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg shadow-red-500/30 transition-all hover:scale-105"
-                    >
-                        <Save className="w-5 h-5" />
-                        \u00c4nderungen speichern
-                    </button>
+                    <SaveCarButton />
                 </div>
             </form>
         </>
