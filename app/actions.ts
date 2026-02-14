@@ -38,13 +38,15 @@ const extractCarData = (formData: FormData) => {
 
         // Status & Identification
         status: formData.get('status') as string,
-        vin: formData.get('vin') as string || null,
+        vin: (formData.get('vin') as string)?.trim() || null,
+        chassisNumber: (formData.get('chassisNumber') as string)?.trim() || null,
 
         // Pricing
-        dailyRate: safeNumber(formData.get('dailyRate')) || 0,
+        dailyRate: safeNumber(formData.get('dailyRate')) ?? 0,
         weeklyRate: safeNumber(formData.get('weeklyRate')),
         monthlyRate: safeNumber(formData.get('monthlyRate')),
         longTermRate: safeNumber(formData.get('longTermRate')),
+        minDaysForLongTerm: safeNumber(formData.get('minDaysForLongTerm')),
         depositAmount: safeNumber(formData.get('depositAmount')),
 
         // Promotional Pricing
@@ -65,9 +67,10 @@ const extractCarData = (formData: FormData) => {
         maxMileagePerDay: safeNumber(formData.get('maxMileagePerDay')),
 
         // Content & Media
-        description: formData.get('description') as string || null,
-        features: formData.get('features') as string || null,
+        description: (formData.get('description') as string)?.trim() || null,
+        features: (formData.get('features') as string)?.trim() || null,
         imageUrl: (formData.get('imageUrl') as string)?.trim() || null,
+        images: (formData.get('images') as string)?.trim() || null,
 
         // Equipment & Features
         hasAirConditioning: formData.get('hasAirConditioning') === 'on',
@@ -84,6 +87,7 @@ const extractCarData = (formData: FormData) => {
 
         // Maintenance & Services
         vignetteValidUntil: safeDate(formData.get('vignetteValidUntil')),
+        vignetteType: (formData.get('vignetteType') as string)?.trim() || null,
         lastOilChange: safeDate(formData.get('lastOilChange')),
         nextOilChange: safeDate(formData.get('nextOilChange')),
         lastTireChange: safeDate(formData.get('lastTireChange')),
@@ -101,7 +105,13 @@ const extractCarData = (formData: FormData) => {
         currentValue: safeNumber(formData.get('currentValue')),
 
         // Internal Management
-        internalNotes: formData.get('internalNotes') as string || null,
+        internalNotes: (formData.get('internalNotes') as string)?.trim() || null,
+        damageHistory: (formData.get('damageHistory') as string)?.trim() || null,
+        isActive: formData.get('isActive') === 'on',
+
+        // GPS
+        latitude: formData.get('latitude') ? safeNumber(formData.get('latitude')) : null,
+        longitude: formData.get('longitude') ? safeNumber(formData.get('longitude')) : null,
     };
 };
 

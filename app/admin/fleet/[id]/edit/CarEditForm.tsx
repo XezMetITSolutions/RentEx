@@ -29,7 +29,9 @@ interface ExtendedOption extends OptionType {
     group?: GroupType;
 }
 
-export default function CarEditForm({ car, allOptions, groups }: { car: ExtendedCar, allOptions: ExtendedOption[], groups: GroupType[] }) {
+interface LocationType { id: number; name: string; code?: string | null; }
+
+export default function CarEditForm({ car, allOptions, groups, locations = [] }: { car: ExtendedCar, allOptions: ExtendedOption[], groups: GroupType[], locations?: LocationType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -169,6 +171,14 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">VIN (Fahrgestellnummer)</label>
                                     <input name="vin" type="text" maxLength={17} defaultValue={car.vin || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chassis-Nr. / Fahrgestellnummer</label>
+                                    <input name="chassisNumber" type="text" defaultValue={car.chassisNumber || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <input type="checkbox" name="isActive" defaultChecked={car.isActive !== false} className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500" />
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Fahrzeug aktiv</label>
+                                </div>
                                 <ImageUpload defaultValue={car.imageUrl || ''} name="imageUrl" />
                             </div>
                         </div>
@@ -183,6 +193,14 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Interne Notizen</label>
                                     <textarea name="internalNotes" rows={4} defaultValue={car.internalNotes || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Schadenverlauf (JSON/Text)</label>
+                                    <textarea name="damageHistory" rows={2} defaultValue={car.damageHistory || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Weitere Bilder (URLs, kommasepariert)</label>
+                                    <input name="images" type="text" defaultValue={car.images || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="https://..." />
                                 </div>
                             </div>
                         </div>
@@ -238,6 +256,18 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand</label>
                                 <input name="currentMileage" type="number" defaultValue={car.currentMileage || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max. km/Tag (Miete)</label>
+                                <input name="maxMileagePerDay" type="number" defaultValue={car.maxMileagePerDay || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Breite (GPS)</label>
+                                <input name="latitude" type="number" step="any" defaultValue={car.latitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 47.2" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Länge (GPS)</label>
+                                <input name="longitude" type="number" step="any" defaultValue={car.longitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 9.6" />
                             </div>
                         </div>
                     </div>
@@ -521,6 +551,14 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kaution (\u20ac)</label>
                                     <input name="depositAmount" type="number" step="0.01" defaultValue={Number(car.depositAmount) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Langzeitpreis (\u20ac)</label>
+                                    <input name="longTermRate" type="number" step="0.01" defaultValue={Number(car.longTermRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min. Tage Langzeit</label>
+                                    <input name="minDaysForLongTerm" type="number" defaultValue={car.minDaysForLongTerm ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                </div>
                             </div>
                         </div>
 
@@ -572,6 +610,38 @@ export default function CarEditForm({ car, allOptions, groups }: { car: Extended
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette g\u00fcltig bis</label>
                                 <input name="vignetteValidUntil" type="date" defaultValue={formatDate(car.vignetteValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignetten-Typ</label>
+                                <select name="vignetteType" defaultValue={car.vignetteType || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                    <option value="">—</option>
+                                    <option>Jahresvignette</option>
+                                    <option>2-Monatsvignette</option>
+                                    <option>10-Tage-Vignette</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-2">
+                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Standort</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Aktueller Standort</label>
+                                        <select name="locationId" defaultValue={car.locationId ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                            <option value="">— Keiner —</option>
+                                            {locations.map((loc) => (
+                                                <option key={loc.id} value={loc.id}>{loc.name}{loc.code ? ` (${loc.code})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Heimatstandort</label>
+                                        <select name="homeLocationId" defaultValue={car.homeLocationId ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
+                                            <option value="">— Keiner —</option>
+                                            {locations.map((loc) => (
+                                                <option key={loc.id} value={loc.id}>{loc.name}{loc.code ? ` (${loc.code})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

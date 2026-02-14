@@ -5,11 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 const FORM_BY_TAB: { tab: string; fields: string[] }[] = [
     {
         tab: 'Basis & Design',
-        fields: ['brand', 'model', 'year', 'color', 'plate', 'category', 'status', 'vin', 'imageUrl', 'description', 'internalNotes'],
+        fields: ['brand', 'model', 'year', 'color', 'plate', 'category', 'status', 'vin', 'chassisNumber', 'isActive', 'imageUrl', 'images', 'description', 'internalNotes', 'damageHistory'],
     },
     {
         tab: 'Technische Daten',
-        fields: ['fuelType', 'transmission', 'engineSize', 'horsePower', 'fuelConsumption', 'co2Emission', 'doors', 'seats', 'currentMileage'],
+        fields: ['fuelType', 'transmission', 'engineSize', 'horsePower', 'fuelConsumption', 'co2Emission', 'doors', 'seats', 'currentMileage', 'maxMileagePerDay', 'latitude', 'longitude'],
     },
     {
         tab: 'Ausstattung',
@@ -21,11 +21,11 @@ const FORM_BY_TAB: { tab: string; fields: string[] }[] = [
     },
     {
         tab: 'Preise & Kampagnen',
-        fields: ['dailyRate', 'weeklyRate', 'monthlyRate', 'depositAmount', 'promoPrice', 'promoStartDate', 'promoEndDate'],
+        fields: ['dailyRate', 'weeklyRate', 'monthlyRate', 'depositAmount', 'longTermRate', 'minDaysForLongTerm', 'promoPrice', 'promoStartDate', 'promoEndDate'],
     },
     {
         tab: 'Versicherung & Dokumente',
-        fields: ['insuranceCompany', 'insurancePolicyNumber', 'insuranceValidUntil', 'registrationDate', 'nextInspection', 'vignetteValidUntil'],
+        fields: ['insuranceCompany', 'insurancePolicyNumber', 'insuranceValidUntil', 'registrationDate', 'nextInspection', 'vignetteValidUntil', 'vignetteType', 'locationId', 'homeLocationId'],
     },
     {
         tab: 'Wartung & Service',
