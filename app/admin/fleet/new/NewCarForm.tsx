@@ -26,7 +26,9 @@ interface ExtendedOption extends OptionType {
     group?: GroupType;
 }
 
-export default function NewCarForm({ allOptions, groups }: { allOptions: ExtendedOption[], groups: GroupType[] }) {
+interface CarCategoryType { id: number; name: string; sortOrder: number; }
+
+export default function NewCarForm({ allOptions, groups, categories = [] }: { allOptions: ExtendedOption[], groups: GroupType[], categories?: CarCategoryType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -146,16 +148,10 @@ export default function NewCarForm({ allOptions, groups }: { allOptions: Extende
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategorie</label>
                                         <select name="category" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
-                                            <option>Kleinwagen</option>
-                                            <option>Mittelklasse</option>
-                                            <option>Limousine</option>
-                                            <option>SUV</option>
-                                            <option>Van</option>
-                                            <option>Sportwagen</option>
-                                            <option>Cabrio</option>
-                                            <option>Kombi</option>
-                                            <option>Bus</option>
-                                            <option>Kastenwagen</option>
+                                            <option value="">—</option>
+                                            {categories.map((c) => (
+                                                <option key={c.id} value={c.name}>{c.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>

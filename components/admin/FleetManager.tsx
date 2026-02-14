@@ -7,9 +7,11 @@ import {
     Search, MapPin, Fuel, Calendar,
     Settings2, Car as CarIcon,
     Edit2, LayoutGrid, List,
-    BookOpen, Wrench, X, Save, Loader2
+    BookOpen, Wrench, X, Save, Loader2,
+    Tag
 } from 'lucide-react';
 import { DeleteCarButton } from '@/app/admin/fleet/DeleteCarButton';
+import { CategoriesModal } from '@/components/admin/CategoriesModal';
 
 interface Car {
     id: number;
@@ -40,6 +42,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
     const [locationFilter, setLocationFilter] = useState<string>('all');
 
     // Modal States
+    const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
     const [fahrtenbuchCar, setFahrtenbuchCar] = useState<Car | null>(null);
     const [wartungCar, setWartungCar] = useState<Car | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -209,12 +212,18 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                         <PlusIcon className="w-4 h-4" />
                         Neues Fahrzeug
                     </Link>
-                    <Link href="/admin/fleet/columns-compare" className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors">
-                        <Settings2 className="w-4 h-4" />
-                        Spalten-Vergleich
-                    </Link>
+                    <button
+                        type="button"
+                        onClick={() => setCategoriesModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                    >
+                        <Tag className="w-4 h-4" />
+                        Kategorien
+                    </button>
                 </div>
             </div>
+
+            <CategoriesModal isOpen={categoriesModalOpen} onClose={() => setCategoriesModalOpen(false)} />
 
             {/* Filters */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">

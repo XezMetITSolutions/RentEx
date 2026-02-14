@@ -55,8 +55,9 @@ interface ExtendedOption extends OptionType {
 }
 
 interface LocationType { id: number; name: string; code?: string | null; }
+interface CarCategoryType { id: number; name: string; sortOrder: number; }
 
-export default function CarEditForm({ car, allOptions, groups, locations = [] }: { car: ExtendedCar, allOptions: ExtendedOption[], groups: GroupType[], locations?: LocationType[] }) {
+export default function CarEditForm({ car, allOptions, groups, locations = [], categories = [] }: { car: ExtendedCar, allOptions: ExtendedOption[], groups: GroupType[], locations?: LocationType[], categories?: CarCategoryType[] }) {
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -168,16 +169,10 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategorie</label>
                                         <select name="category" defaultValue={car.category || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
-                                            <option>Kleinwagen</option>
-                                            <option>Mittelklasse</option>
-                                            <option>Limousine</option>
-                                            <option>SUV</option>
-                                            <option>Van</option>
-                                            <option>Sportwagen</option>
-                                            <option>Cabrio</option>
-                                            <option>Kombi</option>
-                                            <option>Bus</option>
-                                            <option>Kastenwagen</option>
+                                            <option value="">—</option>
+                                            {categories.map((c) => (
+                                                <option key={c.id} value={c.name}>{c.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>

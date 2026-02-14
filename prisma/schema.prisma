@@ -123,6 +123,12 @@ model Car {
   options       Option[]
 }
 
+model CarCategory {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  sortOrder Int     @default(0)
+}
+
 model Location {
   id          Int      @id @default(autoincrement())
   name        String

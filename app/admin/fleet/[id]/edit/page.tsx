@@ -1,4 +1,4 @@
-import { updateCar } from '@/app/actions';
+import { updateCar, getCarCategories } from '@/app/actions';
 import { ArrowLeft, Car, Save, Tag, ShieldCheck, Wrench, DollarSign, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -16,7 +16,7 @@ async function getCar(id: number) {
 }
 
 async function getData() {
-    const [options, groups, locations] = await Promise.all([
+    const [options, groups, locations, categories] = await Promise.all([
         prisma.option.findMany({
             where: { status: 'active' },
             orderBy: { name: 'asc' }
@@ -26,9 +26,10 @@ async function getData() {
         }),
         prisma.location.findMany({
             orderBy: { name: 'asc' }
-        })
+        }),
+        getCarCategories()
     ]);
-    return { options, groups, locations };
+    return { options, groups, locations, categories };
 }
 
 export default async function EditCarPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +38,7 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
 
     if (isNaN(carId)) notFound();
 
-    const [car, { options, groups, locations }] = await Promise.all([
+    const [car, { options, groups, locations, categories }] = await Promise.all([
         getCar(carId),
         getData()
     ]);
@@ -48,10 +49,10 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
     const plainOptions = JSON.parse(JSON.stringify(options));
     const plainGroups = JSON.parse(JSON.stringify(groups));
     const plainLocations = JSON.parse(JSON.stringify(locations));
+    const plainCategories = JSON.parse(JSON.stringify(categories));
 
     return (
         <div className="max-w-7xl mx-auto pb-12">
-            {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fahrzeug bearbeiten</h1>
@@ -66,7 +67,7 @@ export default async function EditCarPage({ params }: { params: Promise<{ id: st
                 </Link>
             </div>
 
-            <CarEditForm car={plainCar} allOptions={plainOptions} groups={plainGroups} locations={plainLocations} />
+            <CarEditForm car={plainCar} allOptions={plainOptions} groups={plainGroups} locations={plainLocations} categories={plainCategories} />
         </div>
     );
 }
