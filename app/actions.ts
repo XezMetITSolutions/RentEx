@@ -145,72 +145,64 @@ export async function createCar(formData: FormData) {
     redirect('/admin/fleet');
 }
 
-export async function updateCar(id: number, prevState: any, formData: FormData) {
-    try {
-        const rawData = extractCarData(formData);
-        const submittedOptionIds = formData.getAll('options').map(oid => Number(oid));
+export async function updateCar(id: number, formData: FormData): Promise<void> {
+    const rawData = extractCarData(formData);
+    const submittedOptionIds = formData.getAll('options').map(oid => Number(oid));
 
-        // 1. Fetch current car options to know what to delete
-        const currentCar = await prisma.car.findUnique({
+    // 1. Fetch current car options to know what to delete
+    const currentCar = await prisma.car.findUnique({
+        where: { id },
+        include: { options: true }
+    });
+
+    if (!currentCar) throw new Error("Car not found");
+
+    const currentOptionIds = currentCar.options.map(o => o.id);
+
+    // Options to DELETE: belonging to car but NOT in submitted
+    const optionsToDeleteIds = currentOptionIds.filter(cid => !submittedOptionIds.includes(cid));
+
+    // Options to ADD (Clone): submitted IDs that are NOT belonging to this car (i.e., Templates)
+    const optionsToCloneIds = submittedOptionIds.filter(sid => !currentOptionIds.includes(sid));
+
+    // Fetch templates for cloning
+    const templatesToClone = await prisma.option.findMany({
+        where: { id: { in: optionsToCloneIds } }
+    });
+
+    await prisma.$transaction([
+        // Delete removed options
+        prisma.option.deleteMany({
+            where: { id: { in: optionsToDeleteIds } }
+        }),
+        // Create new clones
+        prisma.option.createMany({
+            data: templatesToClone.map(t => ({
+                name: t.name,
+                description: t.description,
+                price: Number(t.price),
+                type: t.type,
+                carCategory: t.carCategory,
+                isPerDay: t.isPerDay,
+                maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
+                maxDays: t.maxDays,
+                isMandatory: t.isMandatory,
+                maxQuantity: t.maxQuantity,
+                status: t.status,
+                imageUrl: t.imageUrl,
+                groupId: t.groupId,
+                carId: id
+            }))
+        }),
+        // Update car details
+        prisma.car.update({
             where: { id },
-            include: { options: true }
-        });
+            data: rawData as any
+        })
+    ]);
 
-        if (!currentCar) throw new Error("Car not found");
-
-        const currentOptionIds = currentCar.options.map(o => o.id);
-
-        // Options to DELETE: belonging to car but NOT in submitted
-        const optionsToDeleteIds = currentOptionIds.filter(cid => !submittedOptionIds.includes(cid));
-
-        // Options to ADD (Clone): submitted IDs that are NOT belonging to this car (i.e., Templates)
-        const optionsToCloneIds = submittedOptionIds.filter(sid => !currentOptionIds.includes(sid));
-
-        // Fetch templates for cloning
-        const templatesToClone = await prisma.option.findMany({
-            where: { id: { in: optionsToCloneIds } }
-        });
-
-        await prisma.$transaction([
-            // Delete removed options
-            prisma.option.deleteMany({
-                where: { id: { in: optionsToDeleteIds } }
-            }),
-            // Create new clones
-            prisma.option.createMany({
-                data: templatesToClone.map(t => ({
-                    name: t.name,
-                    description: t.description,
-                    price: Number(t.price),
-                    type: t.type,
-                    carCategory: t.carCategory,
-                    isPerDay: t.isPerDay,
-                    maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
-                    maxDays: t.maxDays,
-                    isMandatory: t.isMandatory,
-                    maxQuantity: t.maxQuantity,
-                    status: t.status,
-                    imageUrl: t.imageUrl,
-                    groupId: t.groupId,
-                    carId: id
-                }))
-            }),
-            // Update car details
-            prisma.car.update({
-                where: { id },
-                data: rawData as any
-            })
-        ]);
-
-        revalidatePath('/admin/fleet');
-        revalidatePath(`/admin/fleet/${id}`);
-        // We can't redirect inside try-catch easily because redirect() works by throwing.
-        // So we'll redirect outside.
-    } catch (error: any) {
-        console.error('Error updating car:', error);
-        return { success: false, error: error.message };
-    }
-
+    revalidatePath('/admin/fleet');
+    revalidatePath(`/admin/fleet/${id}`);
     redirect(`/admin/fleet/${id}`);
 }
 
