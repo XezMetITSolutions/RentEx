@@ -267,15 +267,15 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 <input name="fuelConsumption" type="text" defaultValue={car.fuelConsumption || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CO\u2082-Emission (g/km)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CO₂-Emission (g/km)</label>
                                 <input name="co2Emission" type="text" defaultValue={car.co2Emission || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">T\u00fcren</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Türen</label>
                                 <input name="doors" type="number" defaultValue={car.doors || 4} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitzpl\u00e4tze</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitzplätze</label>
                                 <input name="seats" type="number" defaultValue={car.seats || 5} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
@@ -308,13 +308,13 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 { name: 'hasGPS', label: 'GPS Navigation' },
                                 { name: 'hasHeatedSeats', label: 'Sitzheizung' },
                                 { name: 'hasParkingSensors', label: 'Parksensoren' },
-                                { name: 'hasBackupCamera', label: 'R\u00fcckfahrkamera' },
+                                { name: 'hasBackupCamera', label: 'Rückfahrkamera' },
                                 { name: 'hasCruiseControl', label: 'Tempomat' },
                                 { name: 'hasBluetoothAudio', label: 'Bluetooth' },
-                                { name: 'hasUSBPorts', label: 'USB-Anschl\u00fcsse' },
+                                { name: 'hasUSBPorts', label: 'USB-Anschlüsse' },
                                 { name: 'hasChildSeatAnchors', label: 'Kindersitz-Befestigung' },
-                                { name: 'hasSkiRack', label: 'Skitr\u00e4ger' },
-                                { name: 'hasTowHitch', label: 'Anh\u00e4ngerkupplung' },
+                                { name: 'hasSkiRack', label: 'Skiträger' },
+                                { name: 'hasTowHitch', label: 'Anhängerkupplung' },
                             ].map((feature) => (
                                 <label key={feature.name} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
                                     <input type="checkbox" name={feature.name} defaultChecked={!!car[feature.name as keyof CarType]} className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500" />
@@ -335,7 +335,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Zusatzoptionen & Kilometer-Pakete</h3>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hier k\u00f6nnen Sie festlegen, welche Optionen f\u00fcr dieses Fahrzeug verf\u00fcgbar sind.</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hier können Sie festlegen, welche Optionen für dieses Fahrzeug verfügbar sind.</p>
                             </div>
                             <button
                                 type="button"
@@ -489,7 +489,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (\u20ac)</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (€)</label>
                                         <input name="price" type="number" step="0.01" required className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white" />
                                     </div>
                                 </div>
@@ -534,7 +534,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (\u20ac)</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preis (€)</label>
                                         <input name="price" type="number" step="0.01" required defaultValue={Number(editingOption.price)} className="w-full px-4 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white" />
                                     </div>
                                 </div>
@@ -561,23 +561,23 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Mietpreise</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tagespreis (\u20ac) *</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tagespreis (€) *</label>
                                     <input name="dailyRate" type="number" step="0.01" required defaultValue={Number(car.dailyRate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Wochenpreis (\u20ac)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Wochenpreis (€)</label>
                                     <input name="weeklyRate" type="number" step="0.01" defaultValue={Number(car.weeklyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monatspreis (\u20ac)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monatspreis (€)</label>
                                     <input name="monthlyRate" type="number" step="0.01" defaultValue={Number(car.monthlyRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kaution (\u20ac)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kaution (€)</label>
                                     <input name="depositAmount" type="number" step="0.01" defaultValue={Number(car.depositAmount) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Langzeitpreis (\u20ac)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Langzeitpreis (€)</label>
                                     <input name="longTermRate" type="number" step="0.01" defaultValue={Number(car.longTermRate) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
@@ -588,18 +588,18 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                         </div>
 
                         <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">\ud83c\udf89 Kampagnen & Sonderaktionen</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">🎉 Kampagnen & Sonderaktionen</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktionspreis (\u20ac/Tag)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktionspreis (€/Tag)</label>
                                     <input name="promoPrice" type="number" step="0.01" defaultValue={Number(car.promoPrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">G\u00fcltig von</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig von</label>
                                     <input name="promoStartDate" type="date" defaultValue={formatDate(car.promoStartDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">G\u00fcltig bis</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gültig bis</label>
                                     <input name="promoEndDate" type="date" defaultValue={formatDate(car.promoEndDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                 </div>
                             </div>
@@ -621,7 +621,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 <input name="insurancePolicyNumber" type="text" defaultValue={car.insurancePolicyNumber || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherung g\u00fcltig bis</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Versicherung gültig bis</label>
                                 <input name="insuranceValidUntil" type="date" defaultValue={formatDate(car.insuranceValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
@@ -629,11 +629,11 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 <input name="registrationDate" type="date" defaultValue={formatDate(car.registrationDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">N\u00e4chste T\u00dcV/HU</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächste TÜV/HU</label>
                                 <input name="nextInspection" type="date" defaultValue={formatDate(car.nextInspection)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette g\u00fcltig bis</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette gültig bis</label>
                                 <input name="vignetteValidUntil" type="date" defaultValue={formatDate(car.vignetteValidUntil)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
@@ -678,11 +678,11 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Wartung & Service</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter \u00d7lwechsel</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Ölwechsel</label>
                                 <input name="lastOilChange" type="date" defaultValue={formatDate(car.lastOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">N\u00e4chster \u00d7lwechsel</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Ölwechsel</label>
                                 <input name="nextOilChange" type="date" defaultValue={formatDate(car.nextOilChange)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
@@ -702,7 +702,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 <input name="lastServiceDate" type="date" defaultValue={formatDate(car.lastServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">N\u00e4chster Service</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächster Service</label>
                                 <input name="nextServiceDate" type="date" defaultValue={formatDate(car.nextServiceDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                         </div>
@@ -715,7 +715,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Finanzielle Daten</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungspreis (\u20ac)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungspreis (€)</label>
                                 <input name="purchasePrice" type="number" step="0.01" defaultValue={Number(car.purchasePrice) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
@@ -723,7 +723,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [] }:
                                 <input name="purchaseDate" type="date" defaultValue={formatDate(car.purchaseDate)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktueller Wert (\u20ac)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktueller Wert (€)</label>
                                 <input name="currentValue" type="number" step="0.01" defaultValue={Number(car.currentValue) || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
