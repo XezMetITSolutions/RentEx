@@ -50,6 +50,31 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
 
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [totalDays, setTotalDays] = useState<number>(1);
+    const [isAvailable, setIsAvailable] = useState<boolean>(true);
+
+    // Check availability
+    useEffect(() => {
+        if (!car.rentals) return;
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // Reset hours to compare dates only
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        const hasOverlap = car.rentals.some((rental: any) => {
+            const rentalStart = new Date(rental.startDate);
+            const rentalEnd = new Date(rental.endDate);
+            rentalStart.setHours(0, 0, 0, 0);
+            rentalEnd.setHours(0, 0, 0, 0);
+
+            // Check overlap
+            return (start < rentalEnd && end > rentalStart);
+        });
+
+        setIsAvailable(!hasOverlap);
+    }, [startDate, endDate, car.rentals]);
 
     // Calculate Price
     useEffect(() => {
@@ -118,9 +143,19 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                         </p>
                         <p className="text-xs text-gray-500 mt-1">für {totalDays} Tage</p>
                     </div>
-                    <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs font-semibold">
-                        Verfügbar
-                    </span>
+                </div>
+
+                {/* Availability Status */}
+                <div className="mb-6 flex justify-end">
+                    {isAvailable ? (
+                        <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs font-semibold">
+                            Verfügbar
+                        </span>
+                    ) : (
+                        <span className="text-red-400 bg-red-400/10 px-2 py-1 rounded text-xs font-semibold">
+                            Nicht verfügbar
+                        </span>
+                    )}
                 </div>
 
                 {/* Date Selection */}
@@ -151,9 +186,13 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
 
                 <button
                     onClick={handleBooking}
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]"
+                    disabled={!isAvailable}
+                    className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] ${isAvailable
+                            ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
+                            : "bg-zinc-700 text-zinc-500 cursor-not-allowed shadow-none"
+                        }`}
                 >
-                    Jetzt Reservieren
+                    {isAvailable ? "Jetzt Reservieren" : "Zeitraum belegt"}
                 </button>
                 <p className="text-center text-xs text-gray-500 mt-3">
                     Keine Kreditkarte für Reservierung erforderlich
