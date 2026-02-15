@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import prisma from "@/lib/prisma";
+import PublicCarCalendar from "@/components/fleet/PublicCarCalendar";
 
 async function getCar(id: number) {
     const car = await prisma.car.findUnique({
@@ -24,6 +25,17 @@ async function getCar(id: number) {
         include: {
             options: {
                 where: { status: 'active' }
+            },
+            rentals: {
+                where: {
+                    status: {
+                        in: ['Active', 'Reserved', 'Pending']
+                    }
+                },
+                select: {
+                    startDate: true,
+                    endDate: true
+                }
             }
         }
     });
@@ -143,6 +155,15 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
                                         <p className="font-semibold text-white">{car.fuelConsumption}</p>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Availability Calendar */}
+                            <div>
+                                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                                    <Zap className="w-5 h-5 text-red-500" />
+                                    Verfügbarkeit
+                                </h2>
+                                <PublicCarCalendar rentals={car.rentals} />
                             </div>
 
                             {/* Features List */}
