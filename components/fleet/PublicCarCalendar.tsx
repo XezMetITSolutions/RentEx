@@ -21,21 +21,37 @@ const localizer = dateFnsLocalizer({
 interface PublicCarCalendarProps {
     rentals: { startDate: Date; endDate: Date }[];
     onDateSelect?: (start: Date, end: Date) => void;
+    selectedStart?: Date | string;
+    selectedEnd?: Date | string;
 }
 
-export default function PublicCarCalendar({ rentals, onDateSelect }: PublicCarCalendarProps) {
+export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart, selectedEnd }: PublicCarCalendarProps) {
     const [view, setView] = useState<any>(Views.MONTH);
     const [date, setDate] = useState(new Date());
 
     const events = useMemo(() => {
-        return rentals.map((r, idx) => ({
-            id: idx,
+        const eventsList = rentals.map((r, idx) => ({
+            id: `rental-${idx}`,
             title: 'Belegt',
             start: new Date(r.startDate),
             end: new Date(r.endDate),
-            allDay: true
+            allDay: true,
+            type: 'rental'
         }));
-    }, [rentals]);
+
+        if (selectedStart && selectedEnd) {
+            eventsList.push({
+                id: 'selection',
+                title: 'Ihre Auswahl',
+                start: new Date(selectedStart),
+                end: new Date(selectedEnd),
+                allDay: true,
+                type: 'selection'
+            });
+        }
+
+        return eventsList;
+    }, [rentals, selectedStart, selectedEnd]);
 
     const handleSelectSlot = ({ start, end }: { start: Date, end: Date }) => {
         if (onDateSelect) {
@@ -56,7 +72,23 @@ export default function PublicCarCalendar({ rentals, onDateSelect }: PublicCarCa
         }
     };
 
-    const eventStyleGetter = () => {
+    const eventStyleGetter = (event: any) => {
+        if (event.type === 'selection') {
+            return {
+                style: {
+                    backgroundColor: '#10B981', // Green for selection
+                    borderRadius: '4px',
+                    opacity: 0.8,
+                    color: 'white',
+                    border: '0px',
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    padding: '2px 5px',
+                    textAlign: 'center' as const
+                }
+            };
+        }
         return {
             style: {
                 backgroundColor: '#EF4444', // Red for busy

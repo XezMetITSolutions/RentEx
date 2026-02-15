@@ -160,6 +160,8 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
                             <PublicCarCalendar
                                 rentals={car.rentals}
                                 onDateSelect={handleDateSelect}
+                                selectedStart={startDate}
+                                selectedEnd={endDate}
                             />
                         </div>
 
