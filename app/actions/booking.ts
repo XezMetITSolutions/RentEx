@@ -21,11 +21,13 @@ export async function createBooking(prevState: any, formData: FormData) {
     const address = formData.get('address') as string;
     const city = formData.get('city') as string;
     const postalCode = formData.get('postalCode') as string;
-    const country = formData.get('country') as string || 'Deutschland';
-    const customerType = formData.get('customerType') as string || 'Private';
-    const companyName = formData.get('companyName') as string || null;
-    const taxId = formData.get('taxId') as string || null;
+    const country = formData.get('country') as string;
     const paymentMethod = formData.get('paymentMethod') as string;
+
+    // Business Data
+    const customerType = formData.get('customerType') as string;
+    const company = formData.get('company') as string;
+    const taxId = formData.get('taxId') as string;
 
     // 2. Find or Create Customer
     // Simple check by email for now
@@ -45,32 +47,40 @@ export async function createBooking(prevState: any, formData: FormData) {
                 postalCode,
                 country,
                 customerType,
-                company: companyName,
-                taxId: taxId
+                company,
+                taxId
             }
         });
     } else {
-        // Optional: Update customer details if they changed? 
-        // For now let's keep it simple and just use the existing ID
+        // Update customer details 
+        customer = await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+                firstName,
+                lastName,
+                phone,
+                address,
+                city,
+                postalCode,
+                country,
+                customerType,
+                company,
+                taxId
+            }
+        });
     }
 
     // 3. Create Rental
-    // Calculate days properly
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
-    // Fetch car just to get daily rate for record keeping 
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) throw new Error("Car not found");
 
-    // Generate Contract Number
     const year = new Date().getFullYear();
     const count = await prisma.rental.count();
     const contractNumber = `RNT-${year}-${(count + 1).toString().padStart(6, '0')}`;
 
-    // Calculate Extras Cost (re-verify on server ideally, but trusting client for MVP speed)
-    // In a real app, re-fetch options and sum up prices. 
-    // Let's do a quick query for options to be safe
     const selectedOptions = await prisma.option.findMany({
         where: { id: { in: optionIds } }
     });
@@ -143,10 +153,8 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
-    // 4. Handle Stripe Payment if selected
     if (paymentMethod === 'online') {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
-
         try {
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card', 'sepa_debit', 'sofort', 'giropay', 'paypal', 'klarna'] as any,
@@ -165,7 +173,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                 ],
                 mode: 'payment',
                 success_url: `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate')}&endDate=${formData.get('endDate')}`,
+                cancel_url: `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}`,
                 customer_email: email,
                 metadata: {
                     rentalId: rental.id.toString(),
@@ -182,11 +190,8 @@ export async function createBooking(prevState: any, formData: FormData) {
             }
         } catch (error) {
             console.error("Stripe Session Error:", error);
-            // Fallback to success page but maybe with a warning?
-            // For now let's just proceed to success page if Stripe fails to initialize
         }
     }
 
-    // 4. Redirect
     redirect(`/checkout/success/${rental.id}`);
 }
