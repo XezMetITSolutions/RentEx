@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { updateRentalStatus, updatePaymentStatus } from '@/app/actions/rental-updates';
+import RentalActionsClient from '@/components/admin/RentalActionsClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,41 +87,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                         <p className="text-sm text-gray-500 dark:text-gray-400">Erstellt am {format(new Date(rental.createdAt), 'dd. MMMM yyyy HH:mm', { locale: de })}</p>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    {rental.status === 'Pending' && (
-                        <div className="flex gap-2">
-                            <Link
-                                href={`/admin/reservations/${rental.id}/check-in`}
-                                className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-zinc-900/10"
-                            >
-                                <PenTool className="w-4 h-4" />
-                                Digitaler Check-In
-                            </Link>
-                            <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
-                                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                    <CheckCircle className="w-4 h-4" />
-                                    Direkt Aktivieren
-                                </button>
-                            </form>
-                        </div>
-                    )}
-                    {rental.status === 'Active' && (
-                        <form action={updateRentalStatus.bind(null, rental.id, 'Completed')}>
-                            <button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                <CheckCircle className="w-4 h-4" />
-                                Abschließen
-                            </button>
-                        </form>
-                    )}
-                    {rental.status !== 'Cancelled' && rental.status !== 'Completed' && (
-                        <form action={updateRentalStatus.bind(null, rental.id, 'Cancelled')}>
-                            <button className="flex items-center gap-2 bg-white dark:bg-gray-700 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                <XCircle className="w-4 h-4" />
-                                Stornieren
-                            </button>
-                        </form>
-                    )}
-                </div>
+                <RentalActionsClient rental={rental} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
