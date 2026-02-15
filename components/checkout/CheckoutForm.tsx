@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import Image from "next/image";
-import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Search, Building2, User } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
 
 type Props = {
@@ -37,8 +37,53 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
     // useActionState generic typing: [state, dispatch]
     // Initial state null or object
     const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>('arrival');
+    const [customerType, setCustomerType] = useState<'Private' | 'Business'>('Private');
     const [agbAccepted, setAgbAccepted] = useState(false);
+    const [addressQuery, setAddressQuery] = useState('');
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
+
+    // Address Autofill using Photon API (OpenStreetMap based)
+    useEffect(() => {
+        const fetchAddress = async () => {
+            if (addressQuery.length < 3) {
+                setSuggestions([]);
+                return;
+            }
+            try {
+                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(addressQuery)}&limit=5&lang=de`);
+                const data = await res.json();
+                setSuggestions(data.features || []);
+            } catch (err) {
+                console.error("Address fetch error", err);
+            }
+        };
+
+        const timer = setTimeout(fetchAddress, 300);
+        return () => clearTimeout(timer);
+    }, [addressQuery]);
+
+    const handleSelectAddress = (feature: any) => {
+        const { properties } = feature;
+        const street = properties.street || properties.name || '';
+        const houseNumber = properties.housenumber || '';
+        const city = properties.city || '';
+        const postCode = properties.postcode || '';
+
+        // Update input via state if we were controlled, but here we use names for form action.
+        // For simplicity in this structure, we'll manually set values of the inputs.
+        const addrInput = document.querySelector('input[name="address"]') as HTMLInputElement;
+        const cityInput = document.querySelector('input[name="city"]') as HTMLInputElement;
+        const pcInput = document.querySelector('input[name="postalCode"]') as HTMLInputElement;
+
+        if (addrInput) addrInput.value = `${street} ${houseNumber}`.trim();
+        if (cityInput) cityInput.value = city;
+        if (pcInput) pcInput.value = postCode;
+
+        setShowSuggestions(false);
+        setAddressQuery(`${street} ${houseNumber}`.trim());
+    };
 
     return (
         <form action={formAction} className="grid lg:grid-cols-3 gap-12">
@@ -54,10 +99,46 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
             {/* LEFT: Customer Form */}
             <div className="lg:col-span-2 space-y-8">
 
+                {/* Customer Type Toggle */}
+                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
+                    <h2 className="text-xl font-bold text-white mb-6">Kundenart</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setCustomerType('Private')}
+                            className={`flex items-center justify-center gap-3 p-4 rounded-xl border transition-all ${customerType === 'Private' ? 'bg-red-500/10 border-red-500/50 text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/10'}`}
+                        >
+                            <User className="w-5 h-5" />
+                            <span className="font-medium">Privat</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setCustomerType('Business')}
+                            className={`flex items-center justify-center gap-3 p-4 rounded-xl border transition-all ${customerType === 'Business' ? 'bg-red-500/10 border-red-500/50 text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/10'}`}
+                        >
+                            <Building2 className="w-5 h-5" />
+                            <span className="font-medium">Geschäftlich</span>
+                        </button>
+                    </div>
+                </div>
+
                 {/* Personal Info */}
                 <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
                     <h2 className="text-xl font-bold text-white mb-6">Persönliche Daten</h2>
+                    <input type="hidden" name="customerType" value={customerType} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {customerType === 'Business' && (
+                            <>
+                                <div className="space-y-2 col-span-1 md:col-span-2">
+                                    <label className="text-sm font-medium text-gray-400">Firmenname</label>
+                                    <input required name="companyName" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
+                                </div>
+                                <div className="space-y-2 col-span-1 md:col-span-2 border-b border-white/5 pb-4 mb-2">
+                                    <label className="text-sm font-medium text-gray-400">USt-IdNr. (optional)</label>
+                                    <input name="taxId" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="DE123456789" />
+                                </div>
+                            </>
+                        )}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Vorname</label>
                             <input required name="firstName" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
@@ -81,10 +162,50 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                 <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
                     <h2 className="text-xl font-bold text-white mb-6">Anschrift</h2>
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Straẞe & Hausnummer</label>
-                            <input required name="address" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Hauptstraẞe 1" />
+                        <div className="space-y-2 relative">
+                            <label className="text-sm font-medium text-gray-400">Straẞe & Hausnummer (Autofill)</label>
+                            <div className="relative">
+                                <input
+                                    required
+                                    name="address"
+                                    type="text"
+                                    value={addressQuery}
+                                    onChange={(e) => {
+                                        setAddressQuery(e.target.value);
+                                        setShowSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    autoComplete="off"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                    placeholder="Hauptstraẞe 1"
+                                />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            </div>
+
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    {suggestions.map((s, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => handleSelectAddress(s)}
+                                            className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-none flex items-start gap-3 group"
+                                        >
+                                            <MapPin className="w-4 h-4 text-gray-500 group-hover:text-red-500 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-white">
+                                                    {s.properties.street} {s.properties.housenumber}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {s.properties.postcode} {s.properties.city}, {s.properties.country}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">PLZ</label>
@@ -93,6 +214,17 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">Stadt</label>
                                 <input required name="city" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Berlin" />
+                            </div>
+                            <div className="space-y-2 col-span-1 md:col-span-2">
+                                <label className="text-sm font-medium text-gray-400">Land</label>
+                                <select name="country" defaultValue="Deutschland" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
+                                    <option value="Deutschland">Deutschland</option>
+                                    <option value="Österreich">Österreich</option>
+                                    <option value="Schweiz">Schweiz</option>
+                                    <option value="Niederlande">Niederlande</option>
+                                    <option value="Frankreich">Frankreich</option>
+                                    <option value="Italien">Italien</option>
+                                </select>
                             </div>
                         </div>
                     </div>

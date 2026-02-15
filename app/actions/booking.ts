@@ -21,6 +21,10 @@ export async function createBooking(prevState: any, formData: FormData) {
     const address = formData.get('address') as string;
     const city = formData.get('city') as string;
     const postalCode = formData.get('postalCode') as string;
+    const country = formData.get('country') as string || 'Deutschland';
+    const customerType = formData.get('customerType') as string || 'Private';
+    const companyName = formData.get('companyName') as string || null;
+    const taxId = formData.get('taxId') as string || null;
     const paymentMethod = formData.get('paymentMethod') as string;
 
     // 2. Find or Create Customer
@@ -39,7 +43,10 @@ export async function createBooking(prevState: any, formData: FormData) {
                 address,
                 city,
                 postalCode,
-                customerType: 'Private'
+                country,
+                customerType,
+                company: companyName,
+                taxId: taxId
             }
         });
     } else {
