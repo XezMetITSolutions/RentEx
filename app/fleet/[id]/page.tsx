@@ -1,9 +1,22 @@
-import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import CarDetailClient from "@/components/fleet/CarDetailClient";
+import { notFound } from "next/navigation";
+import prisma from "@/lib/prisma";
 
-// ... keep getCar function ... 
+async function getCar(id: number) {
+    return prisma.car.findUnique({
+        where: { id },
+        include: {
+            options: true,
+            rentals: {
+                where: {
+                    status: { in: ['Active', 'Pending'] }
+                }
+            }
+        }
+    });
+}
 
 export default async function CarDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
@@ -35,5 +48,3 @@ export default async function CarDetailPage({ params }: { params: Promise<{ id: 
         </div>
     );
 }
-
-// ... helper function to be removed/moved ...
