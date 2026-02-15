@@ -3,6 +3,7 @@ import { Calendar, AlertTriangle, CheckCircle, Clock, Car, Wrench, Droplet, Circ
 import { format, addDays, differenceInDays, startOfDay, endOfDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
+import Link from 'next/link';
 
 interface MaintenanceAlert {
     id: number;
@@ -234,10 +235,11 @@ export default async function TodayOverview() {
                             return (
                                 <div
                                     key={event.id}
-                                    className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+                                    className="relative flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer group"
                                 >
+                                    <Link href={`/admin/reservations/${event.id}`} className="absolute inset-0 z-0" />
                                     <div className={clsx(
-                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg',
+                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg relative z-10',
                                         event.type === 'pickup' ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
                                             event.type === 'return' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' :
                                                 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
@@ -245,7 +247,7 @@ export default async function TodayOverview() {
                                         <Icon className="h-5 w-5" />
                                     </div>
 
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 relative z-10">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-sm font-bold text-gray-900 dark:text-white">{event.time}</span>
                                             <span className={clsx(

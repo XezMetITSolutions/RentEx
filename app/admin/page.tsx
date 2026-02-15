@@ -220,13 +220,14 @@ export default async function AdminDashboard() {
                                     </tr>
                                 ) : (
                                     recentRentals.map((rental) => (
-                                        <tr key={rental.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                        <tr key={rental.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/50 cursor-pointer relative">
                                             <td className="px-6 py-4">
-                                                <div className="font-medium text-gray-900 dark:text-white">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="text-xs text-gray-500 dark:text-gray-400">{rental.car.plate}</div>
+                                                <Link href={`/admin/reservations/${rental.id}`} className="absolute inset-0 z-0" />
+                                                <div className="font-medium text-gray-900 dark:text-white relative z-10">{rental.car.brand} {rental.car.model}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 relative z-10">{rental.car.plate}</div>
                                             </td>
-                                            <td className="px-6 py-4">{rental.customer.firstName} {rental.customer.lastName}</td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 relative z-10">{rental.customer.firstName} {rental.customer.lastName}</td>
+                                            <td className="px-6 py-4 relative z-10">
                                                 <span
                                                     className={clsx(
                                                         'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
@@ -242,10 +243,10 @@ export default async function AdminDashboard() {
                                                     {rental.status === 'Cancelled' && 'Storniert'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white relative z-10">
                                                 {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400 relative z-10">
                                                 {formatDistanceToNow(new Date(rental.createdAt), { addSuffix: true, locale: de })}
                                             </td>
                                         </tr>

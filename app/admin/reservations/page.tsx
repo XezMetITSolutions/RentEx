@@ -6,6 +6,8 @@ import { clsx } from 'clsx';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getRentals() {
     const rentals = await prisma.rental.findMany({
         orderBy: {
