@@ -19,6 +19,8 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import Link from 'next/link';
 import Image from 'next/image';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface InvoiceViewProps {
     invoice: {
@@ -64,12 +66,165 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
         window.print();
     };
 
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF();
+        const customer = invoice.rental.customer;
+        const rental = invoice.rental;
+        const car = rental.car;
+
+        // Company Details
+        doc.setFontSize(22);
+        doc.setTextColor(220, 38, 38); // Red-600
+        doc.text('RENT-EX', 140, 20);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('RENT-EX GmbH', 140, 26);
+        doc.text('Illstraße 75a, 6800 Feldkirch', 140, 31);
+        doc.text('Österreich', 140, 36);
+
+        // Invoice Header
+        doc.setFontSize(30);
+        doc.setTextColor(0);
+        doc.text('RECHNUNG', 20, 50);
+
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text('RECHNUNGS-NR.', 20, 65);
+        doc.text('DATUM', 80, 65);
+
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text(invoice.invoiceNumber, 20, 72);
+        doc.text(format(new Date(invoice.issuedAt), 'dd.MM.yyyy'), 80, 72);
+
+        // Addresses
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text('EMPFÄNGER', 20, 90);
+        doc.text('ABSENDER', 110, 90);
+
+        doc.setTextColor(0);
+        doc.setFontSize(11);
+        let currentY = 98;
+        if (customer.company) {
+            doc.text(customer.company, 20, currentY);
+            currentY += 6;
+        }
+        doc.text(`${customer.firstName} ${customer.lastName}`, 20, currentY);
+        doc.text(customer.address || '', 20, currentY + 6);
+        doc.text(`${customer.postalCode || ''} ${customer.city || ''}`, 20, currentY + 12);
+        doc.text(customer.country || '', 20, currentY + 18);
+
+        doc.text('RENT-EX GmbH', 110, 98);
+        doc.text('Illstraße 75a', 110, 104);
+        doc.text('6800 Feldkirch, Österreich', 110, 110);
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text(`UID-NR: ATU76189189`, 110, 120);
+        doc.text(`FIRMENBUCH: FN 660833p`, 110, 125);
+
+        // Rental Item
+        currentY = 145;
+        doc.setFillColor(245, 245, 245);
+        doc.rect(20, currentY, 170, 15, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(220, 38, 38);
+        doc.text('MIETOBJEKT', 25, currentY + 10);
+        doc.setTextColor(0);
+        doc.text(`${car.brand} ${car.model} (${car.plate})`, 55, currentY + 10);
+        doc.text(`Vertrag: ${rental.contractNumber}`, 140, currentY + 10);
+
+        // Table
+        (doc as any).autoTable({
+            startY: currentY + 25,
+            head: [['BESCHREIBUNG', 'MENGE', 'EINZELPREIS', 'GESAMT']],
+            body: [
+                [
+                    `Fahrzeugmiete (${format(new Date(rental.startDate), 'dd.MM.yyyy')} - ${format(new Date(rental.endDate), 'dd.MM.yyyy')})`,
+                    `${rental.totalDays} Tage`,
+                    `€${Number(rental.dailyRate).toFixed(2)}`,
+                    `€${(Number(rental.dailyRate) * rental.totalDays).toFixed(2)}`
+                ],
+                ...(Number(rental.extrasCost) > 0 ? [[
+                    'Zusatzoptionen / Extras',
+                    '1 Pausch.',
+                    `€${Number(rental.extrasCost).toFixed(2)}`,
+                    `€${Number(rental.extrasCost).toFixed(2)}`
+                ]] : []),
+                ...(Number(rental.insuranceCost) > 0 ? [[
+                    `Versicherung (${rental.insuranceType})`,
+                    '1 Pausch.',
+                    `€${Number(rental.insuranceCost).toFixed(2)}`,
+                    `€${Number(rental.insuranceCost).toFixed(2)}`
+                ]] : [])
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 10, cellPadding: 5 },
+            columnStyles: {
+                0: { cellWidth: 80 },
+                1: { halign: 'center' },
+                2: { halign: 'right' },
+                3: { halign: 'right', fontStyle: 'bold' }
+            }
+        });
+
+        // Totals
+        const finalY = (doc as any).lastAutoTable.finalY + 10;
+        doc.setFontSize(10);
+        doc.text('Netto:', 140, finalY);
+        doc.text(`€${Number(invoice.subtotal).toFixed(2)}`, 190, finalY, { align: 'right' });
+        doc.text(`MwSt. (${invoice.taxRate}%):`, 140, finalY + 7);
+        doc.text(`€${Number(invoice.taxAmount).toFixed(2)}`, 190, finalY + 7, { align: 'right' });
+
+        doc.setFontSize(14);
+        doc.setTextColor(220, 38, 38);
+        doc.text('GESAMTBETRAG:', 140, finalY + 18);
+        doc.text(`€${Number(invoice.total).toFixed(2)}`, 190, finalY + 18, { align: 'right' });
+
+        // Footer
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('Tel: 0660 999 6800  |  E-Mail: info@rent-ex.at  |  Web: www.rent-ex.at', 105, pageHeight - 15, { align: 'center' });
+        doc.text('Landesgericht Feldkirch · Wirtschaftskammer Vorarlberg · Aufsichtsbehörde: BH Feldkirch', 105, pageHeight - 10, { align: 'center' });
+
+        doc.save(`Rechnung_${invoice.invoiceNumber}.pdf`);
+    };
+
     const customer = invoice.rental.customer;
     const car = invoice.rental.car;
     const rental = invoice.rental;
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 print:py-0 print:px-0">
+            <style jsx global>{`
+                @media print {
+                    @page {
+                        size: portrait;
+                        margin: 15mm;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .print-hide {
+                        display: none !important;
+                    }
+                    .invoice-card {
+                        box-shadow: none !important;
+                        border: none !important;
+                        padding: 0 !important;
+                        background: white !important;
+                    }
+                    nav, footer, .print-hidden {
+                        display: none !important;
+                    }
+                }
+            `}</style>
+
             {/* Dynamic Navigation & Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
                 <Link
@@ -88,7 +243,10 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                         <Printer className="w-4 h-4 mr-2" />
                         Drucken
                     </button>
-                    <button className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-red-600/20">
+                    <button
+                        onClick={handleDownloadPDF}
+                        className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-red-600/20"
+                    >
                         <Download className="w-4 h-4 mr-2" />
                         PDF Export
                     </button>
@@ -96,7 +254,7 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
             </div>
 
             {/* Main Invoice Card */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl overflow-hidden print:shadow-none print:border-none">
+            <div className="invoice-card bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl overflow-hidden print:shadow-none print:border-none">
                 {/* Invoice Header */}
                 <div className="p-8 sm:p-12 border-b border-gray-100 dark:border-gray-800 relative">
                     <div className="absolute top-0 right-0 p-8 sm:p-12 flex flex-col items-end">
@@ -257,7 +415,7 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                         <div>E-Mail: info@rent-ex.at</div>
                         <div>Web: www.rent-ex.at</div>
                     </div>
-                    <div className="mt-4 text-center text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-tight">
+                    <div className="mt-4 text-center text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-tight font-bold">
                         Landesgericht Feldkirch · Wirtschaftskammer Vorarlberg · Aufsichtsbehörde: BH Feldkirch
                     </div>
                 </div>
