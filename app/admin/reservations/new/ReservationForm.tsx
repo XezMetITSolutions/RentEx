@@ -3,8 +3,9 @@
 import { createRental } from '@/app/actions';
 import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
+import { useSearchParams } from 'next/navigation';
 
 type Car = {
     id: number;
@@ -26,9 +27,16 @@ type Location = {
 };
 
 export default function ReservationForm({ cars, customers, locations }: { cars: any[], customers: Customer[], locations: Location[] }) {
-    const [selectedCarId, setSelectedCarId] = useState<number | string>('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const searchParams = useSearchParams();
+    const carIdFromUrl = searchParams.get('carId');
+
+    const [selectedCarId, setSelectedCarId] = useState<number | string>(carIdFromUrl || '');
+    const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
+    const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+
+    useEffect(() => {
+        if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
+    }, [carIdFromUrl]);
 
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
 
@@ -55,6 +63,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                             name="carId"
                             required
                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={selectedCarId}
                             onChange={(e) => setSelectedCarId(e.target.value)}
                         >
                             <option value="">Bitte wählen...</option>
@@ -92,6 +101,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                             type="date"
                             required
                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                         />
                     </div>
@@ -102,6 +112,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                             type="date"
                             required
                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </div>

@@ -15,6 +15,7 @@ import {
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { clsx } from 'clsx';
+import CarCalendar from "./CarCalendar";
 
 async function getCarData(id: number) {
     const carPromise = prisma.car.findUnique({
@@ -26,12 +27,16 @@ async function getCarData(id: number) {
                 }
             },
             rentals: {
-                take: 10,
                 orderBy: {
                     startDate: 'desc'
                 },
                 include: {
                     customer: true
+                }
+            },
+            tasks: {
+                orderBy: {
+                    dueDate: 'desc'
                 }
             }
         }
@@ -133,6 +138,13 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
                 </div>
                 <div className="flex gap-3">
                     <Link
+                        href={`/admin/reservations/new?carId=${car.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                        <History className="w-4 h-4" />
+                        Miete anlegen
+                    </Link>
+                    <Link
                         href={`/admin/fleet/${car.id}/edit`}
                         className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                     >
@@ -145,6 +157,14 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
 
                 {/* Main Content Column */}
                 <div className="xl:col-span-2 space-y-8">
+
+                    {/* Calendar Section */}
+                    <CarCalendar
+                        rentals={car.rentals}
+                        maintenance={car.maintenanceRecords}
+                        tasks={car.tasks}
+                        carId={car.id}
+                    />
 
                     {/* Basic Specs */}
                     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
