@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { stripe } from "@/lib/stripe";
+import { hashPassword, setSession } from "@/lib/auth";
 
 export async function createBooking(prevState: any, formData: FormData) {
 
@@ -28,6 +29,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const customerType = formData.get('customerType') as string;
     const company = formData.get('company') as string;
     const taxId = formData.get('taxId') as string;
+    const password = formData.get('password') as string;
 
     // 2. Find or Create Customer
     // Simple check by email for now
@@ -48,9 +50,14 @@ export async function createBooking(prevState: any, formData: FormData) {
                 country,
                 customerType,
                 company,
-                taxId
+                taxId,
+                passwordHash: password && password.length >= 6 ? hashPassword(password) : undefined
             }
         });
+        // Auto-login if account was created with a password
+        if (password && password.length >= 6) {
+            await setSession(customer.id);
+        }
     } else {
         // Update customer details 
         customer = await prisma.customer.update({

@@ -9,6 +9,7 @@ import { useEffect, useRef } from "react";
 type Props = {
     car: any;
     options: any[];
+    initialCustomer: any | null;
     searchParams: {
         startDate: string;
         endDate: string;
@@ -16,7 +17,7 @@ type Props = {
     };
 };
 
-export default function CheckoutForm({ car, options, searchParams }: Props) {
+export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
     // Basic calculation logic again to show summary (could be shared utility)
     const start = new Date(searchParams.startDate);
     const end = new Date(searchParams.endDate);
@@ -26,28 +27,28 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
     const selectedOptionIds = searchParams.options ? searchParams.options.split(',').map(Number) : [];
     const selectedOptions = options.filter(o => selectedOptionIds.includes(o.id));
 
-    let total = days * Number(car.dailyRate);
+    let total = days * (Number(car.dailyRate) || 0);
     selectedOptions.forEach(opt => {
         if (opt.isPerDay) {
-            total += Number(opt.price) * days;
+            total += (Number(opt.price) || 0) * days;
         } else {
-            total += Number(opt.price);
+            total += (Number(opt.price) || 0);
         }
     });
 
     // useActionState generic typing: [state, dispatch]
     // Initial state null or object
-    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>('arrival');
-    const [customerType, setCustomerType] = useState<'Private' | 'Business'>('Private');
+    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>(Math.abs(total) > 0 ? 'arrival' : 'arrival');
+    const [customerType, setCustomerType] = useState<'Private' | 'Business'>(initialCustomer?.customerType || 'Private');
     const [agbAccepted, setAgbAccepted] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
 
     // Address Autofill Logic
-    const [addressQuery, setAddressQuery] = useState('');
+    const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [postalCode, setPostalCode] = useState('');
-    const [city, setCity] = useState('');
+    const [postalCode, setPostalCode] = useState(initialCustomer?.postalCode || '');
+    const [city, setCity] = useState(initialCustomer?.city || '');
     const suggestionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -135,20 +136,27 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Vorname</label>
-                            <input required name="firstName" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
+                            <input required name="firstName" type="text" defaultValue={initialCustomer?.firstName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Nachname</label>
-                            <input required name="lastName" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
+                            <input required name="lastName" type="text" defaultValue={initialCustomer?.lastName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">E-Mail Adresse</label>
-                            <input required name="email" type="email" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
+                            <input required name="email" type="email" defaultValue={initialCustomer?.email || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+49 ..." />
+                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+49 ..." />
                         </div>
+                        {!initialCustomer && (
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-medium text-gray-400">Passwort (optional – um Konto zu erstellen)</label>
+                                <input name="password" type="password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mindestens 6 Zeichen" />
+                                <p className="text-[10px] text-gray-500">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -199,7 +207,7 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Land</label>
-                            <select name="country" defaultValue="Deutschland" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
+                            <select name="country" defaultValue={initialCustomer?.country || "Deutschland"} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
                                 <option value="Deutschland">Deutschland</option>
                                 <option value="Österreich">Österreich</option>
                                 <option value="Schweiz">Schweiz</option>
@@ -285,19 +293,44 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                         <div className="space-y-3 mb-4">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-400">Fahrzeugmiete</span>
-                                <span className="text-white">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(days * Number(car.dailyRate))}</span>
+                                <span className="text-white">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
                             </div>
-                            {selectedOptions.map(opt => (
-                                <div key={opt.id} className="flex justify-between text-sm">
-                                    <span className="text-gray-400 flex items-center gap-1">
-                                        + {opt.name}
-                                        {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
-                                    </span>
-                                    <span className="text-white">
-                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? (Number(opt.price) * days) : Number(opt.price))}
-                                    </span>
+
+                            {/* Packages (Kilometer) */}
+                            {selectedOptions.filter(o => o.type === 'package').length > 0 && (
+                                <div className="pt-2">
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Kilometer-Pakete</p>
+                                    {selectedOptions.filter(o => o.type === 'package').map(opt => (
+                                        <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
+                                            <span className="text-gray-400 flex items-center gap-1">
+                                                {opt.name}
+                                                {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
+                                            </span>
+                                            <span className="text-white">
+                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
+                                            </span>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            )}
+
+                            {/* Other Extras */}
+                            {selectedOptions.filter(o => o.type !== 'package').length > 0 && (
+                                <div className="pt-2">
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Zusatzoptionen</p>
+                                    {selectedOptions.filter(o => o.type !== 'package').map(opt => (
+                                        <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
+                                            <span className="text-gray-400 flex items-center gap-1">
+                                                {opt.name}
+                                                {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
+                                            </span>
+                                            <span className="text-white">
+                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="mb-4 pb-4 border-b border-white/10">

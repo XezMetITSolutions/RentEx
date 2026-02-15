@@ -3,6 +3,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import prisma from "@/lib/prisma";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
+import { getSession } from "@/lib/auth";
 
 async function getCar(id: number) {
     const car = await prisma.car.findUnique({
@@ -33,17 +34,28 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         notFound();
     }
 
-    const [car, rawOptions] = await Promise.all([
+    const [car, rawOptions, customerId] = await Promise.all([
         getCar(carId),
-        getOptions()
+        getOptions(),
+        getSession()
     ]);
 
     if (!car) {
         notFound();
     }
 
-    // Convert decimal to number for Client Component
-    const options = rawOptions.map(opt => ({
+    const currentCustomer = customerId
+        ? await prisma.customer.findUnique({ where: { id: customerId } })
+        : null;
+
+    // De-duplicate options by name: prefer car-specific options over templates
+    const processedOptionsMap = new Map();
+    // 1. Templates
+    rawOptions.filter(o => o.carId === null).forEach(o => processedOptionsMap.set(o.name, o));
+    // 2. Car specifics
+    rawOptions.filter(o => o.carId === car.id).forEach(o => processedOptionsMap.set(o.name, o));
+
+    const options = Array.from(processedOptionsMap.values()).map(opt => ({
         ...opt,
         price: Number(opt.price)
     }));
@@ -61,6 +73,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
                 <CheckoutForm
                     car={car}
                     options={options}
+                    initialCustomer={currentCustomer ? JSON.parse(JSON.stringify(currentCustomer)) : null}
                     searchParams={{
                         startDate: startDate as string,
                         endDate: endDate as string,
