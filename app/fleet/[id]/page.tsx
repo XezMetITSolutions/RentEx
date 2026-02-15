@@ -29,7 +29,7 @@ async function getCar(id: number) {
             rentals: {
                 where: {
                     status: {
-                        in: ['Active', 'Reserved', 'Pending']
+                        not: 'Cancelled'
                     }
                 },
                 select: {
