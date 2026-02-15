@@ -16,26 +16,35 @@ type Option = {
 type BookingWidgetProps = {
     car: any; // We can improve typing later
     options: Option[];
+    initialStartDate?: string;
+    initialEndDate?: string;
 };
 
 
-export default function BookingWidget({ car, options }: BookingWidgetProps) {
+export default function BookingWidget({ car, options, initialStartDate, initialEndDate }: BookingWidgetProps) {
     const router = useRouter();
 
-    // Dates - Default to tomorrow same time
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    // Defaults if not provided
+    const getDefaultDates = () => {
+        const t = new Date();
+        const tm = new Date(t);
+        tm.setDate(t.getDate() + 1);
+        return {
+            start: t.toISOString().split('T')[0],
+            end: tm.toISOString().split('T')[0]
+        };
+    };
 
-    // Default hours 10:00
-    today.setHours(10, 0, 0, 0);
-    tomorrow.setHours(10, 0, 0, 0);
+    const defaults = getDefaultDates();
 
-    // Simplification: Using strings for inputs
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState(initialStartDate || defaults.start);
+    const [endDate, setEndDate] = useState(initialEndDate || defaults.end);
 
-    const [startDate, setStartDate] = useState(formatDate(today));
-    const [endDate, setEndDate] = useState(formatDate(tomorrow));
+    // Sync state when props change
+    useEffect(() => {
+        if (initialStartDate) setStartDate(initialStartDate);
+        if (initialEndDate) setEndDate(initialEndDate);
+    }, [initialStartDate, initialEndDate]);
 
     const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
 

@@ -20,9 +20,10 @@ const localizer = dateFnsLocalizer({
 
 interface PublicCarCalendarProps {
     rentals: { startDate: Date; endDate: Date }[];
+    onDateSelect?: (start: Date, end: Date) => void;
 }
 
-export default function PublicCarCalendar({ rentals }: PublicCarCalendarProps) {
+export default function PublicCarCalendar({ rentals, onDateSelect }: PublicCarCalendarProps) {
     const [view, setView] = useState<any>(Views.MONTH);
     const [date, setDate] = useState(new Date());
 
@@ -35,6 +36,25 @@ export default function PublicCarCalendar({ rentals }: PublicCarCalendarProps) {
             allDay: true
         }));
     }, [rentals]);
+
+    const handleSelectSlot = ({ start, end }: { start: Date, end: Date }) => {
+        if (onDateSelect) {
+            // Adjust end date because react-big-calendar returns exclusive end date for multi-day selection
+            // or sometimes it depends on the view. For Month view, usually exclusive.
+            // Let's ensure we pass correct dates.
+            // If it's a single day click, start == end (or close).
+            // If drag, end is the day after.
+
+            // Common pattern: treat as inclusive range for the app logic
+            // But BigCalendar 'end' is exclusive 00:00 of next day.
+            // So we subtract 1ms to get back to the previous day or keep as is depending on requirement.
+            // Let's pass raw dates and let parent handle formatting/logic or normalize here.
+
+            // Actually, for BookingWidget we likely want YYYY-MM-DD strings.
+            // Let's just pass the Date objects.
+            onDateSelect(start, end);
+        }
+    };
 
     const eventStyleGetter = () => {
         return {
@@ -84,6 +104,8 @@ export default function PublicCarCalendar({ rentals }: PublicCarCalendarProps) {
                     date={date}
                     onNavigate={(newDate) => setDate(newDate)}
                     eventPropGetter={eventStyleGetter}
+                    selectable
+                    onSelectSlot={handleSelectSlot}
                     culture="de"
                     messages={{
                         next: 'Weiter',
@@ -111,6 +133,9 @@ export default function PublicCarCalendar({ rentals }: PublicCarCalendarProps) {
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-zinc-800 border border-white/10"></div>
                     <span className="text-gray-400">Verfügbar</span>
+                </div>
+                <div className="ml-auto text-gray-500 italic">
+                    * Klicken & Ziehen um Zeitraum zu wählen
                 </div>
             </div>
 
@@ -160,6 +185,11 @@ export default function PublicCarCalendar({ rentals }: PublicCarCalendarProps) {
                     color: #ef4444;
                     background: transparent;
                     font-weight: 600;
+                }
+                /* Selection Highlight */
+                .public-calendar .rbc-slot-selection {
+                    background-color: rgba(239, 68, 68, 0.3);
+                    border: 1px solid rgba(239, 68, 68, 0.5);
                 }
             `}</style>
         </div>
