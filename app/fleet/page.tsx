@@ -12,7 +12,7 @@ const PKW_CATEGORIES = ["Kleinwagen", "Mittelklasse", "SUV", "Limousine", "Kombi
 // Kastenwagen category (vans)
 const VAN_CATEGORIES = ["Van"];
 
-async function getCars(vehicleType?: VehicleType) {
+async function getCars(vehicleType?: VehicleType, pickupDate?: string, returnDate?: string) {
     let categories: string[] = [];
 
     if (vehicleType === "pkw") {
@@ -21,9 +21,61 @@ async function getCars(vehicleType?: VehicleType) {
         categories = VAN_CATEGORIES;
     }
 
+    // Prepare availability filter if dates are provided
+    let excludedCarIds: number[] = [];
+    if (pickupDate && returnDate) {
+        const start = new Date(pickupDate);
+        const end = new Date(returnDate);
+
+        // Find rentals that overlap with the selected period
+        const overlappingRentals = await prisma.rental.findMany({
+            where: {
+                status: {
+                    in: ['Active', 'Pending']
+                },
+                OR: [
+                    {
+                        // Rental starts during our period
+                        startDate: {
+                            gte: start,
+                            lte: end
+                        }
+                    },
+                    {
+                        // Rental ends during our period
+                        endDate: {
+                            gte: start,
+                            lte: end
+                        }
+                    },
+                    {
+                        // Rental covers our entire period
+                        startDate: {
+                            lte: start
+                        },
+                        endDate: {
+                            gte: end
+                        }
+                    }
+                ]
+            },
+            select: {
+                carId: true
+            }
+        });
+
+        excludedCarIds = overlappingRentals.map(r => r.carId);
+    }
+
     const cars = await prisma.car.findMany({
         where: {
             status: 'Active',
+            isActive: true, // Only show active cars in fleet
+            ...(excludedCarIds.length > 0 && {
+                id: {
+                    notIn: excludedCarIds
+                }
+            }),
             ...(categories.length > 0 && {
                 category: {
                     in: categories
@@ -58,10 +110,11 @@ async function getCars(vehicleType?: VehicleType) {
 export default async function FleetPage({
     searchParams,
 }: {
-    searchParams: { type?: string; pickup?: string; return?: string };
+    searchParams: Promise<{ type?: string; pickup?: string; return?: string }>;
 }) {
-    const vehicleType = (searchParams.type as VehicleType) || "all";
-    const cars = await getCars(vehicleType);
+    const resolvedSearchParams = await searchParams;
+    const vehicleType = (resolvedSearchParams.type as VehicleType) || "all";
+    const cars = await getCars(vehicleType, resolvedSearchParams.pickup, resolvedSearchParams.return);
 
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
