@@ -63,6 +63,12 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingOption, setEditingOption] = useState<OptionType | null>(null);
 
+    // De-duplicate options by name: prefer car-specific options over templates
+    const processedOptionsMap = new Map<string, ExtendedOption>();
+    allOptions.filter(o => o.carId === null).forEach(o => processedOptionsMap.set(o.name, o));
+    allOptions.filter(o => o.carId === car.id).forEach(o => processedOptionsMap.set(o.name, o));
+    const processedOptions = Array.from(processedOptionsMap.values());
+
     const updateCarWithId = updateCar.bind(null, car.id);
 
     const handleDeleteOption = (id: number) => {
@@ -351,7 +357,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                         key={g.id}
                                         type="button"
                                         onClick={() => {
-                                            const groupOptionIds = allOptions.filter(o => o.groupId === g.id).map(o => o.id);
+                                            const groupOptionIds = processedOptions.filter(o => o.groupId === g.id).map(o => o.id);
                                             const checkboxes = document.querySelectorAll('input[name="options"]');
                                             checkboxes.forEach((cb: any) => {
                                                 if (groupOptionIds.includes(Number(cb.value))) cb.checked = true;
@@ -373,7 +379,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                     Mehrkilometer-Pakete
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => (o.carId === null || o.carId === car.id) && o.type === 'package').map((option) => (
+                                    {processedOptions?.filter(o => o.type === 'package').map((option) => (
                                         <div key={option.id} className="relative group p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
                                             <div className="flex items-start gap-3">
                                                 <input
@@ -408,7 +414,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                     Zusatzoptionen & Schutz
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {allOptions?.filter(o => (o.carId === null || o.carId === car.id) && o.type !== 'package').map((option) => {
+                                    {processedOptions?.filter(o => o.type !== 'package').map((option) => {
                                         const isExtra = option.type === 'extra';
                                         const isInsurance = option.type === 'insurance';
                                         const isDriver = option.type === 'driver';
