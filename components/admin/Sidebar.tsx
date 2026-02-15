@@ -20,7 +20,8 @@ import {
     MapPin,
     BookOpen,
     Receipt,
-    Tag
+    Tag,
+    X
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -49,9 +50,11 @@ interface SidebarProps {
     activeRentals: number;
     todayRevenue: number;
     pendingNotifications: number;
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
-export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications }: SidebarProps) {
+export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
 
     const getBadge = (item: (typeof menuItems)[0]) => {
@@ -61,21 +64,30 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
     };
 
     return (
-        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 dark:bg-gray-950 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-xl flex flex-col border-r border-slate-800 dark:border-gray-800">
+        <aside className={clsx(
+            "fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 dark:bg-gray-950 text-white transition-transform duration-300 ease-in-out lg:static lg:inset-0 shadow-xl flex flex-col border-r border-slate-800 dark:border-gray-800",
+            isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}>
             {/* Logo Area */}
-            <div className="flex items-center justify-center h-20 border-b border-slate-800 dark:border-gray-800 bg-slate-950 dark:bg-gray-900">
+            <div className="flex items-center justify-between h-20 border-b border-slate-800 dark:border-gray-800 bg-slate-950 dark:bg-gray-900 px-6">
                 <div className="flex items-center gap-2">
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-lg overflow-hidden shadow-lg">
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shrink-0">
                         <Image src="/assets/logo.png" alt="RentEx Logo" fill className="object-contain p-1" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight">
+                        <h1 className="text-lg font-bold tracking-tight">
                             <span className="text-white">RENT</span>
                             <span className="text-red-500">-EX</span>
                         </h1>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider">Admin Panel</p>
                     </div>
                 </div>
+
+                <button
+                    onClick={onClose}
+                    className="lg:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400"
+                >
+                    <X className="h-5 w-5" />
+                </button>
             </div>
 
             {/* Navigation */}

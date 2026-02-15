@@ -1,13 +1,23 @@
 'use client';
 
-import { Bell, Search, UserCircle } from 'lucide-react';
+import { Bell, Search, UserCircle, Menu } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
-export default function Header() {
+interface HeaderProps {
+    onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
     return (
-        <header className="sticky top-0 z-40 flex h-20 w-full items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 px-6 backdrop-blur-md transition-all">
+        <header className="sticky top-0 z-40 flex h-20 w-full items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 px-4 md:px-6 backdrop-blur-md transition-all">
             <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Übersicht</h2>
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden text-gray-500 dark:text-gray-400"
+                >
+                    <Menu className="h-6 w-6" />
+                </button>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 hidden sm:block">Übersicht</h2>
             </div>
 
             <div className="flex items-center gap-6">
