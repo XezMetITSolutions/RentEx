@@ -148,7 +148,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+49 ..." />
+                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
                         {!initialCustomer && (
                             <div className="space-y-2 md:col-span-2">
@@ -198,24 +198,45 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">PLZ</label>
-                                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="12345" />
+                                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="6800" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">Stadt</label>
-                                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Berlin" />
+                                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Feldkirch" />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Land</label>
-                            <select name="country" defaultValue={initialCustomer?.country || "Deutschland"} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
-                                <option value="Deutschland">Deutschland</option>
-                                <option value="Österreich">Österreich</option>
-                                <option value="Schweiz">Schweiz</option>
-                                <option value="Niederlande">Niederlande</option>
-                                <option value="Belgien">Belgien</option>
-                                <option value="Frankreich">Frankreich</option>
-                                <option value="Italien">Italien</option>
-                                <option value="Spanien">Spanien</option>
+                            <select name="country" defaultValue={initialCustomer?.country || "Österreich"} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
+                                {[
+                                    "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
+                                    "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
+                                    "Bangladesch", "Barbados", "Belgien", "Belize", "Benin", "Bhutan", "Bolivien", "Bosnien und Herzegowina",
+                                    "Botswana", "Brasilien", "Brunei Darussalam", "Bulgarien", "Burkina Faso", "Burundi", "Chile", "China",
+                                    "Costa Rica", "Dänemark", "Deutschland", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
+                                    "Elfenbeinküste", "El Salvador", "Eritrea", "Estland", "Eswatini", "Fidschi", "Finnland", "Frankreich",
+                                    "Gabun", "Gambia", "Georgien", "Ghana", "Grenada", "Griechenland", "Guatemala", "Guinea", "Guinea-Bissau",
+                                    "Guyana", "Haiti", "Honduras", "Indien", "Indonesien", "Irak", "Iran", "Irland", "Island", "Israel",
+                                    "Italien", "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
+                                    "Kasachstan", "Katar", "Kenia", "Kirgisistan", "Kiribati", "Kolumbien", "Komoren", "Kongo (Demokratische Republik)",
+                                    "Kongo (Republik)", "Nordkorea", "Südkorea", "Kosovo", "Kroatien", "Kuba", "Kuwait", "Laos", "Lesotho",
+                                    "Lettland", "Libanon", "Liberia", "Libyen", "Liechtenstein", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
+                                    "Malaysia", "Malediven", "Mali", "Malta", "Marokko", "Marshallinseln", "Mauretanien", "Mauritius", "Mexiko",
+                                    "Mikronesien", "Moldau", "Monaco", "Mongolei", "Montenegro", "Mosambik", "Myanmar", "Namibia", "Nauru",
+                                    "Nepal", "Neuseeland", "Nicaragua", "Niederlande", "Niger", "Nigeria", "Nordmazedonien", "Norwegen", "Oman",
+                                    "Osttimor (Timor-Leste)", "Pakistan", "Palau", "Palästina", "Panama", "Papua-Neuguinea", "Paraguay", "Peru",
+                                    "Philippinen", "Polen", "Portugal", "Ruanda", "Rumänien", "Russland", "Salomonen", "Sambia", "Samoa",
+                                    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Schweiz", "Senegal", "Serbien",
+                                    "Seychellen", "Sierra Leone", "Simbabwe", "Singapur", "Slowakei", "Slowenien", "Somalia", "Spanien",
+                                    "Sri Lanka", "St. Kitts und Nevis", "St. Lucia", "St. Vincent und die Grenadinen", "Südafrika", "Sudan",
+                                    "Südsudan", "Suriname", "Syrien", "Tadschikistan", "Tansania", "Thailand", "Togo", "Tonga", "Trinidad und Tobago",
+                                    "Tschad", "Tschechien", "Tunesien", "Türkei", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "Ungarn",
+                                    "Uruguay", "Usbekistan", "Vanuatu", "Vatikanstadt", "Venezuela", "Vereinigte Arabische Emirate",
+                                    "Vereinigtes Königreich (Großbritannien)", "Vereinigte Staaten (USA)", "Vietnam", "Weißrussland (Belarus)",
+                                    "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
+                                ].map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
