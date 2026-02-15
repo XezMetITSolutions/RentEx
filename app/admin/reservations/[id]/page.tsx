@@ -11,7 +11,7 @@ import {
     Clock,
     FileText,
     ArrowLeft,
-    CheckCircle2,
+    CheckCircle,
     XCircle,
     AlertCircle,
     Receipt
@@ -23,6 +23,7 @@ import { updateRentalStatus, updatePaymentStatus } from '@/app/actions/rental-up
 export const dynamic = 'force-dynamic';
 
 async function getRental(id: number) {
+    if (!id || isNaN(id)) return null;
     const rental = await prisma.rental.findUnique({
         where: { id },
         include: {
@@ -37,8 +38,9 @@ async function getRental(id: number) {
     return rental;
 }
 
-export default async function ReservationDetailPage({ params }: { params: { id: string } }) {
-    const rentalId = parseInt(params.id);
+export default async function ReservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+    const rentalId = parseInt(resolvedParams.id);
     const rental = await getRental(rentalId);
 
     if (!rental) {
@@ -73,7 +75,10 @@ export default async function ReservationDetailPage({ params }: { params: { id: 
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reservierung #{rental.id.toString().padStart(4, '0')}</h1>
-                            <span className={clsx("px-3 py-1 rounded-full text-xs font-bold border", statusColors[rental.status as keyof typeof statusColors])}>
+                            <span className={clsx(
+                                "px-3 py-1 rounded-full text-xs font-bold border",
+                                statusColors[rental.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"
+                            )}>
                                 {rental.status}
                             </span>
                         </div>
@@ -84,7 +89,7 @@ export default async function ReservationDetailPage({ params }: { params: { id: 
                     {rental.status === 'Pending' && (
                         <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
                             <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                <CheckCircle2 className="w-4 h-4" />
+                                <CheckCircle className="w-4 h-4" />
                                 Aktivieren
                             </button>
                         </form>
@@ -92,7 +97,7 @@ export default async function ReservationDetailPage({ params }: { params: { id: 
                     {rental.status === 'Active' && (
                         <form action={updateRentalStatus.bind(null, rental.id, 'Completed')}>
                             <button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                <CheckCircle2 className="w-4 h-4" />
+                                <CheckCircle className="w-4 h-4" />
                                 Abschließen
                             </button>
                         </form>
@@ -267,7 +272,7 @@ export default async function ReservationDetailPage({ params }: { params: { id: 
                                 <CreditCard className="w-5 h-5 text-blue-500" />
                                 Zahlung
                             </div>
-                            <span className={clsx("px-2.5 py-0.5 rounded-full text-xs font-bold", paymentStatusColors[rental.paymentStatus as keyof typeof paymentStatusColors])}>
+                            <span className={clsx("px-2.5 py-0.5 rounded-full text-xs font-bold", paymentStatusColors[rental.paymentStatus as keyof typeof paymentStatusColors] || "bg-gray-100 text-gray-800")}>
                                 {rental.paymentStatus}
                             </span>
                         </div>

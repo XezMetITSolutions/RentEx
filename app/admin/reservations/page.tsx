@@ -21,9 +21,10 @@ async function getRentals() {
     return rentals;
 }
 
-export default async function ReservationsPage({ searchParams }: { searchParams: { view?: string } }) {
+export default async function ReservationsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+    const resolvedSearchParams = await searchParams;
     const rentals = await getRentals();
-    const view = searchParams.view || 'list';
+    const view = resolvedSearchParams.view || 'list';
 
     return (
         <div className="space-y-6">
