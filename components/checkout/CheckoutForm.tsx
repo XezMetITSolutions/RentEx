@@ -150,11 +150,21 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             <label className="text-sm font-medium text-gray-400">Telefonnummer</label>
                             <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-400">Geburtsdatum</label>
+                            <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none [&::-webkit-calendar-picker-indicator]:invert" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-400">Führerscheinnummer</label>
+                            <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
+                        </div>
                         {!initialCustomer && (
-                            <div className="space-y-2 md:col-span-2">
-                                <label className="text-sm font-medium text-gray-400">Passwort (optional – um Konto zu erstellen)</label>
-                                <input name="password" type="password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mindestens 6 Zeichen" />
-                                <p className="text-[10px] text-gray-500">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt.</p>
+                            <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-white/5">
+                                <label className="text-sm font-medium text-red-400">Konto erstellen (optional)</label>
+                                <div className="relative">
+                                    <input name="password" type="password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
+                                </div>
+                                <p className="text-[10px] text-gray-500 italic">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt, damit Sie Ihre Buchungen verwalten können.</p>
                             </div>
                         )}
                     </div>

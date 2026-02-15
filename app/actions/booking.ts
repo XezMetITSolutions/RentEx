@@ -24,6 +24,8 @@ export async function createBooking(prevState: any, formData: FormData) {
     const postalCode = formData.get('postalCode') as string;
     const country = formData.get('country') as string;
     const paymentMethod = formData.get('paymentMethod') as string;
+    const dateOfBirth = formData.get('dateOfBirth') as string;
+    const licenseNumber = formData.get('licenseNumber') as string;
 
     // Business Data
     const customerType = formData.get('customerType') as string;
@@ -51,6 +53,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                 customerType,
                 company,
                 taxId,
+                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+                licenseNumber,
                 passwordHash: password && password.length >= 6 ? hashPassword(password) : undefined
             }
         });
@@ -72,7 +76,9 @@ export async function createBooking(prevState: any, formData: FormData) {
                 country,
                 customerType,
                 company,
-                taxId
+                taxId,
+                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+                licenseNumber: licenseNumber || undefined
             }
         });
     }
