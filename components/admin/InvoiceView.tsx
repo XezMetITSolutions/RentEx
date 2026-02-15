@@ -18,6 +18,7 @@ import {
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface InvoiceViewProps {
     invoice: {
@@ -99,11 +100,10 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                 {/* Invoice Header */}
                 <div className="p-8 sm:p-12 border-b border-gray-100 dark:border-gray-800 relative">
                     <div className="absolute top-0 right-0 p-8 sm:p-12 flex flex-col items-end">
-                        <div className="text-3xl font-black tracking-tighter text-gray-900 dark:text-white flex items-center gap-2">
-                            <span className="text-red-600">RENT</span>
-                            <span>-EX</span>
+                        <div className="relative h-12 w-32 mb-2">
+                            <Image src="/assets/logo.png" alt="Rent-Ex Logo" fill className="object-contain object-right" />
                         </div>
-                        <p className="text-xs text-gray-400 font-medium uppercase tracking-widest mt-1">Autovermietung GmbH</p>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">RENT-EX GmbH</p>
                     </div>
 
                     <div className="mt-8 sm:mt-0">
@@ -142,19 +142,22 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                     <div className="p-8 sm:p-12 bg-gray-50/50 dark:bg-gray-800/30">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Absender</p>
                         <div className="space-y-1 text-sm">
-                            <p className="font-bold text-gray-900 dark:text-white">Rent-Ex Autovermietung GmbH</p>
-                            <p className="text-gray-600 dark:text-gray-400">Arlbergstraße 101</p>
-                            <p className="text-gray-600 dark:text-gray-400">6850 Dornbirn</p>
-                            <p className="text-gray-600 dark:text-gray-400">Österreich</p>
+                            <p className="font-bold text-gray-900 dark:text-white">RENT-EX GmbH</p>
+                            <p className="text-gray-600 dark:text-gray-400">Illstraße 75a</p>
+                            <p className="text-gray-600 dark:text-gray-400">6800 Feldkirch, Österreich</p>
                             <div className="pt-4 grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase">UID-Nr.</p>
-                                    <p className="text-xs text-gray-900 dark:text-white">ATU78123456</p>
+                                    <p className="text-xs text-gray-900 dark:text-white">ATU76189189</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase">Firmenbuch</p>
-                                    <p className="text-xs text-gray-900 dark:text-white">FN 567891 a</p>
+                                    <p className="text-xs text-gray-900 dark:text-white">FN 660833p</p>
                                 </div>
+                            </div>
+                            <div className="pt-2">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Firmensitz</p>
+                                <p className="text-[10px] text-gray-500">Reichsstraße 126, 6820 Feldkirch</p>
                             </div>
                         </div>
                     </div>
@@ -250,9 +253,12 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                     </div>
 
                     <div className="mt-12 pt-12 border-t border-gray-200 dark:border-gray-700 text-center text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest font-bold grid grid-cols-1 sm:grid-cols-3 gap-8 print:grid-cols-3">
-                        <div>Bank: Sparkasse Vorarlberg</div>
-                        <div>IBAN: AT12 3456 7890 1234 5678</div>
-                        <div>BIC: SPKVAT21XXX</div>
+                        <div>Tel: 0660 999 6800</div>
+                        <div>E-Mail: info@rent-ex.at</div>
+                        <div>Web: www.rent-ex.at</div>
+                    </div>
+                    <div className="mt-4 text-center text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-tight">
+                        Landesgericht Feldkirch · Wirtschaftskammer Vorarlberg · Aufsichtsbehörde: BH Feldkirch
                     </div>
                 </div>
             </div>

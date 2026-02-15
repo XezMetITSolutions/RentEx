@@ -11,18 +11,22 @@ import {
     ChevronRight,
     Save,
     Loader2,
-    FileText
+    FileText,
+    Wallet,
+    Zap,
+    ExternalLink
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useState, useTransition } from 'react';
 import { updateSystemSetting } from '@/app/actions';
+import { registerKasseWithBMF } from '@/app/actions/admin';
 
 const sections = [
     { id: 'profile', label: 'Profil', icon: User },
     // { id: 'notifications', label: 'Benachrichtigungen', icon: Bell },
     // { id: 'security', label: 'Sicherheit', icon: Lock },
     { id: 'appearance', label: 'Erscheinungsbild', icon: Moon },
-    // { id: 'language', label: 'Sprache & Region', icon: Globe },
+    { id: 'registrierkassa', label: 'Registrierkassa (BMF)', icon: Wallet },
 ];
 
 interface SettingsViewProps {
@@ -194,6 +198,133 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                                 <div className="absolute top-4 right-4 text-blue-600">
                                     <CheckCircle2 className="h-5 w-5" />
                                 </div>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {activeSection === 'registrierkassa' && (
+                    <div className="space-y-8">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">FinanzOnline & Registrierkassa (BMF)</h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Konfiguration der Schnittstelle zum Bundesministerium für Finanzen.</p>
+                        </div>
+
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 flex gap-4">
+                            <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
+                            <div className="text-sm text-blue-800 dark:text-blue-200">
+                                <p className="font-semibold">Hinweis zur Einrichtung</p>
+                                <p className="mt-1">Sie benötigen einen Web-Service-Benutzer in FinanzOnline. Legen Sie diesen unter <i>Benutzerverwaltung &gt; Neuen Webservice-Benutzer anlegen</i> fest.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-6 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Teilnehmer-Identifikation (TID)</label>
+                                <input
+                                    type="text"
+                                    onBlur={(e) => handleSave('bmf_tid', e.target.value)}
+                                    defaultValue={settings['bmf_tid'] || ''}
+                                    placeholder="z.B. 12345678"
+                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Benutzer-Identifikation (BENID)</label>
+                                <input
+                                    type="text"
+                                    onBlur={(e) => handleSave('bmf_benid', e.target.value)}
+                                    defaultValue={settings['bmf_benid'] || ''}
+                                    placeholder="Webservice Benutzer"
+                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Webservice-PIN</label>
+                                <input
+                                    type="password"
+                                    onBlur={(e) => handleSave('bmf_pin', e.target.value)}
+                                    defaultValue={settings['bmf_pin'] || ''}
+                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Modus</label>
+                                <select
+                                    onChange={(e) => handleSave('bmf_mode', e.target.value)}
+                                    defaultValue={settings['bmf_mode'] || 'T'}
+                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                >
+                                    <option value="T">Testumgebung (T)</option>
+                                    <option value="P">Produktivumgebung (P)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Registrierkassen-Parameter</h3>
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Kassen-ID</label>
+                                    <input
+                                        type="text"
+                                        onBlur={(e) => handleSave('bmf_kassen_id', e.target.value)}
+                                        defaultValue={settings['bmf_kassen_id'] || 'K1'}
+                                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">AES-256 Schlüssel (Base64)</label>
+                                    <input
+                                        type="text"
+                                        onBlur={(e) => handleSave('bmf_aes_key', e.target.value)}
+                                        defaultValue={settings['bmf_aes_key'] || ''}
+                                        placeholder="Automatisch generieren..."
+                                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className={clsx(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border",
+                                    settings['bmf_registered_at']
+                                        ? "bg-green-500/10 border-green-500/20 text-green-600"
+                                        : "bg-gray-100 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 text-gray-400"
+                                )}>
+                                    <CheckCircle2 className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Status: {settings['bmf_registered_at'] ? 'Registriert' : 'Nicht registriert'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {settings['bmf_registered_at']
+                                            ? `Zuletzt synchronisiert: ${new Date(settings['bmf_registered_at']).toLocaleString('de-DE')}`
+                                            : 'Kasse muss initial beim BMF angemeldet werden.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    if (confirm('Registrierkasse jetzt beim BMF anmelden?')) {
+                                        startTransition(async () => {
+                                            const res = await registerKasseWithBMF();
+                                            if (res.success) {
+                                                alert(res.message);
+                                                window.location.reload();
+                                            } else {
+                                                alert(res.error);
+                                            }
+                                        });
+                                    }
+                                }}
+                                disabled={isPending}
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold hover:scale-105 transition-all shadow-xl disabled:opacity-50"
+                            >
+                                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                                Jetzt beim BMF registrieren
                             </button>
                         </div>
                     </div>

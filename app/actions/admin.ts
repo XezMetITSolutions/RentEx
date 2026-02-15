@@ -3,6 +3,8 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { registerCashRegister } from '@/lib/bmf';
+import crypto from 'crypto';
 
 /** Tüm araçları "Rent-Ex Feldkirch" standortuna atar (locationId + homeLocationId). Plakalar değiştirilmez. */
 export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message: string; count?: number }> {
@@ -194,4 +196,47 @@ export async function createInvoiceForRental(rentalId: number) {
     revalidatePath('/admin/rechnungen');
     revalidatePath(`/admin/reservations`);
     redirect('/admin/rechnungen');
+}
+
+/** Registrierkasse bei FinanzOnline (BMF) anmelden */
+export async function registerKasseWithBMF() {
+    const tid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_tid' } });
+    const benid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_benid' } });
+    const pin = await prisma.systemSettings.findUnique({ where: { key: 'bmf_pin' } });
+    const kassenId = (await prisma.systemSettings.findUnique({ where: { key: 'bmf_kassen_id' } }))?.value || 'K1';
+    let aesKey = (await prisma.systemSettings.findUnique({ where: { key: 'bmf_aes_key' } }))?.value;
+
+    if (!tid?.value || !benid?.value || !pin?.value) {
+        return { error: 'FinanzOnline Zugangsdaten unvollständig (TID, BENID, PIN fehlen).' };
+    }
+
+    // Falls kein AES Key da ist, generieren wir einen (32 bytes = 256 bit)
+    if (!aesKey) {
+        const genKey = crypto.randomBytes(32).toString('base64');
+        await prisma.systemSettings.upsert({
+            where: { key: 'bmf_aes_key' },
+            create: { key: 'bmf_aes_key', value: genKey, category: 'Finanzen' },
+            update: { value: genKey }
+        });
+        aesKey = genKey;
+    }
+
+    try {
+        const result = await registerCashRegister(kassenId, aesKey);
+
+        if (result.success) {
+            // Erfolg in den Settings vermerken (optional)
+            await prisma.systemSettings.upsert({
+                where: { key: 'bmf_registered_at' },
+                create: { key: 'bmf_registered_at', value: new Date().toISOString(), category: 'Finanzen' },
+                update: { value: new Date().toISOString() }
+            });
+            revalidatePath('/admin/settings');
+            return { success: true, message: 'Registrierkasse erfolgreich beim BMF angemeldet.' };
+        } else {
+            return { error: result.message };
+        }
+    } catch (err: any) {
+        return { error: err.message || 'Verbindungsfehler zum BMF.' };
+    }
 }
