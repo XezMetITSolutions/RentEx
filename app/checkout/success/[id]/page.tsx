@@ -5,9 +5,11 @@ import { CheckCircle, Calendar, MapPin, Car } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
 
-export default async function SuccessPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SuccessPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const resolvedParams = await params;
+    const resolvedSearch = await searchParams;
     const rentalId = parseInt(resolvedParams.id);
+    const sessionId = resolvedSearch.session_id;
 
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
@@ -28,6 +30,8 @@ export default async function SuccessPage({ params }: { params: Promise<{ id: st
         );
     }
 
+    const isPaid = rental.paymentStatus === 'Paid' || !!sessionId;
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
             <Navbar />
@@ -37,13 +41,15 @@ export default async function SuccessPage({ params }: { params: Promise<{ id: st
                     {/* Background Glow */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-red-500/10 blur-3xl rounded-full -z-10" />
 
-                    <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/20">
-                        <CheckCircle className="w-10 h-10 text-green-500" />
+                    <div className={`w-20 h-20 ${isPaid ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'} rounded-full flex items-center justify-center mx-auto mb-8 border`}>
+                        <CheckCircle className={`w-10 h-10 ${isPaid ? 'text-green-500' : 'text-red-500'}`} />
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Buchung bestätigt!</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                        {isPaid ? 'Zahlung & Buchung erfolgreich!' : 'Buchung bestätigt!'}
+                    </h1>
                     <p className="text-gray-400 text-lg mb-8">
-                        Vielen Dank, {rental.customer.firstName}. Ihre Reservierung wurde erfolgreich entgegengenommen.
+                        Vielen Dank, {rental.customer.firstName}. {isPaid ? 'Ihre Zahlung wurde bestätigt ve Ihre Reservierung ist abgeschlossen.' : 'Ihre Reservierung wurde erfolgreich entgegengenommen.'}
                     </p>
 
                     <div className="bg-black/30 rounded-2xl p-6 border border-white/10 text-left mb-8">

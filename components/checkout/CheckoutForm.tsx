@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Image from "next/image";
 import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
@@ -36,6 +36,7 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
 
     // useActionState generic typing: [state, dispatch]
     // Initial state null or object
+    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>('arrival');
     const [state, formAction, isPending] = useActionState(createBooking, null);
 
     return (
@@ -100,23 +101,23 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                 <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
                     <h2 className="text-xl font-bold text-white mb-6">Zahlungsmethode</h2>
                     <div className="space-y-4">
-                        <label className="flex items-center gap-4 p-4 rounded-xl bg-red-500/10 border border-red-500/50 cursor-pointer">
-                            <input type="radio" name="paymentMethod" value="arrival" defaultChecked className="w-5 h-5 text-red-600 focus:ring-red-500 bg-black border-gray-600" />
+                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'arrival' ? 'bg-red-500/10 border-red-500/50' : 'bg-black/20 border-white/5 hover:border-white/20'}`}>
+                            <input type="radio" name="paymentMethod" value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-black border-gray-600" />
                             <div className="flex-1">
                                 <span className="block font-medium text-white">Bezahlung bei Abholung</span>
                                 <span className="block text-sm text-gray-400">Zahlen Sie bequem bar oder mit Karte vor Ort.</span>
                             </div>
-                            <CheckCircle className="w-6 h-6 text-red-500" />
+                            {paymentMethod === 'arrival' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
                         </label>
 
-                        {/* Hidden/Disabled Online Transfer as requested */}
-                        <div className="opacity-50 pointer-events-none p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                            <div className="w-5 h-5 rounded-full border border-gray-600" />
-                            <div>
-                                <span className="block font-medium text-gray-400">Online Überweisung</span>
-                                <span className="block text-sm text-gray-600">Zurzeit nicht verfügbar</span>
+                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'online' ? 'bg-red-500/10 border-red-500/50' : 'bg-black/20 border-white/5 hover:border-white/20'}`}>
+                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-black border-gray-600" />
+                            <div className="flex-1">
+                                <span className="block font-medium text-white">Online Überweisung / Karte</span>
+                                <span className="block text-sm text-gray-400">Sicher online bezahlen (Stripe, Klarna, Kreditkarte).</span>
                             </div>
-                        </div>
+                            {paymentMethod === 'online' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
+                        </label>
                     </div>
                 </div>
 

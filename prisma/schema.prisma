@@ -397,6 +397,8 @@ model Rental {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  stripeSessionId String?      @unique
+  
   car           Car           @relation(fields: [carId], references: [id])
   customer      Customer      @relation(fields: [customerId], references: [id])
   payments      Payment[]

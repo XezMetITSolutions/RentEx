@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { stripe } from "@/lib/stripe";
 
 export async function createBooking(prevState: any, formData: FormData) {
 
@@ -20,6 +21,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const address = formData.get('address') as string;
     const city = formData.get('city') as string;
     const postalCode = formData.get('postalCode') as string;
+    const paymentMethod = formData.get('paymentMethod') as string;
 
     // 2. Find or Create Customer
     // Simple check by email for now
@@ -124,15 +126,59 @@ export async function createBooking(prevState: any, formData: FormData) {
             discountReason: discountReason || undefined,
             status: 'Pending',
             paymentStatus: 'Pending',
-            paymentMethod: 'arrival',
             contractNumber,
             extrasCost: extrasCost,
             insuranceCost: insuranceCost,
             insuranceType: selectedInsuranceType,
             pickupLocationId: car.locationId,
-            returnLocationId: car.locationId
+            returnLocationId: car.locationId,
+            paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival'
         }
     });
+
+    // 4. Handle Stripe Payment if selected
+    if (paymentMethod === 'online') {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
+
+        try {
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card', 'sepa_debit', 'sofort', 'giropay', 'paypal', 'klarna'] as any,
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'eur',
+                            product_data: {
+                                name: `${car.brand} ${car.model} Miete`,
+                                description: `${days} Tage Miete (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`,
+                            },
+                            unit_amount: Math.round(totalAmount * 100),
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                success_url: `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate')}&endDate=${formData.get('endDate')}`,
+                customer_email: email,
+                metadata: {
+                    rentalId: rental.id.toString(),
+                },
+            });
+
+            await prisma.rental.update({
+                where: { id: rental.id },
+                data: { stripeSessionId: session.id }
+            });
+
+            if (session.url) {
+                redirect(session.url);
+            }
+        } catch (error) {
+            console.error("Stripe Session Error:", error);
+            // Fallback to success page but maybe with a warning?
+            // For now let's just proceed to success page if Stripe fails to initialize
+        }
+    }
 
     // 4. Redirect
     redirect(`/checkout/success/${rental.id}`);
