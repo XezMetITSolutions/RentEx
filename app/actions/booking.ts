@@ -166,6 +166,19 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
+    // 4. Create Notification
+    await prisma.notification.create({
+        data: {
+            type: 'System',
+            subject: 'Neue Reservierung erhalten',
+            message: `Neue Buchung für ${car.brand} ${car.model} von ${firstName} ${lastName} erhalten. Vertragsnummer: ${contractNumber}`,
+            status: 'Pending',
+            relatedType: 'Rental',
+            relatedId: rental.id,
+            recipient: 'Admin'
+        }
+    });
+
     if (paymentMethod === 'online') {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
         try {
