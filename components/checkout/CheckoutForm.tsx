@@ -37,6 +37,7 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
     // useActionState generic typing: [state, dispatch]
     // Initial state null or object
     const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>('arrival');
+    const [agbAccepted, setAgbAccepted] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
 
     return (
@@ -199,10 +200,29 @@ export default function CheckoutForm({ car, options, searchParams }: Props) {
                             <p className="text-xs text-right text-gray-500 mt-1">inkl. MwSt.</p>
                         </div>
 
+                        <div className="mt-8 space-y-4">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div className="relative flex items-center mt-1">
+                                    <input
+                                        type="checkbox"
+                                        required
+                                        checked={agbAccepted}
+                                        onChange={(e) => setAgbAccepted(e.target.checked)}
+                                        className="peer sr-only"
+                                    />
+                                    <div className="w-5 h-5 border-2 border-white/10 rounded group-hover:border-red-500/50 peer-checked:border-red-600 peer-checked:bg-red-600 transition-all"></div>
+                                    <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
+                                </div>
+                                <span className="text-xs text-gray-400 leading-relaxed">
+                                    Ich habe die <a href="/agb" target="_blank" className="text-red-500 hover:underline">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-red-500 hover:underline">Datenschutzerklärung</a> gelesen und akzeptiere diese.
+                                </span>
+                            </label>
+                        </div>
+
                         <button
-                            disabled={isPending}
+                            disabled={isPending || !agbAccepted}
                             type="submit"
-                            className="w-full py-4 mt-6 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]"
+                            className="w-full py-4 mt-6 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]"
                         >
                             {isPending ? 'Wird verarbeitet...' : 'Kostenpflichtig buchen'}
                         </button>
