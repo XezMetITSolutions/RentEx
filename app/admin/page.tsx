@@ -10,15 +10,19 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getStats() {
-    // 1. Total Revenue (Paid rentals)
+    // 1. Total Revenue (Confirmed rentals, excluding cancelled)
     const totalRevenueResult = await prisma.rental.aggregate({
         _sum: { totalAmount: true },
-        where: { status: { not: 'Cancelled' }, paymentStatus: 'Paid' }
+        where: {
+            status: { in: ['Active', 'Completed', 'Pending'] }
+        }
     });
     const totalRevenue = Number(totalRevenueResult._sum.totalAmount || 0);
 
-    // 2. Active Rentals
-    const activeRentalsCount = await prisma.rental.count({ where: { status: 'Active' } });
+    // 2. Ongoing/Active Business (Active + Pending reservations)
+    const activeRentalsCount = await prisma.rental.count({
+        where: { status: { in: ['Active', 'Pending'] } }
+    });
 
     // 3. New Customers (This Month)
     const startOfCurrentMonth = startOfMonth(new Date());
