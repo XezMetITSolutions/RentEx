@@ -14,7 +14,8 @@ import {
     CheckCircle,
     XCircle,
     AlertCircle,
-    Receipt
+    Receipt,
+    PenTool
 } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -87,12 +88,21 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                 </div>
                 <div className="flex gap-2">
                     {rental.status === 'Pending' && (
-                        <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
-                            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                <CheckCircle className="w-4 h-4" />
-                                Aktivieren
-                            </button>
-                        </form>
+                        <div className="flex gap-2">
+                            <Link
+                                href={`/admin/reservations/${rental.id}/check-in`}
+                                className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-zinc-900/10"
+                            >
+                                <PenTool className="w-4 h-4" />
+                                Digitaler Check-In
+                            </Link>
+                            <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
+                                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                                    <CheckCircle className="w-4 h-4" />
+                                    Direkt Aktivieren
+                                </button>
+                            </form>
+                        </div>
                     )}
                     {rental.status === 'Active' && (
                         <form action={updateRentalStatus.bind(null, rental.id, 'Completed')}>

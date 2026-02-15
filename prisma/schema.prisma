@@ -398,6 +398,8 @@ model Rental {
   updatedAt     DateTime      @updatedAt
 
   stripeSessionId String?      @unique
+  signature      String?       @db.Text
+  checkInAt      DateTime?
   
   car           Car           @relation(fields: [carId], references: [id])
   customer      Customer      @relation(fields: [customerId], references: [id])
