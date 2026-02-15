@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import { CheckCircle, Calendar, MapPin, Car } from "lucide-react";
+import { CheckCircle, Calendar, MapPin, Car, Zap } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
 
@@ -85,6 +85,30 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                             </div>
                         </div>
                     </div>
+
+                    {!rental.customer.passwordHash && (
+                        <div className="mt-12 p-1 bg-gradient-to-r from-red-500/20 via-red-500/5 to-red-500/20 rounded-3xl mb-8">
+                            <div className="bg-zinc-900 rounded-[22px] p-6 text-left border border-white/5">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-red-500/20">
+                                        <Zap className="w-6 h-6 text-red-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-white mb-2">Exklusive Vorteile sichern!</h3>
+                                        <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                                            Erstellen Sie jetzt ein Passwort für Ihr Konto, um Ihre Buchungen zu verwalten, Dokumente einzusehen und von <strong>exklusiven Rabatten & Angeboten</strong> zu profitieren.
+                                        </p>
+                                        <Link
+                                            href={`/register?email=${encodeURIComponent(rental.customer.email)}`}
+                                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-95"
+                                        >
+                                            Passwort festlegen
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-4">
                         <Link href="/fleet" className="block w-full py-4 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl border border-white/10 transition-colors">

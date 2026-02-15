@@ -53,6 +53,13 @@ Wichtige Hinweise:
 • Die Fahrzeugübergabe erfolgt nach Vorlage aller Dokumente
 • Bei Fragen erreichen Sie uns unter +49 89 123456
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎁 EXKLUSIVE VORTEILE SICHERN!
+Besitzen Sie noch kein Passwort? Erstellen Sie eines, 
+um Ihre Buchungen zu verwalten und von Rabatten zu profitieren:
+https://rent-ex.vercel.app/register?email=${encodeURIComponent(data.customer.email)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Wir freuen uns auf Ihren Besuch!
 
 Mit freundlichen Grüßen
