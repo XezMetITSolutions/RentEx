@@ -400,6 +400,8 @@ model Rental {
 
   stripeSessionId String?      @unique
   signature      String?       @db.Text
+  mileagePhoto   String?
+  fuelPhoto      String?
   checkInAt      DateTime?
   
   car           Car           @relation(fields: [carId], references: [id])

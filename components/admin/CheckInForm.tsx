@@ -148,6 +148,8 @@ export default function CheckInForm({ rental }: { rental: any }) {
                 fuelLevel,
                 damageNotes,
                 signature,
+                mileagePhoto: mileagePhoto || undefined,
+                fuelPhoto: fuelPhoto || undefined,
                 damages: allDamages.map(d => ({
                     type: d.reason,
                     description: d.location,

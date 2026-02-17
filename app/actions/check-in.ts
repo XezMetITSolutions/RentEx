@@ -8,6 +8,8 @@ export async function performCheckIn(rentalId: number, data: {
     fuelLevel: string;
     damageNotes: string;
     signature: string;
+    mileagePhoto?: string;
+    fuelPhoto?: string;
     damages?: {
         type: string;
         description: string;
@@ -33,7 +35,17 @@ export async function performCheckIn(rentalId: number, data: {
                 fuelLevelPickup: data.fuelLevel,
                 damageReport: data.damageNotes,
                 signature: data.signature,
+                mileagePhoto: data.mileagePhoto,
+                fuelPhoto: data.fuelPhoto,
                 checkInAt: new Date(),
+            }
+        }),
+        // Update vehicle status and mileage
+        prisma.car.update({
+            where: { id: rental.carId },
+            data: {
+                status: 'Rented',
+                currentMileage: data.mileage
             }
         }),
         // Add new damage records if provided
@@ -55,6 +67,7 @@ export async function performCheckIn(rentalId: number, data: {
 
     revalidatePath(`/admin/reservations/${rentalId}`);
     revalidatePath('/admin/reservations');
+    revalidatePath('/admin/fleet');
 
     return { success: true };
 }
