@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -10,11 +11,13 @@ export async function POST(request: NextRequest) {
         const file = formData.get('file') as File;
 
         if (!file) {
+            console.error('Upload Error: No file found in FormData');
             return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
         }
 
         // Validate file type (allow only images)
         if (!file.type.startsWith('image/')) {
+            console.error('Upload Error: Invalid file type:', file.type);
             return NextResponse.json({ error: 'Nur Bilder erlaubt' }, { status: 400 });
         }
 
@@ -25,8 +28,9 @@ export async function POST(request: NextRequest) {
         const uploadDir = path.join(process.cwd(), 'public', 'assets', 'cars');
         await mkdir(uploadDir, { recursive: true });
 
-        // Generate a unique filename using crypto.randomUUID()
-        const fileExtension = path.extname(file.name) || '.jpg';
+        // Generate a unique filename
+        const originalName = file.name || 'image.jpg';
+        const fileExtension = path.extname(originalName) || '.jpg';
         const fileName = `${crypto.randomUUID()}${fileExtension}`;
         const filePath = path.join(uploadDir, fileName);
 
