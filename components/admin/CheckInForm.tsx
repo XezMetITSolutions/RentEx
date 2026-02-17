@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import SignaturePad from '@/components/admin/SignaturePad';
+import FiatDucatoDamageSelector, { Damage } from '@/components/admin/FiatDucatoDamageSelector';
 import { performCheckIn } from '@/app/actions/check-in';
 
 export default function CheckInForm({ rental }: { rental: any }) {
@@ -22,8 +23,12 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const [mileage, setMileage] = useState(rental.car.currentMileage || '');
     const [fuelLevel, setFuelLevel] = useState('Full');
     const [damageNotes, setDamageNotes] = useState('');
+    const [damages, setDamages] = useState<Damage[]>([]);
     const [signature, setSignature] = useState('');
     const [agbAccepted, setAgbAccepted] = useState(false);
+
+    const isFiatDucato = rental.car.brand?.toLowerCase() === 'fiat' &&
+        rental.car.model?.toLowerCase().includes('ducato');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,7 +40,15 @@ export default function CheckInForm({ rental }: { rental: any }) {
                 mileage: Number(mileage),
                 fuelLevel,
                 damageNotes,
-                signature
+                signature,
+                damages: isFiatDucato ? damages.map(d => ({
+                    type: d.reason,
+                    description: d.location,
+                    photoUrl: d.photoUrl,
+                    locationOnCar: d.side,
+                    xPosition: d.x,
+                    yPosition: d.y
+                })) : undefined
             });
             router.push(`/admin/reservations/${rental.id}`);
         } catch (error) {
@@ -95,8 +108,8 @@ export default function CheckInForm({ rental }: { rental: any }) {
                                         type="button"
                                         onClick={() => setFuelLevel(level)}
                                         className={`py-2 text-xs font-bold rounded-lg border transition-all ${fuelLevel === level
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                                : 'bg-white border-gray-200 text-gray-600 hover:border-blue-200'
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                            : 'bg-white border-gray-200 text-gray-600 hover:border-blue-200'
                                             }`}
                                     >
                                         {level === 'Full' ? 'VOLL' : level}
@@ -107,25 +120,36 @@ export default function CheckInForm({ rental }: { rental: any }) {
                     </div>
                 </div>
 
-                {/* Damage Notes */}
+                {/* Damage Notes & Interactive Selector */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
                     <div className="flex items-center gap-2 text-gray-900 font-bold mb-2">
                         <ClipboardCheck className="w-5 h-5 text-blue-500" />
                         Schadenskontrolle
                     </div>
+
+                    {isFiatDucato && (
+                        <div className="space-y-4">
+                            <label className="text-sm font-medium text-gray-600">Visuelle Schadensmarkierung</label>
+                            <FiatDucatoDamageSelector onChange={setDamages} />
+                            <div className="border-t border-gray-100 my-4" />
+                        </div>
+                    )}
+
                     <div className="space-y-4">
-                        <label className="text-sm font-medium text-gray-600">Bestehende Schäden oder Anmerkungen</label>
+                        <label className="text-sm font-medium text-gray-600">Zusätzliche Anmerkungen</label>
                         <textarea
                             value={damageNotes}
                             onChange={(e) => setDamageNotes(e.target.value)}
                             rows={4}
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
-                            placeholder="Zustand bei Abholung dokumentieren..."
+                            placeholder="Weitere Details zum Zustand dokumentieren..."
                         />
                         <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
                             <Info className="w-5 h-5 text-amber-600 shrink-0" />
                             <p className="text-xs text-amber-800 leading-relaxed">
-                                Bitte prüfen Sie das Fahrzeug gemeinsam mit dem Kunden auf Kratzer, Dellen oder andere Mängel.
+                                {isFiatDucato
+                                    ? "Markieren Sie alle sichtbaren Schäden auf dem Modell oben. Fotos sind dringend empfohlen."
+                                    : "Bitte prüfen Sie das Fahrzeug gemeinsam mit dem Kunden auf Kratzer, Dellen oder andere Mängel."}
                             </p>
                         </div>
                     </div>
