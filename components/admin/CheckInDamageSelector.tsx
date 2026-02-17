@@ -25,11 +25,16 @@ export interface Damage {
 interface Props {
     templateFolder: string;
     onChange: (damages: Damage[]) => void;
+    externalView?: 'front' | 'back' | 'left' | 'right';
 }
 
-export default function CheckInDamageSelector({ templateFolder, onChange }: Props) {
+export default function CheckInDamageSelector({ templateFolder, onChange, externalView }: Props) {
     const [damages, setDamages] = useState<Damage[]>([]);
-    const [activeView, setActiveView] = useState<'front' | 'back' | 'left' | 'right'>('front');
+    const [activeView, setActiveView] = useState<'front' | 'back' | 'left' | 'right'>(externalView || 'front');
+
+    useEffect(() => {
+        if (externalView) setActiveView(externalView);
+    }, [externalView]);
     const [modalOpen, setModalOpen] = useState(false);
     const [currentClick, setCurrentClick] = useState<{ x: number, y: number, side: Damage['side'] } | null>(null);
     const [viewingDamage, setViewingDamage] = useState<Damage | null>(null);
