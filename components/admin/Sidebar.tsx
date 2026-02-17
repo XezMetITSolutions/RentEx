@@ -21,7 +21,8 @@ import {
     BookOpen,
     Receipt,
     Tag,
-    X
+    X,
+    ClipboardCheck
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -42,8 +43,7 @@ const menuItems = [
     { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
     { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
     { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
-    { name: 'Check-In Visuals', icon: LayoutGrid, href: '/admin/check-in-setup' },
-    { name: 'Debugger', icon: Activity, href: '/admin/debug' },
+    { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
 ];
 
