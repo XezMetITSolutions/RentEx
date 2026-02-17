@@ -104,6 +104,7 @@ model Car {
   // Internal Management
   internalNotes     String?
   damageHistory     String?      // JSON or text log
+  checkInTemplate   String?      // Reference to a folder in Check-in/
   isActive          Boolean @default(true)
   
   // GPS / Tracking

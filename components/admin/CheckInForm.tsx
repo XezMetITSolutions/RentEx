@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import SignaturePad from '@/components/admin/SignaturePad';
-import FiatDucatoDamageSelector, { Damage } from '@/components/admin/FiatDucatoDamageSelector';
+import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
 import { performCheckIn } from '@/app/actions/check-in';
 
 export default function CheckInForm({ rental }: { rental: any }) {
@@ -27,9 +27,9 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const [signature, setSignature] = useState('');
     const [agbAccepted, setAgbAccepted] = useState(false);
 
+    const checkInTemplate = rental.car.checkInTemplate;
     const carBrand = rental.car.brand?.toLowerCase() || '';
     const carModel = rental.car.model?.toLowerCase() || '';
-    const isFiatDucato = carBrand.includes('fiat') || carModel.includes('ducato');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +42,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
                 fuelLevel,
                 damageNotes,
                 signature,
-                damages: isFiatDucato ? damages.map(d => ({
+                damages: checkInTemplate ? damages.map(d => ({
                     type: d.reason,
                     description: d.location,
                     photoUrl: d.photoUrl,
@@ -128,10 +128,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                         Schadenskontrolle
                     </div>
 
-                    {isFiatDucato && (
+                    {checkInTemplate && (
                         <div className="space-y-4">
                             <label className="text-sm font-medium text-gray-600">Visuelle Schadensmarkierung</label>
-                            <FiatDucatoDamageSelector onChange={setDamages} />
+                            <CheckInDamageSelector templateFolder={checkInTemplate} onChange={setDamages} />
                             <div className="border-t border-gray-100 my-4" />
                         </div>
                     )}
@@ -148,7 +148,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
                         <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
                             <Info className="w-5 h-5 text-amber-600 shrink-0" />
                             <p className="text-xs text-amber-800 leading-relaxed">
-                                {isFiatDucato
+                                {checkInTemplate
                                     ? "Markieren Sie alle sichtbaren Schäden auf dem Modell oben. Fotos sind dringend empfohlen."
                                     : "Bitte prüfen Sie das Fahrzeug gemeinsam mit dem Kunden auf Kratzer, Dellen oder andere Mängel."}
                             </p>
