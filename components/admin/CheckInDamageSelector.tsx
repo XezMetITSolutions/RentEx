@@ -101,19 +101,59 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
         setPhotoUrl(null);
     };
 
+    const compressImage = (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_SIZE = 1920;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Canvas to Blob failed'));
+                    }, 'image/jpeg', 0.7);
+                };
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(true);
         try {
+            const compressedBlob = await compressImage(file);
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', compressedBlob, 'damage.jpg');
             const res = await fetch('/api/admin/cars/upload', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.url) setPhotoUrl(data.url);
+            else throw new Error(data.error || 'Upload failed');
         } catch (error) {
-            alert('Upload fehlgeschlagen');
+            console.error('Damage Photo Upload Error:', error);
+            alert('Upload fehlgeschlagen - Das Bild ist evtl. zu groß.');
         } finally {
             setIsUploading(false);
         }

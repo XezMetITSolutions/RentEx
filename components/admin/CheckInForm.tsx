@@ -60,14 +60,61 @@ export default function CheckInForm({ rental }: { rental: any }) {
         if (prevIdx >= 0) setCurrentStep(STEPS[prevIdx]);
     };
 
+    const compressImage = (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Max dimensions 1920px
+                    const MAX_WIDTH = 1920;
+                    const MAX_HEIGHT = 1920;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Canvas to Blob failed'));
+                    }, 'image/jpeg', 0.7); // 70% quality
+                };
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'mileage' | 'fuel') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploadingPhoto(type);
         try {
+            // Compress image if it's too large or just as a precaution
+            const compressedBlob = await compressImage(file);
+
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', compressedBlob, 'upload.jpg');
+
             const res = await fetch('/api/admin/cars/upload', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.url) {
@@ -75,7 +122,8 @@ export default function CheckInForm({ rental }: { rental: any }) {
                 else setFuelPhoto(data.url);
             }
         } catch (error) {
-            alert('Upload fehlgeschlagen');
+            console.error('Upload Error:', error);
+            alert('Upload fehlgeschlagen - Das Bild ist evtl. zu groß.');
         } finally {
             setUploadingPhoto(null);
         }
