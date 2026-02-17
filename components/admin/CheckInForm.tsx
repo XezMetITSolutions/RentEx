@@ -27,8 +27,9 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const [signature, setSignature] = useState('');
     const [agbAccepted, setAgbAccepted] = useState(false);
 
-    const isFiatDucato = rental.car.brand?.toLowerCase() === 'fiat' &&
-        rental.car.model?.toLowerCase().includes('ducato');
+    const carBrand = rental.car.brand?.toLowerCase() || '';
+    const carModel = rental.car.model?.toLowerCase() || '';
+    const isFiatDucato = carBrand.includes('fiat') || carModel.includes('ducato');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
