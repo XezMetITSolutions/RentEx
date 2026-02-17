@@ -35,7 +35,14 @@ export default function CheckInDebugPage() {
     const [damages, setDamages] = useState<Damage[]>([]);
     const [activeView, setActiveView] = useState<typeof CAR_VIEWS[number]['id']>('front');
     const [modalOpen, setModalOpen] = useState(false);
+    const [currentClick, setCurrentClick] = useState<{ x: number, y: number, side: Damage['side'] } | null>(null);
     const [viewingDamage, setViewingDamage] = useState<Damage | null>(null);
+
+    // Form state
+    const [reason, setReason] = useState('');
+    const [location, setLocation] = useState('');
+    const [photo, setPhoto] = useState<string | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageClick = (e: React.MouseEvent<HTMLDivElement>, side: Damage['side']) => {
