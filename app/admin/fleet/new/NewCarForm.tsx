@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { Option as OptionType, OptionGroup as GroupType } from '@prisma/client';
 import ImageUpload from '@/components/admin/ImageUpload';
+import OdometerOCR from '@/components/admin/OdometerOCR';
 
 interface ExtendedOption extends OptionType {
     group?: GroupType;
@@ -33,6 +34,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingOption, setEditingOption] = useState<OptionType | null>(null);
+    const [mileage, setMileage] = useState('');
 
     const handleDeleteOption = (id: number) => {
         if (!confirm('Diesen Zusatz löschen?')) return;
@@ -246,7 +248,20 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand</label>
-                                <input name="currentMileage" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="15000" />
+                                <div className="flex gap-2">
+                                    <input
+                                        name="currentMileage"
+                                        type="number"
+                                        value={mileage}
+                                        onChange={(e) => setMileage(e.target.value)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white"
+                                        placeholder="15000"
+                                    />
+                                    <OdometerOCR
+                                        onDetected={setMileage}
+                                        className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center border border-gray-200 dark:border-gray-600"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

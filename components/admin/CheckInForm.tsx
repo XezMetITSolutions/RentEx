@@ -10,8 +10,11 @@ import {
     PenTool,
     ArrowLeft,
     CheckCircle,
-    Info
+    Info,
+    Camera,
+    Loader2
 } from 'lucide-react';
+import OdometerOCR from '@/components/admin/OdometerOCR';
 import Link from 'next/link';
 import SignaturePad from '@/components/admin/SignaturePad';
 import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
@@ -87,14 +90,17 @@ export default function CheckInForm({ rental }: { rental: any }) {
                                 <Gauge className="w-4 h-4" />
                                 Kilometerstand (aktuell: {rental.car.currentMileage?.toLocaleString()} km)
                             </label>
-                            <input
-                                required
-                                type="number"
-                                value={mileage}
-                                onChange={(e) => setMileage(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                placeholder="z.B. 12500"
-                            />
+                            <div className="flex gap-2">
+                                <input
+                                    required
+                                    type="number"
+                                    value={mileage}
+                                    onChange={(e) => setMileage(e.target.value)}
+                                    className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    placeholder="z.B. 12500"
+                                />
+                                <OdometerOCR onDetected={setMileage} />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

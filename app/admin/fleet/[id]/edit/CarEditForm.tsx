@@ -21,6 +21,7 @@ import { useFormStatus } from 'react-dom';
 import { Car as CarType, Option as OptionType, OptionGroup as GroupType } from '@prisma/client';
 import Link from 'next/link';
 import ImageUpload from '@/components/admin/ImageUpload';
+import OdometerOCR from '@/components/admin/OdometerOCR';
 
 function SaveCarButton() {
     const { pending } = useFormStatus();
@@ -62,6 +63,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingOption, setEditingOption] = useState<OptionType | null>(null);
+    const [mileage, setMileage] = useState(car.currentMileage?.toString() || '');
 
     // De-duplicate options by name: prefer car-specific options over templates
     const processedOptionsMap = new Map<string, ExtendedOption>();
@@ -281,7 +283,19 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand</label>
-                                <input name="currentMileage" type="number" defaultValue={car.currentMileage || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                <div className="flex gap-2">
+                                    <input
+                                        name="currentMileage"
+                                        type="number"
+                                        value={mileage}
+                                        onChange={(e) => setMileage(e.target.value)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white"
+                                    />
+                                    <OdometerOCR
+                                        onDetected={setMileage}
+                                        className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center border border-gray-200 dark:border-gray-600"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max. km/Tag (Miete)</label>
