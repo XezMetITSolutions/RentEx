@@ -35,12 +35,7 @@ export default function CheckInDebugPage() {
     const [damages, setDamages] = useState<Damage[]>([]);
     const [activeView, setActiveView] = useState<typeof CAR_VIEWS[number]['id']>('front');
     const [modalOpen, setModalOpen] = useState(false);
-    const [currentClick, setCurrentClick] = useState<{ x: number, y: number, side: Damage['side'] } | null>(null);
-
-    // Form state
-    const [reason, setReason] = useState('');
-    const [location, setLocation] = useState('');
-    const [photo, setPhoto] = useState<string | null>(null);
+    const [viewingDamage, setViewingDamage] = useState<Damage | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageClick = (e: React.MouseEvent<HTMLDivElement>, side: Damage['side']) => {
@@ -136,15 +131,15 @@ export default function CheckInDebugPage() {
                                     {damages.filter(d => d.side === activeView).map((damage) => (
                                         <div
                                             key={damage.id}
-                                            className="absolute w-8 h-8 -ml-4 -mt-4 flex items-center justify-center animate-pulse"
+                                            className="absolute w-10 h-10 -ml-5 -mt-5 flex items-center justify-center animate-pulse z-10 hover:scale-125 transition-transform cursor-pointer"
                                             style={{ left: `${damage.x}%`, top: `${damage.y}%` }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                // Could show tooltip or open for edit
+                                                setViewingDamage(damage);
                                             }}
                                         >
-                                            <div className="w-full h-full bg-red-600 rounded-full border-4 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">
-                                                <AlertCircle className="w-4 h-4 text-white" />
+                                            <div className="w-full h-full bg-red-600 rounded-full border-4 border-white dark:border-gray-900 shadow-xl flex items-center justify-center">
+                                                <AlertCircle className="w-5 h-5 text-white" />
                                             </div>
                                         </div>
                                     ))}
@@ -353,6 +348,87 @@ export default function CheckInDebugPage() {
                                 <Plus className="w-5 h-5" />
                                 Eintrag Speichern
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Damage Detail View Modal */}
+            {viewingDamage && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-gray-900/90 backdrop-blur-md" onClick={() => setViewingDamage(null)} />
+
+                    <div className="relative bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <button
+                            onClick={() => setViewingDamage(null)}
+                            className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 transition-all z-20"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2">
+                            {/* Visual/Photo Section */}
+                            <div className="bg-gray-100 dark:bg-gray-800 min-h-[300px] relative flex items-center justify-center">
+                                {viewingDamage.photo ? (
+                                    <img
+                                        src={viewingDamage.photo}
+                                        alt="Schaden Detail"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center text-gray-400 p-8 text-center">
+                                        <Camera className="w-12 h-12 mb-4 opacity-20" />
+                                        <p className="text-xs font-bold uppercase tracking-widest">Kein Foto verfügbar</p>
+                                    </div>
+                                )}
+
+                                {/* Location indicator on mini-car */}
+                                <div className="absolute bottom-4 left-4 w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl p-1 border border-white/10">
+                                    <img src={CAR_VIEWS.find(v => v.id === viewingDamage.side)?.src} className="w-full h-full object-contain opacity-50" />
+                                    <div
+                                        className="absolute w-1.5 h-1.5 bg-red-500 rounded-full border border-white"
+                                        style={{ left: `${viewingDamage.x}%`, top: `${viewingDamage.y}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="p-8 flex flex-col justify-between">
+                                <div className="space-y-6">
+                                    <div>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2 block">
+                                            {CAR_VIEWS.find(v => v.id === viewingDamage.side)?.title}
+                                        </span>
+                                        <h2 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">
+                                            {viewingDamage.reason}
+                                        </h2>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                            <label className="text-[10px] font-bold uppercase text-gray-400 block mb-1">Position</label>
+                                            <p className="text-gray-900 dark:text-gray-100 font-medium">{viewingDamage.location}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setDamages(damages.filter(d => d.id !== viewingDamage.id));
+                                            setViewingDamage(null);
+                                        }}
+                                        className="flex-1 py-4 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-2xl transition-all"
+                                    >
+                                        Löschen
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingDamage(null)}
+                                        className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-2xl transition-all"
+                                    >
+                                        Schließen
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
