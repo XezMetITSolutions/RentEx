@@ -99,8 +99,8 @@ export default function CheckInSetupPage() {
                                         key={folder}
                                         onClick={() => setSelectedFolder(selectedFolder === folder ? null : folder)}
                                         className={`w-full flex items-center justify-between p-5 rounded-3xl transition-all border-2 ${selectedFolder === folder
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 translate-x-2'
-                                                : 'bg-gray-50 dark:bg-gray-800/50 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 translate-x-2'
+                                            : 'bg-gray-50 dark:bg-gray-800/50 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4">
@@ -156,7 +156,7 @@ export default function CheckInSetupPage() {
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Marke, Modell veya Plaka..."
+                                        placeholder="Marke, Modell oder Kennzeichen..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-[1.5rem] w-full md:w-80 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -171,8 +171,8 @@ export default function CheckInSetupPage() {
                                         key={car.id}
                                         onClick={() => toggleCarSelection(car.id)}
                                         className={`group relative text-left p-6 rounded-[2rem] border-2 transition-all ${selectedCarIds.includes(car.id)
-                                                ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 shadow-lg'
-                                                : 'bg-gray-50 dark:bg-gray-800/30 border-transparent hover:border-gray-200 dark:hover:border-gray-700'
+                                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 shadow-lg'
+                                            : 'bg-gray-50 dark:bg-gray-800/30 border-transparent hover:border-gray-200 dark:hover:border-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-start justify-between">
@@ -184,8 +184,8 @@ export default function CheckInSetupPage() {
                                                 </div>
                                             </div>
                                             <div className={`p-2 rounded-xl transition-all ${selectedCarIds.includes(car.id)
-                                                    ? 'bg-purple-500 text-white'
-                                                    : 'bg-white dark:bg-gray-700 text-gray-300'
+                                                ? 'bg-purple-500 text-white'
+                                                : 'bg-white dark:bg-gray-700 text-gray-300'
                                                 }`}>
                                                 {selectedCarIds.includes(car.id) ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
                                             </div>
@@ -215,7 +215,7 @@ export default function CheckInSetupPage() {
                                 >
                                     {saving ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
                                     {selectedFolder
-                                        ? `ORDNER "${selectedFolder.toUpperCase()}" ZUWEISEN (${selectedCarIds.length} ARABAYA)`
+                                        ? `ORDNER "${selectedFolder.toUpperCase()}" ZUWEISEN (${selectedCarIds.length} FAHRZEUGE)`
                                         : `VORLAGE ENTFERNEN`
                                     }
                                 </button>
