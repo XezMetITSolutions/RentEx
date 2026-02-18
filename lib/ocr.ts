@@ -1,5 +1,5 @@
 
-import { createWorker } from 'tesseract.js';
+import { createWorker, PSM } from 'tesseract.js';
 
 export async function detectMileageFromImage(file: File): Promise<string | null> {
     if (typeof window === 'undefined') return null;
@@ -11,7 +11,7 @@ export async function detectMileageFromImage(file: File): Promise<string | null>
         // Attempt 1: Whitelist + Sparse Text Mode (PSM 11) to avoid merging numbers
         await worker.setParameters({
             tessedit_char_whitelist: '0123456789',
-            tessedit_pageseg_mode: '11' // PSM 11: Sparse text. Finds as much text as possible in no particular order.
+            tessedit_pageseg_mode: PSM.SPARSE_TEXT // PSM 11: Sparse text. Finds as much text as possible in no particular order.
         });
 
         let { data: { text } } = await worker.recognize(imageUrl);
@@ -21,7 +21,7 @@ export async function detectMileageFromImage(file: File): Promise<string | null>
         if (!mileage) {
             await worker.setParameters({
                 tessedit_char_whitelist: '', // Clear whitelist
-                tessedit_pageseg_mode: '3'   // Default PSM often better for context in relaxed mode
+                tessedit_pageseg_mode: PSM.AUTO   // Default PSM often better for context in relaxed mode
             });
             const result = await worker.recognize(imageUrl);
             const mileage2 = extractBestNumber(result.data.text);
