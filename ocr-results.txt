@@ -1,0 +1,28 @@
+Testing image: C:\Users\IT Admin\Downloads\Rent-Ex\RentEx\tachomanipulation-tachostand-davor-2008_ooi5lx.webp
+
+--- Testing PSM 3 (with whitelist) ---
+Text: "003\n\n250\n105598 00\n\n"
+Confidence: 47
+
+--- Testing PSM 4 (with whitelist) ---
+Text: "250\n105598 00\n\n"
+Confidence: 57
+
+--- Testing PSM 6 (with whitelist) ---
+Text: "4 3\n\n3 8010055\n60\n53\n\n3 20\n\n250\n10\n\n7 920 2 67 105598 00 5 4 2\n"
+Confidence: 33
+
+--- Testing PSM 7 (with whitelist) ---
+Text: "3 5\n"
+Confidence: 25
+
+--- Testing PSM 11 (with whitelist) ---
+Text: "80100159\n\n40\n\n30\n\n5\n\n20\n\n250\n\n10\n\n90\n\n105598\n\n00\n\n130\n"
+Confidence: 27
+
+--- Testing PSM 13 (with whitelist) ---
+Text: "2\n"
+Confidence: 40
+
+--- Testing PSM 3 WITHOUT whitelist ---
+Text: "0:03\n\n25.0°¢\nTT\n105598 0.0\n\n"

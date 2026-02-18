@@ -33,6 +33,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState<Step>('SUMMARY');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isRecognizing, setIsRecognizing] = useState(false);
 
     // Form State
     const [mileage, setMileage] = useState(rental.car.currentMileage?.toString() || '');
@@ -112,11 +113,14 @@ export default function CheckInForm({ rental }: { rental: any }) {
         try {
             // If it's a mileage photo, try to detect the mileage immediately
             if (type === 'mileage') {
+                setIsRecognizing(true);
                 detectMileageFromImage(file).then((detected: string | null) => {
                     if (detected) {
                         setMileage(detected);
                     }
-                }).catch((err: unknown) => console.error("Auto-OCR failed", err));
+                })
+                    .catch((err: unknown) => console.error("Auto-OCR failed", err))
+                    .finally(() => setIsRecognizing(false));
             }
 
             // Compress image if it's too large or just as a precaution
@@ -134,6 +138,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
         } catch (error) {
             console.error('Upload Error:', error);
             alert('Upload fehlgeschlagen - Das Bild ist evtl. zu groß.');
+            setIsRecognizing(false);
         } finally {
             setUploadingPhoto(null);
         }
@@ -259,7 +264,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Aktueller Wert (km)</label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 relative">
                                     <input
                                         type="number"
                                         value={mileage}
@@ -267,6 +272,12 @@ export default function CheckInForm({ rental }: { rental: any }) {
                                         className="flex-1 px-8 py-6 bg-white border-2 border-gray-100 rounded-[2rem] text-3xl font-black text-gray-900 outline-none focus:border-blue-500 transition-all placeholder:text-gray-200"
                                         placeholder="00000"
                                     />
+                                    {isRecognizing && (
+                                        <div className="absolute right-20 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white/90 px-3 py-2 rounded-xl shadow-sm border border-blue-100 animate-in fade-in zoom-in duration-300">
+                                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                            <span className="text-xs font-bold text-blue-600">Lese...</span>
+                                        </div>
+                                    )}
                                     <OdometerOCR onDetected={setMileage} className="p-6 bg-blue-50 text-blue-600 rounded-[2rem] hover:bg-blue-100 transition-colors border-2 border-blue-100" />
                                 </div>
                                 <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
