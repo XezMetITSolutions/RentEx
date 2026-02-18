@@ -23,6 +23,7 @@ import Link from 'next/link';
 import SignaturePad from '@/components/admin/SignaturePad';
 import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
 import { performCheckIn } from '@/app/actions/check-in';
+import { detectMileageFromImage } from '@/lib/ocr';
 
 type Step = 'SUMMARY' | 'MILEAGE' | 'FUEL' | 'DAMAGE_FRONT' | 'DAMAGE_BACK' | 'DAMAGE_LEFT' | 'DAMAGE_RIGHT' | 'SIGNATURE';
 
@@ -109,6 +110,15 @@ export default function CheckInForm({ rental }: { rental: any }) {
 
         setUploadingPhoto(type);
         try {
+            // If it's a mileage photo, try to detect the mileage immediately
+            if (type === 'mileage') {
+                detectMileageFromImage(file).then((detected: string | null) => {
+                    if (detected) {
+                        setMileage(detected);
+                    }
+                }).catch((err: unknown) => console.error("Auto-OCR failed", err));
+            }
+
             // Compress image if it's too large or just as a precaution
             const compressedBlob = await compressImage(file);
 
