@@ -1,4 +1,4 @@
-'use server';
+cör'use server';
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
@@ -240,3 +240,21 @@ export async function registerKasseWithBMF() {
         return { error: err.message || 'Verbindungsfehler zum BMF.' };
     }
 }
+
+export async function updateTaskStatus(taskId: number, newStatus: string) {
+    if (!['todo', 'in_progress', 'done'].includes(newStatus)) {
+        return { error: 'Ungültiger Status' };
+    }
+
+    try {
+        await prisma.task.update({
+            where: { id: taskId },
+            data: { status: newStatus }
+        });
+        revalidatePath('/admin/tasks');
+        return { success: true };
+    } catch (e) {
+        return { error: 'Fehler beim Aktualisieren des Status' };
+    }
+}
+
