@@ -8,27 +8,25 @@ export async function detectMileageFromImage(file: File): Promise<string | null>
         const worker = await createWorker('eng');
         const imageUrl = await preprocessImage(file);
 
-        // Attempt 1: Strict whitelist (best for clean images)
+        // Attempt 1: Whitelist + Sparse Text Mode (PSM 11) to avoid merging numbers
         await worker.setParameters({
-            tessedit_char_whitelist: '0123456789'
+            tessedit_char_whitelist: '0123456789',
+            tessedit_pageseg_mode: '11' // PSM 11: Sparse text. Finds as much text as possible in no particular order.
         });
 
         let { data: { text } } = await worker.recognize(imageUrl);
         let mileage = extractBestNumber(text);
 
         // Attempt 2: Relaxed (if Attempt 1 failed to find a plausible number)
-        // If we found nothing, or a very short number (like '0' or '25'), try without whitelist
-        if (!mileage || mileage.length < 3) {
+        if (!mileage) {
             await worker.setParameters({
-                tessedit_char_whitelist: '' // Clear whitelist to see context
+                tessedit_char_whitelist: '', // Clear whitelist
+                tessedit_pageseg_mode: '3'   // Default PSM often better for context in relaxed mode
             });
             const result = await worker.recognize(imageUrl);
             const mileage2 = extractBestNumber(result.data.text);
 
-            // If second attempt found a longer number, prefer it
-            if (mileage2 && mileage2.length > (mileage?.length || 0)) {
-                mileage = mileage2;
-            }
+            if (mileage2) mileage = mileage2;
         }
 
         await worker.terminate();
@@ -43,8 +41,15 @@ function extractBestNumber(text: string): string | null {
     const numbers = text.match(/\d+/g);
     if (!numbers || numbers.length === 0) return null;
 
+    // Filter for reasonable odometer lengths
+    // Typically 3 to 7 digits (e.g. 100 to 1,999,999)
+    // Exclude super long numbers (likely concatenated duplicates/noise like 80100450)
+    const validCandidates = numbers.filter(n => n.length >= 3 && n.length <= 7);
+
+    if (validCandidates.length === 0) return null;
+
     // Sort by length desc
-    const sorted = numbers.sort((a: string, b: string) => b.length - a.length);
+    const sorted = validCandidates.sort((a: string, b: string) => b.length - a.length);
 
     // Return the longest number found
     return sorted[0];
