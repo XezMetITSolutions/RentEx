@@ -9,8 +9,8 @@ type VehicleType = "pkw" | "kastenwagen" | "all";
 
 // PKW categories (passenger cars)
 const PKW_CATEGORIES = ["Kleinwagen", "Mittelklasse", "SUV", "Limousine", "Kombi", "Sportwagen", "Cabrio"];
-// Kastenwagen category (vans)
-const VAN_CATEGORIES = ["Van"];
+// Kastenwagen/Van categories
+const VAN_CATEGORIES = ["Van", "Kastenwagen", "Bus"];
 
 async function getCars(vehicleType?: VehicleType, pickupDate?: string, returnDate?: string) {
     let categories: string[] = [];
