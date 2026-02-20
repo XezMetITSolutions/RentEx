@@ -328,10 +328,10 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                 {filteredCars.map((car) => (
                                     <tr key={car.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-4">
+                                            <Link href={`/admin/fleet/${car.id}`} className="flex items-center gap-4 group/item">
                                                 <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex-shrink-0">
                                                     {car.imageUrl ? (
-                                                        <Image src={car.imageUrl} alt={car.model} fill className="object-cover" />
+                                                        <Image src={car.imageUrl} alt={car.model} fill className="object-cover transition-transform group-hover/item:scale-110" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                                                             <CarIcon className="w-6 h-6" />
@@ -339,10 +339,10 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900 dark:text-white">{car.brand} {car.model}</div>
+                                                    <div className="font-bold text-gray-900 dark:text-white group-hover/item:text-red-600 transition-colors">{car.brand} {car.model}</div>
                                                     <div className="text-xs text-gray-500">{car.year} • {car.color}</div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-mono text-sm font-medium text-gray-700 dark:text-gray-300">{car.plate}</div>
@@ -430,7 +430,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredCars.map((car) => (
                         <div key={car.id} className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-all hover:shadow-md">
-                            <div className="aspect-video w-full bg-gray-100 dark:bg-gray-900 relative items-center justify-center text-gray-400 dark:text-gray-600 flex overflow-hidden">
+                            <Link href={`/admin/fleet/${car.id}`} className="aspect-video w-full bg-gray-100 dark:bg-gray-900 relative items-center justify-center text-gray-400 dark:text-gray-600 flex overflow-hidden">
                                 {car.imageUrl ? (
                                     <Image
                                         src={car.imageUrl}
@@ -446,14 +446,14 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                         {getStatusLabel(car.status)}
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
 
                             <div className="flex-1 p-5 flex flex-col">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">{car.brand} {car.model}</h3>
+                                    <Link href={`/admin/fleet/${car.id}`} className="group/title">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1 group-hover/title:text-red-600 transition-colors">{car.brand} {car.model}</h3>
                                         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{car.plate}</p>
-                                    </div>
+                                    </Link>
                                 </div>
 
                                 <div className="mt-4 grid grid-cols-2 gap-y-2 gap-x-4 text-xs text-gray-500 dark:text-gray-400">
