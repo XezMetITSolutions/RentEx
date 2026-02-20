@@ -70,7 +70,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
         { id: 'pricing', label: 'Preise & Kampagnen', icon: Tag },
         { id: 'insurance', label: 'Versicherung & Dokumente', icon: ShieldCheck },
         { id: 'maintenance', label: 'Wartung & Service', icon: Wrench },
-        { id: 'financial', label: 'Finanzielle Daten', icon: DollarSign },
+        { id: 'maintenance', label: 'Wartung & Service', icon: Wrench },
     ];
 
     return (
@@ -585,10 +585,6 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                 <input name="registrationDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nächste TÜV/HU</label>
-                                <input name="nextInspection" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
-                            </div>
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vignette gültig bis</label>
                                 <input name="vignetteValidUntil" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
@@ -615,11 +611,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reifentyp</label>
-                                <select name="tireType" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
-                                    <option>Sommerreifen</option>
-                                    <option>Winterreifen</option>
-                                    <option>Allwetter</option>
-                                </select>
+                                <input name="tireType" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. R16 95" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Letzter Service</label>
@@ -633,30 +625,6 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                     </div>
                 </div>
 
-                {/* Tab: Financial */}
-                <div className={activeTab === 'financial' ? 'block' : 'hidden'}>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Finanzielle Daten</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungspreis (€)</label>
-                                <input name="purchasePrice" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="45000.00" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anschaffungsdatum</label>
-                                <input name="purchaseDate" type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aktueller Wert (€)</label>
-                                <input name="currentValue" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="38000.00" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kilometerstand bei Kauf</label>
-                                <input name="purchaseMileage" type="number" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="0" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Submit Button */}
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
