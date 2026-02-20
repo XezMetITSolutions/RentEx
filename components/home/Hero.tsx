@@ -7,9 +7,14 @@ import { useState } from "react";
 type VehicleType = "pkw" | "kastenwagen";
 
 export default function Hero() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
     const [vehicleType, setVehicleType] = useState<VehicleType>("pkw");
-    const [pickupDate, setPickupDate] = useState("");
-    const [returnDate, setReturnDate] = useState("");
+    const [pickupDate, setPickupDate] = useState(todayStr);
+    const [returnDate, setReturnDate] = useState(tomorrowStr);
 
     const handleSearch = () => {
         const params = new URLSearchParams({
@@ -139,7 +144,14 @@ export default function Hero() {
                                                 <input
                                                     type="date"
                                                     value={pickupDate}
-                                                    onChange={(e) => setPickupDate(e.target.value)}
+                                                    min={todayStr}
+                                                    onChange={(e) => {
+                                                        const newVal = e.target.value;
+                                                        setPickupDate(newVal);
+                                                        if (returnDate < newVal) {
+                                                            setReturnDate(newVal);
+                                                        }
+                                                    }}
                                                     className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
                                                 />
                                             </div>
@@ -151,6 +163,7 @@ export default function Hero() {
                                                 <input
                                                     type="date"
                                                     value={returnDate}
+                                                    min={pickupDate || todayStr}
                                                     onChange={(e) => setReturnDate(e.target.value)}
                                                     className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
                                                 />

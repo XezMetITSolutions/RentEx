@@ -44,12 +44,16 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
     const [endDate, setEndDate] = useState(formatDate(tomorrow));
 
     const handleDateSelect = (start: Date, end: Date) => {
-        // react-big-calendar 'end' is exclusive behavior for slots, need to check how it behaves for click vs drag.
-        // Assuming we get raw dates.
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
 
-        // If start and end are same day (single click), maybe set end to next day?
         const s = new Date(start);
+        s.setHours(0, 0, 0, 0);
+
+        if (s < now) return;
+
         const e = new Date(end);
+        e.setHours(0, 0, 0, 0);
 
         // If just a click (start == end or diff < 24h), let's default to minimum 1 day rental
         if (e.getTime() - s.getTime() < 86400000) {

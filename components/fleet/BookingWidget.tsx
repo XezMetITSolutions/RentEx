@@ -167,7 +167,15 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                         <input
                             type="date"
                             value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            onChange={(e) => {
+                                const newStart = e.target.value;
+                                setStartDate(newStart);
+                                // If end date is now before start date, update it
+                                if (endDate < newStart) {
+                                    setEndDate(newStart);
+                                }
+                            }}
                             className="w-full bg-transparent text-white border-none focus:ring-0 p-0 mt-1 [&::-webkit-calendar-picker-indicator]:invert"
                         />
                     </div>
@@ -178,6 +186,7 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                         <input
                             type="date"
                             value={endDate}
+                            min={startDate}
                             onChange={(e) => setEndDate(e.target.value)}
                             className="w-full bg-transparent text-white border-none focus:ring-0 p-0 mt-1 [&::-webkit-calendar-picker-indicator]:invert"
                         />
@@ -188,8 +197,8 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                     onClick={handleBooking}
                     disabled={!isAvailable}
                     className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] ${isAvailable
-                            ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
-                            : "bg-zinc-700 text-zinc-500 cursor-not-allowed shadow-none"
+                        ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
+                        : "bg-zinc-700 text-zinc-500 cursor-not-allowed shadow-none"
                         }`}
                 >
                     {isAvailable ? "Jetzt Reservieren" : "Zeitraum belegt"}

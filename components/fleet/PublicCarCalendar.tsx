@@ -54,22 +54,28 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
     }, [rentals, selectedStart, selectedEnd]);
 
     const handleSelectSlot = ({ start, end }: { start: Date, end: Date }) => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        if (start < now) return;
+
         if (onDateSelect) {
-            // Adjust end date because react-big-calendar returns exclusive end date for multi-day selection
-            // or sometimes it depends on the view. For Month view, usually exclusive.
-            // Let's ensure we pass correct dates.
-            // If it's a single day click, start == end (or close).
-            // If drag, end is the day after.
-
-            // Common pattern: treat as inclusive range for the app logic
-            // But BigCalendar 'end' is exclusive 00:00 of next day.
-            // So we subtract 1ms to get back to the previous day or keep as is depending on requirement.
-            // Let's pass raw dates and let parent handle formatting/logic or normalize here.
-
-            // Actually, for BookingWidget we likely want YYYY-MM-DD strings.
-            // Let's just pass the Date objects.
             onDateSelect(start, end);
         }
+    };
+
+    const dayPropGetter = (date: Date) => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        if (date < now) {
+            return {
+                className: 'rbc-day-past',
+                style: {
+                    opacity: 0.3,
+                    pointerEvents: 'none' as const,
+                }
+            };
+        }
+        return {};
     };
 
     const eventStyleGetter = (event: any) => {
@@ -136,6 +142,7 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
                     date={date}
                     onNavigate={(newDate) => setDate(newDate)}
                     eventPropGetter={eventStyleGetter}
+                    dayPropGetter={dayPropGetter}
                     selectable
                     onSelectSlot={handleSelectSlot}
                     culture="de"
