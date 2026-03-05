@@ -19,6 +19,7 @@ type Customer = {
     id: number;
     firstName: string;
     lastName: string;
+    country: string | null;
 };
 
 type Location = {
@@ -31,14 +32,25 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
     const carIdFromUrl = searchParams.get('carId');
 
     const [selectedCarId, setSelectedCarId] = useState<number | string>(carIdFromUrl || '');
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>('');
     const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
     const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+    const [depositPaid, setDepositPaid] = useState<string>('');
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
     }, [carIdFromUrl]);
 
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
+    const selectedCustomer = useMemo(() => customers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, customers]);
+
+    const isAustrianResident = selectedCustomer?.country === 'Österreich';
+
+    useEffect(() => {
+        if (isAustrianResident) {
+            setDepositPaid('0');
+        }
+    }, [isAustrianResident]);
 
     const estimatedTotal = useMemo(() => {
         if (!selectedCar || !startDate || !endDate) return 0;
@@ -76,11 +88,17 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kunde auswählen *</label>
-                        <select name="customerId" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white">
+                        <select
+                            name="customerId"
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={selectedCustomerId}
+                            onChange={(e) => setSelectedCustomerId(e.target.value)}
+                        >
                             <option value="">Bitte wählen...</option>
                             {customers.map(customer => (
                                 <option key={customer.id} value={customer.id}>
-                                    {customer.firstName} {customer.lastName}
+                                    {customer.firstName} {customer.lastName} {customer.country ? `(${customer.country})` : ''}
                                 </option>
                             ))}
                         </select>
@@ -144,8 +162,18 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vorauszahlung / Kaution</label>
-                        <input name="depositPaid" type="number" step="0.01" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Vorauszahlung / Kaution {isAustrianResident && <span className="text-green-600 text-xs font-normal">(Keine Kaution für Österreich)</span>}
+                        </label>
+                        <input
+                            name="depositPaid"
+                            type="number"
+                            step="0.01"
+                            className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white ${isAustrianResident ? 'opacity-75 bg-gray-50 dark:bg-gray-800' : ''}`}
+                            value={depositPaid}
+                            onChange={(e) => setDepositPaid(e.target.value)}
+                            placeholder={isAustrianResident ? '0' : ''}
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tankregelung</label>

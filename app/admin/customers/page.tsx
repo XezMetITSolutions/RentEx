@@ -37,7 +37,7 @@ async function getCustomers() {
 
         // Calculate benefits
         const benefits = {
-            noDeposit: totalRentals >= 5,
+            noDeposit: totalRentals >= 5 || customer.country === 'Österreich',
             birthdayVoucher: totalRentals >= 3,
             prioritySupport: totalRentals >= 10,
             freeUpgrade: totalRentals >= 10,

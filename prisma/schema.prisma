@@ -122,6 +122,8 @@ model Car {
   tasks         Task[]
   fahrtenbuchEntries FahrtenbuchEntry[]
   options       Option[]
+  cartSessions  CartSession[]
+  strafzettels  StrafzettelRecord[]
 }
 
 model CarCategory {
@@ -156,6 +158,7 @@ model Location {
   
   pickups     Rental[] @relation("PickupLocation")
   returns     Rental[] @relation("ReturnLocation")
+  staff       Staff[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -237,6 +240,11 @@ model DiscountCoupon {
   usedCount      Int     @default(0)
   
   isActive    Boolean   @default(true)
+  
+  // Personal / auto-generated coupons
+  customerId   Int?     // If set, coupon is for this customer only
+  isPersonal   Boolean  @default(false)
+  triggerType  String?  // BIRTHDAY | REFERRAL | MANUAL
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -332,6 +340,24 @@ model Customer {
   customerType  String?       // Private, Business, VIP
   notes         String?
 
+  // Referral System
+  referralCode          String?   @unique
+  referredById          Int?      // ID of the customer who referred this customer
+
+  // ID Austria / GDPR (DSGVO)
+  idAustriaVerified     Boolean?  @default(false)
+  idAustriaVerifiedAt   DateTime?
+  gdprConsentDate       DateTime?
+  gdprConsentVersion    String?
+  gdprDeleteRequestedAt DateTime?
+  isEuResident          Boolean?  @default(true)
+  nonEuApprovedAt       DateTime? // Admin approval for non-EU customers
+  nonEuApprovedBy       String?
+
+  // AGB Acceptance
+  agbAcceptedVersion    String?
+  agbAcceptedAt         DateTime?
+
   // Auth (optional – for login/register)
   passwordHash  String?       // scrypt hash for dashboard login
 
@@ -339,6 +365,11 @@ model Customer {
   updatedAt     DateTime      @updatedAt
   rentals       Rental[]
   damageReports DamageRecord[]
+  kmBalance         KmBalance?
+  kmTransfersFrom   KmTransfer[]    @relation("KmTransferFrom")
+  kmTransfersTo     KmTransfer[]    @relation("KmTransferTo")
+  referralsSent     ReferralBonus[] @relation("ReferralFrom")
+  referralReceived  ReferralBonus[] @relation("ReferralTo")
 }
 
 model Rental {
@@ -403,6 +434,17 @@ model Rental {
   mileagePhoto   String?
   fuelPhoto      String?
   checkInAt      DateTime?
+
+  // Checkout photo/video evidence (JSON array of URLs)
+  checkoutPhotos      String?   // JSON: [front, rear, left, right, tacho, fuel]
+  checkoutCompletedAt DateTime?
+  returnPhotos        String?   // JSON array of return photo URLs
+
+  // Overdue / Mahnung tracking
+  isOverdue       Boolean  @default(false)
+  mahnung1SentAt  DateTime?
+  mahnung2SentAt  DateTime?
+  mahnung3SentAt  DateTime?
   
   car           Car           @relation(fields: [carId], references: [id])
   customer      Customer      @relation(fields: [customerId], references: [id])
@@ -410,6 +452,8 @@ model Rental {
   damageRecords DamageRecord[]
   invoices      Invoice[]
   fahrtenbuchEntries FahrtenbuchEntry[]
+  strafzettels  StrafzettelRecord[]
+  mahnungen     MahnungRecord[]
 }
 
 /// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)
@@ -427,6 +471,10 @@ model Invoice {
   
   status             String   @default("ISSUED") // DRAFT | ISSUED
   pdfPath            String?  // optional: gespeichertes PDF
+
+  // Country / VAT region for multi-country invoicing
+  customerCountry    String?  // AT | DE | CH | etc.
+  vatRegion          String?  // AT | DE | EU | NON-EU
   
   // Registrierkassa / BMF-Anbindung (später)
   registrierkassaExportedAt DateTime?  // wann an RKSV/BMF übermittelt
@@ -537,4 +585,149 @@ model CompetitorPrice {
   
   @@index([carModel])
   @@index([fetchedAt])
+}
+
+// ─────────────────────────────────────────────
+// STAFF / ROLE MANAGEMENT
+// ─────────────────────────────────────────────
+model Staff {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  role         String    // SUPERADMIN | MANAGER | AGENT | DRIVER
+  locationId   Int?
+  location     Location? @relation(fields: [locationId], references: [id])
+  isActive     Boolean   @default(true)
+  passwordHash String
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// CART SESSION (15-min lock)
+// ─────────────────────────────────────────────
+model CartSession {
+  id         String   @id @default(cuid())
+  carId      Int
+  sessionKey String   @unique  // browser fingerprint / cookie
+  expiresAt  DateTime
+  startDate  DateTime?
+  endDate    DateTime?
+  options    String?  // JSON array of selected option IDs
+  guestEmail String?
+  customerId Int?
+  createdAt  DateTime @default(now())
+  car        Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([carId])
+}
+
+// ─────────────────────────────────────────────
+// KILOMETRE BALANCE & TRANSFER
+// ─────────────────────────────────────────────
+model KmBalance {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @unique
+  balance    Int      @default(0)  // free km available
+  customer   Customer @relation(fields: [customerId], references: [id])
+  updatedAt  DateTime @updatedAt
+}
+
+model KmTransfer {
+  id        Int      @id @default(autoincrement())
+  fromId    Int
+  toId      Int
+  amount    Int      // km amount transferred
+  note      String?
+  createdAt DateTime @default(now())
+  from      Customer @relation("KmTransferFrom", fields: [fromId], references: [id])
+  to        Customer @relation("KmTransferTo", fields: [toId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// REFERRAL / TAVSIYE SISTEMI
+// ─────────────────────────────────────────────
+model ReferralBonus {
+  id               Int      @id @default(autoincrement())
+  referrerId       Int      // Customer who referred
+  referredId       Int      // Customer who was referred
+  bonusType        String   // KM | DISCOUNT | CASH
+  bonusValue       Decimal
+  status           String   @default("PENDING") // PENDING | EARNED | REDEEMED
+  referralRentalId Int?     // First rental that triggered the bonus
+  createdAt        DateTime @default(now())
+  referrer         Customer @relation("ReferralFrom", fields: [referrerId], references: [id])
+  referred         Customer @relation("ReferralTo", fields: [referredId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// AGB VERSIONING
+// ─────────────────────────────────────────────
+model AgbVersion {
+  id          Int      @id @default(autoincrement())
+  version     String   @unique  // e.g. "2.0", "2.1"
+  content     String   @db.Text
+  publishedAt DateTime @default(now())
+  notifiedAt  DateTime?  // When customers were e-mailed
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// STRAFZETTEL (Radar/Parking fines)
+// ─────────────────────────────────────────────
+model StrafzettelRecord {
+  id                    Int      @id @default(autoincrement())
+  carId                 Int
+  rentalId              Int?
+  plate                 String
+  issuedDate            DateTime
+  issuedTime            String?
+  incidentLocation      String?
+  amount                Decimal?
+  authority             String?   // Behörde (Polizei, Gemeinde, etc.)
+  referenceNumber       String?
+  status                String   @default("OPEN") // OPEN | FORWARDED | PAID | DISPUTED
+  forwardedToCustomerAt DateTime?
+  paidAt                DateTime?
+  paidBy                String?   // CUSTOMER | COMPANY
+  notes                 String?
+  documentUrl           String?
+  createdAt             DateTime @default(now())
+  car                   Car      @relation(fields: [carId], references: [id])
+  rental                Rental?  @relation(fields: [rentalId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// AMTLICHE ANFRAGEN (Official authority requests)
+// ─────────────────────────────────────────────
+model AmtlicheAnfrage {
+  id           Int      @id @default(autoincrement())
+  carId        Int?
+  rentalId     Int?
+  authority    String   // Polizei, Finanzamt, Innenministerium, etc.
+  requestDate  DateTime
+  incidentDate DateTime?
+  description  String   @db.Text
+  responseNote String?
+  respondedAt  DateTime?
+  status       String   @default("PENDING") // PENDING | RESPONDED | ARCHIVED
+  documentUrl  String?
+  createdAt    DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// MAHNUNG RECORDS (Payment reminders)
+// ─────────────────────────────────────────────
+model MahnungRecord {
+  id        Int      @id @default(autoincrement())
+  rentalId  Int
+  level     Int      // 1 = Erste Mahnung, 2 = Zweite, 3 = Letzte / Inkasso
+  sentAt    DateTime @default(now())
+  amount    Decimal
+  dueDate   DateTime
+  notes     String?
+  rental    Rental   @relation(fields: [rentalId], references: [id])
 }

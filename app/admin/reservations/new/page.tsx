@@ -13,7 +13,7 @@ async function getData() {
         }),
         prisma.customer.findMany({
             orderBy: { lastName: 'asc' },
-            select: { id: true, firstName: true, lastName: true }
+            select: { id: true, firstName: true, lastName: true, country: true }
         }),
         prisma.location.findMany({
             orderBy: { name: 'asc' },
