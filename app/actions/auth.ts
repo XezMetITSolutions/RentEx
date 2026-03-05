@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { setSession, getSession, clearSession, verifyPassword, hashPassword } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { validateName } from '@/lib/nameValidation';
 
 export async function login(formData: FormData) {
     const email = (formData.get('email') as string)?.trim();
@@ -43,6 +44,12 @@ export async function register(formData: FormData) {
 
     if (password.length < 6) {
         redirect(`/register?error=${encodeURIComponent('Passwort mindestens 6 Zeichen.')}`);
+    }
+
+    // Sahte / şüpheli isim kontrolü
+    const nameCheck = validateName(firstName, lastName);
+    if (nameCheck.riskScore >= 60) {
+        redirect(`/register?error=${encodeURIComponent(`Ungültiger Name: ${nameCheck.reasons.join(', ')}`)}`);
     }
 
     const existing = await prisma.customer.findUnique({ where: { email } });

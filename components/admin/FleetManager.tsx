@@ -84,7 +84,8 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'Active': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
-            case 'Maintenance': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+            case 'NeedsRepair': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+            case 'Maintenance': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
             case 'Rented': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
             case 'Reserved': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
             default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
@@ -94,6 +95,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'Active': return 'Verfügbar';
+            case 'NeedsRepair': return '⚠️ Reparatur';
             case 'Maintenance': return 'Wartung';
             case 'Rented': return 'Vermietet';
             case 'Reserved': return 'Reserviert';
@@ -246,6 +248,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                     >
                         <option value="all">Alle Status</option>
                         <option value="Active">Verfügbar</option>
+                        <option value="NeedsRepair">⚠️ Reparatur erforderlich</option>
                         <option value="Maintenance">Wartung</option>
                         <option value="Rented">Vermietet</option>
                         <option value="Reserved">Reserviert</option>

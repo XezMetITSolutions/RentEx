@@ -22,7 +22,10 @@ import {
     Receipt,
     Tag,
     X,
-    ClipboardCheck
+    ClipboardCheck,
+    ShieldCheck,
+    AlertTriangle,
+    Zap
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -44,6 +47,11 @@ const menuItems = [
     { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
     { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
     { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
+    // --- Neue Seiten ---
+    { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
+    { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
+    { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
+    { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
     { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
 ];
 

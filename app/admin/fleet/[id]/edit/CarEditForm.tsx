@@ -186,6 +186,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                                         <select name="status" defaultValue={car.status} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                             <option value="Active">Verfügbar</option>
+                                            <option value="NeedsRepair">⚠️ Reparatur erforderlich</option>
                                             <option value="Maintenance">Wartung</option>
                                             <option value="Rented">Vermietet</option>
                                             <option value="Reserved">Reserviert</option>
