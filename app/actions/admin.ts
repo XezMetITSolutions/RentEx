@@ -258,3 +258,32 @@ export async function updateTaskStatus(taskId: number, newStatus: string) {
     }
 }
 
+export async function updateTask(taskId: number, data: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    status?: string;
+    dueDate?: string | null;
+    assignedTo?: string | null;
+}) {
+    try {
+        await prisma.task.update({
+            where: { id: taskId },
+            data: {
+                title: data.title,
+                description: data.description,
+                priority: data.priority,
+                status: data.status,
+                dueDate: data.dueDate ? new Date(data.dueDate) : null,
+                assignedTo: data.assignedTo,
+            }
+        });
+        revalidatePath('/admin/tasks');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update task:', error);
+        return { error: 'Fehler beim Aktualisieren der Aufgabe' };
+    }
+}
+
+
