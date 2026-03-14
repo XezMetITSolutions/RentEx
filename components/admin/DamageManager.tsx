@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import Link from 'next/link';
 import { updateDamageStatus, deleteDamageRecord, updateDamageRepairCost } from '@/app/actions/damage-admin';
 import { getTemplateMapping } from '@/app/actions/check-in-setup';
 
@@ -36,10 +37,11 @@ interface DamageRecord {
     locationOnCar: string | null;
     xPosition: number | null;
     yPosition: number | null;
-    reportedDate: Date;
+    reportedDate: string | Date;
     status: string;
-    repairCost: any; // Decimal
+    repairCost: number | null; // Handled as number after serialization
     car: {
+        id: number;
         brand: string;
         model: string;
         plate: string;

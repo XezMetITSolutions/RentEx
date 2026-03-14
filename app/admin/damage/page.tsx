@@ -81,7 +81,7 @@ export default async function DamagePage() {
                 </div>
 
                 {/* Main Content */}
-                <DamageManager initialRecords={records as any} />
+                <DamageManager initialRecords={records} />
             </div>
         </div>
     );
