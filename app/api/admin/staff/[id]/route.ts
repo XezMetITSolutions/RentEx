@@ -9,7 +9,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
         include: { location: true },
     });
     if (!staff) return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
-    const { passwordHash: _, ...safe } = staff;
+    const { passwordHash: _ignored, ...safe } = staff;
     return NextResponse.json(safe);
 }
 
@@ -34,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             where: { id: parseInt(id) },
             data: updateData as Parameters<typeof prisma.staff.update>[0]["data"],
         });
-        const { passwordHash: _, ...safe } = staff;
+        const { passwordHash: _ignored, ...safe } = staff;
         return NextResponse.json(safe);
     } catch (e) {
         return NextResponse.json({ error: "Fehler beim Aktualisieren" }, { status: 500 });

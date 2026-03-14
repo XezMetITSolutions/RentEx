@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
 
 // Days after which each Mahnung is sent
 const MAHNUNG_DELAYS = { 1: 3, 2: 10, 3: 21 }; // days after due date

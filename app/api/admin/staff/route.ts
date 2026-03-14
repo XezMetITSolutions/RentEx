@@ -9,7 +9,7 @@ export async function GET() {
             orderBy: { createdAt: "desc" },
         });
         // Never return passwordHash
-        return NextResponse.json(staff.map(({ passwordHash: _, ...s }) => s));
+        return NextResponse.json(staff.map(({ passwordHash: _ignored, ...s }) => s));
     } catch (e) {
         return NextResponse.json({ error: "Fehler beim Laden der Mitarbeiter" }, { status: 500 });
     }
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const { passwordHash: _, ...safe } = staff;
+        const { passwordHash: _ignored, ...safe } = staff;
         return NextResponse.json(safe, { status: 201 });
     } catch (e: any) {
         if (e.code === "P2002") {
