@@ -4,86 +4,94 @@ import DamageManager from '@/components/admin/DamageManager';
 import { AlertTriangle, Plus as PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
+
+import DamageList from '@/components/admin/damage/DamageList';
+
 async function getDamageRecords() {
     const rawRecords = await prisma.damageRecord.findMany({
-        where: {
-            NOT: {
-                type: {
-                    in: ['PROOF_MILEAGE', 'PROOF_FUEL']
-                }
-            }
-        },
+        orderBy: { reportedDate: 'desc' },
         include: {
             car: {
                 select: {
+                    id: true,
                     brand: true,
                     model: true,
                     plate: true,
                     imageUrl: true,
-                    checkInTemplate: true,
-                    id: true
                 }
             },
             rental: {
-                include: {
+                select: {
+                    id: true,
                     customer: {
                         select: {
                             firstName: true,
-                            lastName: true
+                            lastName: true,
                         }
                     }
                 }
             }
-        },
-        orderBy: { reportedDate: 'desc' }
+        }
     });
 
-    // Serialize Decimal and Dates for Client Component
-    return rawRecords.map(r => ({
-        ...r,
-        repairCost: r.repairCost ? Number(r.repairCost) : null,
-        reportedDate: r.reportedDate.toISOString(),
-        accidentDate: r.accidentDate ? r.accidentDate.toISOString() : null,
+    return rawRecords.map(record => ({
+        ...record,
+        reportedDate: record.reportedDate.toISOString(),
     }));
 }
 
 export const dynamic = 'force-dynamic';
-
-
 
 export default async function DamagePage() {
     const records = await getDamageRecords();
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 md:p-10">
-            <div className="max-w-[1400px] mx-auto space-y-8">
-                {/* Minimalist Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-gray-900 p-8 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center">
-                                <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="max-w-7xl mx-auto space-y-12">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-gray-900 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center">
+                                <AlertTriangle className="w-7 h-7 text-rose-600" />
                             </div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">Schadenmanagement</h1>
+                            <div className="space-y-1">
+                                <h1 className="text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Schaden Management</h1>
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] opacity-60">Fleet Condition Overview</p>
+                            </div>
                         </div>
-                        <p className="text-sm text-gray-400 font-medium px-1">Fahrzeugzustand & Protokollierung</p>
                     </div>
                     
-                    <Link 
-                        href="/admin/damage/new" 
-                        className="flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl text-sm font-bold hover:scale-[1.02] transition-all shadow-md"
-                    >
-                        <PlusIcon className="w-4 h-4" />
-                        Schaden melden
-                    </Link>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <Link 
+                            href="/admin/damage/new" 
+                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-gray-900/10"
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                            Schaden melden
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Main Content */}
-                <DamageManager initialRecords={records} />
+                {/* Dashboard Stats Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Gesamtanzahl</p>
+                        <p className="text-4xl font-black text-gray-900 dark:text-white">{records.length}</p>
+                    </div>
+                    <div className="p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Offene Fälle</p>
+                        <p className="text-4xl font-black text-rose-600">{records.filter(r => r.status === 'open').length}</p>
+                    </div>
+                    <div className="p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Behoben</p>
+                        <p className="text-4xl font-black text-emerald-600">{records.filter(r => r.status === 'repaired').length}</p>
+                    </div>
+                </div>
+
+                {/* Damage Records List */}
+                <DamageList records={records} />
             </div>
         </div>
     );
 }
-
-
-
