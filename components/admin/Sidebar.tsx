@@ -33,7 +33,6 @@ const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
     { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
-    { name: 'Schäden', icon: Wrench, href: '/admin/damage' },
     { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
     { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
     { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
