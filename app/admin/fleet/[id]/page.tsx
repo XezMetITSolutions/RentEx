@@ -10,7 +10,9 @@ import {
     AlertTriangle,
     CheckCircle2,
     MessageSquare,
-    History
+    History,
+    AlertCircle,
+    User
 } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -37,6 +39,19 @@ async function getCarData(id: number) {
             tasks: {
                 orderBy: {
                     dueDate: 'desc'
+                }
+            },
+            damageRecords: {
+                include: {
+                    car: true,
+                    rental: {
+                        include: {
+                            customer: true
+                        }
+                    }
+                },
+                orderBy: {
+                    reportedDate: 'desc'
                 }
             }
         }
@@ -274,33 +289,74 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
                                 <AlertTriangle className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
                                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">Schadenverfolgung</h2>
                             </div>
-                            <span className="bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs px-2 py-0.5 rounded-full font-medium">
-                                {car.damageRentals.length} Gemeldet
-                            </span>
+                            <div className="flex gap-2">
+                                <span className="bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                                    {car.damageRecords.length} Protokolle
+                                </span>
+                                <span className="bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                                    {car.damageRentals.length} Berichte
+                                </span>
+                            </div>
                         </div>
                         <div className="p-0">
-                            {car.damageRentals.length > 0 ? (
-                                <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                                    {car.damageRentals.map((rental) => (
-                                        <li key={rental.id} className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                            {(car.damageRecords.length > 0 || car.damageRentals.length > 0) ? (
+                                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                    {/* Formal Damage Records */}
+                                    {car.damageRecords.map((record) => (
+                                        <div key={`rec-${record.id}`} className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                             <div className="flex justify-between mb-2">
-                                                <Link href={`/admin/rental/${rental.id}`} className="font-medium text-blue-600 dark:text-blue-400 text-sm hover:underline">
+                                                <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                                                    Protokoll: {record.type}
+                                                </span>
+                                                <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatDate(new Date(record.reportedDate))}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-0.5 p-1.5 bg-rose-50 dark:bg-rose-900/10 rounded text-rose-600 dark:text-rose-400">
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 italic">"{record.description || 'Keine Beschreibung'}"</p>
+                                                    <div className="mt-2 flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                                                                <User className="w-3 h-3 text-zinc-400" />
+                                                            </div>
+                                                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                {record.rental?.customer ? `${record.rental.customer.firstName} ${record.rental.customer.lastName}` : 'Techniker / System'}
+                                                            </span>
+                                                        </div>
+                                                        {record.repairCost && (
+                                                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                                                                Kosten: {formatCurrency(record.repairCost)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Legacy Rental Damage Reports */}
+                                    {car.damageRentals.map((rental) => (
+                                        <div key={`rent-${rental.id}`} className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors bg-amber-50/10">
+                                            <div className="flex justify-between mb-2">
+                                                <Link href={`/admin/reservations/${rental.id}`} className="font-medium text-blue-600 dark:text-blue-400 text-sm hover:underline">
                                                     Miete #{rental.contractNumber || rental.id}
                                                 </Link>
                                                 <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatDate(rental.endDate)}</span>
                                             </div>
                                             <div className="flex items-start gap-3">
-                                                <div className="mt-0.5 p-1.5 bg-red-50 dark:bg-red-900/10 rounded text-red-600 dark:text-red-400">
-                                                    <AlertTriangle className="w-4 h-4" />
+                                                <div className="mt-0.5 p-1.5 bg-amber-50 dark:bg-amber-900/10 rounded text-amber-600 dark:text-amber-400">
+                                                    <AlertCircle className="w-4 h-4" />
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{rental.customer.firstName} {rental.customer.lastName}</p>
                                                     <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-1">{rental.damageReport}</p>
                                                 </div>
                                             </div>
-                                        </li>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             ) : (
                                 <div className="p-8 text-center">
                                     <CheckCircle2 className="w-12 h-12 text-green-100 dark:text-green-900/30 mx-auto mb-3" />
