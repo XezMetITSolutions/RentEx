@@ -45,12 +45,36 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
             )}
 
             {rental.status === 'Active' && (
-                <form action={updateRentalStatus.bind(null, rental.id, 'Completed')}>
-                    <button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                <div className="flex gap-2">
+                    <input
+                        id={`returnMileage-${rental.id}`}
+                        type="number"
+                        placeholder="KM-Stand"
+                        className="w-24 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-green-500"
+                        defaultValue={rental.car.currentMileage}
+                    />
+                    <button
+                        onClick={async () => {
+                            const input = document.getElementById(`returnMileage-${rental.id}`) as HTMLInputElement;
+                            const mileage = parseInt(input.value);
+                            if (isNaN(mileage)) {
+                                alert("Bitte gültigen KM-Stand eingeben.");
+                                return;
+                            }
+                            if (mileage < rental.pickupMileage) {
+                                alert(`KM-Stand kann nicht niedriger als bei Abholung (${rental.pickupMileage}) sein.`);
+                                return;
+                            }
+                            if (confirm(`Miete abschließen? KM-Stand: ${mileage}`)) {
+                                await updateRentalStatus(rental.id, 'Completed', mileage);
+                            }
+                        }}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-green-500/10"
+                    >
                         <CheckCircle className="w-4 h-4" />
                         Abschließen
                     </button>
-                </form>
+                </div>
             )}
 
             {rental.status !== 'Cancelled' && rental.status !== 'Completed' && (

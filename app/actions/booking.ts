@@ -101,6 +101,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     let extrasCost = 0;
     let insuranceCost = 0;
     let selectedInsuranceType = 'Basis';
+    let addedKm = 0;
 
     selectedOptions.forEach(opt => {
         const cost = opt.isPerDay ? (Number(opt.price) * days) : Number(opt.price);
@@ -109,8 +110,17 @@ export async function createBooking(prevState: any, formData: FormData) {
             selectedInsuranceType = opt.name;
         } else {
             extrasCost += cost;
+            // Parse KM from package name if it's a KM package
+            if (opt.type === 'package' && opt.name.toLowerCase().includes('km')) {
+                const match = opt.name.match(/(\d+)/);
+                if (match) {
+                    addedKm += parseInt(match[0], 10);
+                }
+            }
         }
     });
+
+    const includedKm = (Number(car.maxMileagePerDay || 0) * days) + addedKm;
 
     let baseTotal = Number(car.dailyRate) * days + extrasCost + insuranceCost;
     let discountAmount = 0;
@@ -162,7 +172,8 @@ export async function createBooking(prevState: any, formData: FormData) {
             insuranceType: selectedInsuranceType,
             pickupLocationId: car.locationId,
             returnLocationId: car.locationId,
-            paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival'
+            paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
+            includedKm: includedKm
         }
     });
 

@@ -446,6 +446,9 @@ model Rental {
   mahnung2SentAt  DateTime?
   mahnung3SentAt  DateTime?
   
+  // KM Package / Included KM
+  includedKm    Int?          @default(0)
+  
   car           Car           @relation(fields: [carId], references: [id])
   customer      Customer      @relation(fields: [customerId], references: [id])
   payments      Payment[]
