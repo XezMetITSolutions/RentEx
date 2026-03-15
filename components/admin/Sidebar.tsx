@@ -60,10 +60,36 @@ interface SidebarProps {
     pendingNotifications: number;
     isOpen?: boolean;
     onClose?: () => void;
+    staff: any;
 }
 
-export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose }: SidebarProps) {
+const rolePermissions: Record<string, string[]> = {
+    'ADMINISTRATOR': ['all'],
+    'FILIALLEITER': [
+        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 'Standorte', 
+        'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
+        'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In'
+    ],
+    'MITARBEITER': [
+        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 
+        'Reservierungen', 'Kunden', 'Check-In', 'Rechnungen'
+    ],
+    'FAHRER': [
+        'Dashboard', 'Aufgaben', 'Fahrzeugflotte'
+    ]
+};
+
+const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+};
+
+export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff }: SidebarProps) {
     const pathname = usePathname();
+
+    const allowedItems = menuItems.filter(item => {
+        const perms = rolePermissions[staff.role] || [];
+        return perms.includes('all') || perms.includes(item.name);
+    });
 
     const getBadge = (item: (typeof menuItems)[0]) => {
         if (item.badgeKey === 'live') return 'Live';
@@ -100,7 +126,7 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-6 space-y-1 px-3">
-                {menuItems.map((item) => {
+                {allowedItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
                         <Link
@@ -137,13 +163,13 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
 
             {/* Quick Stats - from DB */}
             <div className="px-6 py-4 border-t border-slate-800 dark:border-gray-800 bg-slate-950/50 dark:bg-gray-900/50">
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3">
-                        <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Aktive</div>
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                    <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3 text-center">
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Aktive Mietvorgänge</div>
                         <div className="text-lg font-bold text-white">{activeRentals}</div>
                     </div>
-                    <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3">
-                        <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Heute</div>
+                    <div className="bg-slate-800/50 dark:bg-gray-800/50 rounded-lg p-3 text-center">
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Umsatz Heute</div>
                         <div className="text-lg font-bold text-green-400">
                             {todayRevenue >= 1000
                                 ? `€${(todayRevenue / 1000).toFixed(1)}k`
@@ -151,23 +177,31 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                         </div>
                     </div>
                 </div>
+                {staff.location && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 text-[10px] font-bold uppercase tracking-wider justify-center">
+                        <MapPin className="w-3 h-3" />
+                        {staff.location.name}
+                    </div>
+                )}
             </div>
 
             {/* User / Footer */}
             <div className="p-4 border-t border-slate-800 dark:border-gray-800 bg-slate-950 dark:bg-gray-900">
                 <div className="flex items-center gap-3 mb-3 px-2">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
-                        AU
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shrink-0">
+                        {getInitials(staff.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">Admin User</p>
-                        <p className="text-xs text-slate-400">Administrator</p>
+                        <p className="text-sm font-semibold text-white truncate">{staff.name}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{staff.role}</p>
                     </div>
                 </div>
-                <button className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800 dark:hover:bg-gray-800 group">
-                    <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                    <span>Abmelden</span>
-                </button>
+                <form action="/api/admin/logout" method="POST">
+                    <button type="submit" className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800 dark:hover:bg-gray-800 group">
+                        <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        <span>Abmelden</span>
+                    </button>
+                </form>
             </div>
         </aside>
     );

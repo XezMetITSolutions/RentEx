@@ -6,10 +6,16 @@ export function middleware(request: NextRequest) {
     const cookie = request.cookies.get('rentex_customer')?.value;
 
     if (pathname.startsWith('/dashboard')) {
-        if (!cookie) {
+        if (!request.cookies.get('rentex_customer')?.value) {
             const login = new URL('/login', request.url);
             login.searchParams.set('from', pathname);
             return NextResponse.redirect(login);
+        }
+    }
+
+    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+        if (!request.cookies.get('rentex_admin_session')?.value) {
+            return NextResponse.redirect(new URL('/admin/login', request.url));
         }
     }
 
@@ -17,5 +23,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*'],
+    matcher: ['/dashboard/:path*', '/admin/:path*'],
 };

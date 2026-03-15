@@ -6,14 +6,14 @@ import {
     MapPin, Mail, Key, ToggleLeft, ToggleRight, AlertCircle
 } from "lucide-react";
 
-const ROLES = ["SUPERADMIN", "MANAGER", "AGENT", "DRIVER"] as const;
+const ROLES = ["ADMINISTRATOR", "FILIALLEITER", "MITARBEITER", "FAHRER"] as const;
 type Role = typeof ROLES[number];
 
 const ROLE_COLORS: Record<Role, string> = {
-    SUPERADMIN: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    MANAGER: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    AGENT: "bg-green-500/10 text-green-400 border-green-500/20",
-    DRIVER: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    ADMINISTRATOR: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    FILIALLEITER: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    MITARBEITER: "bg-green-500/10 text-green-400 border-green-500/20",
+    FAHRER: "bg-orange-500/10 text-orange-400 border-orange-500/20",
 };
 
 interface StaffMember {
@@ -36,7 +36,7 @@ export default function StaffPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editTarget, setEditTarget] = useState<StaffMember | null>(null);
-    const [formData, setFormData] = useState({ name: "", email: "", role: "AGENT" as Role, locationId: "", password: "", isActive: true });
+    const [formData, setFormData] = useState({ name: "", email: "", role: "MITARBEITER" as Role, locationId: "", password: "", isActive: true });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
@@ -46,7 +46,7 @@ export default function StaffPage() {
         setLoading(true);
         const [s, l] = await Promise.all([
             fetch("/api/admin/staff").then(r => r.json()),
-            fetch("/api/admin/locations").then(r => r.json()).catch(() => []),
+            fetch("/api/locations").then(r => r.json()).catch(() => []),
         ]);
         setStaff(Array.isArray(s) ? s : []);
         setLocations(Array.isArray(l) ? l : []);
@@ -55,7 +55,7 @@ export default function StaffPage() {
 
     function openNew() {
         setEditTarget(null);
-        setFormData({ name: "", email: "", role: "AGENT", locationId: "", password: "", isActive: true });
+        setFormData({ name: "", email: "", role: "MITARBEITER", locationId: "", password: "", isActive: true });
         setError("");
         setShowForm(true);
     }
@@ -227,61 +227,63 @@ export default function StaffPage() {
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-4">
-                            {error && (
-                                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm">
-                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    {error}
+                        <form onSubmit={(e) => { e.preventDefault(); save(); }}>
+                            <div className="p-6 space-y-4">
+                                {error && (
+                                    <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                        {error}
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
+                                    <input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        placeholder="Max Mustermann" required />
                                 </div>
-                            )}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
-                                <input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                    placeholder="Max Mustermann" />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail *</label>
+                                    <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        placeholder="max@rentex.at" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rolle *</label>
+                                    <select value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as Role }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                                        {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Standort</label>
+                                    <select value={formData.locationId} onChange={e => setFormData(p => ({ ...p, locationId: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                                        <option value="">Kein Standort</option>
+                                        {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                        <Key className="w-3 h-3" />
+                                        {editTarget ? "Neues Passwort (leer lassen = ungeändert)" : "Passwort *"}
+                                    </label>
+                                    <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        placeholder="••••••••" autoComplete="new-password" />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail *</label>
-                                <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                    placeholder="max@rentex.at" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rolle *</label>
-                                <select value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as Role }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Standort</label>
-                                <select value={formData.locationId} onChange={e => setFormData(p => ({ ...p, locationId: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                    <option value="">Kein Standort</option>
-                                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                    <Key className="w-3 h-3" />
-                                    {editTarget ? "Neues Passwort (leer lassen = ungeändert)" : "Passwort *"}
-                                </label>
-                                <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                    placeholder="••••••••" />
-                            </div>
-                        </div>
 
-                        <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
-                            <button onClick={() => setShowForm(false)}
-                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                Abbrechen
-                            </button>
-                            <button onClick={save} disabled={saving}
-                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                                {saving ? "Speichern..." : <><Check className="w-4 h-4" />{editTarget ? "Aktualisieren" : "Erstellen"}</>}
-                            </button>
-                        </div>
+                            <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
+                                <button type="button" onClick={() => setShowForm(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    Abbrechen
+                                </button>
+                                <button type="submit" disabled={saving}
+                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    {saving ? "Speichern..." : <><Check className="w-4 h-4" />{editTarget ? "Aktualisieren" : "Erstellen"}</>}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

@@ -1,20 +1,32 @@
-
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Plus, ListTodo } from 'lucide-react';
 import TaskBoard from '@/components/admin/tasks/TaskBoard';
+import { getAdminSession } from '@/lib/adminAuth';
 
-async function getTasks() {
+export const dynamic = 'force-dynamic';
+
+async function getTasks(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.OR = [
+            { car: { locationId: locationId } },
+            { relatedCarId: null } // Allow seeing general tasks? Or only car-related at that location?
+            // Usually Filialleiter sees all general tasks + tasks for cars in their location.
+        ];
+    }
+
     return await prisma.task.findMany({
+        where,
         orderBy: { dueDate: 'asc' },
         include: { car: true }
     });
 }
 
-export const dynamic = 'force-dynamic';
-
 export default async function TasksPage() {
-    const tasks = await getTasks();
+    const staff = await getAdminSession();
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const tasks = await getTasks(isRestricted ? staff?.locationId : undefined);
 
     return (
         <div className="h-[calc(100vh-80px)] p-4 md:p-8 max-w-7xl mx-auto flex flex-col space-y-8">

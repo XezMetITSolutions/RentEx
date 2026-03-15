@@ -2,8 +2,53 @@
 
 import prisma from '@/lib/prisma';
 import { setSession, getSession, clearSession, verifyPassword, hashPassword } from '@/lib/auth';
+import { setAdminSession } from '@/lib/adminAuth';
 import { redirect } from 'next/navigation';
 import { validateName } from '@/lib/nameValidation';
+
+export async function adminLogin(formData: FormData) {
+    const email = (formData.get('email') as string)?.trim();
+    const password = formData.get('password') as string;
+
+    if (!email || !password) {
+        return { error: 'E-Mail und Passwort eingeben.' };
+    }
+
+    const staff = await prisma.staff.findUnique({ 
+        where: { email },
+        include: { location: true }
+    });
+    
+    if (!staff || !staff.passwordHash || !staff.isActive) {
+        return { error: 'Ungültige Anmeldedaten oder Konto deaktiviert.' };
+    }
+
+    // Since staff uses scrypt from crypto manually in staff/route.ts, 
+    // I need to ensure verifyPassword handles both . and : separators or standardize.
+    // Looking at staff/route.ts: const passwordHash = `${salt}:${hash}`;
+    // Looking at auth.ts: const derived = crypto.scryptSync(password, salt, KEY_LEN, SCRYPT_OPTS).toString('hex');
+    
+    const [salt, storedHash] = staff.passwordHash.includes(':') 
+        ? staff.passwordHash.split(':') 
+        : staff.passwordHash.split('.');
+
+    const { scryptSync } = await import("crypto");
+    const hash = scryptSync(password, salt, 64).toString("hex");
+    
+    if (hash !== storedHash) {
+        return { error: 'Ungültige Anmeldedaten.' };
+    }
+
+    await setAdminSession(staff.id);
+    
+    // Update last login
+    await prisma.staff.update({
+        where: { id: staff.id },
+        data: { lastLoginAt: new Date() }
+    });
+
+    redirect('/admin');
+}
 
 export async function login(formData: FormData) {
     const email = (formData.get('email') as string)?.trim();

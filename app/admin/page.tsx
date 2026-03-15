@@ -6,14 +6,21 @@ import { de } from 'date-fns/locale';
 import DashboardCharts from '@/components/admin/DashboardCharts';
 import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
-async function getStats() {
+async function getStats(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.pickupLocationId = locationId;
+    }
+
     // 1. Total Revenue (Confirmed rentals, excluding cancelled)
     const totalRevenueResult = await prisma.rental.aggregate({
         _sum: { totalAmount: true },
         where: {
+            ...where,
             status: { in: ['Active', 'Completed', 'Pending'] }
         }
     });
@@ -21,26 +28,37 @@ async function getStats() {
 
     // 2. Ongoing/Active Business (Active + Pending reservations)
     const activeRentalsCount = await prisma.rental.count({
-        where: { status: { in: ['Active', 'Pending'] } }
+        where: { 
+            ...where,
+            status: { in: ['Active', 'Pending'] } 
+        }
     });
 
-    // 3. New Customers (This Month)
+    // 3. New Customers (This Month) - Note: Customers are global, but we could link them to location via their first rental if needed.
+    // For now, let's keep customers global or filter if staff is restricted? 
+    // Usually Filialleiter only cares about customers who rented at their location.
     const startOfCurrentMonth = startOfMonth(new Date());
     const newCustomersCount = await prisma.customer.count({
-        where: { createdAt: { gte: startOfCurrentMonth } }
+        where: { 
+            createdAt: { gte: startOfCurrentMonth },
+            // If restricted, maybe only show customers with rentals at this location?
+            ...(locationId ? { rentals: { some: { pickupLocationId: locationId } } } : {})
+        }
     });
 
     // 4. Pending Reservations
-    const pendingReservationsCount = await prisma.rental.count({ where: { status: 'Pending' } });
-
-    // Calculating 'growth' is complex without historical snapshots, so we'll leave trend as 'neutral' or estimate
-    // based on created date for simple counts.
+    const pendingReservationsCount = await prisma.rental.count({ 
+        where: { 
+            ...where,
+            status: 'Pending' 
+        } 
+    });
 
     return [
         {
             name: 'Gesamteinnahmen',
             value: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(totalRevenue),
-            change: 'Total',
+            change: 'Gesamt',
             trend: 'neutral',
             icon: Wallet,
             color: 'bg-green-500',
@@ -49,7 +67,7 @@ async function getStats() {
             name: 'Aktive Vermietungen',
             value: activeRentalsCount.toString(),
             change: 'Aktuell',
-            trend: 'neutral', // Could be compared to yesterday if we had daily snapshots
+            trend: 'neutral',
             icon: Car,
             color: 'bg-blue-500',
         },
@@ -72,8 +90,12 @@ async function getStats() {
     ];
 }
 
-async function getChartData() {
-    // 1. Revenue Last 6 Months
+async function getChartData(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.pickupLocationId = locationId;
+    }
+
     const revenueData = [];
     for (let i = 5; i >= 0; i--) {
         const date = subMonths(new Date(), i);
@@ -83,7 +105,7 @@ async function getChartData() {
         const monthlyRevenue = await prisma.rental.aggregate({
             _sum: { totalAmount: true },
             where: {
-                // paymentStatus: 'Paid', // Relaxed constraint for chart visualization if data is sparse
+                ...where,
                 createdAt: { gte: start, lte: end },
                 status: { not: 'Cancelled' }
             }
@@ -92,15 +114,24 @@ async function getChartData() {
         revenueData.push({
             month: format(date, 'MMM', { locale: de }),
             revenue: Number(monthlyRevenue._sum.totalAmount || 0),
-            rentals: await prisma.rental.count({ where: { createdAt: { gte: start, lte: end } } })
+            rentals: await prisma.rental.count({ 
+                where: { 
+                    ...where,
+                    createdAt: { gte: start, lte: end } 
+                } 
+            })
         });
     }
 
-    // 2. Fleet Category Distribution
+    const categoryDataWhere: any = { isActive: true };
+    if (locationId) {
+        categoryDataWhere.locationId = locationId;
+    }
+
     const carsByCategory = await prisma.car.groupBy({
         by: ['category'],
         _count: { category: true },
-        where: { isActive: true }
+        where: categoryDataWhere
     });
 
     const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#6366F1'];
@@ -110,10 +141,15 @@ async function getChartData() {
         color: colors[i % colors.length]
     }));
 
-    // 3. Top Locations
+    const locationDataWhere: any = {};
+    if (locationId) {
+        locationDataWhere.pickupLocationId = locationId;
+    }
+
     const rentalsByLocation = await prisma.rental.groupBy({
         by: ['pickupLocationId'],
         _count: { pickupLocationId: true },
+        where: locationDataWhere,
         take: 5,
         orderBy: { _count: { pickupLocationId: 'desc' } }
     });
@@ -134,8 +170,14 @@ async function getChartData() {
     };
 }
 
-async function getRecentRentals() {
+async function getRecentRentals(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.pickupLocationId = locationId;
+    }
+
     const rentals = await prisma.rental.findMany({
+        where,
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
@@ -147,9 +189,15 @@ async function getRecentRentals() {
 }
 
 export default async function AdminDashboard() {
-    const stats = await getStats();
-    const recentRentals = await getRecentRentals();
-    const chartData = await getChartData();
+    const staff = await getAdminSession();
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const locId = isRestricted ? staff?.locationId : undefined;
+
+    const [stats, recentRentals, chartData] = await Promise.all([
+        getStats(locId),
+        getRecentRentals(locId),
+        getChartData(locId)
+    ]);
 
     return (
         <div className="space-y-8">
@@ -181,13 +229,12 @@ export default async function AdminDashboard() {
                                 {stat.trend === 'down' && <ArrowDownRight className="mr-1 h-4 w-4" />}
                                 {stat.change}
                             </span>
-                            {/* <span className="ml-2 text-gray-400">vs Vormonat</span> */}
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Today's Overview - Pickups, Returns, Maintenance */}
+            {/* Today's Overview */}
             <TodayOverview />
 
             {/* Interactive Charts */}
@@ -279,22 +326,6 @@ export default async function AdminDashboard() {
                             <span className="font-medium text-gray-700 dark:text-gray-200">Kunde suchen</span>
                             <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
                         </Link>
-                    </div>
-
-                    <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-5">
-                        <div className="rounded-xl bg-blue-600 p-4 text-white">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h4 className="font-semibold mb-1">Mobile App</h4>
-                                    <p className="text-xs text-blue-100 mb-3">Verwalten Sie Ihr Geschäft von überall.</p>
-                                </div>
-                                <Activity className="h-5 w-5 text-blue-200" />
-                            </div>
-                            <div className="h-2 w-full bg-blue-500 rounded-full overflow-hidden">
-                                <div className="h-full w-3/4 bg-white rounded-full"></div>
-                            </div>
-                            <p className="text-[10px] mt-2 text-right opacity-80">v1.2 Verfügbar</p>
-                        </div>
                     </div>
                 </div>
             </div>

@@ -12,9 +12,10 @@ interface AdminLayoutWrapperProps {
         todayRevenue: number;
         pendingNotifications: number;
     };
+    staff: any;
 }
 
-export default function AdminLayoutWrapper({ children, stats }: AdminLayoutWrapperProps) {
+export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayoutWrapperProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
 
@@ -32,6 +33,7 @@ export default function AdminLayoutWrapper({ children, stats }: AdminLayoutWrapp
                 pendingNotifications={stats.pendingNotifications}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                staff={staff}
             />
 
             {/* Mobile Backdrop */}

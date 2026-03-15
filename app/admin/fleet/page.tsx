@@ -1,10 +1,17 @@
 import prisma from '@/lib/prisma';
 import { FleetManager } from '@/components/admin/FleetManager';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
-async function getCars() {
+async function getCars(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.locationId = locationId;
+    }
+
     const cars = await prisma.car.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         include: {
             currentLocation: true,
@@ -25,7 +32,10 @@ async function getCars() {
 }
 
 export default async function FleetPage() {
-    const cars = await getCars();
+    const staff = await getAdminSession();
+    // ADMINISTRATOR sees everything. Others only see their location.
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const cars = await getCars(isRestricted ? staff?.locationId : undefined);
 
     return (
         <FleetManager initialCars={cars} />

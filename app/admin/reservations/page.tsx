@@ -5,11 +5,18 @@ import { Search, Filter, Calendar, List } from 'lucide-react';
 import { clsx } from 'clsx';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
 import Link from 'next/link';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
-async function getRentals() {
+async function getRentals(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.pickupLocationId = locationId;
+    }
+
     const rentals = await prisma.rental.findMany({
+        where,
         orderBy: {
             createdAt: 'desc'
         },
@@ -23,7 +30,10 @@ async function getRentals() {
 
 export default async function ReservationsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
     const resolvedSearchParams = await searchParams;
-    const rentals = await getRentals();
+    const staff = await getAdminSession();
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    
+    const rentals = await getRentals(isRestricted ? staff?.locationId : undefined);
     const view = resolvedSearchParams.view || 'list';
 
     return (

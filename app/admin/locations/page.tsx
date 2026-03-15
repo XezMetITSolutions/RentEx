@@ -2,11 +2,18 @@ import { MapPin, Phone, Clock, Car, Plus, Edit, Trash2, Eye } from 'lucide-react
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { clsx } from 'clsx';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
-async function getLocations() {
+async function getLocations(locationId?: number | null) {
+    const where: any = {};
+    if (locationId) {
+        where.id = locationId;
+    }
+
     const locations = await prisma.location.findMany({
+        where,
         include: {
             _count: {
                 select: {
@@ -28,7 +35,11 @@ async function getLocations() {
 }
 
 export default async function LocationsPage() {
-    const locations = await getLocations();
+    const staff = await getAdminSession();
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const locations = await getLocations(isRestricted ? staff?.locationId : undefined);
+
+    const isSup = staff?.role === 'ADMINISTRATOR';
 
     return (
         <div className="space-y-6">
@@ -40,13 +51,15 @@ export default async function LocationsPage() {
                         Verwalten Sie Ihre Vermietungsstandorte und deren Details.
                     </p>
                 </div>
-                <Link
-                    href="/admin/locations/new"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-600 transition-all shadow-lg shadow-red-500/30"
-                >
-                    <Plus className="w-5 h-5" />
-                    Neuer Standort
-                </Link>
+                {isSup && (
+                    <Link
+                        href="/admin/locations/new"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-600 transition-all shadow-lg shadow-red-500/30"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Neuer Standort
+                    </Link>
+                )}
             </div>
 
             {/* Stats Cards */}
@@ -109,7 +122,9 @@ export default async function LocationsPage() {
             {/* Locations List */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                 <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Alle Standorte</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {isRestricted ? "Mein Standort" : "Alle Standorte"}
+                    </h2>
                 </div>
 
                 {locations.length === 0 ? (
@@ -117,17 +132,19 @@ export default async function LocationsPage() {
                         <MapPin className="mx-auto h-12 w-12 text-gray-400" />
                         <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">Keine Standorte</h3>
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Erstellen Sie Ihren ersten Standort, um loszulegen.
+                            {isRestricted ? "Ihrem Konto ist kein Standort zugewiesen." : "Erstellen Sie Ihren ersten Standort, um loszulegen."}
                         </p>
-                        <div className="mt-6">
-                            <Link
-                                href="/admin/locations/new"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-600 transition-all"
-                            >
-                                <Plus className="w-5 h-5" />
-                                Neuer Standort
-                            </Link>
-                        </div>
+                        {isSup && (
+                            <div className="mt-6">
+                                <Link
+                                    href="/admin/locations/new"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-600 transition-all"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    Neuer Standort
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -215,19 +232,23 @@ export default async function LocationsPage() {
                                         >
                                             <Eye className="w-5 h-5" />
                                         </Link>
-                                        <Link
-                                            href={`/admin/locations/${location.id}/edit`}
-                                            className="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                            title="Bearbeiten"
-                                        >
-                                            <Edit className="w-5 h-5" />
-                                        </Link>
-                                        <button
-                                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                            title="Löschen"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        {isSup && (
+                                            <>
+                                                <Link
+                                                    href={`/admin/locations/${location.id}/edit`}
+                                                    className="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
+                                                    title="Bearbeiten"
+                                                >
+                                                    <Edit className="w-5 h-5" />
+                                                </Link>
+                                                <button
+                                                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    title="Löschen"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
