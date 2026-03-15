@@ -15,23 +15,22 @@ async function getLocations(locationId?: number | null) {
     const locations = await prisma.location.findMany({
         where,
         include: {
-            _count: {
-                select: {
-                    cars: true,
-                    homeCars: true,
-                }
-            }
+            cars: { select: { id: true } },
+            homeCars: { select: { id: true } }
         },
         orderBy: {
             name: 'asc'
         }
     });
 
-    // Calculate total vehicles per location (current + home)
-    return locations.map(loc => ({
-        ...loc,
-        totalVehicles: loc._count.cars + loc._count.homeCars
-    }));
+    // Calculate unique total vehicles per location
+    return locations.map(loc => {
+        const uniqueCarIds = new Set([...loc.cars.map(c => c.id), ...loc.homeCars.map(c => c.id)]);
+        return {
+            ...loc,
+            totalVehicles: uniqueCarIds.size
+        };
+    });
 }
 
 export default async function LocationsPage() {
