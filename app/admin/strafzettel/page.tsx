@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
     AlertTriangle, Plus, Edit2, Check, X, Car, FileText,
-    ExternalLink, Clock, DollarSign, Filter
+    ExternalLink, Clock, DollarSign, Filter, User
 } from "lucide-react";
 
 type Status = "OPEN" | "FORWARDED" | "PAID" | "DISPUTED";
@@ -38,6 +38,7 @@ interface StrafzettelRecord {
 
 export default function StrafzettelPage() {
     const [records, setRecords] = useState<StrafzettelRecord[]>([]);
+    const [cars, setCars] = useState<{ id: number; plate: string; brand: string; model: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const [showForm, setShowForm] = useState(false);
@@ -48,8 +49,10 @@ export default function StrafzettelPage() {
         notes: "", status: "OPEN", paidBy: "",
     });
     const [saving, setSaving] = useState(false);
+    const [identifiedRental, setIdentifiedRental] = useState<any>(null);
+    const [identifying, setIdentifying] = useState(false);
 
-    useEffect(() => { load(); }, [statusFilter]);
+    useEffect(() => { load(); loadCars(); }, [statusFilter]);
 
     async function load() {
         setLoading(true);
@@ -58,6 +61,42 @@ export default function StrafzettelPage() {
         setRecords(Array.isArray(data) ? data : []);
         setLoading(false);
     }
+
+    async function loadCars() {
+        const data = await fetch("/api/admin/strafzettel/cars").then(r => r.json());
+        setCars(data);
+    }
+
+    async function identifyRental(cid: string, d: string, t: string) {
+        if (!cid || !d) return;
+        setIdentifying(true);
+        try {
+            const url = `/api/admin/strafzettel/lookup?carId=${cid}&date=${d}${t ? `&time=${t}` : ""}`;
+            const res = await fetch(url);
+            if (res.ok) {
+                const rental = await res.json();
+                setIdentifiedRental(rental);
+                setForm(p => ({ ...p, rentalId: rental.id.toString() }));
+            } else {
+                setIdentifiedRental(null);
+                setForm(p => ({ ...p, rentalId: "" }));
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIdentifying(false);
+        }
+    }
+
+    // Effect to auto-identify when car, date or time changes
+    useEffect(() => {
+        if (form.carId && form.issuedDate) {
+            const timer = setTimeout(() => {
+                identifyRental(form.carId, form.issuedDate, form.issuedTime);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [form.carId, form.issuedDate, form.issuedTime]);
 
     function openEdit(r: StrafzettelRecord) {
         setEditTarget(r);
@@ -69,12 +108,14 @@ export default function StrafzettelPage() {
             referenceNumber: r.referenceNumber ?? "", notes: r.notes ?? "",
             status: r.status, paidBy: r.paidBy ?? "",
         });
+        setIdentifiedRental(r.rental);
         setShowForm(true);
     }
 
     function openNew() {
         setEditTarget(null);
         setForm({ carId: "", rentalId: "", plate: "", issuedDate: "", issuedTime: "", incidentLocation: "", amount: "", authority: "", referenceNumber: "", notes: "", status: "OPEN", paidBy: "" });
+        setIdentifiedRental(null);
         setShowForm(true);
     }
 
@@ -220,14 +261,81 @@ export default function StrafzettelPage() {
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
+                            {/* Car/Plate Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fahrzeug (Kennzeichen) *</label>
+                                <select 
+                                    value={form.carId}
+                                    onChange={e => {
+                                        const cid = e.target.value;
+                                        const car = cars.find(c => c.id.toString() === cid);
+                                        setForm(p => ({ ...p, carId: cid, plate: car?.plate ?? "" }));
+                                    }}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                >
+                                    <option value="">Fahrzeug auswählen...</option>
+                                    {cars.map(c => (
+                                        <option key={c.id} value={c.id}>{c.plate} ({c.brand} {c.model})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tatdatum *</label>
+                                    <input type="date" value={form.issuedDate}
+                                        onChange={e => setForm(p => ({ ...p, issuedDate: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tatzeit</label>
+                                    <input type="time" value={form.issuedTime}
+                                        onChange={e => setForm(p => ({ ...p, issuedTime: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                </div>
+                            </div>
+
+                            {/* Identified Rental Display */}
+                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Identifizierter Mieter</span>
+                                    {identifying && <Clock className="w-3 h-3 animate-spin text-blue-500" />}
+                                </div>
+                                {identifiedRental ? (
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{identifiedRental.customer.firstName} {identifiedRental.customer.lastName}</p>
+                                            <p className="text-xs text-gray-500">Vertrag: {identifiedRental.contractNumber ?? `#${identifiedRental.id}`}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-500 italic">
+                                        {identifying ? "Suche läuft..." : "Kein Mieter für diesen Zeitraum gefunden."}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Betrag (€)</label>
+                                    <input type="number" value={form.amount}
+                                        onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                                    <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                                        {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
                             {[
-                                { label: "Fahrzeug-ID *", key: "carId", type: "number" },
-                                { label: "Miete-ID (optional)", key: "rentalId", type: "number" },
-                                { label: "Kennzeichen *", key: "plate", type: "text" },
-                                { label: "Tatdatum *", key: "issuedDate", type: "date" },
-                                { label: "Tatzeit", key: "issuedTime", type: "time" },
                                 { label: "Tatort", key: "incidentLocation", type: "text" },
-                                { label: "Betrag (€)", key: "amount", type: "number" },
                                 { label: "Behörde", key: "authority", type: "text" },
                                 { label: "Aktenzeichen", key: "referenceNumber", type: "text" },
                                 { label: "Notizen", key: "notes", type: "text" },
@@ -239,13 +347,6 @@ export default function StrafzettelPage() {
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
                                 </div>
                             ))}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                    {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                                </select>
-                            </div>
                         </div>
                         <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
                             <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Abbrechen</button>
