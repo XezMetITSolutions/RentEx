@@ -56,7 +56,19 @@ export default async function LocationDetailPage(props: {
         notFound();
     }
 
-    const totalVehicles = location.cars.length + location.homeCars.length;
+    const allCarsMap = new Map<number, (typeof location.cars)[0] & { isCurrent: boolean, isHome: boolean }>();
+    location.cars.forEach(car => allCarsMap.set(car.id, { ...car, isCurrent: true, isHome: false }));
+    location.homeCars.forEach(car => {
+        if (allCarsMap.has(car.id)) {
+            const existing = allCarsMap.get(car.id)!;
+            existing.isHome = true;
+        } else {
+            allCarsMap.set(car.id, { ...car, isCurrent: false, isHome: true });
+        }
+    });
+
+    const uniqueCars = Array.from(allCarsMap.values());
+    const totalVehicles = uniqueCars.length;
 
     return (
         <div className="space-y-6">
@@ -281,7 +293,7 @@ export default async function LocationDetailPage(props: {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {location.cars.map((car) => (
+                                {uniqueCars.map((car) => (
                                     <tr key={car.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td className="px-6 py-4">
                                             <Link
@@ -300,38 +312,18 @@ export default async function LocationDetailPage(props: {
                                                 car.status === 'Rented' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
                                                 car.status === 'Maintenance' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300',
                                             )}>
-                                                {car.status}
+                                                {car.status === 'Active' ? 'Verfügbar' : car.status === 'Rented' ? 'Vermietet' : car.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">Aktuell</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {location.homeCars.map((car) => (
-                                    <tr key={`home-${car.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td className="px-6 py-4">
-                                            <Link
-                                                href={`/admin/fleet/${car.id}`}
-                                                className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                                            >
-                                                {car.brand} {car.model}
-                                            </Link>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-900 dark:text-white font-mono">{car.plate}</td>
-                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{car.category}</td>
                                         <td className="px-6 py-4">
                                             <span className={clsx(
-                                                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                                car.status === 'Active' && 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
-                                                car.status === 'Rented' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
-                                                car.status === 'Maintenance' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300',
+                                                "px-2 py-1 rounded text-xs font-medium",
+                                                car.isCurrent && car.isHome ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" :
+                                                car.isCurrent ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" :
+                                                "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
                                             )}>
-                                                {car.status}
+                                                {car.isCurrent && car.isHome ? 'Standort & Heimat' : car.isCurrent ? 'Zu Gast' : 'Unterwegs'}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">Heimat</span>
                                         </td>
                                     </tr>
                                 ))}
