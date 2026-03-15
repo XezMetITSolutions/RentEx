@@ -46,11 +46,10 @@ async function getLocation(id: string) {
     return location;
 }
 
-export default async function LocationDetailPage({
-    params,
-}: {
-    params: { id: string };
+export default async function LocationDetailPage(props: {
+    params: Promise<{ id: string }>;
 }) {
+    const params = await props.params;
     const location = await getLocation(params.id);
 
     if (!location) {
