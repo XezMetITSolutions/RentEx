@@ -13,10 +13,6 @@ export default async function AdminLayout({
         getAdminSession()
     ]);
 
-    if (!staff) {
-        redirect('/admin/login');
-    }
-
     return (
         <AdminLayoutWrapper stats={stats} staff={staff}>
             {children}
