@@ -164,43 +164,54 @@ export default function CheckInSetupPage() {
                                 </div>
                             </div>
 
-                            {/* Scrolling Grid */}
-                            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-4 hide-scrollbar">
+                            {/* Scrolling List */}
+                            <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-2 hide-scrollbar">
                                 {filteredCars.map(car => (
                                     <button
                                         key={car.id}
                                         onClick={() => toggleCarSelection(car.id)}
-                                        className={`group relative text-left p-6 rounded-[2rem] border-2 transition-all ${selectedCarIds.includes(car.id)
-                                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 shadow-lg'
-                                            : 'bg-gray-50 dark:bg-gray-800/30 border-transparent hover:border-gray-200 dark:hover:border-gray-700'
+                                        className={`group relative text-left p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 ${selectedCarIds.includes(car.id)
+                                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 shadow-sm'
+                                            : 'bg-white dark:bg-gray-800/30 border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
                                             }`}
                                     >
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-1">{car.brand}</p>
-                                                <h4 className="text-lg font-black text-gray-900 dark:text-white leading-tight mb-2">{car.model}</h4>
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 text-[10px] font-black">
-                                                    {car.plate}
-                                                </div>
-                                            </div>
-                                            <div className={`p-2 rounded-xl transition-all ${selectedCarIds.includes(car.id)
-                                                ? 'bg-purple-500 text-white'
-                                                : 'bg-white dark:bg-gray-700 text-gray-300'
+                                        <div className="flex items-center gap-4 flex-1">
+                                            <div className={`p-3 rounded-xl transition-all ${selectedCarIds.includes(car.id)
+                                                ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
+                                                : 'bg-gray-50 dark:bg-gray-800 text-gray-400'
                                                 }`}>
-                                                {selectedCarIds.includes(car.id) ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                                                <Car className="w-5 h-5" />
+                                            </div>
+                                            
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-3 mb-0.5">
+                                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{car.brand} {car.model}</h4>
+                                                    <span className="shrink-0 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[10px] font-black text-gray-500 border border-transparent">
+                                                        {car.plate}
+                                                    </span>
+                                                </div>
+                                                
+                                                {car.checkInTemplate ? (
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600">
+                                                        <Folder className="w-3 h-3" />
+                                                        <span>Vorlage: {car.checkInTemplate}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] text-gray-400 font-medium italic">Keine Vorlage zugewiesen</span>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {car.checkInTemplate && (
-                                            <div className="mt-4 flex items-center gap-2 text-xs font-bold text-blue-600">
-                                                <Folder className="w-4 h-4" />
-                                                <span>Vorlage: {car.checkInTemplate}</span>
-                                            </div>
-                                        )}
+                                        <div className={`shrink-0 p-1.5 rounded-lg transition-all ${selectedCarIds.includes(car.id)
+                                            ? 'text-purple-500'
+                                            : 'text-gray-200 dark:text-gray-700'
+                                            }`}>
+                                            {selectedCarIds.includes(car.id) ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
+                                        </div>
                                     </button>
                                 ))}
                                 {filteredCars.length === 0 && (
-                                    <div className="col-span-full py-20 text-center text-gray-400 font-bold">
+                                    <div className="py-20 text-center text-gray-400 font-bold">
                                         Keine Fahrzeuge gefunden
                                     </div>
                                 )}
