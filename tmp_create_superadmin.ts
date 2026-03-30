@@ -4,8 +4,8 @@ import { scryptSync, randomBytes } from 'crypto';
 const prisma = new PrismaClient();
 
 async function main() {
-    const email = 'admin@rentex.at';
-    const password = 'admin';
+    const email = 'info@rent-ex.at';
+    const password = 'RentEx300326';
     const salt = randomBytes(16).toString("hex");
     const hash = scryptSync(password, salt, 64).toString("hex");
     const passwordHash = `${salt}:${hash}`;
