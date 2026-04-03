@@ -66,7 +66,7 @@ export default function Hero() {
                             </div>
 
                             <div className="group relative p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-gray-100 dark:border-white/10 backdrop-blur-md hover:border-red-500/30 transition-all duration-300 hover:-translate-y-1">
-                                <p className="text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">1000+</p>
+                                <p className="text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">2000+</p>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">Zufriedene Kunden</p>
                             </div>
 
@@ -121,16 +121,28 @@ export default function Hero() {
                                         </button>
                                     </div>
 
-                                    {/* Location */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Abholort</label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                <MapPin className="h-5 w-5 text-red-500 group-focus-within:text-red-600 transition-colors" />
+                                    {/* Locations */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Abholort</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <MapPin className="h-5 w-5 text-red-500 group-focus-within:text-red-600 transition-colors" />
+                                                </div>
+                                                <div className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white font-medium flex items-center shadow-sm text-sm">
+                                                    Feldkirch Rentex
+                                                </div>
                                             </div>
-                                            <div className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white font-medium flex items-center shadow-sm">
-                                                Feldkirch
-                                                <span className="ml-auto text-[10px] font-bold text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-full border border-red-200 dark:border-red-800">STANDARD</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Rückgabeort</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <MapPin className="h-5 w-5 text-red-500 group-focus-within:text-red-600 transition-colors" />
+                                                </div>
+                                                <div className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white font-medium flex items-center shadow-sm text-sm">
+                                                    Feldkirch Rentex
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
