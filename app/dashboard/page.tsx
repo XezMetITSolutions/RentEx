@@ -182,13 +182,18 @@ export default async function DashboardPage() {
                             </div>
 
                             <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-4 flex justify-between items-center dark:border-zinc-800 dark:bg-zinc-900/50">
-                                <div className="flex gap-4">
-                                    <button className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">Verlängern</button>
-                                    <button className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">Pannenhilfe</button>
+                                <div className="flex gap-6">
+                                    <Link href="/contact?subject=Mietverlängerung" className="text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors">Verlängern</Link>
+                                    <Link href="/contact?subject=Pannenhilfe" className="text-sm font-medium text-zinc-600 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 transition-colors">Pannenhilfe</Link>
                                 </div>
-                                <button className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-500">
+                                <a 
+                                    href="https://www.google.com/maps/search/?api=1&query=Rent-Ex+Feldkirch" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                                >
                                     Zum Rückgabeort <ChevronRight className="h-4 w-4" />
-                                </button>
+                                </a>
                             </div>
                         </div>
                     ) : (
@@ -246,9 +251,9 @@ export default async function DashboardPage() {
                     <div className="rounded-2xl border border-zinc-200 bg-zinc-900 p-6 text-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                         <h3 className="text-lg font-bold">Brauchen Sie Hilfe?</h3>
                         <p className="mt-2 text-sm text-zinc-400">Unser Support-Team ist 24/7 für Sie da.</p>
-                        <button className="mt-4 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-100 dark:bg-zinc-100 dark:hover:bg-zinc-200">
+                        <Link href="/contact" className="mt-4 block w-full text-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-100 dark:bg-zinc-100 dark:hover:bg-zinc-200">
                             Live-Support starten
-                        </button>
+                        </Link>
                     </div>
 
                 </div>

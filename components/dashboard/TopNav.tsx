@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, Menu, User } from "lucide-react";
+import Link from "next/link";
 
 export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
     return (
@@ -18,19 +19,19 @@ export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-                <button className="relative rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50">
+                <Link href="/dashboard/settings" className="relative rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50">
                     <Bell className="h-5 w-5" />
                     <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-950"></span>
-                </button>
+                </Link>
 
                 <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800"></div>
 
-                <button className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white p-1 pr-3 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700">
+                <Link href="/dashboard/profile" className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white p-1 pr-3 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
                         <User className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                     </div>
                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Mein Konto</span>
-                </button>
+                </Link>
             </div>
         </header>
     );
