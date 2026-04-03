@@ -6,6 +6,7 @@ import { de } from 'date-fns/locale';
 import DashboardCharts from '@/components/admin/DashboardCharts';
 import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
@@ -192,6 +193,12 @@ async function getRecentRentals(locationId?: number | null) {
 
 export default async function AdminDashboard() {
     const staff = await getAdminSession();
+    
+    if (!staff) {
+        redirect('/admin/login');
+        return null; // unreachable but safe for TS
+    }
+
     const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
     const locId = isRestricted ? staff?.locationId : undefined;
 
@@ -207,7 +214,7 @@ export default async function AdminDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
-                        Willkommen zurück, {staff?.name.split(' ')[0]}
+                        Willkommen zurück, {staff?.name?.split(' ')[0] || 'Admin'}
                     </h1>
                     <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                         Hier ist die Übersicht für <span className="font-semibold text-zinc-900 dark:text-zinc-100">{staff?.location?.name || 'alle Standorte'}</span> heute.
