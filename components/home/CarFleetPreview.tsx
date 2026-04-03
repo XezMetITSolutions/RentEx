@@ -46,10 +46,10 @@ export default async function CarFleetPreview() {
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                     <div>
                         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                            Vorgestellte Fahrzeuge
+                            Sofort Verfügbar
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 max-w-xl">
-                            Entdecken Sie die beliebtesten Modelle unserer Flotte.
+                            Unsere aktuell verfügbaren Fahrzeuge für Ihre nächste Reise.
                         </p>
                     </div>
                     <Link
