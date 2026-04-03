@@ -117,10 +117,11 @@ export default function DamageReportForm({ rental, customer }: { rental: RentalW
                         <input 
                             name="vin" 
                             type="text" 
+                            readOnly
                             defaultValue={rental.car.vin || ''} 
-                            placeholder="WBA..." 
-                            className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" 
+                            className="w-full px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-400 cursor-not-allowed font-mono text-sm" 
                         />
+                        <p className="text-[10px] text-zinc-400 mt-1">Aus Mietvertrag übernommen</p>
                     </div>
                 </div>
 
