@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface DashboardChartsProps {
@@ -9,6 +10,22 @@ interface DashboardChartsProps {
 }
 
 export default function DashboardCharts({ revenueData, categoryData, locationData }: DashboardChartsProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="h-[350px] bg-zinc-50 dark:bg-zinc-900 rounded-2xl animate-pulse" />
+                <div className="h-[350px] bg-zinc-50 dark:bg-zinc-900 rounded-2xl animate-pulse" />
+                <div className="h-[350px] lg:col-span-2 bg-zinc-50 dark:bg-zinc-900 rounded-2xl animate-pulse" />
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Revenue Trend */}

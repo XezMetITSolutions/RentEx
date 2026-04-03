@@ -96,30 +96,32 @@ async function getChartData(locationId?: number | null) {
         where.pickupLocationId = locationId;
     }
 
+    const sixMonthsAgo = startOfMonth(subMonths(new Date(), 5));
+    const rentals = await prisma.rental.findMany({
+        where: {
+            ...where,
+            createdAt: { gte: sixMonthsAgo },
+            status: { not: 'Cancelled' }
+        },
+        select: {
+            totalAmount: true,
+            createdAt: true
+        }
+    });
+
     const revenueData = [];
     for (let i = 5; i >= 0; i--) {
         const date = subMonths(new Date(), i);
-        const start = startOfMonth(date);
-        const end = endOfMonth(date);
+        const s = startOfMonth(date);
+        const e = endOfMonth(date);
 
-        const monthlyRevenue = await prisma.rental.aggregate({
-            _sum: { totalAmount: true },
-            where: {
-                ...where,
-                createdAt: { gte: start, lte: end },
-                status: { not: 'Cancelled' }
-            }
-        });
+        const monthlyRentals = rentals.filter(r => r.createdAt >= s && r.createdAt <= e);
+        const revenue = monthlyRentals.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
 
         revenueData.push({
             month: format(date, 'MMM', { locale: de }),
-            revenue: Number(monthlyRevenue._sum.totalAmount || 0),
-            rentals: await prisma.rental.count({ 
-                where: { 
-                    ...where,
-                    createdAt: { gte: start, lte: end } 
-                } 
-            })
+            revenue,
+            rentals: monthlyRentals.length
         });
     }
 
