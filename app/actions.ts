@@ -227,6 +227,8 @@ export async function createCustomer(formData: FormData) {
         postalCode: formData.get('postalCode') as string || null,
         country: formData.get('country') as string || 'Deutschland',
         licenseNumber: formData.get('licenseNumber') as string || null,
+        licenseIssueDate: formData.get('licenseIssueDate') ? new Date(formData.get('licenseIssueDate') as string) : null,
+        licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
         dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
         notes: formData.get('notes') as string || null,
     };

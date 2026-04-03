@@ -337,9 +337,11 @@ model Customer {
   // Identification
   idType        String?       // Personalausweis, Reisepass, Führerschein
   idNumber      String?
+  idPhotoUrl    String?       // Photo of ID card
   licenseNumber String?       // Führerscheinnummer
   licenseIssueDate DateTime?
   licenseExpiryDate DateTime?
+  licensePhotoUrl String?      // Photo of Driver License
   
   // Additional Info
   dateOfBirth   DateTime?

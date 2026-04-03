@@ -13,7 +13,18 @@ async function getData() {
         }),
         prisma.customer.findMany({
             orderBy: { lastName: 'asc' },
-            select: { id: true, firstName: true, lastName: true, country: true }
+            select: { 
+                id: true, 
+                firstName: true, 
+                lastName: true, 
+                country: true,
+                licenseNumber: true,
+                licenseExpiryDate: true,
+                licensePhotoUrl: true,
+                _count: {
+                    select: { rentals: true }
+                }
+            }
         }),
         prisma.location.findMany({
             orderBy: { name: 'asc' },
@@ -23,7 +34,10 @@ async function getData() {
 
     return {
         cars: cars.map(car => ({ ...car, dailyRate: Number(car.dailyRate) })), // Convert Decimal to number
-        customers,
+        customers: customers.map(c => ({
+            ...c,
+            rentalsCount: c._count.rentals
+        })),
         locations
     };
 }
