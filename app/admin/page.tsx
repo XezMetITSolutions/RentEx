@@ -1,4 +1,4 @@
-import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity } from 'lucide-react';
+import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import prisma from '@/lib/prisma';
 import { formatDistanceToNow, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
@@ -202,33 +202,54 @@ export default async function AdminDashboard() {
     ]);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10 pb-10">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                        Willkommen zurück, {staff?.name.split(' ')[0]}
+                    </h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                        Hier ist die Übersicht für <span className="font-semibold text-zinc-900 dark:text-zinc-100">{staff?.location?.name || 'alle Standorte'}</span> heute.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Link 
+                        href="/admin/reservations/new"
+                        className="flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Neue Reservierung
+                    </Link>
+                </div>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <div
                         key={stat.name}
-                        className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-all hover:shadow-md"
+                        className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900/50 p-6 shadow-sm border border-zinc-200 dark:border-zinc-800 transition-all hover:shadow-md group"
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.name}</p>
-                                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                                <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{stat.name}</p>
+                                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{stat.value}</p>
                             </div>
-                            <div className={clsx('rounded-xl p-3 text-white shadow-lg', stat.color)}>
-                                <stat.icon className="h-6 w-6" />
+                            <div className={clsx('rounded-2xl p-3 text-white shadow-lg transition-transform group-hover:rotate-6', stat.color)}>
+                                <stat.icon className="h-5 w-5" />
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center text-sm">
+                        <div className="mt-4 flex items-center text-[11px] font-bold">
                             <span
                                 className={clsx(
-                                    'flex items-center font-semibold',
-                                    stat.trend === 'up' ? 'text-green-600 dark:text-green-400' :
-                                        stat.trend === 'down' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
+                                    'flex items-center rounded-full px-2 py-0.5',
+                                    stat.trend === 'up' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' :
+                                        stat.trend === 'down' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-400'
                                 )}
                             >
-                                {stat.trend === 'up' && <ArrowUpRight className="mr-1 h-4 w-4" />}
-                                {stat.trend === 'down' && <ArrowDownRight className="mr-1 h-4 w-4" />}
+                                {stat.trend === 'up' && <ArrowUpRight className="mr-1 h-3 w-3" />}
+                                {stat.trend === 'down' && <ArrowDownRight className="mr-1 h-3 w-3" />}
                                 {stat.change}
                             </span>
                         </div>
@@ -236,98 +257,85 @@ export default async function AdminDashboard() {
                 ))}
             </div>
 
-            {/* Today's Overview */}
-            <TodayOverview />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Column 1 & 2: Primary Operations */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Today's Overview Component */}
+                    <TodayOverview />
 
-            {/* Interactive Charts */}
-            <DashboardCharts
-                revenueData={chartData.revenueData}
-                categoryData={chartData.categoryData}
-                locationData={chartData.locationData}
-            />
-
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                {/* Recent Activity / Rentals */}
-                <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 lg:col-span-2">
-                    <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-5 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Letzte Vermietungen</h3>
-                        <Link href="/admin/reservations" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">Alle anzeigen</Link>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-                            <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white">
-                                <tr>
-                                    <th className="px-6 py-3 font-semibold">Fahrzeug</th>
-                                    <th className="px-6 py-3 font-semibold">Kunde</th>
-                                    <th className="px-6 py-3 font-semibold">Status</th>
-                                    <th className="px-6 py-3 font-semibold">Betrag</th>
-                                    <th className="px-6 py-3 font-semibold">Zeit</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {recentRentals.length === 0 ? (
+                    {/* Recent Content */}
+                    <div className="rounded-3xl bg-white dark:bg-zinc-900/50 shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                        <div className="px-6 py-5 flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
+                            <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                <Activity className="h-4 w-4 text-blue-500" />
+                                Letzte Vermietungen
+                            </h3>
+                            <Link href="/admin/reservations" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">Alle anzeigen</Link>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm text-zinc-600 dark:text-zinc-300">
+                                <thead className="bg-zinc-50/50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                            Keine Vermietungen gefunden
-                                        </td>
+                                        <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Fahrzeug</th>
+                                        <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Kunde</th>
+                                        <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider text-right">Betrag</th>
                                     </tr>
-                                ) : (
-                                    recentRentals.map((rental) => (
-                                        <tr key={rental.id} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/50 cursor-pointer relative">
-                                            <td className="px-6 py-4">
-                                                <Link href={`/admin/reservations/${rental.id}`} className="absolute inset-0 z-0" />
-                                                <div className="font-medium text-gray-900 dark:text-white relative z-10">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 relative z-10">{rental.car.plate}</div>
-                                            </td>
-                                            <td className="px-6 py-4 relative z-10">{rental.customer.firstName} {rental.customer.lastName}</td>
-                                            <td className="px-6 py-4 relative z-10">
-                                                <span
-                                                    className={clsx(
-                                                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                                                        rental.status === 'Active' && 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',
-                                                        rental.status === 'Completed' && 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
-                                                        rental.status === 'Pending' && 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300',
-                                                        rental.status === 'Cancelled' && 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                                                    )}
-                                                >
-                                                    {rental.status === 'Active' && 'Aktiv'}
-                                                    {rental.status === 'Completed' && 'Abgeschlossen'}
-                                                    {rental.status === 'Pending' && 'Ausstehend'}
-                                                    {rental.status === 'Cancelled' && 'Storniert'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white relative z-10">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400 relative z-10">
-                                                {formatDistanceToNow(new Date(rental.createdAt), { addSuffix: true, locale: de })}
+                                </thead>
+                                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                    {recentRentals.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+                                                Keine Vermietungen gefunden
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        recentRentals.map((rental) => (
+                                            <tr key={rental.id} className="group hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors cursor-pointer relative">
+                                                <td className="px-6 py-4">
+                                                    <Link href={`/admin/reservations/${rental.id}`} className="absolute inset-0 z-0" />
+                                                    <div className="font-bold text-zinc-900 dark:text-white relative z-10">{rental.car.brand} {rental.car.model}</div>
+                                                    <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono relative z-10">{rental.car.plate}</div>
+                                                </td>
+                                                <td className="px-6 py-4 relative z-10 font-medium">{rental.customer.firstName} {rental.customer.lastName}</td>
+                                                <td className="px-6 py-4 relative z-10">
+                                                    <span
+                                                        className={clsx(
+                                                            'inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight',
+                                                            rental.status === 'Active' && 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',
+                                                            rental.status === 'Completed' && 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
+                                                            rental.status === 'Pending' && 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300',
+                                                            rental.status === 'Cancelled' && 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                                        )}
+                                                    >
+                                                        {rental.status === 'Active' && 'Aktiv'}
+                                                        {rental.status === 'Completed' && 'Beendet'}
+                                                        {rental.status === 'Pending' && 'Offen'}
+                                                        {rental.status === 'Cancelled' && 'Storniert'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-bold text-zinc-900 dark:text-white text-right relative z-10">
+                                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 h-fit">
-                    <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-5">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Schnellzugriff</h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <Link href="/admin/reservations/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700/50 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <span className="font-medium text-gray-700 dark:text-gray-200">Neue Reservierung</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
-                        </Link>
-                        <Link href="/admin/fleet/new" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700/50 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <span className="font-medium text-gray-700 dark:text-gray-200">Fahrzeug hinzufügen</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
-                        </Link>
-                        <Link href="/admin/customers" className="w-full flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700/50 p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <span className="font-medium text-gray-700 dark:text-gray-200">Kunde suchen</span>
-                            <ArrowUpRight className="h-5 w-5 text-gray-400 dark:text-gray-300" />
-                        </Link>
+                {/* Column 3: Stats & Trends */}
+                <div className="space-y-8">
+                    {/* Charts Wrapper */}
+                    <div className="space-y-6">
+                        <h3 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest px-1">Analyse & Trends</h3>
+                        <DashboardCharts
+                            revenueData={chartData.revenueData}
+                            categoryData={chartData.categoryData}
+                            locationData={chartData.locationData}
+                        />
                     </div>
                 </div>
             </div>

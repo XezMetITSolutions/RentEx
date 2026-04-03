@@ -29,29 +29,58 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
-const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
-    { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
-    { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
-    { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
-    { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
-    { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
-    { name: 'Kunden', icon: Users, href: '/admin/customers' },
-    { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
-    { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
-    { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
-    { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
-    { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
-    { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
-    { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
-    { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
-    // --- Neue Seiten ---
-    { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
-    { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
-    { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
-    { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
-    { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
+const menuGroups = [
+    {
+        title: 'Hauptmenü',
+        items: [
+            { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+            { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
+            { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
+        ]
+    },
+    {
+        title: 'Operativ',
+        items: [
+            { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
+            { name: 'Kunden', icon: Users, href: '/admin/customers' },
+            { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
+            { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
+        ]
+    },
+    {
+        title: 'Flotte',
+        items: [
+            { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
+            { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
+            { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
+            { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
+        ]
+    },
+    {
+        title: 'Finanzen & Doc',
+        items: [
+            { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
+            { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
+            { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
+        ]
+    },
+    {
+        title: 'Marketing & Analyse',
+        items: [
+            { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
+            { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
+            { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
+        ]
+    },
+    {
+        title: 'System',
+        items: [
+            { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
+            { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
+            { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
+            { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
+        ]
+    }
 ];
 
 interface SidebarProps {
@@ -86,15 +115,15 @@ const getInitials = (name: string) => {
 export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff }: SidebarProps) {
     const pathname = usePathname();
 
-    const allowedItems = menuItems.filter(item => {
-        const perms = rolePermissions[staff.role] || [];
-        return perms.includes('all') || perms.includes(item.name);
-    });
-
-    const getBadge = (item: (typeof menuItems)[0]) => {
+    const getBadge = (item: any) => {
         if (item.badgeKey === 'live') return 'Live';
         if (item.badgeKey === 'notifications' && pendingNotifications > 0) return String(pendingNotifications);
         return null;
+    };
+
+    const isItemAllowed = (name: string) => {
+        const perms = rolePermissions[staff.role] || [];
+        return perms.includes('all') || perms.includes(name);
     };
 
     return (
@@ -125,38 +154,50 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto py-6 space-y-1 px-3">
-                {allowedItems.map((item) => {
-                    const isActive = pathname === item.href;
+            <nav className="flex-1 overflow-y-auto py-6 space-y-6 px-3">
+                {menuGroups.map((group) => {
+                    const filteredItems = group.items.filter(i => isItemAllowed(i.name));
+                    if (filteredItems.length === 0) return null;
+
                     return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={clsx(
-                                'flex items-center justify-between px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg group',
-                                isActive
-                                    ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-500/30'
-                                    : 'text-slate-400 hover:bg-slate-800 dark:hover:bg-gray-800 hover:text-white'
-                            )}
-                        >
-                            <div className="flex items-center">
-                                <item.icon className={clsx(
-                                    'mr-3 h-5 w-5 transition-transform group-hover:scale-110',
-                                    isActive ? 'text-white' : 'text-slate-500'
-                                )} />
-                                {item.name}
-                            </div>
-                            {getBadge(item) && (
-                                <span className={clsx(
-                                    'px-2 py-0.5 text-[10px] font-bold rounded-full',
-                                    isActive
-                                        ? 'bg-white text-red-600'
-                                        : 'bg-red-500 text-white'
-                                )}>
-                                    {getBadge(item)}
-                                </span>
-                            )}
-                        </Link>
+                        <div key={group.title} className="space-y-1">
+                            <h4 className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                {group.title}
+                            </h4>
+                            {filteredItems.map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={clsx(
+                                            'flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg group',
+                                            isActive
+                                                ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-500/30'
+                                                : 'text-slate-400 hover:bg-slate-800 dark:hover:bg-gray-800 hover:text-white'
+                                        )}
+                                    >
+                                        <div className="flex items-center">
+                                            <item.icon className={clsx(
+                                                'mr-3 h-5 w-5 transition-transform group-hover:scale-110',
+                                                isActive ? 'text-white' : 'text-slate-500'
+                                            )} />
+                                            {item.name}
+                                        </div>
+                                        {getBadge(item) && (
+                                            <span className={clsx(
+                                                'px-2 py-0.5 text-[10px] font-bold rounded-full',
+                                                isActive
+                                                    ? 'bg-white text-red-600'
+                                                    : 'bg-red-50 text-white'
+                                            )}>
+                                                {getBadge(item)}
+                                            </span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
                     );
                 })}
             </nav>
