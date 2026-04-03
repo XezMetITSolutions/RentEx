@@ -1,9 +1,8 @@
 import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import prisma from '@/lib/prisma';
-import { formatDistanceToNow, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { formatDistanceToNow, startOfMonth } from 'date-fns';
 import { de } from 'date-fns/locale';
-import DashboardCharts from '@/components/admin/DashboardCharts';
 import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -91,87 +90,7 @@ async function getStats(locationId?: number | null) {
     ];
 }
 
-async function getChartData(locationId?: number | null) {
-    const where: any = {};
-    if (locationId) {
-        where.pickupLocationId = locationId;
-    }
 
-    const sixMonthsAgo = startOfMonth(subMonths(new Date(), 5));
-    const rentals = await prisma.rental.findMany({
-        where: {
-            ...where,
-            createdAt: { gte: sixMonthsAgo },
-            status: { not: 'Cancelled' }
-        },
-        select: {
-            totalAmount: true,
-            createdAt: true
-        }
-    });
-
-    const revenueData = [];
-    for (let i = 5; i >= 0; i--) {
-        const date = subMonths(new Date(), i);
-        const s = startOfMonth(date);
-        const e = endOfMonth(date);
-
-        const monthlyRentals = rentals.filter(r => r.createdAt >= s && r.createdAt <= e);
-        const revenue = monthlyRentals.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
-
-        revenueData.push({
-            month: format(date, 'MMM', { locale: de }),
-            revenue,
-            rentals: monthlyRentals.length
-        });
-    }
-
-    const categoryDataWhere: any = { isActive: true };
-    if (locationId) {
-        categoryDataWhere.locationId = locationId;
-    }
-
-    const carsByCategory = await prisma.car.groupBy({
-        by: ['category'],
-        _count: { category: true },
-        where: categoryDataWhere
-    });
-
-    const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#6366F1'];
-    const categoryData = carsByCategory.map((c, i) => ({
-        name: c.category || 'Andere',
-        value: c._count.category,
-        color: colors[i % colors.length]
-    }));
-
-    const locationDataWhere: any = {};
-    if (locationId) {
-        locationDataWhere.pickupLocationId = locationId;
-    }
-
-    const rentalsByLocation = await prisma.rental.groupBy({
-        by: ['pickupLocationId'],
-        _count: { pickupLocationId: true },
-        where: locationDataWhere,
-        take: 5,
-        orderBy: { _count: { pickupLocationId: 'desc' } }
-    });
-
-    const locationData = await Promise.all(rentalsByLocation.map(async (r) => {
-        if (!r.pickupLocationId) return null;
-        const loc = await prisma.location.findUnique({ where: { id: r.pickupLocationId } });
-        return {
-            location: loc?.name || 'Unbekannt',
-            rentals: r._count.pickupLocationId
-        };
-    }));
-
-    return {
-        revenueData,
-        categoryData,
-        locationData: locationData.filter(l => l !== null)
-    };
-}
 
 async function getRecentRentals(locationId?: number | null) {
     const where: any = {};
@@ -202,10 +121,9 @@ export default async function AdminDashboard() {
     const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
     const locId = isRestricted ? staff?.locationId : undefined;
 
-    const [stats, recentRentals, chartData] = await Promise.all([
+    const [stats, recentRentals] = await Promise.all([
         getStats(locId),
-        getRecentRentals(locId),
-        getChartData(locId)
+        getRecentRentals(locId)
     ]);
 
     return (
