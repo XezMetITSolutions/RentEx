@@ -98,48 +98,57 @@ export default function DamageReportForm({ rental, customer }: { rental: RentalW
                 </div>
             </div>
 
-            {/* B – Fahrzeug 1 (unser Mietfahrzeug) – nur Anzeige */}
+            {/* B – Fahrzeug 1 (unser Mietfahrzeug) */}
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50 p-6">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-4">B – Fahrzeug 1 (Ihr Mietfahrzeug) – aus Vertrag</h2>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-4">B – Fahrzeug 1 (Ihr Mietfahrzeug)</h2>
+                
+                {/* Car Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Vermieter / Standort</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{rental.pickupLocation?.name ?? 'RentEx'}</dd>
+                        <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Marke / Typ</label>
+                        <p className="font-bold text-zinc-900 dark:text-zinc-100">{rental.car.brand} {rental.car.model}</p>
                     </div>
                     <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Fahrer (Mieter)</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{customer.firstName} {customer.lastName}</dd>
+                        <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Kennzeichen</label>
+                        <p className="font-bold text-zinc-900 dark:text-zinc-100">{rental.car.plate}</p>
                     </div>
                     <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Adresse</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{customerAddress}</dd>
+                        <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">FIN / VIN (Fahrzeug Ident. Nr.)</label>
+                        <input 
+                            name="vin" 
+                            type="text" 
+                            defaultValue={rental.car.vin || ''} 
+                            placeholder="WBA..." 
+                            className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" 
+                        />
                     </div>
-                    <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Telefon</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{customer.phone ?? '–'}</dd>
+                </div>
+
+                {/* Driver Info */}
+                <div className="border-t border-zinc-200 dark:border-zinc-800 pt-6 mt-6">
+                    <h3 className="text-md font-semibold text-zinc-800 dark:text-zinc-200 mb-4">Angaben zum Fahrer</h3>
+                    <p className="text-xs text-zinc-500 mb-4">Lassen Sie diese Felder leer, wenn Sie selbst gefahren sind.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Vollständiger Name des Fahrers</label>
+                            <input name="driverName" type="text" placeholder={`${customer.firstName} ${customer.lastName}`} className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Anschrift des Fahrers</label>
+                            <input name="driverAddress" type="text" placeholder={customerAddress} className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Führerscheinnummer</label>
+                            <input name="driverLicense" type="text" placeholder={customer.licenseNumber || 'Nummer eingeben'} className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                        </div>
                     </div>
-                    <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Kennzeichen</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{rental.car.plate}</dd>
-                    </div>
-                    <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Marke / Typ</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{rental.car.brand} {rental.car.model}</dd>
-                    </div>
-                    <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Versicherung (Fahrzeug)</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">{rental.car.insuranceCompany ?? '–'}</dd>
-                    </div>
-                    <div>
-                        <dt className="text-zinc-500 dark:text-zinc-400">Vertrag / Miete</dt>
-                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">#{rental.contractNumber ?? rental.id} ({format(new Date(rental.startDate), 'dd.MM.yy', { locale: de })} – {format(new Date(rental.endDate), 'dd.MM.yy', { locale: de })})</dd>
-                    </div>
-                </dl>
-                <div className="mt-4">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Schaden am Mietfahrzeug (Beschreibung)</label>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1 font-bold">Schaden am Mietfahrzeug (Beschreibung)</label>
                     <input name="type" type="hidden" value="Unfall" />
-                    <textarea name="description" rows={2} placeholder="Kurze Beschreibung des Schadens …" className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
-                    <input name="locationOnCar" type="text" placeholder="z.B. vorn links, Heck, Dach" className="mt-2 w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                    <textarea name="description" rows={3} placeholder="Beschreiben Sie hier kurz, was genau am Fahrzeug beschädigt wurde …" className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                    <input name="locationOnCar" type="text" placeholder="Genaue Position (z.B. Stoßstange vorn links, Beifahrertür)" className="mt-2 w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
                 </div>
             </div>
 
@@ -204,22 +213,74 @@ export default function DamageReportForm({ rental, customer }: { rental: RentalW
             {/* C – Unfallumstände */}
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-4">C – Unfallumstände (bitte zutreffende ankreuzen)</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
                     {CIRCUMSTANCE_OPTIONS.map((opt) => (
-                        <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+                        <label key={opt.id} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 rounded-lg transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800">
                             <input
                                 type="checkbox"
                                 checked={circumstances.includes(opt.id)}
                                 onChange={() => toggleCircumstance(opt.id)}
-                                className="rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                                className="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-sm text-zinc-700 dark:text-zinc-300">{opt.label}</span>
                         </label>
                     ))}
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Skizze / Bemerkungen</label>
-                    <textarea name="sketchNotes" rows={4} placeholder="Ort des Unfalls, Fahrtrichtungen, Skizze in Worten …" className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Detaillierte Bemerkungen</label>
+                    <textarea name="sketchNotes" rows={4} placeholder="Beschreiben Sie den Hergang hier so detailliert wie möglich …" className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100" />
+                </div>
+            </div>
+
+            {/* D – Fotos & Dokumente */}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 shadow-sm">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    D – Fotos & Dokumente
+                </h2>
+                
+                <div className="space-y-6">
+                    {/* Photos Area */}
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Fotos vom Schaden & Unfallort (Mehrfachauswahl möglich)</label>
+                        <div className="relative group rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 p-8 text-center transition-all hover:border-blue-400 dark:hover:border-blue-500">
+                            <input 
+                                type="file" 
+                                name="photos" 
+                                multiple 
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            <div className="space-y-2 pointer-events-none">
+                                <p className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Check-in Fotos / Schadenfotos</p>
+                                <p className="text-xs text-zinc-400">Klicken oder Fotos hierher ziehen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Sketch Upload */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Unfallskizze hochladen</label>
+                            <input 
+                                type="file" 
+                                name="sketchFile" 
+                                accept="image/*,application/pdf"
+                                className="w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                        </div>
+
+                        {/* Accident Report Upload */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Europäischer Unfallbericht (Scan/Foto)</label>
+                            <input 
+                                type="file" 
+                                name="accidentReportFile" 
+                                accept="image/*,application/pdf"
+                                className="w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 

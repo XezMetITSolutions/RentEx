@@ -204,6 +204,19 @@ model DamageRecord {
   reportedByCustomerId Int?
   reportedByCustomer   Customer? @relation(fields: [reportedByCustomerId], references: [id])
   
+  // New: Vehicle 1 Driver (if different from customer)
+  driverName       String?
+  driverAddress    String?
+  driverLicense    String?
+
+  // New: Vehicle Info
+  vin              String?
+
+  // New: Uploads (multi-photo handling)
+  photos           String?  // JSON array or comma separated
+  sketchUrl        String?
+  accidentReportUrl String?
+
   car           Car      @relation(fields: [carId], references: [id])
   rental        Rental?  @relation(fields: [rentalId], references: [id])
 }

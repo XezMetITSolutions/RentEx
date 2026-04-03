@@ -3,6 +3,8 @@
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs';
+import path from 'path';
 
 export async function updateProfile(formData: FormData) {
     const customerId = await getSession();
@@ -98,6 +100,40 @@ export async function submitDamageReport(formData: FormData) {
     const circumstances = (formData.get('circumstances') as string)?.trim() || null;
     const sketchNotes = (formData.get('sketchNotes') as string)?.trim() || null;
 
+    // Optional Driver for Vehicle 1
+    const driverName = (formData.get('driverName') as string)?.trim() || null;
+    const driverAddress = (formData.get('driverAddress') as string)?.trim() || null;
+    const driverLicense = (formData.get('driverLicense') as string)?.trim() || null;
+    const vin = (formData.get('vin') as string)?.trim() || null;
+
+    // Handle File Uploads
+    async function saveFile(file: any, subDir: string) {
+        if (!file || !(file instanceof File) || file.size === 0) return null;
+        try {
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'damage', subDir);
+            
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(path.join(uploadDir, fileName), buffer);
+            return `/uploads/damage/${subDir}/${fileName}`;
+        } catch (error) {
+            console.error('File upload error:', error);
+            return null;
+        }
+    }
+
+    const photoFiles = formData.getAll('photos');
+    const sketchFile = formData.get('sketchFile');
+    const accidentReportFile = formData.get('accidentReportFile');
+
+    const photoUrls = await Promise.all(photoFiles.map(f => saveFile(f, 'photos')));
+    const sketchUrl = await saveFile(sketchFile, 'sketches');
+    const accidentReportUrl = await saveFile(accidentReportFile, 'reports');
+
     await prisma.damageRecord.create({
         data: {
             carId,
@@ -125,6 +161,15 @@ export async function submitDamageReport(formData: FormData) {
             circumstances,
             sketchNotes,
             reportedByCustomerId: customerId,
+            
+            // New Fields
+            driverName,
+            driverAddress,
+            driverLicense,
+            vin,
+            photos: JSON.stringify(photoUrls.filter(Boolean)),
+            sketchUrl,
+            accidentReportUrl,
         },
     });
 
