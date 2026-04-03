@@ -1,6 +1,6 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import { Car, Plane, Clock, ShieldCheck, Gem, UserCheck } from "lucide-react";
+import { Car, Plane, Clock, ShieldCheck, Briefcase, UserCheck } from "lucide-react";
 
 export default function ServicesPage() {
     const services = [
@@ -20,9 +20,9 @@ export default function ServicesPage() {
             description: "Starten Sie Ihre Reise entspannt. Wir bringen das Fahrzeug direkt zum Flughafen oder holen Sie dort ab."
         },
         {
-            icon: Gem,
-            title: "Luxus & Sportwagen",
-            description: "Erleben Sie Fahrspaß pur mit unserer exklusiven Auswahl an Premium- und Sportfahrzeugen für besondere Anlässe."
+            icon: Briefcase,
+            title: "Business Premium",
+            description: "Repräsentative Fahrzeuge für den perfekten Eindruck bei Ihren Geschäftspartnern und Terminen."
         },
         {
             icon: UserCheck,

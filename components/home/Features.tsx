@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Package, Car, Gem } from "lucide-react";
+import { ArrowRight, Package, Car, Briefcase } from "lucide-react";
 
 const categories = [
     {
@@ -37,20 +37,20 @@ const categories = [
         glowColor: "group-hover:shadow-red-500/10",
     },
     {
-        icon: Gem,
-        slug: "luxuswagen",
-        title: "Luxuswagen",
-        subtitle: "Premium & Exklusiv",
+        icon: Briefcase,
+        slug: "business",
+        title: "Business Class",
+        subtitle: "Professionell & Repräsentativ",
         description:
-            "Erleben Sie Fahren auf höchstem Niveau. Unsere Luxusfahrzeuge der Spitzenklasse bieten Eleganz, Kraft und unvergleichlichen Komfort.",
-        features: ["Premium Marken", "Höchster Fahrkomfort", "Exklusives Erlebnis"],
-        gradient: "from-neutral-800 via-neutral-700 to-neutral-900",
-        accent: "from-yellow-400 to-amber-300",
-        iconBg: "bg-yellow-500/10 border-yellow-500/20",
-        iconColor: "text-yellow-400",
-        badgeColor: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
-        linkColor: "text-yellow-400 hover:text-yellow-300",
-        glowColor: "group-hover:shadow-yellow-500/10",
+            "Der ideale Partner für Ihre geschäftlichen Erfolge. Unsere Business-Flotte bietet erstklassigen Komfort und modernste Technik für einen souveränen Auftritt.",
+        features: ["Repräsentativer Auftritt", "Modernste Ausstattung", "Flexible Businesstarife"],
+        gradient: "from-slate-800 via-slate-700 to-slate-900",
+        accent: "from-blue-500 to-indigo-400",
+        iconBg: "bg-blue-500/10 border-blue-500/20",
+        iconColor: "text-blue-400",
+        badgeColor: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+        linkColor: "text-blue-400 hover:text-blue-300",
+        glowColor: "group-hover:shadow-blue-500/10",
     },
 ];
 
@@ -73,7 +73,7 @@ export default function Features() {
                         Das Richtige für jeden Bedarf
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
-                        Ob Transporter, Alltagsfahrzeug oder Luxusklasse – wir haben die perfekte Lösung für Sie.
+                        Ob Transporter, Alltagsfahrzeug oder Business Class – wir haben die perfekte Lösung für Sie.
                     </p>
                 </div>
 
