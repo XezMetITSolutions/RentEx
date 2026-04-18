@@ -15,17 +15,15 @@ export default function AdminLoginPage() {
         setError("");
         
         const formData = new FormData(e.currentTarget);
-        try {
-            const result = await adminLogin(formData);
-            if (result?.error) {
-                setError(result.error);
-                setLoading(false);
-            }
-        } catch (e) {
-            setError("Ein Fehler ist aufgetreten.");
+        const result = await adminLogin(formData);
+        if (result?.error) {
+            setError(result.error);
             setLoading(false);
         }
+        // If login is successful, redirect is handled by the server action
+        // No catch block needed here as Next.js handles redirects via throw
     }
+
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-black">
