@@ -1,194 +1,132 @@
-"use client";
+import React from 'react';
 
-import { useState, useEffect } from "react";
-import { FileText, Plus, CheckCircle, Send, Clock, AlertCircle, X, Eye } from "lucide-react";
-
-interface AgbVersion {
-    id: number;
-    version: string;
-    content: string;
-    publishedAt: string;
-    notifiedAt: string | null;
-    isActive: boolean;
-    createdAt: string;
-}
-
-export default function AgbPage() {
-    const [versions, setVersions] = useState<AgbVersion[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showNew, setShowNew] = useState(false);
-    const [previewContent, setPreviewContent] = useState<AgbVersion | null>(null);
-    const [form, setForm] = useState({ version: "", content: "" });
-    const [saving, setSaving] = useState(false);
-    const [activating, setActivating] = useState<number | null>(null);
-
-    useEffect(() => { load(); }, []);
-
-    async function load() {
-        setLoading(true);
-        const data = await fetch("/api/admin/agb").then(r => r.json());
-        setVersions(Array.isArray(data) ? data : []);
-        setLoading(false);
-    }
-
-    async function create() {
-        setSaving(true);
-        await fetch("/api/admin/agb", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
-        });
-        setSaving(false);
-        setShowNew(false);
-        setForm({ version: "", content: "" });
-        load();
-    }
-
-    async function activate(id: number) {
-        if (!confirm("Diese Version aktivieren und alle Kunden per E-Mail benachrichtigen?")) return;
-        setActivating(id);
-        const res = await fetch(`/api/admin/agb/${id}/activate`, { method: "POST" });
-        const data = await res.json();
-        setActivating(null);
-        if (data.notifiedCustomers !== undefined) {
-            alert(`✅ Version aktiviert! ${data.notifiedCustomers} Kunden wurden benachrichtigt.`);
-        }
-        load();
-    }
-
+export default function AGBPage() {
     return (
-        <div className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-blue-500" />
-                        AGB Versionen
+        <div className="min-h-screen bg-white">
+            <div className="max-w-4xl mx-auto py-16 px-6 sm:px-8">
+                {/* Header */}
+                <div className="border-b-4 border-red-600 pb-8 mb-12">
+                    <h1 className="text-4xl font-black tracking-tighter text-black uppercase">
+                        Allgemeine Geschäftsbedingungen
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                        Allgemeine Geschäftsbedingungen verwalten und Kunden benachrichtigen
+                    <p className="text-sm font-bold text-red-600 mt-2 uppercase tracking-widest">
+                        Rent-Ex GmbH – Stand: 2026 (Österreich)
                     </p>
                 </div>
-                <button onClick={() => setShowNew(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors">
-                    <Plus className="w-4 h-4" />
-                    Neue Version
-                </button>
+
+                <div className="space-y-12 text-black/80 text-[15px] leading-relaxed">
+                    
+                    {/* Section 1 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">1. ALLGEMEINES</h2>
+                        <div className="space-y-4">
+                            <p>a) Dem zwischen der <strong>Firma Rent-Ex GmbH</strong> (im Folgenden als „Vermieter“ bezeichnet) und dem Mieter abgeschlossenen Mietvertrag liegen ausschließlich die folgenden Geschäfts- und Vertragsbedingungen zugrunde.</p>
+                            <p>b) Der Abschluss des Mietvertrages bedarf der Schriftform. Zusätzlich getroffene Vereinbarungen sind deshalb vom Vermieter vollständig und ausnahmslos bei der Vertragsausfertigung schriftlich niederzulegen.</p>
+                            <p>c) Mieter bzw. Lenker erklären mit ihrer Unterschrift Ihre Kenntnisnahme von und ihr Einverständnis mit den gegenständlichen Geschäfts- und Vertragsbedingungen, die Richtigkeit und Vollständigkeit ggf. niedergelegter Zusatz- oder Sondervereinbarungen sowie die Richtigkeit ihrer bei Vertragsausfertigung erteilten Angaben zur Person und zu Ziel und Zweck der Benutzung des gemieteten Fahrzeugs.</p>
+                            <p>d) Mieter bzw. Lenker haften in jedem Fall und unabhängig vom Erwerb einer Haftungsreduzierung gem. Pkt. 6 in vollem Umfang für alle Schäden und Ansprüche, die dem Vermieter im Zusammenhang mit fehlerhaften oder unvollständigen Angaben des Mieters bzw. des unterfertigenden Lenkers oder durch zur Bestätigung dieser Angaben vorgelegte ungültige, unzulässige oder falsche Dokumente entstehen.</p>
+                            <p>e) Der Mieter nimmt zur Kenntnis, dass unsere Fahrzeuge mit einer GPS-Ortungssystem ausgestattet sind.</p>
+                        </div>
+                    </section>
+
+                    {/* Section 2 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">2. WEITERGABE / AUSDEHNUNG AUF DEN FAHRZEUGLENKER</h2>
+                        <p>Der Mieter darf das Mietfahrzeug nur selbst lenken oder im Mietvertrag namentlich genannten Personen oder einem angestellten Berufskraftfahrer überlassen. Die Überlassung des Fahrzeuges an weitere nicht namentlich im Mietvertrag aufgeführte Personen bedarf der schriftlichen Genehmigung des Vermieters und ist ohne diese nur aus dem Mieter nicht vorwerfbaren Gründen (z.B. medizinischen Notfällen) zulässig. Jeder mit dem Mieter nicht idente Lenker des gemieteten Fahrzeugs tritt dem Vertrag als Mitmieter bei. Es treffen ihn solidarisch mit dem Mieter alle Rechte und Pflichten sowie sämtliche Kosten und Haftungen aus diesem Vertrag.</p>
+                    </section>
+
+                    {/* Section 3 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">3. FAHRZEUGÜBERNAHME</h2>
+                        <div className="space-y-4">
+                            <p>Der Mieter / Lenker erklärt, dass er bei der Übernahme vom Vermieter auf vorhandene Mängel oder Vorschäden am Fahrzeug hingewiesen wurde und dass eine vollständige schriftliche Aufnahme derselben vorliegt. Er bestätigt, dass er sich bei der Fahrzeugübernahme vom ordnungsgemäßen Zustand des Fahrzeugs sowie von der Vollständigkeit der zur Benutzung erforderlichen Fahrzeugpapiere überzeugt hat.</p>
+                            <div className="bg-red-50 p-4 border-l-4 border-red-600 text-red-900 text-sm italic">
+                                Beachten: Das Fahrzeug wird mit vollem Kraftstofftank/Ladung übernommen. Für das Nachtanken durch den Vermieter wird eine Pauschale von <strong>€ 18,00 inkl. MwSt.</strong> nachverrechnet.
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Section 4 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">4. AUSLANDSFAHRTEN</h2>
+                        <p>Fahrten ins Ausland sind ausschließlich mit Genehmigung des Vermieters zulässig. Bei ungenehmigten Fahrten verfällt jegliche Haftungsreduzierung.</p>
+                        <div className="mt-4 overflow-hidden rounded-xl border border-black/5">
+                            <table className="w-full text-left text-xs border-collapse">
+                                <thead className="bg-black text-white uppercase text-[10px] tracking-widest font-bold">
+                                    <tr>
+                                        <th className="p-3">Haftungseinschränkung (Pkt 4.1)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white">
+                                    <tr>
+                                        <td className="p-3 bg-red-50/50">
+                                            In folgenden Ländern verliert die Haftungsreduzierung bei Diebstahl ihre Gültigkeit: Italien, Polen, Albanien, Bosnien, Serbien, Montenegro, Nordmazedonien, Kosovo, Moldawien, Russland, Türkei sowie alle außereuropäischen Staaten.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    {/* Section 5 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">5. PFLICHTEN DES MIETERS UND DES LENKERS</h2>
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 border-2 border-black/5 rounded-2xl">
+                                    <h3 className="font-bold text-xs uppercase mb-2 text-black/40">Geschwindigkeitslimits</h3>
+                                    <ul className="text-xs space-y-1 font-bold text-black">
+                                        <li>Lieferwagen: 120 km/h</li>
+                                        <li>Bus: 130 km/h</li>
+                                        <li>Kleinwagen: 140 km/h</li>
+                                        <li>Sonstige PKW: 160 km/h</li>
+                                    </ul>
+                                </div>
+                                <div className="p-4 border-2 border-black/5 rounded-2xl">
+                                    <h3 className="font-bold text-xs uppercase mb-2 text-black/40">Besondere Pflichten</h3>
+                                    <p className="text-xs">Bei Unfall, Diebstahl oder Einbruch ist <strong>unverzüglich die Polizei</strong> hinzuzuziehen und der Vermieter zu informieren.</p>
+                                </div>
+                            </div>
+                            <p className="text-sm italic">Für jeden verschuldeten Schadensfall wird eine Bearbeitungsgebühr von <strong>€ 58,00 inkl. MwSt.</strong> fällig.</p>
+                        </div>
+                    </section>
+
+                    {/* Section 6 */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">6. HAFTUNG / HAFTUNGSREDUZIERUNG</h2>
+                        <div className="space-y-4">
+                            <p>Das Fahrzeug ist bis zu einem Betrag von <strong>EUR 10.000.000</strong> haftpflichtversichert.</p>
+                            <div className="bg-black text-white p-6 rounded-[32px]">
+                                <h3 className="text-red-500 font-black uppercase text-xs mb-3">Selbstbehalt bei Haftungsreduzierung</h3>
+                                <p className="text-2xl font-black">5% der Schadenshöhe</p>
+                                <p className="text-xs text-white/50 mt-1">mindestens jedoch EUR 1.500,00 netto je Schadensereignis.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Section 7 - Duration */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">7. DAUER UND BEENDIGUNG</h2>
+                        <p>Das Fahrzeug ist gereinigt zurückzugeben. Bei Verunreinigung werden Reinigungskosten in Höhe von mindestens <strong>EUR 58,00</strong> verrechnet. Bei Tiertransporten mindestens <strong>EUR 78,00</strong>.</p>
+                    </section>
+
+                    {/* Section 8 - Payments */}
+                    <section>
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">8. ZAHLUNGSBEDINGUNGEN</h2>
+                        <p>Bei Zahlungsverzug gelten <strong>Verzugszinsen von 9%</strong> als vereinbart. Mahngebühren betragen € 29,00 inkl. MwSt. Mehrkilometer werden je nach Fahrzeug mit € 0,33 bis € 0,45 verrechnet.</p>
+                    </section>
+
+                    {/* Section 10 - GDPR */}
+                    <section className="bg-black/5 p-8 rounded-[40px]">
+                        <h2 className="text-lg font-black text-black mb-4 uppercase tracking-tight">DATENSCHUTZERKLÄRUNG (DSGVO)</h2>
+                        <p className="text-sm">Wir speichern Ihre Daten zur Vertragsabwicklung. Eine Weitergabe an Dritte (Versicherungen, Behörden, Inkasso) erfolgt nur bei berechtigtem Interesse. Sie haben das Recht auf Auskunft, Berichtigung und Löschung.</p>
+                        <p className="text-xs mt-4 text-black/40">Zuständige Behörde: Österreichische Datenschutzbehörde (DSB), Wien.</p>
+                    </section>
+
+                    <section className="border-t border-black/10 pt-8 text-center text-[11px] font-bold text-black/30 uppercase tracking-[3px]">
+                        Feldkirch, Österreich – Gerichtsstand: Feldkirch
+                    </section>
+                </div>
             </div>
-
-            {loading ? (
-                <div className="text-center py-20 text-gray-500">Laden...</div>
-            ) : (
-                <div className="space-y-4">
-                    {versions.map(v => (
-                        <div key={v.id} className={`bg-white dark:bg-white/5 border rounded-2xl p-6 ${v.isActive ? "border-blue-500/40" : "border-gray-200 dark:border-white/10"}`}>
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    {v.isActive ? (
-                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
-                                            <CheckCircle className="w-3.5 h-3.5" /> Aktiv
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 rounded-full text-xs">
-                                            Inaktiv
-                                        </span>
-                                    )}
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white">Version {v.version}</h3>
-                                        <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                Erstellt: {new Date(v.createdAt).toLocaleDateString("de-AT")}
-                                            </span>
-                                            {v.notifiedAt && (
-                                                <span className="flex items-center gap-1 text-green-500">
-                                                    <Send className="w-3 h-3" />
-                                                    Benachrichtigt: {new Date(v.notifiedAt).toLocaleDateString("de-AT")}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button onClick={() => setPreviewContent(v)} className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-                                        <Eye className="w-3.5 h-3.5" />
-                                        Vorschau
-                                    </button>
-                                    {!v.isActive && (
-                                        <button
-                                            onClick={() => activate(v.id)}
-                                            disabled={activating === v.id}
-                                            className="flex items-center gap-1.5 px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors"
-                                        >
-                                            {activating === v.id ? (
-                                                <><Clock className="w-3.5 h-3.5 animate-spin" />Aktiviere...</>
-                                            ) : (
-                                                <><Send className="w-3.5 h-3.5" />Aktivieren & Versenden</>
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="mt-4 p-4 bg-gray-50 dark:bg-black/20 rounded-xl">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3 font-mono whitespace-pre-line">
-                                    {v.content.substring(0, 300)}...
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                    {versions.length === 0 && (
-                        <div className="text-center py-20 text-gray-500">Noch keine AGB-Versionen vorhanden.</div>
-                    )}
-                </div>
-            )}
-
-            {/* New Version Modal */}
-            {showNew && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-white/10">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Neue AGB-Version</h2>
-                            <button onClick={() => setShowNew(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Versionsnummer *</label>
-                                <input value={form.version} onChange={e => setForm(p => ({ ...p, version: e.target.value }))}
-                                    placeholder="z.B. 3.0" className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AGB-Inhalt *</label>
-                                <textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
-                                    rows={12} placeholder="§ 1 Geltungsbereich..."
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono resize-none" />
-                            </div>
-                        </div>
-                        <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
-                            <button onClick={() => setShowNew(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Abbrechen</button>
-                            <button onClick={create} disabled={saving || !form.version || !form.content} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors">
-                                {saving ? "Speichern..." : "Version erstellen"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Preview Modal */}
-            {previewContent && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-white/10 max-h-[90vh] flex flex-col">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AGB Version {previewContent.version}</h2>
-                            <button onClick={() => setPreviewContent(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="p-6 overflow-y-auto flex-1">
-                            <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">{previewContent.content}</pre>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
