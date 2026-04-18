@@ -3,7 +3,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   Alert,
   Platform,
@@ -16,7 +15,7 @@ import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
-import type { Car } from '@/lib/types';
+import type { Car, Location } from '@/lib/types';
 import { addDays, daysBetween, formatCurrency, formatDate, toIsoDate } from '@/lib/format';
 
 export default function NewBookingScreen() {
@@ -26,6 +25,7 @@ export default function NewBookingScreen() {
   const colors = Colors[colorScheme];
 
   const [car, setCar] = useState<Car | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +45,18 @@ export default function NewBookingScreen() {
     }
     (async () => {
       try {
-        const data = await api.getCar(id);
-        setCar(data);
+        const [carData, locsData] = await Promise.all([
+          api.getCar(id),
+          api.listLocations()
+        ]);
+        setCar(carData);
+        setLocations(locsData);
+        
+        if (locsData.length > 0) {
+          const defaultLoc = locsData.find(l => l.name.toLowerCase().includes('feldkirch')) || locsData[0];
+          setPickupLocation(defaultLoc.name);
+          setReturnLocation(defaultLoc.name);
+        }
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Laden fehlgeschlagen.');
       } finally {
@@ -57,14 +67,16 @@ export default function NewBookingScreen() {
 
   const days = daysBetween(startDate, endDate);
   const dailyRate = car ? Number(car.dailyRate) || 0 : 0;
-  const subtotal = dailyRate * days;
-  const serviceFee = subtotal * 0.05;
-  const total = subtotal + serviceFee;
+  const total = dailyRate * days;
 
   async function handleSubmit() {
     if (!car) return;
     if (endDate <= startDate) {
       setError('Rückgabedatum muss nach Abholung liegen.');
+      return;
+    }
+    if (!pickupLocation) {
+      setError('Bitte wählen Sie einen Abholort.');
       return;
     }
     setSubmitting(true);
@@ -74,8 +86,8 @@ export default function NewBookingScreen() {
         carId: car.id,
         startDate: toIsoDate(startDate),
         endDate: toIsoDate(endDate),
-        pickupLocation: pickupLocation.trim() || undefined,
-        returnLocation: returnLocation.trim() || undefined,
+        pickupLocation: pickupLocation,
+        returnLocation: returnLocation || pickupLocation,
       });
       if (Platform.OS === 'web') {
         router.replace(`/booking/${booking.id}`);
@@ -165,7 +177,7 @@ export default function NewBookingScreen() {
           </View>
           <View style={[styles.separator, { backgroundColor: colors.border }]} />
           <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-            <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>Rückgabe</Text>
+            <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>RÜCKGABE</Text>
             <Text style={styles.dateValue}>{formatDate(endDate)}</Text>
             <View style={styles.stepperRow}>
               <TouchableOpacity
@@ -187,27 +199,47 @@ export default function NewBookingScreen() {
           {days} {days === 1 ? 'Tag' : 'Tage'}
         </Text>
 
-        <Text style={styles.sectionTitle}>Abhol- / Rückgabeort</Text>
-        <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="location-outline" size={20} color={colors.tabIconDefault} />
-          <TextInput
-            value={pickupLocation}
-            onChangeText={setPickupLocation}
-            placeholder="Abholort (optional)"
-            placeholderTextColor={colors.tabIconDefault}
-            style={[styles.input, { color: colors.text }]}
-          />
-        </View>
-        <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 10 }]}>
-          <Ionicons name="location-outline" size={20} color={colors.tabIconDefault} />
-          <TextInput
-            value={returnLocation}
-            onChangeText={setReturnLocation}
-            placeholder="Rückgabeort (optional)"
-            placeholderTextColor={colors.tabIconDefault}
-            style={[styles.input, { color: colors.text }]}
-          />
-        </View>
+        <Text style={styles.sectionTitle}>Abholort</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+          {locations.map((loc) => (
+            <TouchableOpacity
+              key={`pickup-${loc.id}`}
+              onPress={() => setPickupLocation(loc.name)}
+              style={[
+                styles.locationChip,
+                { 
+                  backgroundColor: pickupLocation === loc.name ? colors.tint : colors.card,
+                  borderColor: pickupLocation === loc.name ? colors.tint : colors.border
+                }
+              ]}
+            >
+              <Text style={{ color: pickupLocation === loc.name ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>
+                {loc.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <Text style={styles.sectionTitle}>Rückgabeort</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {locations.map((loc) => (
+            <TouchableOpacity
+              key={`return-${loc.id}`}
+              onPress={() => setReturnLocation(loc.name)}
+              style={[
+                styles.locationChip,
+                { 
+                  backgroundColor: returnLocation === loc.name ? colors.tint : colors.card,
+                  borderColor: returnLocation === loc.name ? colors.tint : colors.border
+                }
+              ]}
+            >
+              <Text style={{ color: returnLocation === loc.name ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>
+                {loc.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         <Text style={styles.sectionTitle}>Zusammenfassung</Text>
         <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
@@ -215,11 +247,7 @@ export default function NewBookingScreen() {
             <Text style={{ color: colors.tabIconDefault }}>
               {formatCurrency(dailyRate)} × {days} {days === 1 ? 'Tag' : 'Tage'}
             </Text>
-            <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={{ color: colors.tabIconDefault }}>Service-Gebühr (5%)</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(serviceFee)}</Text>
+            <Text style={styles.summaryValue}>{formatCurrency(total)}</Text>
           </View>
           <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
           <View style={styles.summaryRow}>
@@ -291,16 +319,15 @@ const styles = StyleSheet.create({
   },
   separator: { width: 1, alignSelf: 'stretch' },
   daysText: { marginTop: 6, fontSize: 12, textAlign: 'right' },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
+  locationChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    gap: 10,
+    borderWidth: 1,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  input: { flex: 1, fontSize: 14 },
   summaryCard: { padding: 16, borderRadius: 14 },
   summaryRow: {
     flexDirection: 'row',

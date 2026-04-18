@@ -163,3 +163,11 @@ export interface StaffSession {
   token: string;
   staff: Staff;
 }
+
+export interface Location {
+  id: number;
+  name: string;
+  city: string;
+  address: string | null;
+  code?: string | null;
+}

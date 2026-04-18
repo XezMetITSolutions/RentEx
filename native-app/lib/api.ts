@@ -11,6 +11,7 @@ import type {
   Booking,
   Car,
   Customer,
+  Location,
   Staff,
   StaffSession,
 } from './types';
@@ -124,6 +125,9 @@ export const api = {
   },
   async getCar(id: number): Promise<Car> {
     return request<Car>(`/api/cars/${id}`);
+  },
+  async listLocations(): Promise<Location[]> {
+    return request<Location[]>('/api/locations');
   },
 
   // ── Bookings (customer) ──
