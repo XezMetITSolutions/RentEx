@@ -140,6 +140,20 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tint} />}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Header with Logo */}
+        <View style={styles.headerRow}>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            <View style={[styles.profileBtn, { backgroundColor: colors.surfaceAlt }]}>
+              <Ionicons name="person" size={18} color={colors.text} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Greeting Block */}
         <View style={styles.greetingBlock}>
           <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>RUND UM FELDKIRCH</Text>
@@ -198,6 +212,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Category Strip */}
+        <View style={{ marginBottom: 8 }}>
+          {renderSectionHeader('FAHRZEUGKLASSEN', 'Nach Klasse stöbern')}
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
           {CATEGORIES.map(c => (
             <TouchableOpacity
@@ -209,14 +226,14 @@ export default function HomeScreen() {
               ]}
             >
               <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
-              <Text style={[styles.categoryFrom, { color: category === c.id ? colors.accentSoft : colors.textFaint }]}>ab € 29/Tag</Text>
+              <Text style={[styles.categoryFrom, { color: category === c.id ? colors.tint : colors.textFaint }]}>ab € 29/Tag</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Fleet Grid */}
         <View style={styles.fleetSection}>
-          {renderSectionHeader('VERFÜGBARE FLOTTE', filteredCars.length > 0 ? `${filteredCars.length} Fahrzeuge` : 'Keine Treffer', 'Alle →')}
+          {renderSectionHeader('FÜR DICH AUSGEWÄHLT', 'Beliebte Fahrzeuge', 'Alle →')}
           {loading ? (
             <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />
           ) : (
@@ -224,6 +241,23 @@ export default function HomeScreen() {
               {filteredCars.map(renderCarCard)}
             </View>
           )}
+        </View>
+
+        {/* Rewards Card */}
+        <View style={[styles.rewardsCard, { backgroundColor: colors.text }]}>
+          <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
+          <Text style={[styles.rewardsKicker, { color: colors.tint }]}>KM-GUTHABEN</Text>
+          <View style={styles.kmValueRow}>
+            <Text style={[styles.kmValue, { color: colors.background }]}>1.240</Text>
+            <Text style={[styles.kmUnit, { color: colors.background, opacity: 0.55 }]}>km</Text>
+          </View>
+          <Text style={[styles.rewardsDesc, { color: colors.background, opacity: 0.65 }]}>
+            Lade Freunde ein und verdiene 250 km pro Empfehlung.
+          </Text>
+          <TouchableOpacity style={[styles.rewardBtn, { backgroundColor: colors.tint }]}>
+            <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Freund einladen</Text>
+            <Ionicons name="arrow-forward" size={14} color={colors.accentInk} />
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 40 }} />
@@ -255,7 +289,7 @@ export default function HomeScreen() {
                     onPress={() => setSeats(num)}
                     style={[
                       styles.personBtn,
-                      { backgroundColor: seats === num ? colors.tint : colors.surfaceAlt, borderColor: seats === num ? colors.tint : colors.border }
+                      { backgroundColor: seats === num ? colors.tint : (colorScheme === 'dark' ? '#222' : '#F2F2F2'), borderColor: seats === num ? colors.tint : colors.border }
                     ]}
                   >
                     <Text style={[styles.personBtnText, { color: seats === num ? colors.accentInk : colors.text }]}>
@@ -270,12 +304,12 @@ export default function HomeScreen() {
               {/* Date Selection */}
               <Text style={[styles.modalSectionLabel, { color: colors.textFaint }]}>ZEITRAUM WÄHLEN</Text>
               <View style={styles.dateSelectionRow}>
-                <View style={[styles.dateBox, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={[styles.dateBox, { backgroundColor: colorScheme === 'dark' ? '#222' : '#F2F2F2' }]}>
                   <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>ABHOLUNG</Text>
                   <Text style={[styles.dateBoxValue, { color: colors.text }]}>{startDate}</Text>
                 </View>
                 <Ionicons name="arrow-forward" size={16} color={colors.textFaint} style={{ marginHorizontal: 10 }} />
-                <View style={[styles.dateBox, { backgroundColor: colors.surfaceAlt }]}>
+                <View style={[styles.dateBox, { backgroundColor: colorScheme === 'dark' ? '#222' : '#F2F2F2' }]}>
                   <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>RÜCKGABE</Text>
                   <Text style={[styles.dateBoxValue, { color: colors.text }]}>{endDate}</Text>
                 </View>
@@ -300,6 +334,25 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingTop: 10 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  logo: {
+    width: 120,
+    height: 40,
+  },
+  profileBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   greetingBlock: {
     paddingHorizontal: 20,
     paddingBottom: 24,
@@ -576,6 +629,58 @@ const styles = StyleSheet.create({
   },
   applyBtnText: {
     fontSize: 16,
+    fontWeight: '700',
+  },
+  rewardsCard: {
+    marginHorizontal: 20,
+    padding: 20,
+    borderRadius: 14,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  accentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 4,
+    height: '100%',
+  },
+  rewardsKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  kmValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginBottom: 8,
+  },
+  kmValue: {
+    fontSize: 34,
+    fontWeight: '700',
+  },
+  kmUnit: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  rewardsDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  rewardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  rewardBtnText: {
+    fontSize: 13,
     fontWeight: '700',
   },
 });
