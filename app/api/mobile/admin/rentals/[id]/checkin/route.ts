@@ -54,7 +54,7 @@ export async function POST(
         description: `Staff #${staff.id} checked in rental #${rentalId}`,
         metadata: JSON.stringify({ pickupMileage, fuelLevelPickup }),
       },
-    }).catch(() => null as any),
+    }),
   ]);
 
   return NextResponse.json({ success: true, rental: { id: updated.id, status: updated.status } });
