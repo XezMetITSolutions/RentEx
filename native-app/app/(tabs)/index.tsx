@@ -69,16 +69,31 @@ export default function HomeScreen() {
     load();
   }, [load]);
 
+  const [startDate, setStartDate] = useState<string>('Morgen');
+  const [endDate, setEndDate] = useState<string>('In 3 Tagen');
+  const [seats, setSeats] = useState<number>(1);
+
   const filteredCars = useMemo(() => {
-    if (!search.trim()) return cars;
-    const q = search.toLowerCase().trim();
-    return cars.filter(
-      (c) =>
-        c.brand.toLowerCase().includes(q) ||
-        c.model.toLowerCase().includes(q) ||
-        (c.category ?? '').toLowerCase().includes(q)
-    );
-  }, [cars, search]);
+    let result = cars;
+    // Category filter
+    if (category !== 'Alle') {
+      result = result.filter(c => c.category === category);
+    }
+    // Capacity filter
+    if (seats > 1) {
+      result = result.filter(c => (c.seats || 5) >= seats);
+    }
+    // Text search (still useful for brand)
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      result = result.filter(
+        (c) =>
+          c.brand.toLowerCase().includes(q) ||
+          c.model.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [cars, category, seats, search]);
 
   const renderSectionHeader = (kicker: string, title: string, action?: string) => (
     <View style={styles.sectionHead}>
@@ -104,11 +119,9 @@ export default function HomeScreen() {
             <Ionicons name="car-outline" size={48} color={colors.textFaint} />
           </View>
         )}
-        {car.category === 'Premium' && (
-          <View style={[styles.carTag, { backgroundColor: colors.tint }]}>
-            <Text style={[styles.carTagText, { color: colors.accentInk }]}>PREMIUM</Text>
-          </View>
-        )}
+        <View style={[styles.carTag, { backgroundColor: colors.tint }]}>
+          <Text style={[styles.carTagText, { color: colors.accentInk }]}>{car.seats || 5} SITZE</Text>
+        </View>
       </View>
       <View style={styles.carInfo}>
         <Text style={[styles.carModel, { color: colors.text }]}>{car.brand} {car.model}</Text>
@@ -139,49 +152,60 @@ export default function HomeScreen() {
     >
       {/* Greeting Block */}
       <View style={styles.greetingBlock}>
-        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>GUTEN MORGEN</Text>
+        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>RUND UM FELDKIRCH</Text>
         <Text style={[styles.greetingName, { color: colors.text }]}>
-          {user ? user.firstName : 'Gast'}.
+          Auto finden.
         </Text>
-        {user && (
-          <View style={styles.badgeRow}>
-            <View style={[styles.goldBadge, { backgroundColor: colors.accentSoft }]}>
-              <Text style={[styles.goldBadgeText, { color: colors.tint }]}>GOLD</Text>
-            </View>
-            <Text style={[styles.kmText, { color: colors.textMuted }]}>
-              1.240 km-Guthaben
-            </Text>
-          </View>
-        )}
       </View>
 
-      {/* Search Trigger / Search Bar */}
+      {/* Modern Reservation Search Bar */}
       <View style={styles.searchSection}>
-        <View style={[styles.searchTrigger, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.searchIconBox, { backgroundColor: colors.tint }]}>
-            <Ionicons name="search" size={20} color={colors.accentInk} />
-          </View>
-          <TextInput
-            placeholder="Wohin geht die Reise?"
-            placeholderTextColor={colors.textFaint}
-            value={search}
-            onChangeText={setSearch}
-            style={[styles.searchInput, { color: colors.text }]}
-          />
+        <View style={[styles.bookingBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <TouchableOpacity style={styles.datePickerTrigger}>
+            <Ionicons name="calendar-outline" size={18} color={colors.tint} />
+            <View style={{ marginLeft: 10 }}>
+              <Text style={[styles.searchLabel, { color: colors.textFaint }]}> Zeitraum</Text>
+              <Text style={[styles.searchValue, { color: colors.text }]}>{startDate} – {endDate}</Text>
+            </View>
+          </TouchableOpacity>
+          
+          <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
+          
+          <TouchableOpacity 
+            style={styles.personPickerTrigger}
+            onPress={() => setSeats(prev => prev === 9 ? 1 : (prev === 1 ? 5 : (prev === 5 ? 7 : 9)))}
+          >
+            <Ionicons name="people-outline" size={18} color={colors.tint} />
+            <View style={{ marginLeft: 10 }}>
+              <Text style={[styles.searchLabel, { color: colors.textFaint }]}>Personen</Text>
+              <Text style={[styles.searchValue, { color: colors.text }]}>{seats === 1 ? 'Beliebig' : `${seats}+ Plätze`}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.searchGoBtn, { backgroundColor: colors.text }]}>
+            <Ionicons name="search" size={20} color={colors.background} />
+          </TouchableOpacity>
         </View>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickChips}>
-          {['Flughafen Wien', 'Hauptbahnhof', 'Graz', 'Salzburg'].map((city, i) => (
-            <TouchableOpacity 
-              key={city} 
-              style={[
-                styles.chip, 
-                i === 0 ? { backgroundColor: colors.text } : { borderColor: colors.border }
-              ]}
-              onPress={() => setSearch(city)}
-            >
-              <Text style={[styles.chipText, { color: i === 0 ? colors.background : colors.textMuted }]}>{city}</Text>
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity 
+             onPress={() => { setStartDate('Sa.'); setEndDate('So.'); }}
+             style={[styles.chip, { borderColor: colors.border }]}
+          >
+            <Text style={[styles.chipText, { color: colors.textMuted }]}>Wochenende</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+             onPress={() => { setSeats(9); setCategory('Transporter'); }}
+             style={[styles.chip, { borderColor: colors.border }]}
+          >
+            <Text style={[styles.chipText, { color: colors.textMuted }]}>9-Sitzer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+             onPress={() => { setCategory('Premium'); }}
+             style={[styles.chip, { borderColor: colors.border }]}
+          >
+            <Text style={[styles.chipText, { color: colors.textMuted }]}>Luxus</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
 
@@ -279,26 +303,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 32,
   },
-  searchTrigger: {
+  bookingBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 14,
+    padding: 6,
+    borderRadius: 16,
     borderWidth: 1,
-    height: 60,
+    height: 70,
   },
-  searchIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+  datePickerTrigger: {
+    flex: 1.2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  personPickerTrigger: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  vDivider: {
+    width: 1,
+    height: '60%',
+    marginHorizontal: 5,
+  },
+  searchLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  searchValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  searchGoBtn: {
+    width: 50,
+    height: 58,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 14,
-    fontSize: 16,
-    fontWeight: '600',
+    marginLeft: 4,
   },
   quickChips: {
     flexDirection: 'row',
