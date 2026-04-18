@@ -94,14 +94,25 @@ function RootLayoutNav() {
     if (loading) return;
     if (biometricNeeded) return;
     const top = segments[0] as string | undefined;
+    const sub = segments[1] as string | undefined;
     const inAuth = top === '(auth)';
     const inAdmin = top === '(admin)';
     const inTabs = top === '(tabs)';
+    const isBooking = top === 'booking';
+    const isProfileRoot = top === 'profile';
 
     if (!role) {
-      if (!inAuth) router.replace('/(auth)/login');
+      // Guest allowed in auth, discovery tabs (index), and car details
+      // But if they try to go deep into bookings, admin, or profile root, redirect
+      const isPublicTab = inTabs && (sub === undefined || sub === 'index');
+      const isCarDetail = top === 'car';
+      
+      if (!isPublicTab && !isCarDetail && !inAuth) {
+        router.replace('/(auth)/login');
+      }
       return;
     }
+
     if (role === 'staff') {
       if (inAuth || inTabs) router.replace('/(admin)/dashboard');
     } else if (role === 'customer') {

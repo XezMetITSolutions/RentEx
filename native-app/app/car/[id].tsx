@@ -16,6 +16,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
 import type { Car } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+import { useAuth } from '@/lib/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ export default function CarDetailScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { role } = useAuth();
 
   const [car, setCar] = useState<Car | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,7 +148,15 @@ export default function CarDetailScreen() {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push(`/booking/new?carId=${car.id}`)}
+          onPress={() => {
+            if (!role) {
+              router.push('/(auth)/login');
+            } else if (role === 'customer') {
+              router.push(`/booking/new?carId=${car.id}`);
+            } else {
+              // Staff or unknown role
+            }
+          }}
           style={[styles.bookBtn, { backgroundColor: colors.tint }]}
         >
           <Text style={styles.bookBtnText}>Jetzt buchen</Text>
