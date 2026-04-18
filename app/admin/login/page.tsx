@@ -28,29 +28,47 @@ export default function AdminLoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center p-6">
-            <div className="w-full max-w-[420px] animate-in fade-in zoom-in duration-500">
-                {/* Logo Section */}
-                <div className="flex flex-col items-center mb-12">
-                    <div className="relative w-[180px] h-[60px] mb-6">
+        <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-black">
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0 z-0">
+                <Image
+                    src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2500"
+                    alt="Background"
+                    fill
+                    className="object-cover opacity-50 grayscale-[0.5]"
+                    priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80"></div>
+            </div>
+
+            {/* Content Container */}
+            <div className="relative z-10 w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+                {/* Logo & Welcome */}
+                <div className="flex flex-col items-center mb-10">
+                    <div className="relative w-[180px] h-[60px] mb-6 drop-shadow-2xl">
                         <Image 
                             src="/assets/logo.png" 
                             alt="RentEx Logo" 
                             fill
-                            className="object-contain"
+                            className="object-contain brightness-0 invert"
                             priority
                         />
                     </div>
-                    <div className="h-[2px] w-12 bg-red-600 mb-6"></div>
-                    <h1 className="text-xl font-black tracking-tight text-black uppercase">
-                        Admin Terminal
-                    </h1>
                 </div>
 
-                {/* Login Card */}
-                <div className="bg-white border-2 border-black/5 p-10 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+                {/* Login Card - Glassmorphism style */}
+                <div className="bg-white/10 backdrop-blur-2xl border border-white/10 p-10 rounded-[40px] shadow-2xl">
+                    <div className="mb-8">
+                        <h1 className="text-2xl font-black tracking-tight text-white mb-2">
+                            Willkommen zurück
+                        </h1>
+                        <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
+                            Admin-Portal Anmeldung
+                        </p>
+                    </div>
+
                     {error && (
-                        <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-3 text-red-600 text-sm font-medium">
+                        <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-sm font-medium">
                             <AlertCircle className="h-5 w-5 shrink-0" />
                             {error}
                         </div>
@@ -58,69 +76,57 @@ export default function AdminLoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[11px] font-black uppercase tracking-wider text-black/40 ml-1">
-                                Email Address
+                            <label className="text-[10px] font-black uppercase tracking-[2px] text-white/40 ml-1">
+                                E-Mail Adresse
                             </label>
-                            <div className="relative">
-                                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 text-black/20" />
+                            <div className="relative group">
+                                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-red-600 transition-colors" />
                                 <input
                                     type="email"
                                     name="email"
                                     required
-                                    className="w-full bg-transparent border-b-2 border-black/5 py-4 pl-8 pr-4 text-black font-semibold outline-none focus:border-red-600 transition-all placeholder:text-black/10"
-                                    placeholder="admin@rentex.at"
+                                    className="w-full bg-transparent border-b border-white/10 py-4 pl-10 pr-4 text-white font-medium outline-none focus:border-red-600 transition-all placeholder:text-white/10"
+                                    placeholder="name@rentex.at"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-black uppercase tracking-wider text-black/40 ml-1">
-                                Password
+                            <label className="text-[10px] font-black uppercase tracking-[2px] text-white/40 ml-1">
+                                Passwort
                             </label>
-                            <div className="relative">
-                                <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 text-black/20" />
+                            <div className="relative group">
+                                <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-red-600 transition-colors" />
                                 <input
                                     type="password"
                                     name="password"
                                     required
-                                    className="w-full bg-transparent border-b-2 border-black/5 py-4 pl-8 pr-4 text-black font-semibold outline-none focus:border-red-600 transition-all placeholder:text-black/10"
+                                    className="w-full bg-transparent border-b border-white/10 py-4 pl-10 pr-4 text-white font-medium outline-none focus:border-red-600 transition-all placeholder:text-white/10"
                                     placeholder="••••••••"
                                 />
                             </div>
                         </div>
 
-                        <div className="pt-6">
+                        <div className="pt-8">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-black hover:bg-[#E31E24] active:scale-[0.98] disabled:bg-black/10 disabled:text-black/20 text-white font-black py-5 rounded-full transition-all flex items-center justify-center gap-3 group"
+                                className="w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:bg-white/5 disabled:text-white/20 text-white font-black py-5 rounded-full transition-all flex items-center justify-center gap-3 overflow-hidden shadow-lg shadow-red-600/20"
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : (
-                                    <>
-                                        <span className="uppercase tracking-widest text-sm">Sign In</span>
-                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/40 transition-colors">
-                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </div>
-                                    </>
+                                    <span className="uppercase tracking-[3px] text-sm">Anmelden</span>
                                 )}
                             </button>
                         </div>
                     </form>
                 </div>
                 
-                <div className="text-center mt-12 space-y-4">
-                    <p className="text-[11px] font-bold text-black/40 uppercase tracking-[2px]">
+                <div className="text-center mt-12">
+                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[3px]">
                         XezMet IT Solutions &copy; 2026
                     </p>
-                    <div className="flex justify-center gap-4">
-                        <div className="w-1.5 h-1.5 rounded-full bg-black/5"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-black/5"></div>
-                    </div>
                 </div>
             </div>
         </div>
