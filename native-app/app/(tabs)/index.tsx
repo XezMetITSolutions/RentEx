@@ -4,10 +4,10 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   RefreshControl,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -44,6 +44,11 @@ export default function HomeScreen() {
   const [category, setCategory] = useState<string>('Alle');
   const [error, setError] = useState<string | null>(null);
 
+  const [startDate, setStartDate] = useState<string>('Sa., 22. Apr.');
+  const [endDate, setEndDate] = useState<string>('So., 23. Apr.');
+  const [seats, setSeats] = useState<number>(1);
+  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
+
   const load = useCallback(async () => {
     try {
       setError(null);
@@ -69,28 +74,13 @@ export default function HomeScreen() {
     load();
   }, [load]);
 
-  const [startDate, setStartDate] = useState<string>('Morgen');
-  const [endDate, setEndDate] = useState<string>('In 3 Tagen');
-  const [seats, setSeats] = useState<number>(1);
-
   const filteredCars = useMemo(() => {
     let result = cars;
-    // Category filter
-    if (category !== 'Alle') {
-      result = result.filter(c => c.category === category);
-    }
-    // Capacity filter
-    if (seats > 1) {
-      result = result.filter(c => (c.seats || 5) >= seats);
-    }
-    // Text search (still useful for brand)
+    if (category !== 'Alle') result = result.filter(c => c.category === category);
+    if (seats > 1) result = result.filter(c => (c.seats || 5) >= seats);
     if (search.trim()) {
       const q = search.toLowerCase().trim();
-      result = result.filter(
-        (c) =>
-          c.brand.toLowerCase().includes(q) ||
-          c.model.toLowerCase().includes(q)
-      );
+      result = result.filter(c => c.brand.toLowerCase().includes(q) || c.model.toLowerCase().includes(q));
     }
     return result;
   }, [cars, category, seats, search]);
@@ -144,120 +134,166 @@ export default function HomeScreen() {
   );
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tint} />}
-    >
-      {/* Greeting Block */}
-      <View style={styles.greetingBlock}>
-        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>RUND UM FELDKIRCH</Text>
-        <Text style={[styles.greetingName, { color: colors.text }]}>
-          Auto finden.
-        </Text>
-      </View>
-
-      {/* Modern Reservation Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={[styles.bookingBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <TouchableOpacity style={styles.datePickerTrigger}>
-            <Ionicons name="calendar-outline" size={18} color={colors.tint} />
-            <View style={{ marginLeft: 10 }}>
-              <Text style={[styles.searchLabel, { color: colors.textFaint }]}> Zeitraum</Text>
-              <Text style={[styles.searchValue, { color: colors.text }]}>{startDate} – {endDate}</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
-          
-          <TouchableOpacity 
-            style={styles.personPickerTrigger}
-            onPress={() => setSeats(prev => prev === 9 ? 1 : (prev === 1 ? 5 : (prev === 5 ? 7 : 9)))}
-          >
-            <Ionicons name="people-outline" size={18} color={colors.tint} />
-            <View style={{ marginLeft: 10 }}>
-              <Text style={[styles.searchLabel, { color: colors.textFaint }]}>Personen</Text>
-              <Text style={[styles.searchValue, { color: colors.text }]}>{seats === 1 ? 'Beliebig' : `${seats}+ Plätze`}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.searchGoBtn, { backgroundColor: colors.text }]}>
-            <Ionicons name="search" size={20} color={colors.background} />
-          </TouchableOpacity>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tint} />}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Greeting Block */}
+        <View style={styles.greetingBlock}>
+          <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>RUND UM FELDKIRCH</Text>
+          <Text style={[styles.greetingName, { color: colors.text }]}>Auto finden.</Text>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickChips}>
-          <TouchableOpacity 
-             onPress={() => { setStartDate('Sa.'); setEndDate('So.'); }}
-             style={[styles.chip, { borderColor: colors.border }]}
-          >
-            <Text style={[styles.chipText, { color: colors.textMuted }]}>Wochenende</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-             onPress={() => { setSeats(9); setCategory('Transporter'); }}
-             style={[styles.chip, { borderColor: colors.border }]}
-          >
-            <Text style={[styles.chipText, { color: colors.textMuted }]}>9-Sitzer</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-             onPress={() => { setCategory('Premium'); }}
-             style={[styles.chip, { borderColor: colors.border }]}
-          >
-            <Text style={[styles.chipText, { color: colors.textMuted }]}>Luxus</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+        {/* Interaktif Booking Bar */}
+        <View style={styles.searchSection}>
+          <View style={[styles.bookingBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <TouchableOpacity 
+              style={styles.datePickerTrigger}
+              onPress={() => setSearchModalVisible(true)}
+            >
+              <Ionicons name="calendar-outline" size={18} color={colors.tint} />
+              <View style={{ marginLeft: 10 }}>
+                <Text style={[styles.searchLabel, { color: colors.textFaint }]}> Zeitraum</Text>
+                <Text style={[styles.searchValue, { color: colors.text }]}>{startDate.split(',')[0]} – {endDate.split(',')[0]}</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
+            
+            <TouchableOpacity 
+              style={styles.personPickerTrigger}
+              onPress={() => setSearchModalVisible(true)}
+            >
+              <Ionicons name="people-outline" size={18} color={colors.tint} />
+              <View style={{ marginLeft: 10 }}>
+                <Text style={[styles.searchLabel, { color: colors.textFaint }]}>Personen</Text>
+                <Text style={[styles.searchValue, { color: colors.text }]}>{seats === 1 ? 'Beliebig' : `${seats}+`}</Text>
+              </View>
+            </TouchableOpacity>
 
-      {/* Category Strip */}
-      {renderSectionHeader('FAHRZEUGKLASSEN', 'Nach Klasse stöbern')}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
-        {CATEGORIES.map(c => (
-          <TouchableOpacity
-            key={c.id}
-            onPress={() => setCategory(c.id)}
-            style={[
-              styles.categoryCard,
-              { backgroundColor: category === c.id ? colors.text : colors.card, borderColor: category === c.id ? colors.text : colors.border }
-            ]}
-          >
-            <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
-            <Text style={[styles.categoryFrom, { color: category === c.id ? colors.accentSoft : colors.textFaint }]}>ab € 29/Tag</Text>
-          </TouchableOpacity>
-        ))}
+            <TouchableOpacity 
+              style={[styles.searchGoBtn, { backgroundColor: colors.text }]}
+              onPress={() => setSearchModalVisible(true)}
+            >
+              <Ionicons name="options-outline" size={20} color={colors.background} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickChips}>
+            <TouchableOpacity 
+               onPress={() => { setStartDate('Sa. 22'); setEndDate('So. 23'); }}
+               style={[styles.chip, { borderColor: colors.border }]}
+            >
+              <Text style={[styles.chipText, { color: colors.textMuted }]}>Wochenende</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+               onPress={() => { setSeats(9); setCategory('Transporter'); }}
+               style={[styles.chip, { borderColor: colors.border }]}
+            >
+              <Text style={[styles.chipText, { color: colors.textMuted }]}>9-Sitzer</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* Category Strip */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
+          {CATEGORIES.map(c => (
+            <TouchableOpacity
+              key={c.id}
+              onPress={() => setCategory(c.id)}
+              style={[
+                styles.categoryCard,
+                { backgroundColor: category === c.id ? colors.text : colors.card, borderColor: category === c.id ? colors.text : colors.border }
+              ]}
+            >
+              <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
+              <Text style={[styles.categoryFrom, { color: category === c.id ? colors.accentSoft : colors.textFaint }]}>ab € 29/Tag</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Fleet Grid */}
+        <View style={styles.fleetSection}>
+          {renderSectionHeader('VERFÜGBARE FLOTTE', filteredCars.length > 0 ? `${filteredCars.length} Fahrzeuge` : 'Keine Treffer', 'Alle →')}
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />
+          ) : (
+            <View style={styles.carList}>
+              {filteredCars.map(renderCarCard)}
+            </View>
+          )}
+        </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Fleet Grid */}
-      <View style={styles.fleetSection}>
-        {renderSectionHeader('FÜR DICH AUSGEWÄHLT', 'Beliebte Fahrzeuge', 'Alle →')}
-        {loading ? (
-          <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />
-        ) : (
-          <View style={styles.carList}>
-            {filteredCars.map(renderCarCard)}
+      {/* SEARCH MODAL / OVERLAY */}
+      <Modal
+        visible={isSearchModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSearchModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Suche anpassen</Text>
+              <TouchableOpacity onPress={() => setSearchModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color={colors.textFaint} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              {/* Persons Selection */}
+              <Text style={[styles.modalSectionLabel, { color: colors.textFaint }]}>WIE VIELE PERSONEN?</Text>
+              <View style={styles.personGrid}>
+                {[1, 2, 4, 5, 7, 9].map(num => (
+                  <TouchableOpacity
+                    key={num}
+                    onPress={() => setSeats(num)}
+                    style={[
+                      styles.personBtn,
+                      { backgroundColor: seats === num ? colors.tint : colors.surfaceAlt, borderColor: seats === num ? colors.tint : colors.border }
+                    ]}
+                  >
+                    <Text style={[styles.personBtnText, { color: seats === num ? colors.accentInk : colors.text }]}>
+                      {num === 1 ? 'Egal' : `${num}+`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={{ height: 32 }} />
+
+              {/* Date Selection */}
+              <Text style={[styles.modalSectionLabel, { color: colors.textFaint }]}>ZEITRAUM WÄHLEN</Text>
+              <View style={styles.dateSelectionRow}>
+                <View style={[styles.dateBox, { backgroundColor: colors.surfaceAlt }]}>
+                  <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>ABHOLUNG</Text>
+                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{startDate}</Text>
+                </View>
+                <Ionicons name="arrow-forward" size={16} color={colors.textFaint} style={{ marginHorizontal: 10 }} />
+                <View style={[styles.dateBox, { backgroundColor: colors.surfaceAlt }]}>
+                  <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>RÜCKGABE</Text>
+                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{endDate}</Text>
+                </View>
+              </View>
+
+              <View style={{ height: 40 }} />
+
+              <TouchableOpacity 
+                style={[styles.applyBtn, { backgroundColor: colors.text }]}
+                onPress={() => setSearchModalVisible(false)}
+              >
+                <Text style={[styles.applyBtnText, { color: colors.background }]}>Suche aktualisieren</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-      </View>
-
-      {/* Rewards Card */}
-      <View style={[styles.rewardsCard, { backgroundColor: colors.text }]}>
-        <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
-        <Text style={[styles.rewardsKicker, { color: colors.tint }]}>KM-GUTHABEN</Text>
-        <View style={styles.kmValueRow}>
-          <Text style={[styles.kmValue, { color: colors.background }]}>1.240</Text>
-          <Text style={[styles.kmUnit, { color: colors.background, opacity: 0.55 }]}>km</Text>
         </View>
-        <Text style={[styles.rewardsDesc, { color: colors.background, opacity: 0.65 }]}>
-          Lade Freunde ein und verdiene 250 km pro Empfehlung.
-        </Text>
-        <TouchableOpacity style={[styles.rewardBtn, { backgroundColor: colors.tint }]}>
-          <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Freund einladen</Text>
-          <Ionicons name="arrow-forward" size={14} color={colors.accentInk} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      </Modal>
+    </View>
   );
 }
 
@@ -278,26 +314,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.6,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 10,
-  },
-  goldBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  goldBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  kmText: {
-    fontSize: 11,
-    letterSpacing: 0.2,
   },
   searchSection: {
     paddingHorizontal: 20,
@@ -486,56 +502,80 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  rewardsCard: {
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 14,
-    position: 'relative',
-    overflow: 'hidden',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
   },
-  accentBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 4,
-    height: '100%',
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    minHeight: '60%',
   },
-  rewardsKicker: {
-    fontSize: 10,
-    letterSpacing: 1.2,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  kmValueRow: {
+  modalHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  kmValue: {
-    fontSize: 34,
+  modalTitle: {
+    fontSize: 20,
     fontWeight: '700',
   },
-  kmUnit: {
+  modalBody: {
+    marginTop: 10,
+  },
+  modalSectionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginBottom: 16,
+  },
+  personGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  personBtn: {
+    width: (width - 68) / 3,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  personBtnText: {
     fontSize: 14,
     fontWeight: '700',
   },
-  rewardsDesc: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  rewardBtn: {
+  dateSelectionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
   },
-  rewardBtnText: {
+  dateBox: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+  },
+  dateBoxLabel: {
+    fontSize: 8,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  dateBoxValue: {
     fontSize: 13,
+    fontWeight: '700',
+  },
+  applyBtn: {
+    height: 56,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    fontSize: 16,
     fontWeight: '700',
   },
 });
