@@ -1,6 +1,16 @@
 import React from 'react';
+import prisma from '@/lib/prisma';
 
-export default function PickupEmailPreview() {
+export default async function PickupEmailPreview() {
+  const locations = await prisma.location.findMany();
+  const defaultLocation = locations.find(l => l.name.toLowerCase().includes('feldkirch')) || locations[0];
+
+  const address = defaultLocation 
+    ? `${defaultLocation.address}, ${defaultLocation.city}` 
+    : 'Hauptstraße 1, 6800 Feldkirch, Österreich';
+    
+  const phone = '+43 123 456789'; // This could also come from somewhere if available
+
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -33,7 +43,7 @@ export default function PickupEmailPreview() {
             
             <div class="info-box">
                 <span class="label">Abholort / Standort</span>
-                <span class="value">Hauptstraße 1, 6800 Feldkirch, Österreich</span>
+                <span class="value">${address}</span>
                 
                 <span class="label">Fahrzeug</span>
                 <span class="value">Ford Transit Custom - FK-FT 2002</span>
@@ -43,7 +53,7 @@ export default function PickupEmailPreview() {
             </div>
 
             <h3 style="border-bottom: 2px solid #f2f2f2; padding-bottom: 10px;">Schließfach-Informationen</h3>
-            <p>Ihren Fahrzeugschlüssel finden Sie im Schließfach direkt am Haupteingang unserer Filiale.</p>
+            <p>Ihren Fahrzeugschlüssel finden Sie im Schließfach direkt am Haupteingang unserer Filiale (<span style="color: #E31E24; font-weight: bold;">${defaultLocation?.name || 'Feldkirch'}</span>).</p>
             
             <div style="text-align: center; background: #000; padding: 20px; border-radius: 12px; margin: 20px 0;">
                 <span class="label" style="color: #999;">IHR SCHLIEẞFACH-CODE</span>
@@ -63,7 +73,7 @@ export default function PickupEmailPreview() {
             </div>
         </div>
         <div class="footer">
-            <p><strong>RentEx Feldkirch</strong> | +43 123 456789 | support@rent-ex.at</p>
+            <p><strong>RentEx ${defaultLocation?.name || 'Feldkirch'}</strong> | ${phone} | support@rent-ex.at</p>
             <p>&copy; 2026 XezMet IT Solutions / RentEx. Tüm hakları saklıdır.</p>
         </div>
     </div>
@@ -75,7 +85,7 @@ export default function PickupEmailPreview() {
     <div style={{ width: '100%', minHeight: '100vh', background: '#f4f4f4', padding: '20px 0' }}>
       <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
       <div style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '14px' }}>
-        <p>Preview Mode - RentEx Corporate Email Template</p>
+        <p>Preview Mode - RentEx Corporate Email Template (Dynamic Data from DB)</p>
       </div>
     </div>
   );
