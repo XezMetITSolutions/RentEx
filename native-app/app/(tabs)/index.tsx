@@ -5,9 +5,9 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -20,11 +20,13 @@ import type { Car } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
+const { width } = Dimensions.get('window');
+
 const CATEGORIES = [
   { id: 'Alle', name: 'Alle', icon: 'apps' },
-  { id: 'Elektro', name: 'Elektro', icon: 'flash' },
-  { id: 'SUV', name: 'SUV', icon: 'car' },
-  { id: 'Sportwagen', name: 'Sportwagen', icon: 'flame' },
+  { id: 'Kompakt', name: 'Kompakt', icon: 'car' },
+  { id: 'Mittelklasse', name: 'Mittelklasse', icon: 'car-sport' },
+  { id: 'SUV', name: 'SUV', icon: 'trail-sign' },
   { id: 'Premium', name: 'Premium', icon: 'diamond' },
   { id: 'Transporter', name: 'Transporter', icon: 'bus' },
 ] as const;
@@ -46,7 +48,7 @@ export default function HomeScreen() {
     try {
       setError(null);
       const data = await api.listCars({
-        category,
+        category: category === 'Alle' ? undefined : category,
         search: search.trim() || undefined,
       });
       setCars(data);
@@ -78,73 +80,50 @@ export default function HomeScreen() {
     );
   }, [cars, search]);
 
-  const renderCategory = ({ item }: { item: (typeof CATEGORIES)[number] }) => {
-    const active = category === item.id;
-    return (
-      <TouchableOpacity
-        onPress={() => setCategory(item.id)}
-        style={[
-          styles.categoryCard,
-          {
-            backgroundColor: active ? colors.tint : colors.card,
-            borderColor: active ? colors.tint : colors.border,
-          },
-        ]}
-      >
-        <Ionicons name={item.icon as any} size={18} color={active ? '#fff' : colors.tint} />
-        <Text style={[styles.categoryName, { color: active ? '#fff' : colors.text }]}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+  const renderSectionHeader = (kicker: string, title: string, action?: string) => (
+    <View style={styles.sectionHead}>
+      <Text style={[styles.kicker, { color: colors.tint }]}>{kicker}</Text>
+      <View style={styles.sectionTitleRow}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+        {action && <Text style={[styles.actionText, { color: colors.textMuted }]}>{action}</Text>}
+      </View>
+    </View>
+  );
 
-  const renderCar = (car: Car) => (
+  const renderCarCard = (car: Car) => (
     <TouchableOpacity
       key={car.id}
-      style={[styles.carCard, { backgroundColor: colors.card }]}
+      style={[styles.carCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/car/${car.id}`)}
     >
-      {car.imageUrl ? (
-        <Image source={{ uri: car.imageUrl }} style={styles.carImage} resizeMode="cover" />
-      ) : (
-        <View style={[styles.carImage, styles.carImagePlaceholder, { backgroundColor: colors.border }]}>
-          <Ionicons name="car" size={60} color={colors.tabIconDefault} />
-        </View>
-      )}
-      <View style={styles.carInfo}>
-        <View style={{ backgroundColor: 'transparent' }}>
-          <Text style={styles.carName}>
-            {car.brand} {car.model}
-          </Text>
-          <View style={styles.specRow}>
-            {!!car.category && (
-              <View style={[styles.specTag, { backgroundColor: colors.background }]}>
-                <Text style={[styles.specText, { color: colors.tabIconDefault }]}>{car.category}</Text>
-              </View>
-            )}
-            {!!car.fuelType && (
-              <View style={[styles.specTag, { backgroundColor: colors.background }]}>
-                <Ionicons name="water-outline" size={11} color={colors.tabIconDefault} />
-                <Text style={[styles.specText, { color: colors.tabIconDefault }]}>{car.fuelType}</Text>
-              </View>
-            )}
-            {!!car.transmission && (
-              <View style={[styles.specTag, { backgroundColor: colors.background }]}>
-                <Ionicons name="cog-outline" size={11} color={colors.tabIconDefault} />
-                <Text style={[styles.specText, { color: colors.tabIconDefault }]}>{car.transmission}</Text>
-              </View>
-            )}
+      <View style={styles.carImageContainer}>
+        {car.imageUrl ? (
+          <Image source={{ uri: car.imageUrl }} style={styles.carImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.carImage, { backgroundColor: colors.surfaceAlt, justifyContent: 'center', alignItems: 'center' }]}>
+            <Ionicons name="car-outline" size={48} color={colors.textFaint} />
           </View>
-        </View>
-        <View style={styles.priceRow}>
-          <Text style={[styles.price, { color: colors.tint }]}>
-            {formatCurrency(car.dailyRate)}
-            <Text style={styles.perDay}>/Tag</Text>
-          </Text>
+        )}
+        {car.category === 'Premium' && (
+          <View style={[styles.carTag, { backgroundColor: colors.tint }]}>
+            <Text style={[styles.carTagText, { color: colors.accentInk }]}>PREMIUM</Text>
+          </View>
+        )}
+      </View>
+      <View style={styles.carInfo}>
+        <Text style={[styles.carModel, { color: colors.text }]}>{car.brand} {car.model}</Text>
+        <Text style={[styles.carTrim, { color: colors.textMuted }]}>
+          {car.category} · {car.fuelType} · {car.transmission}
+        </Text>
+        <View style={[styles.cardDivider, { backgroundColor: colors.border }]} />
+        <View style={styles.cardFooter}>
+          <View style={styles.priceContainer}>
+            <Text style={[styles.priceValue, { color: colors.text }]}>{formatCurrency(car.dailyRate)}</Text>
+            <Text style={[styles.priceUnit, { color: colors.textFaint }]}>/Tag</Text>
+          </View>
           <View style={styles.ratingRow}>
-            <Ionicons name="star" size={14} color="#FFD700" />
-            <Text style={styles.rating}>4.9</Text>
+            <Ionicons name="star" size={14} color={colors.tint} />
+            <Text style={[styles.ratingText, { color: colors.textMuted }]}>4.8</Text>
           </View>
         </View>
       </View>
@@ -154,72 +133,105 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tint} />}
     >
-      {user && (
-        <View style={styles.greeting}>
-          <Text style={[styles.greetingHi, { color: colors.tabIconDefault }]}>Hallo,</Text>
-          <Text style={styles.greetingName}>{user.firstName} 👋</Text>
-        </View>
-      )}
+      {/* Greeting Block */}
+      <View style={styles.greetingBlock}>
+        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>GUTEN MORGEN</Text>
+        <Text style={[styles.greetingName, { color: colors.text }]}>
+          {user ? user.firstName : 'Gast'}.
+        </Text>
+        {user && (
+          <View style={styles.badgeRow}>
+            <View style={[styles.goldBadge, { backgroundColor: colors.accentSoft }]}>
+              <Text style={[styles.goldBadgeText, { color: colors.tint }]}>GOLD</Text>
+            </View>
+            <Text style={[styles.kmText, { color: colors.textMuted }]}>
+              1.240 km-Guthaben
+            </Text>
+          </View>
+        )}
+      </View>
 
+      {/* Search Trigger / Search Bar */}
       <View style={styles.searchSection}>
-        <View style={[styles.searchBar, { backgroundColor: colors.card }]}>
-          <Ionicons name="search" size={20} color={colors.tabIconDefault} style={{ marginLeft: 15 }} />
+        <View style={[styles.searchTrigger, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.searchIconBox, { backgroundColor: colors.tint }]}>
+            <Ionicons name="search" size={20} color={colors.accentInk} />
+          </View>
           <TextInput
-            placeholder="Marke, Modell oder Kategorie…"
-            placeholderTextColor={colors.tabIconDefault}
+            placeholder="Wohin geht die Reise?"
+            placeholderTextColor={colors.textFaint}
             value={search}
             onChangeText={setSearch}
             style={[styles.searchInput, { color: colors.text }]}
           />
-          <TouchableOpacity style={[styles.filterBtn, { backgroundColor: colors.tint }]} onPress={load}>
-            <Ionicons name="options" size={20} color="#fff" />
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickChips}>
+          {['Flughafen Wien', 'Hauptbahnhof', 'Graz', 'Salzburg'].map((city, i) => (
+            <TouchableOpacity 
+              key={city} 
+              style={[
+                styles.chip, 
+                i === 0 ? { backgroundColor: colors.text } : { borderColor: colors.border }
+              ]}
+              onPress={() => setSearch(city)}
+            >
+              <Text style={[styles.chipText, { color: i === 0 ? colors.background : colors.textMuted }]}>{city}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Category Strip */}
+      {renderSectionHeader('FAHRZEUGKLASSEN', 'Nach Klasse stöbern')}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
+        {CATEGORIES.map(c => (
+          <TouchableOpacity
+            key={c.id}
+            onPress={() => setCategory(c.id)}
+            style={[
+              styles.categoryCard,
+              { backgroundColor: category === c.id ? colors.text : colors.card, borderColor: category === c.id ? colors.text : colors.border }
+            ]}
+          >
+            <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
+            <Text style={[styles.categoryFrom, { color: category === c.id ? colors.accentSoft : colors.textFaint }]}>ab € 29/Tag</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        ))}
+      </ScrollView>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Kategorien</Text>
-      </View>
-      <FlatList
-        data={CATEGORIES as unknown as (typeof CATEGORIES)[number][]}
-        renderItem={renderCategory}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesList}
-      />
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          {search ? 'Suchergebnisse' : category === 'Alle' ? 'Empfohlen' : category}
-        </Text>
-        <Text style={[styles.resultCount, { color: colors.tabIconDefault }]}>
-          {filteredCars.length} Fahrzeuge
-        </Text>
-      </View>
-
-      {error && (
-        <View style={[styles.errorBox, { backgroundColor: '#fee2e2', marginHorizontal: 20 }]}>
-          <Ionicons name="warning" size={16} color="#991b1b" />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      <View style={styles.carsGrid}>
+      {/* Fleet Grid */}
+      <View style={styles.fleetSection}>
+        {renderSectionHeader('FÜR DICH AUSGEWÄHLT', 'Beliebte Fahrzeuge', 'Alle →')}
         {loading ? (
-          <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 40 }} />
-        ) : filteredCars.length === 0 ? (
-          <View style={{ alignItems: 'center', padding: 40 }}>
-            <Ionicons name="car-outline" size={48} color={colors.tabIconDefault} />
-            <Text style={{ color: colors.tabIconDefault, marginTop: 10 }}>Keine Fahrzeuge gefunden</Text>
-          </View>
+          <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />
         ) : (
-          filteredCars.map(renderCar)
+          <View style={styles.carList}>
+            {filteredCars.map(renderCarCard)}
+          </View>
         )}
       </View>
+
+      {/* Rewards Card */}
+      <View style={[styles.rewardsCard, { backgroundColor: colors.text }]}>
+        <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
+        <Text style={[styles.rewardsKicker, { color: colors.tint }]}>KM-GUTHABEN</Text>
+        <View style={styles.kmValueRow}>
+          <Text style={[styles.kmValue, { color: colors.background }]}>1.240</Text>
+          <Text style={[styles.kmUnit, { color: colors.background, opacity: 0.55 }]}>km</Text>
+        </View>
+        <Text style={[styles.rewardsDesc, { color: colors.background, opacity: 0.65 }]}>
+          Lade Freunde ein und verdiene 250 km pro Empfehlung.
+        </Text>
+        <TouchableOpacity style={[styles.rewardBtn, { backgroundColor: colors.tint }]}>
+          <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Freund einladen</Text>
+          <Ionicons name="arrow-forward" size={14} color={colors.accentInk} />
+        </TouchableOpacity>
+      </View>
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -227,97 +239,256 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  greeting: {
+  scrollContent: { paddingTop: 10 },
+  greetingBlock: {
     paddingHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 4,
+    paddingBottom: 24,
   },
-  greetingHi: { fontSize: 14 },
-  greetingName: { fontSize: 22, fontWeight: 'bold', marginTop: 2 },
-  searchSection: { paddingHorizontal: 20, marginTop: 10, marginBottom: 20 },
-  searchBar: {
+  greetingKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  greetingName: {
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+  },
+  badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 15,
-    height: 55,
-  },
-  searchInput: { flex: 1, paddingHorizontal: 15, fontSize: 16 },
-  filterBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 5,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 15,
+    gap: 10,
     marginTop: 10,
   },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold' },
-  resultCount: { fontSize: 13 },
-  categoriesList: { paddingLeft: 20, paddingBottom: 10 },
-  categoryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginRight: 10,
-    borderWidth: 1,
-  },
-  categoryName: { marginLeft: 8, fontWeight: '500', fontSize: 13 },
-  carsGrid: { paddingHorizontal: 20 },
-  carCard: {
-    borderRadius: 20,
-    marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  carImage: { width: '100%', height: 200 },
-  carImagePlaceholder: { justifyContent: 'center', alignItems: 'center' },
-  carInfo: { padding: 15, backgroundColor: 'transparent' },
-  carName: { fontSize: 18, fontWeight: 'bold' },
-  specRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  specTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  goldBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 4,
   },
-  specText: { fontSize: 11 },
-  priceRow: {
+  goldBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  kmText: {
+    fontSize: 11,
+    letterSpacing: 0.2,
+  },
+  searchSection: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  searchTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 60,
+  },
+  searchIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 14,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  quickChips: {
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sectionHead: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  kicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  sectionTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-    backgroundColor: 'transparent',
+    alignItems: 'baseline',
   },
-  price: { fontSize: 20, fontWeight: 'bold' },
-  perDay: { fontSize: 14, fontWeight: 'normal', color: '#94a3b8' },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  actionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  categoryStrip: {
+    flexDirection: 'row',
+    marginBottom: 32,
+  },
+  categoryCard: {
+    minWidth: 120,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginRight: 10,
+  },
+  categoryName: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  categoryFrom: {
+    fontSize: 10,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  fleetSection: {
+    marginBottom: 32,
+  },
+  carList: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  carCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  carImageContainer: {
+    width: '100%',
+    height: 180,
+    position: 'relative',
+  },
+  carImage: {
+    width: '100%',
+    height: '100%',
+  },
+  carTag: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  carTagText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  carInfo: {
+    padding: 14,
+  },
+  carModel: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  carTrim: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  cardDivider: {
+    height: 1,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  priceValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  priceUnit: {
+    fontSize: 11,
+    marginLeft: 2,
+    fontWeight: '600',
+  },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    gap: 4,
   },
-  rating: { marginLeft: 4, fontWeight: 'bold' },
-  errorBox: {
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  rewardsCard: {
+    marginHorizontal: 20,
+    padding: 20,
+    borderRadius: 14,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  accentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 4,
+    height: '100%',
+  },
+  rewardsKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  kmValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginBottom: 8,
+  },
+  kmValue: {
+    fontSize: 34,
+    fontWeight: '700',
+  },
+  kmUnit: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  rewardsDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  rewardBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: 8,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  errorText: { color: '#991b1b', flex: 1, fontSize: 13 },
+  rewardBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });

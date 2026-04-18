@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<title>Rentex — Mobile Home</title>
+<meta name="viewport" content="width=1720"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; background: #E5E1D8; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+  body { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+  /* scrollbars inside phone frames: thin, unobtrusive */
+  .phone-scroll::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="components/tokens.jsx"></script>
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="frames/ios-frame.jsx"></script>
+<script type="text/babel" src="frames/android-frame.jsx"></script>
+<script type="text/babel" src="components/customer-blocks.jsx"></script>
+<script type="text/babel" src="components/customer-home.jsx"></script>
+<script type="text/babel" src="components/staff-home.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// Tweakable defaults — persisted via edit-mode protocol
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "theme": "light",
+  "userType": "customer",
+  "showSheet": false
+}/*EDITMODE-END*/;
+
+// ─── Canvas label ────────────────────────────────────────
+const Label = ({ kicker, title, sub, T }) => (
+  <div style={{ marginBottom: 18, textAlign: 'center' }}>
+    <div style={{
+      fontFamily: RX_FONT_MONO, fontSize: 10, letterSpacing: 1.5,
+      color: T.accent, textTransform: 'uppercase', marginBottom: 4,
+    }}>{kicker}</div>
+    <div style={{ fontFamily: RX_FONT_SANS, fontSize: 18, fontWeight: 600, color: T.text, letterSpacing: -0.3 }}>
+      {title}
+    </div>
+    {sub && <div style={{ fontFamily: RX_FONT_SANS, fontSize: 12, color: T.textMuted, marginTop: 4, maxWidth: 280, margin: '4px auto 0' }}>
+      {sub}
+    </div>}
+  </div>
+);
+
+// ─── Phone-shell wrapper for iOS (custom chrome, no IOSNavBar) ───
+const IOSShell = ({ T, children }) => (
+  <div style={{
+    width: 390, height: 844, borderRadius: 48, overflow: 'hidden',
+    position: 'relative', background: T.bg,
+    boxShadow: '0 40px 80px rgba(20,19,17,0.18), 0 0 0 1px rgba(20,19,17,0.12)',
+    fontFamily: RX_FONT_SANS, WebkitFontSmoothing: 'antialiased',
+  }}>
+    {/* dynamic island */}
+    <div style={{
+      position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+      width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
+    }}/>
+    {/* status bar */}
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+      <IOSStatusBar dark={T === RX_TOKENS.dark}/>
+    </div>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {children}
+    </div>
+    {/* home indicator */}
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+      height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+      paddingBottom: 8, pointerEvents: 'none',
+    }}>
+      <div style={{
+        width: 139, height: 5, borderRadius: 100,
+        background: T === RX_TOKENS.dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)',
+      }}/>
+    </div>
+  </div>
+);
+
+const AndroidShell = ({ T, children }) => (
+  <div style={{
+    width: 390, height: 844, borderRadius: 36, overflow: 'hidden',
+    position: 'relative', background: T.bg,
+    border: `8px solid ${T === RX_TOKENS.dark ? '#1a1815' : '#cfc9be'}`,
+    boxShadow: '0 40px 80px rgba(20,19,17,0.22)',
+    fontFamily: RX_FONT_SANS, WebkitFontSmoothing: 'antialiased',
+  }}>
+    {/* status bar */}
+    <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', position: 'relative' }}>
+      <span style={{ fontFamily: RX_FONT_MONO, fontSize: 12, color: T.text, fontWeight: 500 }}>9:41</span>
+      <div style={{
+        position: 'absolute', left: '50%', top: 6, transform: 'translateX(-50%)',
+        width: 16, height: 16, borderRadius: '50%', background: '#1a1815',
+      }}/>
+      <div style={{ display: 'flex', gap: 4, color: T.text }}>
+        <svg width="14" height="10" viewBox="0 0 14 10"><path d="M7 10L.2 3.3a9.6 9.6 0 0113.6 0L7 10z" fill="currentColor"/></svg>
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="4" width="2" height="6" fill="currentColor"/><rect x="3" y="2.5" width="2" height="7.5" fill="currentColor"/><rect x="6" y="1" width="2" height="9" fill="currentColor"/><rect x="9" y="-1" width="2" height="11" fill="currentColor"/></svg>
+        <svg width="20" height="10" viewBox="0 0 20 10"><rect x="0.5" y="1" width="16" height="8" rx="2" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="13" height="5" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div style={{ height: 'calc(100% - 32px)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {children}
+    </div>
+    {/* gesture pill */}
+    <div style={{
+      position: 'absolute', bottom: 6, left: 0, right: 0,
+      display: 'flex', justifyContent: 'center', zIndex: 60, pointerEvents: 'none',
+    }}>
+      <div style={{
+        width: 108, height: 4, borderRadius: 2,
+        background: T === RX_TOKENS.dark ? 'rgba(255,255,255,0.4)' : 'rgba(20,19,17,0.4)',
+      }}/>
+    </div>
+  </div>
+);
+
+// ─── Phone with full content ────────────────────────────
+function Phone({ T, platform, userType, variation, showSheet, setShowSheet }) {
+  const [activeField, setActiveField] = useState('pickup');
+  const Shell = platform === 'ios' ? IOSShell : AndroidShell;
+  const topPad = platform === 'ios' ? 10 : 0; // room for chrome
+
+  return (
+    <Shell T={T}>
+      <div style={{ paddingTop: platform === 'ios' ? 0 : 4 }}>
+        <RxTopBar T={T} platform={platform}/>
+      </div>
+      <div className="phone-scroll" style={{
+        flex: 1, overflowY: 'auto',
+        paddingTop: 16, paddingBottom: 20,
+      }}>
+        {userType === 'customer' ? (
+          <CustomerHomeBody
+            T={T}
+            variation={variation}
+            onOpenSheet={() => setShowSheet(true)}
+            activeField={activeField}
+            setActiveField={setActiveField}
+            platform={platform}
+          />
+        ) : (
+          <StaffHomeBody T={T}/>
+        )}
+      </div>
+      {userType === 'customer'
+        ? <RxTabBar T={T} platform={platform}/>
+        : <StaffTabBar T={T} platform={platform}/>}
+      {userType === 'customer' && variation === 'sheet' && (
+        <SearchSheet T={T} open={showSheet} onClose={() => setShowSheet(false)}/>
+      )}
+    </Shell>
+  );
+}
+
+// ─── Tweaks panel ───────────────────────────────────────
+function TweaksPanel({ state, setState, visible }) {
+  if (!visible) return null;
+  const btn = (label, active, onClick) => (
+    <button onClick={onClick} style={{
+      padding: '8px 12px', borderRadius: 8,
+      background: active ? '#141311' : 'transparent',
+      color: active ? '#F5F3EF' : '#5A564E',
+      border: `1px solid ${active ? '#141311' : '#CFC9BE'}`,
+      fontFamily: RX_FONT_SANS, fontSize: 12, fontWeight: 500,
+      cursor: 'pointer',
+    }}>{label}</button>
+  );
+  const row = (label, children) => (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{
+        fontFamily: RX_FONT_MONO, fontSize: 9, letterSpacing: 1,
+        color: '#8A857A', textTransform: 'uppercase', marginBottom: 6,
+      }}>{label}</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{children}</div>
+    </div>
+  );
+  const set = (k, v) => {
+    const next = { ...state, [k]: v };
+    setState(next);
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*');
+  };
+  return (
+    <div style={{
+      position: 'fixed', bottom: 20, right: 20, zIndex: 1000,
+      width: 260, background: '#FFFFFF', border: '1px solid #CFC9BE',
+      borderRadius: 14, padding: 16,
+      boxShadow: '0 20px 50px rgba(20,19,17,0.18)',
+      fontFamily: RX_FONT_SANS,
+    }}>
+      <div style={{ fontFamily: RX_FONT_SANS, fontSize: 13, fontWeight: 600, color: '#141311', marginBottom: 14, letterSpacing: -0.1 }}>
+        Tweaks
+      </div>
+      {row('Theme', <>
+        {btn('Light', state.theme === 'light', () => set('theme', 'light'))}
+        {btn('Dark', state.theme === 'dark', () => set('theme', 'dark'))}
+      </>)}
+      {row('Benutzer', <>
+        {btn('Kunde', state.userType === 'customer', () => set('userType', 'customer'))}
+        {btn('Mitarbeiter', state.userType === 'staff', () => set('userType', 'staff'))}
+      </>)}
+    </div>
+  );
+}
+
+// ─── Main canvas ────────────────────────────────────────
+function App() {
+  const [state, setState] = useState(TWEAKS);
+  const [showSheetA, setShowSheetA] = useState(false);
+  const [showSheetB, setShowSheetB] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+
+  useEffect(() => {
+    const onMsg = (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === '__activate_edit_mode') setEditVisible(true);
+      if (e.data.type === '__deactivate_edit_mode') setEditVisible(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const T = RX_TOKENS[state.theme];
+  const canvasBg = state.theme === 'dark' ? '#07070A' : '#E5E1D8';
+  const headerText = state.theme === 'dark' ? '#F2EFE8' : '#141311';
+  const headerMuted = state.theme === 'dark' ? '#A49E91' : '#5A564E';
+
+  const isCustomer = state.userType === 'customer';
+
+  return (
+    <div style={{
+      minHeight: '100vh', background: canvasBg,
+      padding: '60px 40px 80px', transition: 'background 0.2s',
+    }}>
+      {/* Top header */}
+      <div style={{ maxWidth: 1640, margin: '0 auto 50px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 11,
+            background: '#C77A1E', color: '#1C0F00',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: RX_FONT_MONO, fontSize: 22, fontWeight: 700, letterSpacing: -0.5,
+          }}>R</div>
+          <div>
+            <div style={{ fontFamily: RX_FONT_SANS, fontSize: 22, fontWeight: 600, color: headerText, letterSpacing: -0.4 }}>
+              Rentex — Mobile Home
+            </div>
+            <div style={{ fontFamily: RX_FONT_MONO, fontSize: 11, color: headerMuted, letterSpacing: 0.3, marginTop: 2 }}>
+              DACH · iOS + Android · {isCustomer ? 'Kunde' : 'Mitarbeiter'} · 2 Varianten
+            </div>
+          </div>
+        </div>
+        <div style={{
+          fontFamily: RX_FONT_SANS, fontSize: 14, color: headerMuted,
+          maxWidth: 720, lineHeight: 1.6,
+        }}>
+          Zwei Ansätze für die Suchfunktion: <b style={{ color: headerText }}>Inline-Formular</b> als sofort
+          sichtbares Hub, oder <b style={{ color: headerText }}>Bottom-Sheet</b> als fokussierter CTA.
+          Tippe den Button "Wohin geht die Reise?" bei Variante B, um das Sheet live zu öffnen.
+          Theme und Benutzertyp via Tweaks-Panel umschalten.
+        </div>
+      </div>
+
+      {/* 2×2 grid — iOS/Android × Inline/Sheet (for customer)
+          OR just 1×2 iOS/Android for staff */}
+      {isCustomer ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gap: 40, maxWidth: 1680, margin: '0 auto',
+          justifyItems: 'center',
+        }}>
+          <div>
+            <Label T={T} kicker="A · iOS" title="Inline-Suchformular" sub="Alle Felder sofort sichtbar. Schnellster Weg zum CTA."/>
+            <Phone T={T} platform="ios" userType="customer" variation="inline" showSheet={showSheetA} setShowSheet={setShowSheetA}/>
+          </div>
+          <div>
+            <Label T={T} kicker="A · Android" title="Inline-Suchformular" sub="Material-Chrome, gleicher Aufbau für Parität."/>
+            <Phone T={T} platform="android" userType="customer" variation="inline" showSheet={showSheetA} setShowSheet={setShowSheetA}/>
+          </div>
+          <div>
+            <Label T={T} kicker="B · iOS" title="Bottom-Sheet-Suche" sub="Startseite bleibt aufgeräumt. Tippe „Wohin…“ um das Sheet zu öffnen."/>
+            <Phone T={T} platform="ios" userType="customer" variation="sheet" showSheet={showSheetB} setShowSheet={setShowSheetB}/>
+          </div>
+          <div>
+            <Label T={T} kicker="B · Android" title="Bottom-Sheet-Suche" sub="Material 3 Sheet, gleicher Flow."/>
+            <Phone T={T} platform="android" userType="customer" variation="sheet" showSheet={showSheetB} setShowSheet={setShowSheetB}/>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 60, maxWidth: 1000, margin: '0 auto',
+          justifyItems: 'center',
+        }}>
+          <div>
+            <Label T={T} kicker="Mitarbeiter · iOS" title="Stations-Dashboard" sub="Übergaben, Rücknahmen, Mahnungen und Strafzettel auf einen Blick."/>
+            <Phone T={T} platform="ios" userType="staff" variation="inline" showSheet={false} setShowSheet={() => {}}/>
+          </div>
+          <div>
+            <Label T={T} kicker="Mitarbeiter · Android" title="Stations-Dashboard" sub="Material-Chrome, gleicher Operational-Flow."/>
+            <Phone T={T} platform="android" userType="staff" variation="inline" showSheet={false} setShowSheet={() => {}}/>
+          </div>
+        </div>
+      )}
+
+      <TweaksPanel state={state} setState={setState} visible={editVisible}/>
+
+      {/* System notes — tiny footer */}
+      <div style={{
+        maxWidth: 1640, margin: '80px auto 0',
+        paddingTop: 30, borderTop: `1px solid ${state.theme === 'dark' ? '#252219' : '#CFC9BE'}`,
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 30,
+      }}>
+        {[
+          { k: 'Typografie', v: 'IBM Plex Sans · IBM Plex Mono', d: 'Mono für Zahlen, Zeiten, Kürzel — zuverlässig lesbar.' },
+          { k: 'Akzent', v: '#C77A1E · Rentex Amber', d: 'Warm, kontinentaleuropäisch, bewusst nicht korporatives Gelb.' },
+          { k: 'Sprache', v: 'Deutsch · DACH', d: 'Kiloliter-Guthaben, Registrierkassa-Bezug, Mahnung-Terminologie.' },
+          { k: 'Radien', v: '8 · 10 · 12 · 14 px', d: 'Weiche, aber nicht verspielte Ecken — seriöser Ton.' },
+        ].map(x => (
+          <div key={x.k}>
+            <div style={{ fontFamily: RX_FONT_MONO, fontSize: 9, letterSpacing: 1, color: headerMuted, textTransform: 'uppercase', marginBottom: 4 }}>
+              {x.k}
+            </div>
+            <div style={{ fontFamily: RX_FONT_SANS, fontSize: 13, fontWeight: 600, color: headerText, letterSpacing: -0.1 }}>
+              {x.v}
+            </div>
+            <div style={{ fontFamily: RX_FONT_SANS, fontSize: 11, color: headerMuted, marginTop: 4, lineHeight: 1.5 }}>
+              {x.d}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

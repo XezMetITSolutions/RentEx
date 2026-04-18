@@ -21,19 +21,20 @@ export default function AdminLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 60,
-          paddingBottom: 10,
+          backgroundColor: colors.card,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          height: 85,
+          paddingBottom: 25,
+          paddingTop: 8,
         },
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background,
-          shadowColor: 'transparent',
         },
-        headerTitleStyle: { fontWeight: 'bold', fontSize: 20 },
+        headerTitleStyle: { fontWeight: '700', fontSize: 20 },
       }}
     >
       <Tabs.Screen

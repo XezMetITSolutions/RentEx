@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View as RNView,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,6 +17,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import type { AdminDashboard } from '@/lib/types';
+
+const { width } = Dimensions.get('window');
 
 export default function AdminDashboardScreen() {
   const scheme = useColorScheme() ?? 'light';
@@ -51,6 +54,16 @@ export default function AdminDashboardScreen() {
     load(true);
   };
 
+  const renderSectionHeader = (kicker: string, title: string, action?: string) => (
+    <View style={styles.sectionHead}>
+      <Text style={[styles.kicker, { color: colors.tint }]}>{kicker}</Text>
+      <View style={styles.sectionTitleRow}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+        {action && <Text style={[styles.actionText, { color: colors.textMuted }]}>{action}</Text>}
+      </View>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
@@ -62,198 +75,301 @@ export default function AdminDashboardScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={styles.scrollContent}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tint} />}
     >
-      <View style={styles.hero}>
-        <Text style={[styles.hello, { color: colors.tabIconDefault }]}>Hallo</Text>
-        <Text style={styles.name}>{staff?.name || 'Mitarbeiter'}</Text>
-        {staff?.locationName ? (
-          <RNView style={[styles.locBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Ionicons name="location" size={12} color={colors.tint} />
-            <Text style={[styles.locText, { color: colors.text }]}>{staff.locationName}</Text>
-          </RNView>
-        ) : null}
+      {/* Staff Greeting */}
+      <View style={styles.greetingBlock}>
+        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>SCHICHT · {new Date().toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short' })}</Text>
+        <Text style={[styles.greetingName, { color: colors.text }]}>
+          {staff?.locationName || 'Station Wien Hbf.'}
+        </Text>
+        <Text style={[styles.greetingSub, { color: colors.textMuted }]}>
+          {data?.rentals.todayPickups || 0} Übergaben · {data?.rentals.todayReturns || 0} Rücknahmen heute
+        </Text>
       </View>
 
-      {error && (
-        <View style={[styles.errorBox, { backgroundColor: '#fee2e2' }]}>
-          <Text style={{ color: '#991b1b' }}>{error}</Text>
+      {/* Staff KPIs */}
+      <View style={styles.kpiRow}>
+        <View style={[styles.kpiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.kpiKicker, { color: colors.textFaint }]}>VERFÜGBAR</Text>
+          <View style={styles.kpiValueRow}>
+            <Text style={[styles.kpiValue, { color: colors.text }]}>{data?.cars.active || 0}</Text>
+            <Text style={[styles.kpiTotal, { color: colors.textFaint }]}>/ {data?.cars.total || 0}</Text>
+          </View>
+          <Text style={[styles.kpiHint, { color: colors.textMuted }]}>Fahrzeuge</Text>
         </View>
-      )}
+        <View style={[styles.kpiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.kpiKicker, { color: colors.textFaint }]}>IN MIETE</Text>
+          <View style={styles.kpiValueRow}>
+            <Text style={[styles.kpiValue, { color: colors.text }]}>{data?.rentals.active || 0}</Text>
+          </View>
+          <Text style={[styles.kpiHint, { color: data?.rentals.overdue ? colors.tint : colors.textMuted }]}>
+            davon {data?.rentals.overdue || 0} überfällig
+          </Text>
+        </View>
+        <View style={[styles.kpiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.kpiKicker, { color: colors.textFaint }]}>WARTUNG</Text>
+          <View style={styles.kpiValueRow}>
+            <Text style={[styles.kpiValue, { color: colors.text }]}>{data?.cars.maintenance || 0}</Text>
+          </View>
+          <Text style={[styles.kpiHint, { color: colors.textMuted }]}>Termine fällig</Text>
+        </View>
+      </View>
 
-      {data && (
-        <>
-          <Text style={styles.sectionTitle}>Heute</Text>
-          <View style={styles.row}>
-            <StatCard
-              color={colors}
-              icon="log-in"
-              label="Abholungen"
-              value={data.rentals.todayPickups}
-              onPress={() => router.push('/(admin)/rentals?status=Confirmed')}
-            />
-            <StatCard
-              color={colors}
-              icon="log-out"
-              label="Rückgaben"
-              value={data.rentals.todayReturns}
-              onPress={() => router.push('/(admin)/rentals?status=Active')}
-            />
-          </View>
+      {/* Timeline Section */}
+      {renderSectionHeader('HEUTE', 'Übergabe & Rücknahme', 'Kalender →')}
+      <View style={[styles.timelineBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <TouchableOpacity style={styles.timelineItem} onPress={() => router.push('/(admin)/rentals?status=Confirmed')}>
+           <View style={styles.timeInfo}>
+              <Text style={[styles.time, { color: colors.text }]}>HEUTE</Text>
+              <Text style={[styles.timeTag, { color: colors.tint }]}>AUS</Text>
+           </View>
+           <View style={[styles.timelineDivider, { backgroundColor: colors.border }]} />
+           <View style={styles.itemContent}>
+              <Text style={[styles.who, { color: colors.text }]}>{data?.rentals.todayPickups || 0} Abholungen</Text>
+              <Text style={[styles.desc, { color: colors.textMuted }]}>Geplante Fahrzeugübergaben</Text>
+           </View>
+           <Ionicons name="chevron-forward" size={14} color={colors.textFaint} />
+        </TouchableOpacity>
+        <View style={[styles.cardDivider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity style={styles.timelineItem} onPress={() => router.push('/(admin)/rentals?status=Active')}>
+           <View style={styles.timeInfo}>
+              <Text style={[styles.time, { color: colors.text }]}>HEUTE</Text>
+              <Text style={[styles.timeTag, { color: '#3E6B4A' }]}>EIN</Text>
+           </View>
+           <View style={[styles.timelineDivider, { backgroundColor: colors.border }]} />
+           <View style={styles.itemContent}>
+              <Text style={[styles.who, { color: colors.text }]}>{data?.rentals.todayReturns || 0} Rückgaben</Text>
+              <Text style={[styles.desc, { color: colors.textMuted }]}>Erwartete Fahrzeugrücknahmen</Text>
+           </View>
+           <Ionicons name="chevron-forward" size={14} color={colors.textFaint} />
+        </TouchableOpacity>
+      </View>
 
-          <Text style={styles.sectionTitle}>Mieten</Text>
-          <View style={styles.row}>
-            <StatCard color={colors} icon="flash" label="Aktiv" value={data.rentals.active} />
-            <StatCard color={colors} icon="hourglass" label="Ausstehend" value={data.rentals.pending} />
-          </View>
-          <View style={styles.row}>
-            <StatCard
-              color={colors}
-              icon="alert-circle"
-              label="Überfällig"
-              value={data.rentals.overdue}
-              accent={data.rentals.overdue > 0 ? '#dc2626' : undefined}
-            />
-            <StatCard color={colors} icon="calendar" label="Monat" value={data.rentals.monthCount} />
-          </View>
+      {/* Quick Actions */}
+      <View style={{ marginTop: 24 }}>
+        {renderSectionHeader('SCHNELLZUGRIFF', 'Aktionen')}
+        <View style={styles.actionsGrid}>
+          <ActionTile colors={colors} icon="qr-code-outline" label="Übergabe" onPress={() => router.push('/(admin)/scanner')} />
+          <ActionTile colors={colors} icon="shield-checkmark-outline" label="Schaden" onPress={() => {}} />
+          <ActionTile colors={colors} icon="speedometer-outline" label="Fahrtenbuch" onPress={() => {}} />
+          <ActionTile colors={colors} icon="document-text-outline" label="Protokoll" onPress={() => router.push('/(admin)/activity')} />
+        </View>
+      </View>
 
-          <Text style={styles.sectionTitle}>Flotte</Text>
-          <View style={styles.row}>
-            <StatCard color={colors} icon="car-sport" label="Gesamt" value={data.cars.total} />
-            <StatCard color={colors} icon="checkmark-circle" label="Verfügbar" value={data.cars.active} />
-          </View>
-          <View style={styles.row}>
-            <StatCard color={colors} icon="construct" label="Wartung" value={data.cars.maintenance} />
-            <StatCard
-              color={colors}
-              icon="cash"
-              label="Umsatz (Monat)"
-              value={`${Math.round(data.revenue.month).toLocaleString('de-DE')} €`}
-              small
-            />
-          </View>
+      {/* Monthly Revenue (Small Reward style) */}
+      <View style={[styles.revenueCard, { backgroundColor: colors.text }]}>
+        <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
+        <Text style={[styles.revenueKicker, { color: colors.tint }]}>UMSATZ MONAT</Text>
+        <Text style={[styles.revenueValue, { color: colors.background }]}>
+          € {Math.round(data?.revenue.month || 0).toLocaleString('de-DE')}
+        </Text>
+        <Text style={[styles.revenueDesc, { color: colors.background, opacity: 0.65 }]}>
+          Station Wien Hbf. · Aktueller Monat
+        </Text>
+      </View>
 
-          <Text style={styles.sectionTitle}>Schnellzugriff</Text>
-          <QuickAction
-            colors={colors}
-            icon="qr-code"
-            label="QR-Code scannen"
-            onPress={() => router.push('/(admin)/scanner')}
-          />
-          <QuickAction
-            colors={colors}
-            icon="time"
-            label="Aktivitäts-Protokoll"
-            onPress={() => router.push('/(admin)/activity')}
-          />
-        </>
-      )}
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
-function StatCard({
-  color,
-  icon,
-  label,
-  value,
-  accent,
-  small,
-  onPress,
-}: {
-  color: any;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  value: number | string;
-  accent?: string;
-  small?: boolean;
-  onPress?: () => void;
-}) {
-  const inner = (
-    <View style={[styles.card, { backgroundColor: color.card, borderColor: color.border }]}>
-      <RNView style={styles.cardHead}>
-        <Ionicons name={icon} size={16} color={accent || color.tint} />
-        <Text style={[styles.cardLabel, { color: color.tabIconDefault }]}>{label}</Text>
-      </RNView>
-      <Text style={[styles.cardValue, small && { fontSize: 20 }, accent ? { color: accent } : null]}>
-        {value}
-      </Text>
-    </View>
-  );
-  return onPress ? (
-    <TouchableOpacity style={{ flex: 1 }} onPress={onPress} activeOpacity={0.7}>
-      {inner}
-    </TouchableOpacity>
-  ) : (
-    inner
-  );
-}
-
-function QuickAction({
-  colors,
-  icon,
-  label,
-  onPress,
-}: {
-  colors: any;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  onPress: () => void;
-}) {
+function ActionTile({ colors, icon, label, onPress }: { colors: any; icon: any; label: string; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.qa, { backgroundColor: colors.card, borderColor: colors.border }]}
-    >
-      <RNView style={[styles.qaIcon, { backgroundColor: colors.tint + '22' }]}>
+    <TouchableOpacity onPress={onPress} style={[styles.actionTile, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[styles.actionIconBox, { backgroundColor: colors.accentSoft }]}>
         <Ionicons name={icon} size={20} color={colors.tint} />
-      </RNView>
-      <Text style={[styles.qaLabel, { color: colors.text }]}>{label}</Text>
-      <Ionicons name="chevron-forward" size={20} color={colors.tabIconDefault} />
+      </View>
+      <Text style={[styles.actionLabel, { color: colors.text }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  container: { padding: 16, paddingBottom: 40 },
-  hero: { marginBottom: 20 },
-  hello: { fontSize: 13 },
-  name: { fontSize: 24, fontWeight: 'bold', marginTop: 2 },
-  locBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 4,
+  scrollContent: { paddingTop: 10, paddingBottom: 40 },
+  greetingBlock: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  locText: { fontSize: 12, fontWeight: '600' },
-  sectionTitle: { fontSize: 13, fontWeight: '700', marginTop: 20, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  card: {
+  greetingKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  greetingName: {
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+  },
+  greetingSub: {
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  kpiRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 8,
+    marginBottom: 24,
+  },
+  kpiCard: {
     flex: 1,
-    padding: 14,
-    borderRadius: 14,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
   },
-  cardHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  cardLabel: { fontSize: 12, fontWeight: '500' },
-  cardValue: { fontSize: 26, fontWeight: 'bold' },
-  errorBox: { padding: 12, borderRadius: 10, marginBottom: 12 },
-  qa: {
+  kpiKicker: {
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '800',
+  },
+  kpiValueRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
+    alignItems: 'baseline',
+    marginTop: 6,
+    gap: 2,
+  },
+  kpiValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  kpiTotal: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  kpiHint: {
+    fontSize: 10,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  sectionHead: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  kicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  actionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  timelineBox: {
+    marginHorizontal: 20,
     borderRadius: 12,
     borderWidth: 1,
+    overflow: 'hidden',
+  },
+  timelineItem: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  timeInfo: {
+    width: 48,
+  },
+  time: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  timeTag: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginTop: 2,
+  },
+  timelineDivider: {
+    width: 1,
+    height: '100%',
+  },
+  itemContent: {
+    flex: 1,
+  },
+  who: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  desc: {
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  cardDivider: {
+    height: 1,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 6,
+    marginBottom: 24,
+  },
+  actionTile: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  revenueCard: {
+    marginHorizontal: 20,
+    padding: 20,
+    borderRadius: 14,
+    position: 'relative',
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  accentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 4,
+    height: '100%',
+  },
+  revenueKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '700',
     marginBottom: 10,
   },
-  qaIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  qaLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
+  revenueValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  revenueDesc: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
 });

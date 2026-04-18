@@ -22,14 +22,16 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[scheme].tint,
+        tabBarInactiveTintColor: Colors[scheme].textMuted,
         tabBarStyle: {
-          backgroundColor: Colors[scheme].background,
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 60,
-          paddingBottom: 10,
+          backgroundColor: Colors[scheme].card,
+          borderTopWidth: 1,
+          borderTopColor: Colors[scheme].border,
+          height: 85,
+          paddingBottom: 25,
+          paddingTop: 8,
         },
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
         headerStyle: {
           backgroundColor: Colors[scheme].background,
           shadowColor: 'transparent',
