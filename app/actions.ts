@@ -246,12 +246,17 @@ export async function createRental(formData: FormData) {
     const customerId = Number(formData.get('customerId'));
     const startDate = new Date(formData.get('startDate') as string);
     const endDate = new Date(formData.get('endDate') as string);
+    
+    // Auto-generate contract number: REX-YY-XXXXX
+    const year = new Date().getFullYear().toString().slice(-2);
+    const random = Math.floor(10000 + Math.random() * 90000);
+    const contractNumber = `REX-${year}-${random}`;
 
     // Fetch car for rate calculation
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) throw new Error('Car not found');
 
-    const days = differenceInDays(endDate, startDate) || 1;
+    const days = Math.max(1, differenceInDays(endDate, startDate));
     const totalAmount = Number(car.dailyRate) * days;
 
     const data = {
@@ -264,7 +269,9 @@ export async function createRental(formData: FormData) {
         totalAmount,
         status: 'Active',
         paymentStatus: 'Pending',
-        fuelLevelPickup: formData.get('fuelLevelPickup') as string || 'Full',
+        contractNumber,
+        driverName: formData.get('driverName') as string || null,
+        driverLicense: formData.get('driverLicense') as string || null,
         pickupLocationId: formData.get('pickupLocationId') ? Number(formData.get('pickupLocationId')) : null,
         returnLocationId: formData.get('returnLocationId') ? Number(formData.get('returnLocationId')) : null,
         depositPaid: formData.get('depositPaid') ? Number(formData.get('depositPaid')) : null,

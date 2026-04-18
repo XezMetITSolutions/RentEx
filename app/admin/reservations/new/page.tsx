@@ -9,7 +9,20 @@ async function getData() {
     const [cars, customers, locations] = await Promise.all([
         prisma.car.findMany({
             where: { isActive: true },
-            select: { id: true, brand: true, model: true, plate: true, dailyRate: true }
+            select: { 
+                id: true, 
+                brand: true, 
+                model: true, 
+                plate: true, 
+                dailyRate: true,
+                rentals: {
+                    where: { 
+                        status: { not: 'Cancelled' },
+                        endDate: { gte: new Date() }
+                    },
+                    select: { startDate: true, endDate: true }
+                }
+            }
         }),
         prisma.customer.findMany({
             orderBy: { lastName: 'asc' },

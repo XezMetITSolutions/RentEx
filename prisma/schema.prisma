@@ -438,6 +438,8 @@ model Rental {
   // Status & Notes
   status        String        // Active, Completed, Pending, Cancelled
   contractNumber String?      @unique
+  driverName    String?       // Zusatzfahrer Name
+  driverLicense String?       // Zusatzfahrer Führerschein
   notes         String?
   damageReport  String?
   
