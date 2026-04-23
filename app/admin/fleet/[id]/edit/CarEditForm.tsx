@@ -139,7 +139,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                 </div>
             </div>
 
-            <form action={updateCarWithId} className="space-y-8">
+            <form action={async (formData) => { await updateCarWithId(formData); }} className="space-y-8">
                 {/* Tab: Basis & Design */}
                 <div className={activeTab === 'basic' ? 'block' : 'hidden'}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
