@@ -57,7 +57,7 @@ async function getStats(locationId?: number | null) {
     return [
         {
             name: 'Gesamteinnahmen',
-            value: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(totalRevenue),
+            value: new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalRevenue),
             change: 'Gesamt',
             trend: 'neutral',
             icon: Wallet,
@@ -238,7 +238,7 @@ export default async function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-bold text-zinc-900 dark:text-white text-right relative z-10">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                             </td>
                                         </tr>
                                     ))

@@ -127,7 +127,7 @@ export default function RegisterScreen() {
         {renderInput('Telefon (optional)', phone, setPhone, 'call-outline', {
           keyboard: 'phone-pad',
           autoComplete: 'tel',
-          placeholder: '+49 …',
+          placeholder: '+43 …',
         })}
         {renderInput('Passwort', password, setPassword, 'lock-closed-outline', {
           secure: true,

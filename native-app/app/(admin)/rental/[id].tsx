@@ -107,8 +107,8 @@ export default function AdminRentalDetailScreen() {
 
   const carLabel = data.car ? `${data.car.brand} ${data.car.model}` : '—';
   const fullName = data.customer ? `${data.customer.firstName} ${data.customer.lastName}` : '—';
-  const sd = new Date(data.startDate).toLocaleDateString('de-DE');
-  const ed = new Date(data.endDate).toLocaleDateString('de-DE');
+  const sd = new Date(data.startDate).toLocaleDateString('de-AT');
+  const ed = new Date(data.endDate).toLocaleDateString('de-AT');
 
   const canCheckIn = data.status === 'Confirmed' || data.status === 'Pending';
   const canCheckOut = data.status === 'Active';
@@ -168,7 +168,7 @@ export default function AdminRentalDetailScreen() {
                 colors={colors}
                 icon="checkmark-done"
                 label="Tatsächl. Rückgabe"
-                value={new Date(data.actualReturnDate).toLocaleDateString('de-DE')}
+                value={new Date(data.actualReturnDate).toLocaleDateString('de-AT')}
               />
             )}
           </Section>
@@ -183,23 +183,23 @@ export default function AdminRentalDetailScreen() {
               colors={colors}
               icon="speedometer"
               label="Abholung"
-              value={data.pickupMileage != null ? `${data.pickupMileage.toLocaleString('de-DE')} km` : '—'}
+              value={data.pickupMileage != null ? `${data.pickupMileage.toLocaleString('de-AT')} km` : '—'}
             />
             <InfoRow
               colors={colors}
               icon="speedometer-outline"
               label="Rückgabe"
-              value={data.returnMileage != null ? `${data.returnMileage.toLocaleString('de-DE')} km` : '—'}
+              value={data.returnMileage != null ? `${data.returnMileage.toLocaleString('de-AT')} km` : '—'}
             />
           </Section>
 
           <Section title="Zahlung" colors={colors}>
-            <InfoRow colors={colors} icon="cash" label="Tagessatz" value={`${Number(data.dailyRate).toLocaleString('de-DE')} €`} />
+            <InfoRow colors={colors} icon="cash" label="Tagessatz" value={`${Number(data.dailyRate).toLocaleString('de-AT')} €`} />
             <InfoRow
               colors={colors}
               icon="receipt"
               label="Gesamt"
-              value={`${Number(data.totalAmount).toLocaleString('de-DE')} €`}
+              value={`${Number(data.totalAmount).toLocaleString('de-AT')} €`}
             />
             <InfoRow colors={colors} icon="wallet" label="Status" value={data.paymentStatus} />
           </Section>

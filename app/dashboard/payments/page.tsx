@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+    new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(amount);
 
 export const dynamic = 'force-dynamic';
 

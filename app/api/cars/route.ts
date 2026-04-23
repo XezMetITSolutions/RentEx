@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(cars);
   } catch (error) {
-    console.error('Error fetching cars:', error);
-    return NextResponse.json({ error: 'Failed to fetch cars' }, { status: 500 });
+    console.error('[GET /api/cars]', error);
+    return NextResponse.json({ error: 'Fahrzeuge konnten nicht geladen werden.' }, { status: 500 });
   }
 }

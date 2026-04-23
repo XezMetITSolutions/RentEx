@@ -1,11 +1,21 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
+import { getAdminSession } from "@/lib/adminAuth";
 
 // POST /api/admin/agb/[id]/activate — Activate version & notify all customers
 export async function POST(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
+    }
+    const resend = new Resend(resendApiKey);
+
     const { id } = await params;
     try {
         // 1. Deactivate all others

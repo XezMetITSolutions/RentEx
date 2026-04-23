@@ -4,22 +4,28 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import crypto from 'crypto';
 import path from 'path';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         const formData = await request.formData();
         const file = formData.get('file') as File;
 
         if (!file) {
-            console.error('Upload Error: No file found in FormData');
+            console.error('Upload Fehler: Keine Datei in FormData gefunden');
             return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
         }
 
         // Validate file type (allow only images)
         if (!file.type.startsWith('image/')) {
-            console.error('Upload Error: Invalid file type:', file.type);
+            console.error('Upload Fehler: Ungültiger Dateityp:', file.type);
             return NextResponse.json({ error: 'Nur Bilder erlaubt' }, { status: 400 });
         }
 
@@ -51,7 +57,7 @@ export async function POST(request: NextRequest) {
             url: publicUrl
         });
     } catch (error) {
-        console.error('Image Upload Error (R2):', error);
+        console.error('Bild-Upload Fehler (R2):', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({
             error: 'Upload fehlgeschlagen',

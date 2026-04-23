@@ -14,6 +14,6 @@ export async function GET() {
         });
         return NextResponse.json(cars);
     } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch cars" }, { status: 500 });
+        return NextResponse.json({ error: "Fahrzeuge konnten nicht geladen werden" }, { status: 500 });
     }
 }

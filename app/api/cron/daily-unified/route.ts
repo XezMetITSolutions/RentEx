@@ -1,8 +1,7 @@
-import prisma from "@/lib/prisma";
+﻿import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
+import { emailTemplates, sendEmail } from "@/lib/notificationTemplates";
 
 export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
@@ -10,14 +9,77 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
+    }
+    const resend = new Resend(resendApiKey);
+
     const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+
     const results: any = {
+        pickupReminders: null,
+        returnReminders: null,
         birthday: null,
         mahnwesen: null,
         cartCleanup: null
     };
 
-    // 1. Birthday Coupons
+    // 1. Pickup Reminders (1 day before start)
+    try {
+        const upcoming = await prisma.rental.findMany({
+            where: {
+                status: { in: ["Confirmed", "Pending"] },
+                startDate: { gte: tomorrow, lt: dayAfter },
+            },
+            include: { customer: true, car: true, pickupLocation: true },
+        });
+        let pickupSent = 0;
+        for (const rental of upcoming) {
+            if (!rental.customer || !rental.car || !rental.contractNumber) continue;
+            const sent = await sendEmail(rental.customer.email, emailTemplates.pickupReminder({
+                contractNumber: rental.contractNumber,
+                customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
+                car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
+                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, totalAmount: Number(rental.totalAmount) },
+            }));
+            if (sent) pickupSent++;
+        }
+        results.pickupReminders = { sent: pickupSent };
+    } catch (e: any) {
+        results.pickupReminders = { error: e.message };
+    }
+
+    // 2. Return Reminders (1 day before end)
+    try {
+        const returning = await prisma.rental.findMany({
+            where: {
+                status: "Active",
+                endDate: { gte: tomorrow, lt: dayAfter },
+            },
+            include: { customer: true, car: true, pickupLocation: true },
+        });
+        let returnSent = 0;
+        for (const rental of returning) {
+            if (!rental.customer || !rental.car || !rental.contractNumber) continue;
+            const sent = await sendEmail(rental.customer.email, emailTemplates.returnReminder({
+                contractNumber: rental.contractNumber,
+                customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
+                car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
+                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, totalAmount: Number(rental.totalAmount) },
+            }));
+            if (sent) returnSent++;
+        }
+        results.returnReminders = { sent: returnSent };
+    } catch (e: any) {
+        results.returnReminders = { error: e.message };
+    }
+
+    // 3. Birthday Coupons
     try {
         const todayDay = today.getDate();
         const todayMonth = today.getMonth() + 1;
@@ -36,7 +98,7 @@ export async function POST(req: NextRequest) {
             await prisma.discountCoupon.create({
                 data: {
                     code,
-                    description: `Geburtstags-Gutschein für ${customer.firstName} ${customer.lastName}`,
+                    description: `Geburtstags-Gutschein fÃ¼r ${customer.firstName} ${customer.lastName}`,
                     discountType: "PERCENTAGE",
                     discountValue: 10,
                     validFrom: today,
@@ -49,9 +111,9 @@ export async function POST(req: NextRequest) {
                 }
             });
             await resend.emails.send({
-                from: process.env.EMAIL_FROM || "noreply@rentex.at",
+                from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
                 to: customer.email,
-                subject: `🎂 Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
+                subject: `ðŸŽ‚ Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
                 html: `<p>Alles Gute zum Geburtstag! Ihr Code: <strong>${code}</strong></p>`
             });
             birthdayProcessed++;
@@ -61,7 +123,7 @@ export async function POST(req: NextRequest) {
         results.birthday = { error: e.message };
     }
 
-    // 2. Mahnwesen
+    // 4. Mahnwesen
     try {
         const delays = { 1: 3, 2: 10, 3: 21 };
         const overdue = await prisma.rental.findMany({
@@ -80,10 +142,10 @@ export async function POST(req: NextRequest) {
             
             const sendM = async (level: 1 | 2 | 3) => {
                 await resend.emails.send({
-                    from: process.env.EMAIL_FROM || "noreply@rentex.at",
+                    from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
                     to: rental.customer.email,
                     subject: `Mahnung ${level} - Rechnung ${rental.contractNumber ?? rental.id}`,
-                    html: `<p>Sehr geehrte/r ${rental.customer.firstName}, bitte zahlen Sie € ${totalOwed.toFixed(2)}.</p>`
+                    html: `<p>Sehr geehrte/r ${rental.customer.firstName}, bitte zahlen Sie â‚¬ ${totalOwed.toFixed(2)}.</p>`
                 });
                 await prisma.mahnungRecord.create({
                     data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }
@@ -102,7 +164,7 @@ export async function POST(req: NextRequest) {
         results.mahnwesen = { error: e.message };
     }
 
-    // 3. Cart Cleanup
+    // 5. Cart Cleanup
     try {
         const cleanup = await prisma.cartSession.deleteMany({
             where: { expiresAt: { lte: today } }

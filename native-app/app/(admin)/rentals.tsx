@@ -157,8 +157,8 @@ function RentalCard({
 }) {
   const fullName = item.customer ? `${item.customer.firstName} ${item.customer.lastName}` : '—';
   const carLabel = item.car ? `${item.car.brand} ${item.car.model}` : '—';
-  const sd = new Date(item.startDate).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-  const ed = new Date(item.endDate).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+  const sd = new Date(item.startDate).toLocaleDateString('de-AT', { day: '2-digit', month: 'short' });
+  const ed = new Date(item.endDate).toLocaleDateString('de-AT', { day: '2-digit', month: 'short' });
 
   return (
     <TouchableOpacity
@@ -194,7 +194,7 @@ function RentalCard({
           {item.contractNumber || `#${item.id}`}
         </Text>
         <Text style={[styles.rPrice, { color: colors.text }]}>
-          {Number(item.totalAmount).toLocaleString('de-DE')} €
+          {Number(item.totalAmount).toLocaleString('de-AT')} €
         </Text>
       </RNView>
     </TouchableOpacity>

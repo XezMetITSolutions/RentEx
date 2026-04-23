@@ -210,11 +210,13 @@ export default function AdvancedFilters({ isOpen, onClose, onApply, type }: Adva
                                     setFilters({ ...filters, location: selected });
                                 }}
                             >
-                                <option value="München">München</option>
-                                <option value="Frankfurt">Frankfurt</option>
-                                <option value="Berlin">Berlin</option>
-                                <option value="Hamburg">Hamburg</option>
-                                <option value="Köln">Köln</option>
+                                <option value="Dornbirn">Dornbirn</option>
+                                <option value="Wien">Wien</option>
+                                <option value="Bregenz">Bregenz</option>
+                                <option value="Innsbruck">Innsbruck</option>
+                                <option value="Salzburg">Salzburg</option>
+                                <option value="Graz">Graz</option>
+                                <option value="Linz">Linz</option>
                             </select>
                         </div>
 

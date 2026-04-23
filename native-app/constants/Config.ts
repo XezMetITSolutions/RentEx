@@ -26,5 +26,5 @@ export const Config = {
   supportEmail: 'support@rentex.app',
   currency: 'EUR',
   currencySymbol: '€',
-  locale: 'de-DE',
+  locale: 'de-AT',
 } as const;

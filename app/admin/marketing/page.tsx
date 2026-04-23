@@ -64,7 +64,7 @@ export default async function MarketingPage() {
                         <div>
                             <p className="text-sm font-medium text-rose-100">Eingelöster Wert</p>
                             <h3 className="text-2xl font-bold">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(redeemedValue)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(redeemedValue)}
                             </h3>
                         </div>
                     </div>

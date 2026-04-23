@@ -1,7 +1,7 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 
-export default function KVKKPage() {
+export default function DSGVOPage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
             <Navbar />

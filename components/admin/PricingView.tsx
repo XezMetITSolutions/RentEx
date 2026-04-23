@@ -256,7 +256,7 @@ export default function PricingView({ data }: PricingViewProps) {
                                                         </td>
                                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 text-right">€{(comp.dailyRate * 7 * 0.85).toFixed(0)}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 text-right">€{(comp.dailyRate * 30 * 0.70).toFixed(0)}</td>
-                                                        <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 text-right">{new Date(comp.lastUpdated).toLocaleDateString("de-DE")}</td>
+                                                        <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 text-right">{new Date(comp.lastUpdated).toLocaleDateString("de-AT")}</td>
                                                     </tr>
                                                 ))
                                             ) : (

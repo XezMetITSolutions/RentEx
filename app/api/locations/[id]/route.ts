@@ -22,7 +22,7 @@ export async function GET(
 
         if (!location) {
             return NextResponse.json(
-                { error: 'Location not found' },
+                { error: 'Standort nicht gefunden' },
                 { status: 404 }
             );
         }
@@ -31,7 +31,7 @@ export async function GET(
     } catch (error) {
         console.error('Error fetching location:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch location' },
+            { error: 'Standort konnte nicht geladen werden' },
             { status: 500 }
         );
     }
@@ -69,7 +69,7 @@ export async function PUT(
     } catch (error) {
         console.error('Error updating location:', error);
         return NextResponse.json(
-            { error: 'Failed to update location' },
+            { error: 'Standort konnte nicht aktualisiert werden' },
             { status: 500 }
         );
     }
@@ -107,7 +107,7 @@ export async function DELETE(
     } catch (error) {
         console.error('Error deleting location:', error);
         return NextResponse.json(
-            { error: 'Failed to delete location' },
+            { error: 'Standort konnte nicht gelöscht werden' },
             { status: 500 }
         );
     }

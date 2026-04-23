@@ -25,9 +25,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [salt, storedHash] = staff.passwordHash.includes(':')
-      ? staff.passwordHash.split(':')
-      : staff.passwordHash.split('.');
+    // Delimiter is always ':' for staff (created by admin panel).
+    // Legacy '.' delimiter (used by customer auth) is not valid here.
+    const parts = staff.passwordHash.split(':');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      console.error(`[mobile-admin-login] Invalid passwordHash format for staff id=${staff.id}`);
+      return NextResponse.json({ error: 'Ungültige Anmeldedaten.' }, { status: 401 });
+    }
+    const [salt, storedHash] = parts;
 
     const hash = scryptSync(password, salt, 64).toString('hex');
     if (hash !== storedHash) {

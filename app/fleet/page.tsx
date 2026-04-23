@@ -210,7 +210,7 @@ export default async function FleetPage({
                                             </div>
                                             <div className="text-right">
                                                 <span className="block text-xl font-bold text-gray-900 dark:text-white">
-                                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                                 </span>
                                                 <span className="text-xs text-gray-500">/Tag</span>
                                             </div>

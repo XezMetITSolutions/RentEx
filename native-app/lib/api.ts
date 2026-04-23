@@ -162,6 +162,16 @@ export const api = {
       { method: 'POST', auth: true }
     );
   },
+  async reportDamage(
+    id: number,
+    data: { description: string; type?: string; locationOnCar?: string; photoUrl?: string }
+  ): Promise<{ success: true }> {
+    return request<{ success: true }>(`/api/mobile/bookings/${id}/damage`, {
+      method: 'POST',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+  },
 
   // ── Admin ──
   async adminLogin(email: string, password: string): Promise<StaffSession> {

@@ -382,7 +382,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="font-bold text-gray-900 dark:text-white">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                             </div>
                                             <div className="text-[10px] text-gray-400">pro Tag</div>
                                         </td>
@@ -482,7 +482,7 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
                                     <div className="flex flex-col">
                                         <span className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Tagespreis</span>
                                         <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
                                         </span>
                                     </div>
                                     <div className="flex gap-1">

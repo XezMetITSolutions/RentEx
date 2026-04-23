@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
                 <div className="bg-white/10 backdrop-blur-2xl border border-white/10 p-10 rounded-[40px] shadow-2xl">
                     <div className="mb-8">
                         <h1 className="text-2xl font-black tracking-tight text-white mb-2">
-                            Willkommen zurück
+                            Willkommen zurÃ¼ck
                         </h1>
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
                             Admin-Portal Anmeldung
@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
                                     name="email"
                                     required
                                     className="w-full bg-transparent border-b border-white/10 py-4 pl-10 pr-4 text-white font-medium outline-none focus:border-red-600 transition-all placeholder:text-white/10"
-                                    placeholder="name@rentex.at"
+                                    placeholder="name@rent-ex.at"
                                 />
                             </div>
                         </div>
@@ -100,7 +100,7 @@ export default function AdminLoginPage() {
                                     name="password"
                                     required
                                     className="w-full bg-transparent border-b border-white/10 py-4 pl-10 pr-4 text-white font-medium outline-none focus:border-red-600 transition-all placeholder:text-white/10"
-                                    placeholder="••••••••"
+                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                 />
                             </div>
                         </div>

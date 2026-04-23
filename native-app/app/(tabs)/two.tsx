@@ -94,7 +94,7 @@ export default function BookingsScreen() {
             <View style={[styles.statusBadge, { backgroundColor: `${meta.color}22` }]}>
               <Text style={[styles.statusText, { color: meta.color }]}>{meta.label}</Text>
             </View>
-            <Text style={[styles.price, { color: colors.tint }]}>{formatCurrency(booking.totalPrice)}</Text>
+            <Text style={[styles.price, { color: colors.tint }]}>{formatCurrency(booking.totalAmount)}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.tabIconDefault} />

@@ -1,8 +1,14 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/adminAuth";
 
 // GET /api/admin/strafzettel
 export async function GET(req: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const carId = searchParams.get("carId");
@@ -29,6 +35,11 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/strafzettel — Create new fine record
 export async function POST(req: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const { carId, rentalId, plate, issuedDate, issuedTime, incidentLocation,

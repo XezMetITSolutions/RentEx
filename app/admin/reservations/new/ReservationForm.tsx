@@ -188,7 +188,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-gray-400 font-medium">Gültig bis</p>
                                         <p className={`text-sm font-semibold ${isLicenseExpired ? 'text-red-600' : 'dark:text-white'}`}>
-                                            {selectedCustomer.licenseExpiryDate ? new Date(selectedCustomer.licenseExpiryDate).toLocaleDateString('de-DE') : 'N/A'}
+                                            {selectedCustomer.licenseExpiryDate ? new Date(selectedCustomer.licenseExpiryDate).toLocaleDateString('de-AT') : 'N/A'}
                                         </p>
                                     </div>
                                 </div>
@@ -245,7 +245,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                                     <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
                                         <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                                         <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
-                                            {new Date(rental.startDate).toLocaleDateString('de-DE')} - {new Date(rental.endDate).toLocaleDateString('de-DE')}
+                                            {new Date(rental.startDate).toLocaleDateString('de-AT')} - {new Date(rental.endDate).toLocaleDateString('de-AT')}
                                         </span>
                                     </div>
                                 ))}
@@ -370,7 +370,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                         <div>
                             <p className="text-blue-100 text-sm font-medium uppercase tracking-wider">Geschätzter Gesamtpreis</p>
                             <p className="text-3xl font-black mt-1">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(estimatedTotal)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(estimatedTotal)}
                             </p>
                         </div>
                         <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm">

@@ -1,8 +1,14 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/adminAuth";
 
 // GET /api/admin/staff
 export async function GET() {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    }
+
     try {
         const staff = await prisma.staff.findMany({
             include: { location: { select: { id: true, name: true } } },
@@ -17,6 +23,11 @@ export async function GET() {
 
 // POST /api/admin/staff — Create new staff member
 export async function POST(req: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const { name, email, role, locationId, password } = body;

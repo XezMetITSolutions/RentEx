@@ -17,8 +17,14 @@ export async function POST(req: NextRequest) {
     if (!firstName || !lastName || !email || !password) {
       return NextResponse.json({ error: 'Bitte alle Pflichtfelder ausfüllen.' }, { status: 400 });
     }
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'Passwort mindestens 6 Zeichen.' }, { status: 400 });
+    if (password.length < 12) {
+      return NextResponse.json({ error: 'Passwort mindestens 12 Zeichen.' }, { status: 400 });
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'Passwort muss Groß- und Kleinbuchstaben sowie mindestens eine Zahl enthalten.' },
+        { status: 400 }
+      );
     }
 
     const nameCheck = validateName(firstName, lastName);

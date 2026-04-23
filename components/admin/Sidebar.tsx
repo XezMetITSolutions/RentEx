@@ -215,7 +215,7 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                         <div className="text-lg font-bold text-green-400">
                             {todayRevenue >= 1000
                                 ? `€${(todayRevenue / 1000).toFixed(1)}k`
-                                : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(todayRevenue)}
+                                : new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(todayRevenue)}
                         </div>
                     </div>
                 </div>

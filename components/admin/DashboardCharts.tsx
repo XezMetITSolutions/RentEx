@@ -43,7 +43,7 @@ export default function DashboardCharts({ revenueData, categoryData, locationDat
                                 borderRadius: '8px',
                                 color: '#fff'
                             }}
-                            formatter={(value: any) => `€${value.toLocaleString('de-DE')}`}
+                            formatter={(value: any) => `€${value.toLocaleString('de-AT')}`}
                         />
                         <Legend />
                         <Line

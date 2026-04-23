@@ -29,7 +29,19 @@ interface ExtendedOption extends OptionType {
 
 interface CarCategoryType { id: number; name: string; sortOrder: number; }
 
-export default function NewCarForm({ allOptions, groups, categories = [] }: { allOptions: ExtendedOption[], groups: GroupType[], categories?: CarCategoryType[] }) {
+interface LocationType { id: number; name: string; }
+
+export default function NewCarForm({ 
+    allOptions, 
+    groups, 
+    categories = [], 
+    locations = [] 
+}: { 
+    allOptions: ExtendedOption[], 
+    groups: GroupType[], 
+    categories?: CarCategoryType[],
+    locations?: LocationType[]
+}) {
     const [activeTab, setActiveTab] = useState('basic');
     const [isPending, startTransition] = useTransition();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -69,7 +81,6 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
         { id: 'options', label: 'Zusatzoptionen', icon: Tag },
         { id: 'pricing', label: 'Preise & Kampagnen', icon: Tag },
         { id: 'insurance', label: 'Versicherung & Dokumente', icon: ShieldCheck },
-        { id: 'maintenance', label: 'Wartung & Service', icon: Wrench },
         { id: 'maintenance', label: 'Wartung & Service', icon: Wrench },
     ];
 
@@ -134,7 +145,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baujahr *</label>
-                                        <input name="year" type="number" required defaultValue={2024} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
+                                        <input name="year" type="number" required defaultValue={new Date().getFullYear()} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Farbe *</label>
@@ -142,7 +153,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kennzeichen *</label>
-                                        <input name="plate" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="M-AB 1234" />
+                                        <input name="plate" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="FK 123 AB" />
                                     </div>
                                 </div>
 
@@ -179,7 +190,9 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Standort</label>
                                     <select name="locationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white">
                                         <option value="">– Kein Standort –</option>
-                                        <option value="1">Hauptfiliale Feldkirch</option>
+                                        {locations.map((loc) => (
+                                            <option key={loc.id} value={loc.id}>{loc.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -361,7 +374,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                                 <div className="flex-1">
                                                     <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
                                                     <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                                        {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
                                                     </span>
                                                 </div>
                                                 {/* Only allow editing if it's not a global template or if we are in a context that allows it. In NewCarForm, everything shown is carId null */}
@@ -404,7 +417,7 @@ export default function NewCarForm({ allOptions, groups, categories = [] }: { al
                                                             {isExtra && <Tag className="w-3.5 h-3.5 text-orange-500" />}
                                                         </div>
                                                         <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
+                                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
                                                         </span>
                                                     </div>
                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -6,12 +6,12 @@ import NoCustomer from "@/components/dashboard/NoCustomer";
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(amount);
 };
 
 // Helper function to format date
 const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('de-DE', { dateStyle: 'long', timeStyle: 'short' }).format(date);
+    return new Intl.DateTimeFormat('de-AT', { dateStyle: 'long', timeStyle: 'short' }).format(date);
 };
 
 export default async function DashboardPage() {

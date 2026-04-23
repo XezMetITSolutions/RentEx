@@ -131,7 +131,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                         {rental.car.plate}
                                     </p>
                                     <p className="text-sm text-gray-500">{rental.car.category}</p>
-                                    <p className="text-sm text-gray-500">Mietpreis: {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate))}/Tag</p>
+                                    <p className="text-sm text-gray-500">Mietpreis: {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate))}/Tag</p>
                                 </div>
                             </div>
                         </div>
@@ -193,7 +193,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                             <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
                                 <p className="text-xs text-gray-400 uppercase font-bold mb-2">Versicherung</p>
                                 <p className="font-bold text-gray-900 dark:text-white">{rental.insuranceType || 'Basis-Schutz'}</p>
-                                <p className="text-sm text-gray-500 mt-1">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.insuranceCost || 0))} Kosten</p>
+                                <p className="text-sm text-gray-500 mt-1">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.insuranceCost || 0))} Kosten</p>
                             </div>
                             <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
                                 <p className="text-xs text-gray-400 uppercase font-bold mb-2">Zusatzleistungen</p>
@@ -219,25 +219,25 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                         <div className="space-y-4 relative z-10">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Miete ({rental.totalDays} Tage)</span>
-                                <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate) * rental.totalDays)}</span>
+                                <span>{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate) * rental.totalDays)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Versicherung</span>
-                                <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.insuranceCost || 0))}</span>
+                                <span>{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.insuranceCost || 0))}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Extras</span>
-                                <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.extrasCost || 0))}</span>
+                                <span>{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.extrasCost || 0))}</span>
                             </div>
                             {rental.discountAmount && Number(rental.discountAmount) > 0 && (
                                 <div className="flex justify-between items-center text-sm text-green-400">
                                     <span>Rabatt ({rental.discountReason})</span>
-                                    <span>-{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.discountAmount))}</span>
+                                    <span>-{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.discountAmount))}</span>
                                 </div>
                             )}
                             <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                                 <span className="font-bold">Gesamtbetrag</span>
-                                <span className="text-2xl font-black text-blue-400">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}</span>
+                                <span className="text-2xl font-black text-blue-400">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}</span>
                             </div>
                         </div>
                     </div>

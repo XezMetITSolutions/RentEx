@@ -45,7 +45,7 @@ export default async function RechnungenPage() {
                     <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
                         <p className="text-[10px] text-green-600 dark:text-green-400 uppercase font-bold tracking-wider">Gesamtumsatz (Brutto)</p>
                         <p className="text-xl font-black text-green-700 dark:text-green-300">
-                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(invoices.reduce((sum, inv) => sum + Number(inv.total), 0))}
+                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(invoices.reduce((sum, inv) => sum + Number(inv.total), 0))}
                         </p>
                     </div>
                     <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
@@ -87,7 +87,7 @@ export default async function RechnungenPage() {
                                         <td className="px-6 py-3">{r.car.brand} {r.car.model}</td>
                                         <td className="px-6 py-3">{r.customer.firstName} {r.customer.lastName}</td>
                                         <td className="px-6 py-3">{format(new Date(r.startDate), 'dd.MM.yy', { locale: de })} – {format(new Date(r.endDate), 'dd.MM.yy', { locale: de })}</td>
-                                        <td className="px-6 py-3">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(r.totalAmount))}</td>
+                                        <td className="px-6 py-3">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(r.totalAmount))}</td>
                                         <td className="px-6 py-3 text-right">
                                             <CreateInvoiceButton rentalId={r.id} />
                                         </td>
@@ -137,9 +137,9 @@ export default async function RechnungenPage() {
                                                 <span className="text-xs text-gray-500">{inv.rental.customer.firstName} {inv.rental.customer.lastName}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(inv.subtotal))}</td>
-                                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(inv.taxAmount))}</td>
-                                        <td className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(inv.total))}</td>
+                                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(inv.subtotal))}</td>
+                                        <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(inv.taxAmount))}</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(inv.total))}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={clsx(
                                                 "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",

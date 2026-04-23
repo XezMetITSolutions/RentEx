@@ -80,7 +80,7 @@ export default function AdminDashboardScreen() {
     >
       {/* Staff Greeting */}
       <View style={styles.greetingBlock}>
-        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>SCHICHT · {new Date().toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short' })}</Text>
+        <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>SCHICHT · {new Date().toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: 'short' })}</Text>
         <Text style={[styles.greetingName, { color: colors.text }]}>
           {staff?.locationName || 'Station Wien Hbf.'}
         </Text>
@@ -163,7 +163,7 @@ export default function AdminDashboardScreen() {
         <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
         <Text style={[styles.revenueKicker, { color: colors.tint }]}>UMSATZ MONAT</Text>
         <Text style={[styles.revenueValue, { color: colors.background }]}>
-          € {Math.round(data?.revenue.month || 0).toLocaleString('de-DE')}
+          € {Math.round(data?.revenue.month || 0).toLocaleString('de-AT')}
         </Text>
         <Text style={[styles.revenueDesc, { color: colors.background, opacity: 0.65 }]}>
           Station Wien Hbf. · Aktueller Monat

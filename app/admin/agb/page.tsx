@@ -7,9 +7,7 @@ export default function AGBPage() {
     const [selectedCountry, setSelectedCountry] = useState<'AT' | 'DE' | 'CH'>('AT');
 
     const countries = [
-        { id: 'AT', name: 'Österreich', icon: '🇦🇹' },
-        { id: 'DE', name: 'Deutschland', icon: '🇩🇪' },
-        { id: 'CH', name: 'Schweiz', icon: '🇨🇭' },
+        { id: 'AT', name: 'Österreich', icon: '🇦🇹' }
     ] as const;
 
     return (
@@ -31,12 +29,7 @@ export default function AGBPage() {
                         {countries.map((country) => (
                             <button
                                 key={country.id}
-                                onClick={() => setSelectedCountry(country.id)}
-                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${
-                                    selectedCountry === country.id 
-                                    ? 'bg-black text-white shadow-lg' 
-                                    : 'text-black/40 hover:text-black hover:bg-black/5'
-                                }`}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-black text-white shadow-lg`}
                             >
                                 <span className="text-lg">{country.icon}</span>
                                 {country.name}
@@ -45,8 +38,7 @@ export default function AGBPage() {
                     </div>
                 </div>
 
-                {selectedCountry === 'AT' ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-12 text-black/80 text-[15px] leading-relaxed">
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-12 text-black/80 text-[15px] leading-relaxed">
                         
                         <div className="flex items-center gap-3 bg-red-600 text-white px-6 py-3 rounded-full w-fit">
                             <CheckCircle2 className="h-4 w-4" />
@@ -146,15 +138,6 @@ export default function AGBPage() {
                             Feldkirch, Österreich – Gerichtsstand: Feldkirch
                         </section>
                     </div>
-                ) : (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 h-[400px] flex flex-col items-center justify-center bg-black/5 rounded-[40px] border-2 border-dashed border-black/10">
-                        <Globe className="h-12 w-12 text-black/10 mb-4" />
-                        <h3 className="text-lg font-black text-black uppercase">In Kürze verfügbar</h3>
-                        <p className="text-sm text-black/40 font-bold max-w-[280px] text-center mt-2">
-                            Die spezifischen AGB für dieses Land werden aktuell rechtlich geprüft und bald veröffentlicht.
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     );

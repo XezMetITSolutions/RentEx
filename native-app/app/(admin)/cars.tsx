@@ -159,13 +159,13 @@ function CarRow({ item, colors }: { item: AdminCar; colors: any }) {
           </Text>
           {item.currentMileage != null && (
             <Text style={{ color: colors.tabIconDefault, fontSize: 12, marginLeft: 8 }}>
-              {item.currentMileage.toLocaleString('de-DE')} km
+              {item.currentMileage.toLocaleString('de-AT')} km
             </Text>
           )}
         </RNView>
       </RNView>
       <Text style={[styles.rate, { color: colors.text }]}>
-        {Number(item.dailyRate).toLocaleString('de-DE')} €
+        {Number(item.dailyRate).toLocaleString('de-AT')} €
       </Text>
     </RNView>
   );

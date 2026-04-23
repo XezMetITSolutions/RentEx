@@ -5,7 +5,8 @@ import {
     Clock,
     CheckCircle,
     XCircle,
-    PenTool
+    PenTool,
+    RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
 import { updateRentalStatus } from '@/app/actions/rental-updates';
@@ -13,6 +14,28 @@ import ExtendRentalModal from './ExtendRentalModal';
 
 export default function RentalActionsClient({ rental }: { rental: any }) {
     const [showExtendModal, setShowExtendModal] = useState(false);
+    const [refunding, setRefunding] = useState(false);
+
+    async function handleRefund() {
+        const reason = window.prompt('Erstattungsgrund (optional):') ?? '';
+        if (!window.confirm(`Wirklich eine Erstattung von €${Number(rental.totalAmount).toFixed(2)} durchführen?`)) return;
+        setRefunding(true);
+        try {
+            const res = await fetch(`/api/admin/rentals/${rental.id}/refund`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Fehler');
+            alert(data.message || 'Erstattung erfolgreich.');
+            window.location.reload();
+        } catch (err: any) {
+            alert(`Fehler: ${err.message}`);
+        } finally {
+            setRefunding(false);
+        }
+    }
 
     return (
         <div className="flex flex-wrap gap-2">
@@ -84,6 +107,17 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                         Stornieren
                     </button>
                 </form>
+            )}
+
+            {rental.paymentStatus === 'Paid' && (
+                <button
+                    onClick={handleRefund}
+                    disabled={refunding}
+                    className="flex items-center gap-2 bg-white dark:bg-gray-700 border border-purple-200 text-purple-600 hover:bg-purple-50 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    {refunding ? 'Wird erstattet…' : 'Erstatten'}
+                </button>
             )}
 
             {showExtendModal && (

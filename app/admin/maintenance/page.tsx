@@ -140,7 +140,7 @@ export default async function MaintenancePage() {
                                             {record.description}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                            {record.mileage ? `${record.mileage.toLocaleString('de-DE')} km` : '-'}
+                                            {record.mileage ? `${record.mileage.toLocaleString('de-AT')} km` : '-'}
                                         </td>
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
                                             {record.cost ? `€${Number(record.cost).toFixed(2)}` : '-'}

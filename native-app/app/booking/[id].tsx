@@ -8,6 +8,8 @@ import {
   Alert,
   Platform,
   RefreshControl,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -41,6 +43,11 @@ export default function BookingDetailScreen() {
   const [cancelling, setCancelling] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [damageModal, setDamageModal] = useState(false);
+  const [damageDesc, setDamageDesc] = useState('');
+  const [damageType, setDamageType] = useState('Other');
+  const [damageLocation, setDamageLocation] = useState('');
+  const [submittingDamage, setSubmittingDamage] = useState(false);
 
   const load = useCallback(async () => {
     const bookingId = Number(id);
@@ -134,6 +141,31 @@ export default function BookingDetailScreen() {
     );
   }
 
+  async function handleDamageSubmit() {
+    if (!booking) return;
+    if (damageDesc.trim().length < 10) {
+      Alert.alert('Fehler', 'Beschreibung muss mindestens 10 Zeichen lang sein.');
+      return;
+    }
+    setSubmittingDamage(true);
+    try {
+      await api.reportDamage(booking.id, {
+        description: damageDesc.trim(),
+        type: damageType,
+        locationOnCar: damageLocation.trim() || undefined,
+      });
+      setDamageModal(false);
+      setDamageDesc('');
+      setDamageLocation('');
+      Alert.alert('Gemeldet', 'Ihr Schadenbericht wurde erfolgreich eingereicht.');
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Meldung fehlgeschlagen.';
+      Alert.alert('Fehler', msg);
+    } finally {
+      setSubmittingDamage(false);
+    }
+  }
+
   const meta = STATUS_META[booking.status] || STATUS_META.Pending;
   const car = booking.car;
   const days = daysBetween(booking.startDate, booking.endDate);
@@ -142,6 +174,7 @@ export default function BookingDetailScreen() {
     booking.status !== 'Cancelled' &&
     booking.paymentStatus !== 'Paid' &&
     booking.paymentStatus !== 'Refunded';
+  const canReportDamage = booking.status === 'Active' || booking.status === 'Completed';
 
   return (
     <ScrollView
@@ -217,10 +250,39 @@ export default function BookingDetailScreen() {
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Gesamtpreis</Text>
           <Text style={[styles.totalValue, { color: colors.tint }]}>
-            {formatCurrency(booking.totalPrice)}
+            {formatCurrency(booking.totalAmount)}
           </Text>
         </View>
       </View>
+
+      {booking.payments && booking.payments.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Zahlungsverlauf</Text>
+          <View style={[styles.detailCard, { backgroundColor: colors.card }]}>
+            {booking.payments.map((p: any, i: number) => (
+              <View key={p.id}>
+                {i > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+                <View style={styles.paymentRow}>
+                  <View style={styles.paymentLeft}>
+                    <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
+                    <View style={{ marginLeft: 10 }}>
+                      <Text style={{ fontWeight: '600', fontSize: 14 }}>{formatCurrency(p.amount)}</Text>
+                      <Text style={{ color: colors.tabIconDefault, fontSize: 12 }}>
+                        {p.paymentMethod}{p.paidAt ? ` · ${new Date(p.paidAt).toLocaleDateString('de-AT')}` : ''}
+                      </Text>
+                    </View>
+                  </View>
+                  {p.transactionId && (
+                    <Text style={{ color: colors.tabIconDefault, fontSize: 11 }} numberOfLines={1}>
+                      #{p.transactionId.slice(-8)}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
       {canPay && (
         <TouchableOpacity
@@ -234,7 +296,7 @@ export default function BookingDetailScreen() {
             <>
               <Ionicons name="card" size={18} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>
-                Jetzt bezahlen · {formatCurrency(booking.totalPrice)}
+                Jetzt bezahlen · {formatCurrency(booking.totalAmount)}
               </Text>
             </>
           )}
@@ -257,6 +319,80 @@ export default function BookingDetailScreen() {
           )}
         </TouchableOpacity>
       )}
+
+      {canReportDamage && (
+        <TouchableOpacity
+          onPress={() => setDamageModal(true)}
+          style={[styles.damageBtn, { borderColor: '#f59e0b' }]}
+        >
+          <Ionicons name="warning-outline" size={18} color="#f59e0b" />
+          <Text style={{ color: '#f59e0b', fontWeight: 'bold' }}>Schaden melden</Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal visible={damageModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Schaden melden</Text>
+              <TouchableOpacity onPress={() => setDamageModal(false)}>
+                <Ionicons name="close" size={22} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.inputLabel, { color: colors.tabIconDefault }]}>Schadensart</Text>
+            <View style={styles.typeRow}>
+              {['Scratch', 'Dent', 'Broken Glass', 'Missing Part', 'Other'].map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => setDamageType(t)}
+                  style={[
+                    styles.typeChip,
+                    { borderColor: damageType === t ? colors.tint : colors.border,
+                      backgroundColor: damageType === t ? `${colors.tint}22` : 'transparent' },
+                  ]}
+                >
+                  <Text style={{ color: damageType === t ? colors.tint : colors.tabIconDefault, fontSize: 12, fontWeight: '600' }}>
+                    {t}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.inputLabel, { color: colors.tabIconDefault }]}>Beschreibung *</Text>
+            <TextInput
+              style={[styles.textArea, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              value={damageDesc}
+              onChangeText={setDamageDesc}
+              placeholder="Beschreiben Sie den Schaden genau (mind. 10 Zeichen)..."
+              placeholderTextColor={colors.tabIconDefault}
+              multiline
+              numberOfLines={4}
+            />
+
+            <Text style={[styles.inputLabel, { color: colors.tabIconDefault }]}>Ort am Fahrzeug (optional)</Text>
+            <TextInput
+              style={[styles.singleInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              value={damageLocation}
+              onChangeText={setDamageLocation}
+              placeholder="z.B. Vorne links, Hinterstoßstange..."
+              placeholderTextColor={colors.tabIconDefault}
+            />
+
+            <TouchableOpacity
+              onPress={handleDamageSubmit}
+              disabled={submittingDamage}
+              style={[styles.submitBtn, { backgroundColor: '#f59e0b', opacity: submittingDamage ? 0.7 : 1 }]}
+            >
+              {submittingDamage ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Schaden einreichen</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -335,6 +471,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
   },
+  paymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  paymentLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   cancelBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -344,5 +487,58 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     marginTop: 10,
+  },
+  damageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 2,
+    marginTop: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalBox: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 36,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: { fontSize: 18, fontWeight: 'bold' },
+  inputLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 },
+  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  typeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    minHeight: 90,
+    textAlignVertical: 'top',
+    fontSize: 14,
+  },
+  singleInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    height: 46,
+  },
+  submitBtn: {
+    height: 50,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
   },
 });

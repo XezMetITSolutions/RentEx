@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"default\\\\|dummy\\\\|test\\\\|secret\" /c/Users/Anwender/Downloads/Rent-ex/lib/*.ts)",
+      "Bash(xargs grep:*)",
+      "Bash(npm install:*)",
+      "Bash(xargs sed:*)"
+    ]
+  }
+}

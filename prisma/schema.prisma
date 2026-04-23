@@ -138,7 +138,7 @@ model Location {
   code        String?  @unique
   address     String?
   city        String?
-  country     String?  @default("Deutschland")
+  country     String?  @default("Österreich")
   phone       String?
   email       String?
   
@@ -332,7 +332,7 @@ model Customer {
   address       String?
   city          String?
   postalCode    String?
-  country       String?       @default("Deutschland")
+  country       String?       @default("Österreich")
   
   // Identification
   idType        String?       // Personalausweis, Reisepass, Führerschein

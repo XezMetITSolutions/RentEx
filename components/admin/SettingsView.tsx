@@ -300,7 +300,7 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                                     <p className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Status: {settings['bmf_registered_at'] ? 'Registriert' : 'Nicht registriert'}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
                                         {settings['bmf_registered_at']
-                                            ? `Zuletzt synchronisiert: ${new Date(settings['bmf_registered_at']).toLocaleString('de-DE')}`
+                                            ? `Zuletzt synchronisiert: ${new Date(settings['bmf_registered_at']).toLocaleString('de-AT')}`
                                             : 'Kasse muss initial beim BMF angemeldet werden.'}
                                     </p>
                                 </div>

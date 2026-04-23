@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -88,7 +88,7 @@ export default function StaffPage() {
     }
 
     async function deleteStaff(id: number) {
-        if (!confirm("Mitarbeiter wirklich löschen?")) return;
+        if (!confirm("Mitarbeiter wirklich lÃ¶schen?")) return;
         await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
         load();
     }
@@ -112,7 +112,7 @@ export default function StaffPage() {
                         Mitarbeiterverwaltung
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                        Personal, Rollen und Zugänge verwalten
+                        Personal, Rollen und ZugÃ¤nge verwalten
                     </p>
                 </div>
                 <button
@@ -120,7 +120,7 @@ export default function StaffPage() {
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors text-sm"
                 >
                     <Plus className="w-4 h-4" />
-                    Mitarbeiter hinzufügen
+                    Mitarbeiter hinzufÃ¼gen
                 </button>
             </div>
 
@@ -175,7 +175,7 @@ export default function StaffPage() {
                                                 {s.location.name}
                                             </span>
                                         ) : (
-                                            <span className="text-xs text-gray-400">—</span>
+                                            <span className="text-xs text-gray-400">â€”</span>
                                         )}
                                     </td>
                                     <td className="p-4 hidden md:table-cell">
@@ -208,7 +208,7 @@ export default function StaffPage() {
                     </table>
                     {staff.length === 0 && (
                         <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-                            Noch keine Mitarbeiter hinzugefügt.
+                            Noch keine Mitarbeiter hinzugefÃ¼gt.
                         </div>
                     )}
                 </div>
@@ -245,7 +245,7 @@ export default function StaffPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail *</label>
                                     <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                        placeholder="max@rentex.at" required />
+                                        placeholder="max@rent-ex.at" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rolle *</label>
@@ -265,11 +265,11 @@ export default function StaffPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
                                         <Key className="w-3 h-3" />
-                                        {editTarget ? "Neues Passwort (leer lassen = ungeändert)" : "Passwort *"}
+                                        {editTarget ? "Neues Passwort (leer lassen = ungeÃ¤ndert)" : "Passwort *"}
                                     </label>
                                     <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                        placeholder="••••••••" autoComplete="new-password" />
+                                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autoComplete="new-password" />
                                 </div>
                             </div>
 

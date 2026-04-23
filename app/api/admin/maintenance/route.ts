@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         const body = await request.json();
         const { carId, maintenanceType, description, performedDate, cost, mileage, performedBy, notes } = body;

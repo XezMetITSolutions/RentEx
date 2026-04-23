@@ -402,7 +402,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                                 <div className="flex-1">
                                                     <span className="block text-sm font-bold text-gray-900 dark:text-white">{option.name}</span>
                                                     <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                                        {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
                                                     </span>
                                                 </div>
                                                 {option.carId === car.id && (
@@ -447,7 +447,7 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                                             {isExtra && <Tag className="w-3.5 h-3.5 text-orange-500" />}
                                                         </div>
                                                         <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
+                                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))} {option.isPerDay ? '/ Tag' : ''}
                                                         </span>
                                                     </div>
                                                     {option.carId === car.id && (

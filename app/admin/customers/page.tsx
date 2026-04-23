@@ -134,7 +134,7 @@ export default async function CustomersPage() {
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                €{customers.reduce((sum, c) => sum + c.totalRevenue, 0).toLocaleString('de-DE')}
+                                €{customers.reduce((sum, c) => sum + c.totalRevenue, 0).toLocaleString('de-AT')}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Gesamtumsatz</p>
                         </div>
@@ -224,7 +224,7 @@ export default async function CustomersPage() {
                                                     {customer.totalRentals} Vermietungen
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    €{customer.totalRevenue.toLocaleString('de-DE')} Umsatz
+                                                    €{customer.totalRevenue.toLocaleString('de-AT')} Umsatz
                                                 </p>
                                             </div>
                                         </td>

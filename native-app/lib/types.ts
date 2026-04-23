@@ -58,7 +58,7 @@ export interface Booking {
   endDate: string;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
-  totalPrice: number | string;
+  totalAmount: number | string;
   pickupLocation?: string | null;
   returnLocation?: string | null;
   createdAt: string;

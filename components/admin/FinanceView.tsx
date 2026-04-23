@@ -45,7 +45,7 @@ export default function FinanceView({ stats }: { stats: FinanceStats }) {
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Gesamteinnahmen</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(stats.totalRevenue)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(stats.totalRevenue)}
                             </p>
                         </div>
                     </div>
@@ -69,7 +69,7 @@ export default function FinanceView({ stats }: { stats: FinanceStats }) {
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Ausstehend</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(stats.pendingRevenue)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(stats.pendingRevenue)}
                             </p>
                         </div>
                     </div>
@@ -86,7 +86,7 @@ export default function FinanceView({ stats }: { stats: FinanceStats }) {
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Durchschnitt / Vermietung</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(stats.averageRentalValue)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(stats.averageRentalValue)}
                             </p>
                         </div>
                     </div>
@@ -113,7 +113,7 @@ export default function FinanceView({ stats }: { stats: FinanceStats }) {
                                             className="w-full rounded-t-sm bg-blue-100 dark:bg-blue-900/40 transition-all group-hover:bg-blue-600 dark:group-hover:bg-blue-500 relative"
                                         >
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(item.amount)}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(item.amount)}
                                             </div>
                                         </div>
                                     </div>

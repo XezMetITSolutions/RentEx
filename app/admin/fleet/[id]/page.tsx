@@ -112,7 +112,7 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
 
     const formatCurrency = (amount: number | null | undefined | any) => {
         if (amount === null || amount === undefined) return '-';
-        return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(amount));
+        return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(amount));
     };
 
     const formatDate = (date: Date | null | undefined) => {

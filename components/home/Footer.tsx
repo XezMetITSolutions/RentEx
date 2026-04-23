@@ -30,13 +30,13 @@ export default function Footer() {
                             Sie sind an der richtigen Adresse für sicheres, schnelles und komfortables Fahren.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
+                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
                                 <Twitter className="w-5 h-5" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
+                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
                                 <Instagram className="w-5 h-5" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
+                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
                                 <Linkedin className="w-5 h-5" />
                             </a>
                         </div>
@@ -94,7 +94,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/kvkk" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/dsgvo" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     DSGVO-Informationstext
                                 </Link>
                             </li>
@@ -135,10 +135,7 @@ export default function Footer() {
                         &copy; {new Date().getFullYear()} Rent-Ex GmbH. Alle Rechte vorbehalten.
                     </p>
                     <div className="flex items-center gap-4">
-                        {/* Payment methods placeholder icons could go here */}
-                        <div className="h-6 w-10 bg-gray-300 dark:bg-white/10 rounded"></div>
-                        <div className="h-6 w-10 bg-gray-300 dark:bg-white/10 rounded"></div>
-                        <div className="h-6 w-10 bg-gray-300 dark:bg-white/10 rounded"></div>
+                        <span className="text-gray-500 text-sm font-medium">Visa | Mastercard | SEPA</span>
                     </div>
                 </div>
             </div>

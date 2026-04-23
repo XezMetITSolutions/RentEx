@@ -166,7 +166,7 @@ export default function OptionsManager({ options, groups }: OptionsManagerProps)
                             <div className="flex flex-col">
                                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Preis</span>
                                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
                                     {option.isPerDay && <span className="text-xs font-normal text-gray-500 ml-1">/ Tag</span>}
                                 </span>
                             </div>

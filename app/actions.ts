@@ -117,99 +117,99 @@ const extractCarData = (formData: FormData) => {
 
 
 export async function createCar(formData: FormData) {
-    const rawData = extractCarData(formData);
-    const optionIds = formData.getAll('options').map(id => Number(id));
+    try {
+        const rawData = extractCarData(formData);
+        const optionIds = formData.getAll('options').map(id => Number(id));
 
-    // Fetch the templates to clone
-    const templates = await prisma.option.findMany({
-        where: { id: { in: optionIds } }
-    });
+        const templates = await prisma.option.findMany({
+            where: { id: { in: optionIds } }
+        });
 
-    const optionsToCreate = templates.map(t => ({
-        name: t.name,
-        description: t.description,
-        price: Number(t.price),
-        type: t.type,
-        carCategory: t.carCategory,
-        isPerDay: t.isPerDay,
-        maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
-        maxDays: t.maxDays,
-        isMandatory: t.isMandatory,
-        maxQuantity: t.maxQuantity,
-        status: t.status,
-        imageUrl: t.imageUrl,
-        groupId: t.groupId,
-    }));
+        const optionsToCreate = templates.map(t => ({
+            name: t.name,
+            description: t.description,
+            price: Number(t.price),
+            type: t.type,
+            carCategory: t.carCategory,
+            isPerDay: t.isPerDay,
+            maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
+            maxDays: t.maxDays,
+            isMandatory: t.isMandatory,
+            maxQuantity: t.maxQuantity,
+            status: t.status,
+            imageUrl: t.imageUrl,
+            groupId: t.groupId,
+        }));
 
-    await prisma.car.create({
-        data: {
-            ...rawData,
-            isActive: true,
-            options: {
-                create: optionsToCreate
-            }
-        } as any
-    });
+        await prisma.car.create({
+            data: {
+                ...rawData,
+                isActive: true,
+                options: {
+                    create: optionsToCreate
+                }
+            } as any
+        });
+    } catch (error) {
+        console.error('Error creating car:', error);
+        return { success: false, error: 'Fehler beim Erstellen des Fahrzeugs' };
+    }
 
     revalidatePath('/admin/fleet');
     redirect('/admin/fleet');
 }
 
-export async function updateCar(id: number, formData: FormData): Promise<void> {
-    const rawData = extractCarData(formData);
-    const submittedOptionIds = formData.getAll('options').map(oid => Number(oid));
+export async function updateCar(id: number, formData: FormData) {
+    try {
+        const rawData = extractCarData(formData);
+        const submittedOptionIds = formData.getAll('options').map(oid => Number(oid));
 
-    // 1. Fetch current car options to know what to delete
-    const currentCar = await prisma.car.findUnique({
-        where: { id },
-        include: { options: true }
-    });
-
-    if (!currentCar) throw new Error("Car not found");
-
-    const currentOptionIds = currentCar.options.map(o => o.id);
-
-    // Options to DELETE: belonging to car but NOT in submitted
-    const optionsToDeleteIds = currentOptionIds.filter(cid => !submittedOptionIds.includes(cid));
-
-    // Options to ADD (Clone): submitted IDs that are NOT belonging to this car (i.e., Templates)
-    const optionsToCloneIds = submittedOptionIds.filter(sid => !currentOptionIds.includes(sid));
-
-    // Fetch templates for cloning
-    const templatesToClone = await prisma.option.findMany({
-        where: { id: { in: optionsToCloneIds } }
-    });
-
-    await prisma.$transaction([
-        // Delete removed options
-        prisma.option.deleteMany({
-            where: { id: { in: optionsToDeleteIds } }
-        }),
-        // Create new clones
-        prisma.option.createMany({
-            data: templatesToClone.map(t => ({
-                name: t.name,
-                description: t.description,
-                price: Number(t.price),
-                type: t.type,
-                carCategory: t.carCategory,
-                isPerDay: t.isPerDay,
-                maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
-                maxDays: t.maxDays,
-                isMandatory: t.isMandatory,
-                maxQuantity: t.maxQuantity,
-                status: t.status,
-                imageUrl: t.imageUrl,
-                groupId: t.groupId,
-                carId: id
-            }))
-        }),
-        // Update car details
-        prisma.car.update({
+        const currentCar = await prisma.car.findUnique({
             where: { id },
-            data: rawData as any
-        })
-    ]);
+            include: { options: true }
+        });
+
+        if (!currentCar) throw new Error("Fahrzeug nicht gefunden");
+
+        const currentOptionIds = currentCar.options.map(o => o.id);
+        const optionsToDeleteIds = currentOptionIds.filter(cid => !submittedOptionIds.includes(cid));
+        const optionsToCloneIds = submittedOptionIds.filter(sid => !currentOptionIds.includes(sid));
+
+        const templatesToClone = await prisma.option.findMany({
+            where: { id: { in: optionsToCloneIds } }
+        });
+
+        await prisma.$transaction([
+            prisma.option.deleteMany({
+                where: { id: { in: optionsToDeleteIds } }
+            }),
+            prisma.option.createMany({
+                data: templatesToClone.map(t => ({
+                    name: t.name,
+                    description: t.description,
+                    price: Number(t.price),
+                    type: t.type,
+                    carCategory: t.carCategory,
+                    isPerDay: t.isPerDay,
+                    maxPrice: t.maxPrice ? Number(t.maxPrice) : null,
+                    maxDays: t.maxDays,
+                    isMandatory: t.isMandatory,
+                    maxQuantity: t.maxQuantity,
+                    status: t.status,
+                    imageUrl: t.imageUrl,
+                    groupId: t.groupId,
+                    carId: id
+                }))
+            }),
+            prisma.car.update({
+                where: { id },
+                data: rawData as any
+            })
+        ]);
+    } catch (error) {
+        console.error('Error updating car:', error);
+        return { success: false, error: 'Fehler beim Aktualisieren des Fahrzeugs' };
+    }
 
     revalidatePath('/admin/fleet');
     revalidatePath(`/admin/fleet/${id}`);
@@ -217,75 +217,84 @@ export async function updateCar(id: number, formData: FormData): Promise<void> {
 }
 
 export async function createCustomer(formData: FormData) {
-    const data = {
-        firstName: formData.get('firstName') as string,
-        lastName: formData.get('lastName') as string,
-        email: formData.get('email') as string,
-        phone: formData.get('phone') as string || null,
-        address: formData.get('address') as string || null,
-        city: formData.get('city') as string || null,
-        postalCode: formData.get('postalCode') as string || null,
-        country: formData.get('country') as string || 'Deutschland',
-        licenseNumber: formData.get('licenseNumber') as string || null,
-        licenseIssueDate: formData.get('licenseIssueDate') ? new Date(formData.get('licenseIssueDate') as string) : null,
-        licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
-        dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
-        notes: formData.get('notes') as string || null,
-    };
+    try {
+        const data = {
+            firstName: formData.get('firstName') as string,
+            lastName: formData.get('lastName') as string,
+            email: formData.get('email') as string,
+            phone: formData.get('phone') as string || null,
+            address: formData.get('address') as string || null,
+            city: formData.get('city') as string || null,
+            postalCode: formData.get('postalCode') as string || null,
+            country: formData.get('country') as string || 'Österreich',
+            licenseNumber: formData.get('licenseNumber') as string || null,
+            licenseIssueDate: formData.get('licenseIssueDate') ? new Date(formData.get('licenseIssueDate') as string) : null,
+            licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
+            dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
+            notes: formData.get('notes') as string || null,
+        };
 
-    await prisma.customer.create({
-        data
-    });
+        await prisma.customer.create({
+            data
+        });
+    } catch (error) {
+        console.error('Error creating customer:', error);
+        return { success: false, error: 'Fehler beim Erstellen des Kunden' };
+    }
 
     revalidatePath('/admin/customers');
     redirect('/admin/customers');
 }
 
 export async function createRental(formData: FormData) {
-    const carId = Number(formData.get('carId'));
-    const customerId = Number(formData.get('customerId'));
-    const startDate = new Date(formData.get('startDate') as string);
-    const endDate = new Date(formData.get('endDate') as string);
-    
-    // Auto-generate contract number: REX-YY-XXXXX
-    const year = new Date().getFullYear().toString().slice(-2);
-    const random = Math.floor(10000 + Math.random() * 90000);
-    const contractNumber = `REX-${year}-${random}`;
+    try {
+        const carId = Number(formData.get('carId'));
+        const customerId = Number(formData.get('customerId'));
+        const startDate = new Date(formData.get('startDate') as string);
+        const endDate = new Date(formData.get('endDate') as string);
 
-    // Fetch car for rate calculation
-    const car = await prisma.car.findUnique({ where: { id: carId } });
-    if (!car) throw new Error('Car not found');
+        // Auto-generate contract number: REX-YY-XXXXX
+        const year = new Date().getFullYear().toString().slice(-2);
+        const random = Math.floor(10000 + Math.random() * 90000);
+        const contractNumber = `REX-${year}-${random}`;
 
-    const days = Math.max(1, differenceInDays(endDate, startDate));
-    const totalAmount = Number(car.dailyRate) * days;
+        const car = await prisma.car.findUnique({ where: { id: carId } });
+        if (!car) throw new Error('Fahrzeug nicht gefunden');
 
-    const data = {
-        carId,
-        customerId,
-        startDate,
-        endDate,
-        dailyRate: car.dailyRate,
-        totalDays: days,
-        totalAmount,
-        status: 'Active',
-        paymentStatus: 'Pending',
-        contractNumber,
-        driverName: formData.get('driverName') as string || null,
-        driverLicense: formData.get('driverLicense') as string || null,
-        pickupLocationId: formData.get('pickupLocationId') ? Number(formData.get('pickupLocationId')) : null,
-        returnLocationId: formData.get('returnLocationId') ? Number(formData.get('returnLocationId')) : null,
-        depositPaid: formData.get('depositPaid') ? Number(formData.get('depositPaid')) : null,
-        notes: formData.get('notes') as string || null,
-    };
+        const days = Math.max(1, differenceInDays(endDate, startDate));
+        const totalAmount = Number(car.dailyRate) * days;
 
-    await prisma.rental.create({
-        data
-    });
+        const data = {
+            carId,
+            customerId,
+            startDate,
+            endDate,
+            dailyRate: car.dailyRate,
+            totalDays: days,
+            totalAmount,
+            status: 'Active',
+            paymentStatus: 'Pending',
+            contractNumber,
+            driverName: formData.get('driverName') as string || null,
+            driverLicense: formData.get('driverLicense') as string || null,
+            pickupLocationId: formData.get('pickupLocationId') ? Number(formData.get('pickupLocationId')) : null,
+            returnLocationId: formData.get('returnLocationId') ? Number(formData.get('returnLocationId')) : null,
+            depositPaid: formData.get('depositPaid') ? Number(formData.get('depositPaid')) : null,
+            notes: formData.get('notes') as string || null,
+        };
 
-    await prisma.car.update({
-        where: { id: carId },
-        data: { status: 'Rented' }
-    });
+        await prisma.rental.create({
+            data
+        });
+
+        await prisma.car.update({
+            where: { id: carId },
+            data: { status: 'Rented' }
+        });
+    } catch (error) {
+        console.error('Error creating rental:', error);
+        return { success: false, error: 'Fehler beim Erstellen der Miete' };
+    }
 
     revalidatePath('/admin/reservations');
     revalidatePath('/admin/fleet');
@@ -293,31 +302,36 @@ export async function createRental(formData: FormData) {
 }
 
 export async function createMaintenance(formData: FormData) {
-    const carId = Number(formData.get('carId'));
-    const data = {
-        carId,
-        maintenanceType: formData.get('maintenanceType') as string,
-        description: formData.get('description') as string,
-        cost: formData.get('cost') ? Number(formData.get('cost')) : null,
-        performedBy: formData.get('performedBy') as string || null,
-        performedDate: formData.get('performedDate') ? new Date(formData.get('performedDate') as string) : new Date(),
-        nextMaintenanceDate: formData.get('nextMaintenanceDate') ? new Date(formData.get('nextMaintenanceDate') as string) : null,
-        currentMileage: formData.get('currentMileage') ? Number(formData.get('currentMileage')) : null,
-    };
+    try {
+        const carId = Number(formData.get('carId'));
+        const data = {
+            carId,
+            maintenanceType: formData.get('maintenanceType') as string,
+            description: formData.get('description') as string,
+            cost: formData.get('cost') ? Number(formData.get('cost')) : null,
+            performedBy: formData.get('performedBy') as string || null,
+            performedDate: formData.get('performedDate') ? new Date(formData.get('performedDate') as string) : new Date(),
+            nextMaintenanceDate: formData.get('nextMaintenanceDate') ? new Date(formData.get('nextMaintenanceDate') as string) : null,
+            currentMileage: formData.get('currentMileage') ? Number(formData.get('currentMileage')) : null,
+        };
 
-    await prisma.maintenanceRecord.create({
-        data
-    });
+        await prisma.maintenanceRecord.create({
+            data
+        });
 
-    // Update car status if maintenance is today
-    if (data.performedDate) {
-        const isToday = new Date().toDateString() === data.performedDate.toDateString();
-        if (isToday) {
-            await prisma.car.update({
-                where: { id: carId },
-                data: { status: 'Maintenance' }
-            });
+        // Update car status if maintenance is today
+        if (data.performedDate) {
+            const isToday = new Date().toDateString() === data.performedDate.toDateString();
+            if (isToday) {
+                await prisma.car.update({
+                    where: { id: carId },
+                    data: { status: 'Maintenance' }
+                });
+            }
         }
+    } catch (error) {
+        console.error('Error creating maintenance record:', error);
+        return { success: false, error: 'Fehler beim Erstellen des Wartungseintrags' };
     }
 
     revalidatePath('/admin/maintenance');
@@ -576,7 +590,7 @@ export async function testUpdateCarAction(id: number) {
             include: { options: true }
         });
 
-        if (!car) return { success: false, error: `Araç bulunamadı (ID ${id})` };
+        if (!car) return { success: false, error: `Fahrzeug nicht gefunden (ID ${id})` };
 
         // 2. Perform a transaction that mimics the actual updateCar action
         await prisma.$transaction(async (tx) => {
@@ -597,13 +611,13 @@ export async function testUpdateCarAction(id: number) {
 
         return {
             success: true,
-            message: 'Tam kapsamlı yazma testi (Transaction dahil) başarılı! Sorun başka bir yerde olabilir (örneğin redirect).'
+            message: 'Vollständiger Schreibtest (inkl. Transaction) erfolgreich! Das Problem liegt möglicherweise woanders (z.B. Redirect).'
         };
     } catch (error: any) {
         console.error('CRITICAL ERROR DURING TEST UPDATE:', error);
         return {
             success: false,
-            error: `Teknik Hata: ${error.message}`,
+            error: `Technischer Fehler: ${error.message}`,
             stack: error.stack,
             code: error.code // Prisma error code (e.g., P2002)
         };

@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
+import { getAdminSession } from '@/lib/adminAuth';
 
 export async function GET() {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         console.log("Starting manual database migration...");
 
         // 1. Add mileagePhoto column if not exists
         try {
-            await prisma.$executeRawUnsafe(`ALTER TABLE "Rental" ADD COLUMN IF NOT EXISTS "mileagePhoto" TEXT;`);
+            await prisma.$executeRaw`ALTER TABLE "Rental" ADD COLUMN IF NOT EXISTS "mileagePhoto" TEXT`;
             console.log("Column 'mileagePhoto' checked/added.");
         } catch (e) {
             console.log("Step 1 failed or column already exists");
@@ -15,7 +21,7 @@ export async function GET() {
 
         // 2. Add fuelPhoto column if not exists
         try {
-            await prisma.$executeRawUnsafe(`ALTER TABLE "Rental" ADD COLUMN IF NOT EXISTS "fuelPhoto" TEXT;`);
+            await prisma.$executeRaw`ALTER TABLE "Rental" ADD COLUMN IF NOT EXISTS "fuelPhoto" TEXT`;
             console.log("Column 'fuelPhoto' checked/added.");
         } catch (e) {
             console.log("Step 2 failed or column already exists");

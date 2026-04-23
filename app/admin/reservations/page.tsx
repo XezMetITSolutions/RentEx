@@ -135,7 +135,7 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right font-medium text-gray-900">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link href={`/admin/reservations/${rental.id}`} className="text-blue-600 hover:text-blue-800 font-medium text-xs">Details</Link>

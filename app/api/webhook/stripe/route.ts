@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
+import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -28,11 +29,10 @@ export async function POST(req: Request) {
         if (rentalId) {
             const id = parseInt(rentalId);
 
-            await prisma.rental.update({
+            const rental = await prisma.rental.update({
                 where: { id },
-                data: {
-                    paymentStatus: 'Paid',
-                },
+                data: { paymentStatus: 'Paid' },
+                include: { customer: true, car: true },
             });
 
             // Create a Payment record
@@ -41,10 +41,33 @@ export async function POST(req: Request) {
                     rentalId: id,
                     amount: (session.amount_total || 0) / 100,
                     paymentMethod: 'Online',
-                    transactionId: session.id, // Or session.payment_intent
+                    transactionId: session.id,
                     notes: `Stripe Checkout Session confirmed.`,
                 }
             });
+
+            // Send payment confirmation email
+            if (rental.customer && rental.car && rental.contractNumber) {
+                const templateData = {
+                    contractNumber: rental.contractNumber,
+                    customer: {
+                        firstName: rental.customer.firstName,
+                        lastName: rental.customer.lastName,
+                        email: rental.customer.email,
+                    },
+                    car: {
+                        brand: rental.car.brand,
+                        model: rental.car.model,
+                        plate: rental.car.plate,
+                    },
+                    rental: {
+                        startDate: rental.startDate,
+                        endDate: rental.endDate,
+                        totalAmount: Number(rental.totalAmount),
+                    },
+                };
+                await sendEmail(rental.customer.email, emailTemplates.paymentConfirmation(templateData));
+            }
 
             console.log(`Rental ${rentalId} marked as Paid.`);
         }

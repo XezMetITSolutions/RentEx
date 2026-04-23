@@ -92,8 +92,9 @@ export default function LoginScreen() {
           <RNView style={styles.header}>
             <RNView style={styles.logoContainer}>
               <Image 
-                source={require('../../assets/images/icon.png')} 
-                style={styles.logoImage} 
+                source={require('../../assets/images/logo.png')} 
+                style={styles.logoImage}
+                resizeMode="contain"
               />
             </RNView>
             <RNText style={styles.title}>RentEx</RNText>
@@ -192,16 +193,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 24,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 5,
   },
   logoImage: {
     width: 64,
     height: 64,
-    resizeMode: 'contain',
   },
   title: { 
     fontSize: 32, 
@@ -264,10 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
     elevation: 4,
   },
   primaryBtnText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold', letterSpacing: 0.5 },

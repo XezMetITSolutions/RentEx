@@ -341,7 +341,7 @@ export default async function TodayOverview() {
 
                                         {alert.currentMileage && (
                                             <p className="text-xs opacity-75">
-                                                Kilometerstand: {alert.currentMileage.toLocaleString('de-DE')} km
+                                                Kilometerstand: {alert.currentMileage.toLocaleString('de-AT')} km
                                             </p>
                                         )}
                                     </div>

@@ -139,7 +139,7 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                     <div>
                         <p className="text-gray-400 text-sm">Gesamtpreis</p>
                         <p className="text-4xl font-bold text-white">
-                            {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
+                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">für {totalDays} Tage</p>
                     </div>
@@ -229,7 +229,7 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                                             {option.name}
                                         </span>
                                         <span className="text-sm font-semibold text-gray-300">
-                                            +{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
+                                            +{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
                                             {option.isPerDay && <span className="text-[10px] text-zinc-500 ml-1">/Tag</span>}
                                         </span>
                                     </div>

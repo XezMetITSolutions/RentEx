@@ -68,7 +68,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             return;
         }
         try {
-            const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=51.1657&lon=10.4515&priority_distance=1000`);
+            const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501&priority_distance=1000`);
             const data = await res.json();
             setSuggestions(data.features || []);
             setShowSuggestions(true);
@@ -124,7 +124,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">USt-IdNr.</label>
-                                <input name="taxId" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="DE123456789" />
+                                <input name="taxId" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
                             </div>
                         </div>
                     )}
@@ -324,7 +324,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="space-y-3 mb-4">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-400">Fahrzeugmiete</span>
-                                <span className="text-white">{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
+                                <span className="text-white">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
                             </div>
 
                             {/* Packages (Kilometer) */}
@@ -338,7 +338,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                                 {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
                                             </span>
                                             <span className="text-white">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
                                             </span>
                                         </div>
                                     ))}
@@ -356,7 +356,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                                 {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
                                             </span>
                                             <span className="text-white">
-                                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
                                             </span>
                                         </div>
                                     ))}
@@ -373,7 +373,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             <div className="flex justify-between items-end">
                                 <span className="text-gray-400 font-medium">Gesamtbetrag</span>
                                 <span className="text-2xl font-bold text-white text-right">
-                                    {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(total)}
+                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(total)}
                                 </span>
                             </div>
                             <p className="text-xs text-right text-gray-500 mt-1">inkl. MwSt.</p>

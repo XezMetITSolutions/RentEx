@@ -64,7 +64,7 @@ export default function AdminActivityScreen() {
         }
         renderItem={({ item }) => {
           const when = new Date(item.createdAt);
-          const whenStr = when.toLocaleString('de-DE', {
+          const whenStr = when.toLocaleString('de-AT', {
             day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
           });
           return (

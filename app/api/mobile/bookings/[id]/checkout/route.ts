@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ error: 'Ungültiger Betrag.' }, { status: 400 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rentex.at';
   const scheme = process.env.MOBILE_APP_SCHEME || 'rentex';
 
   try {

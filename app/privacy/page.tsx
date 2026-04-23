@@ -63,7 +63,6 @@ export default function PrivacyPage() {
                         </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                             <li>In Österreich ist dies das Bundesgesetz zum Schutz natürlicher Personen bei der Verarbeitung personenbezogener Daten (Datenschutzgesetz), kurz <strong>DSG</strong>.</li>
-                            <li>In Deutschland gilt das Bundesdatenschutzgesetz, kurz <strong>BDSG</strong>.</li>
                         </ul>
                     </section>
 

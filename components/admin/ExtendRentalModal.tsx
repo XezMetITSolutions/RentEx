@@ -63,13 +63,13 @@ export default function ExtendRentalModal({ rental, onClose }: { rental: any, on
                         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-100 dark:border-green-800">
                             <p className="text-xs text-green-600 dark:text-green-400 font-bold uppercase mb-1">Aufpreis</p>
                             <p className="text-2xl font-black text-green-900 dark:text-green-100">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(extraCost)}
+                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(extraCost)}
                             </p>
                         </div>
                     </div>
 
                     <div className="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl italic">
-                        Hinweis: Die Verlängerung basiert auf der aktuellen Tagesrate von {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate))}.
+                        Hinweis: Die Verlängerung basiert auf der aktuellen Tagesrate von {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.dailyRate))}.
                     </div>
                 </div>
 
