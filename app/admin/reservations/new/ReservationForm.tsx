@@ -96,7 +96,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
     }, [selectedCar, startDate, endDate]);
 
     return (
-        <form action={createRental} className="space-y-6">
+        <form action={async (formData) => { await createRental(formData); }} className="space-y-6">
             {/* Vehicle & Customer Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700/50 pb-4">

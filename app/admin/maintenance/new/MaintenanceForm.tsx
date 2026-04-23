@@ -13,7 +13,7 @@ type Car = {
 
 export default function MaintenanceForm({ cars }: { cars: Car[] }) {
     return (
-        <form action={createMaintenance} className="space-y-6">
+        <form action={async (formData) => { await createMaintenance(formData); }} className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <Wrench className="w-5 h-5 text-gray-400" />

@@ -2,7 +2,7 @@ import { createInvoiceFormAction } from '@/app/actions/admin';
 
 export default function CreateInvoiceButton({ rentalId }: { rentalId: number }) {
     return (
-        <form action={createInvoiceFormAction}>
+        <form action={async (formData) => { await createInvoiceFormAction(formData); }}>
             <input type="hidden" name="rentalId" value={rentalId} />
             <button
                 type="submit"
