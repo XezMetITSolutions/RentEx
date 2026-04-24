@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Filter, X, ChevronRight, Car, Truck, Fuel, Gauge, Users, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Filter, X, ChevronRight, Car, Truck, Fuel, Gauge, Users, Search, Loader2 } from 'lucide-react';
+import { useState, useTransition } from 'react';
 
 interface FleetSidebarProps {
     categories: { category: string | null }[];
@@ -20,6 +20,7 @@ export default function FleetSidebar({ categories, brands, activeFilters }: Flee
     const router = useRouter();
     const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(activeFilters.brand || '');
+    const [isPending, startTransition] = useTransition();
 
     const updateFilters = (key: string, value: string | null) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -28,7 +29,10 @@ export default function FleetSidebar({ categories, brands, activeFilters }: Flee
         } else {
             params.delete(key);
         }
-        router.push(`/fleet?${params.toString()}`, { scroll: false });
+        
+        startTransition(() => {
+            router.push(`/fleet?${params.toString()}`, { scroll: false });
+        });
     };
 
     const clearFilters = () => {
@@ -41,7 +45,11 @@ export default function FleetSidebar({ categories, brands, activeFilters }: Flee
             <div className="sticky top-24 space-y-6">
                 {/* Search */}
                 <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
+                    <div className="flex items-center justify-between mb-2 px-1">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Suche</span>
+                        {isPending && <Loader2 className="w-3 h-3 text-red-500 animate-spin" />}
+                    </div>
+                    <Search className="absolute left-4 top-[42px] -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                     <input 
                         type="text" 
                         placeholder="Marke suchen..."
