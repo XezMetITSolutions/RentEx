@@ -55,6 +55,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const [customerSearch, setCustomerSearch] = useState('');
     const [startDate, setStartDate] = useState(startDateFromUrl || '');
     const [endDate, setEndDate] = useState(endDateFromUrl || '');
+    const [depositPaid, setDepositPaid] = useState<string>('');
     const [calendarData, setCalendarData] = useState<{ rentals: any[], maintenance: any[], tasks: any[] } | null>(null);
     const [isCalendarLoading, setIsCalendarLoading] = useState(false);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
@@ -62,6 +63,11 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
     const [paymentMethod, setPaymentMethod] = useState('Cash');
     const [isConflict, setIsConflict] = useState(false);
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
+    const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
@@ -137,7 +143,6 @@ export default function ReservationForm({ cars, customers, locations, options }:
 
         setIsConflict(hasRentalConflict || hasMaintenanceConflict);
     }, [startDate, endDate, calendarData, selectedCar]);
-    const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
     const isLicenseExpired = useMemo(() => {
         if (!selectedCustomer?.licenseExpiryDate) return false;
@@ -156,9 +161,6 @@ export default function ReservationForm({ cars, customers, locations, options }:
             }
         }
     }, [selectedCustomer]);
-
-    const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
-    const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
     // Pricing calculation
     const pricing = useMemo(() => {
