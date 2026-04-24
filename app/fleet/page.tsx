@@ -2,7 +2,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import { Fuel, Gauge, Users, Car, Truck } from "lucide-react";
+import { Fuel, Gauge, Users, Car, Truck, ChevronRight } from "lucide-react";
 import prisma from "@/lib/prisma";
 import FleetSidebar from "@/components/fleet/FleetSidebar";
 
