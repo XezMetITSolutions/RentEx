@@ -206,9 +206,18 @@ export default function StrafzettelPage() {
     const totalOpen = records.filter(r => r.status === "OPEN").reduce((s, r) => s + (r.amount ?? 0), 0);
     const totalPaid = records.filter(r => r.status === "PAID").reduce((s, r) => s + (r.amount ?? 0), 0);
 
-    const filteredRecords = records.filter(r => 
-        r.plate.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredRecords = records.filter(r => {
+        if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
+        if (!searchQuery) return true;
+        
+        const q = searchQuery.toLowerCase();
+        return (
+            r.plate.toLowerCase().includes(q) ||
+            r.referenceNumber?.toLowerCase().includes(q) ||
+            (r.car.brand + " " + r.car.model).toLowerCase().includes(q) ||
+            (r.rental?.customer.firstName + " " + r.rental?.customer.lastName).toLowerCase().includes(q)
+        );
+    });
 
     return (
         <div className="p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-black/50">
@@ -355,20 +364,26 @@ export default function StrafzettelPage() {
                             {/* Car/Plate Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fahrzeug (Kennzeichen) *</label>
-                                <select 
-                                    value={form.carId}
+                                <input 
+                                    type="text"
+                                    list="car-plates"
+                                    placeholder="Kennzeichen suchen..."
+                                    value={form.plate}
                                     onChange={e => {
-                                        const cid = e.target.value;
-                                        const car = cars.find(c => c.id.toString() === cid);
-                                        setForm(p => ({ ...p, carId: cid, plate: car?.plate ?? "" }));
+                                        const plate = e.target.value;
+                                        const car = cars.find(c => c.plate === plate);
+                                        setForm(p => ({ ...p, plate, carId: car ? car.id.toString() : "" }));
                                     }}
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                                >
-                                    <option value="">Fahrzeug auswählen...</option>
+                                />
+                                <datalist id="car-plates">
                                     {cars.map(c => (
-                                        <option key={c.id} value={c.id}>{c.plate} ({c.brand} {c.model})</option>
+                                        <option key={c.id} value={c.plate}>{c.brand} {c.model}</option>
                                     ))}
-                                </select>
+                                </datalist>
+                                {!form.carId && form.plate.length > 0 && (
+                                    <p className="text-xs text-red-500 mt-1">Fahrzeug nicht gefunden. Bitte aus der Liste wählen.</p>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
