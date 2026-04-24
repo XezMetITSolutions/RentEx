@@ -12,7 +12,18 @@ const PKW_CATEGORIES = ["Kleinwagen", "Mittelklasse", "SUV", "Limousine", "Kombi
 // Kastenwagen/Van categories
 const VAN_CATEGORIES = ["Van", "Kastenwagen", "Bus"];
 
-async function getCars(vehicleType?: VehicleType, pickupDate?: string, returnDate?: string) {
+interface FilterParams {
+    vehicleType?: VehicleType;
+    pickupDate?: string;
+    returnDate?: string;
+    category?: string;
+    brand?: string;
+    transmission?: string;
+    fuelType?: string;
+}
+
+async function getCars(filters: FilterParams) {
+    const { vehicleType, pickupDate, returnDate, category, brand, transmission, fuelType } = filters;
     let categories: string[] = [];
 
     if (vehicleType === "pkw") {
@@ -78,17 +89,13 @@ async function getCars(vehicleType?: VehicleType, pickupDate?: string, returnDat
     const cars = await prisma.car.findMany({
         where: {
             status: 'Active',
-            isActive: true, // Only show active cars in fleet
-            ...(excludedCarIds.length > 0 && {
-                id: {
-                    notIn: excludedCarIds
-                }
-            }),
-            ...(categories.length > 0 && {
-                category: {
-                    in: categories
-                }
-            })
+            isActive: true,
+            ...(excludedCarIds.length > 0 && { id: { notIn: excludedCarIds } }),
+            ...(categories.length > 0 && { category: { in: categories } }),
+            ...(category && { category: category }),
+            ...(brand && { brand: { contains: brand, mode: 'insensitive' } }),
+            ...(transmission && { transmission: transmission }),
+            ...(fuelType && { fuelType: fuelType }),
         },
         orderBy: {
             dailyRate: 'asc'
@@ -132,115 +139,158 @@ export default async function FleetPage({
 
         const pickupParam = getSingleParam(resolvedSearchParams.pickup);
         const returnParam = getSingleParam(resolvedSearchParams.return);
+        const categoryParam = getSingleParam(resolvedSearchParams.category);
+        const brandParam = getSingleParam(resolvedSearchParams.brand);
+        const transParam = getSingleParam(resolvedSearchParams.transmission);
+        const fuelParam = getSingleParam(resolvedSearchParams.fuelType);
 
-        const cars = await getCars(vehicleType, pickupParam, returnParam);
+        const cars = await getCars({
+            vehicleType,
+            pickupDate: pickupParam,
+            returnDate: returnParam,
+            category: categoryParam,
+            brand: brandParam,
+            transmission: transParam,
+            fuelType: fuelParam
+        });
+
+        const allCategories = await prisma.car.findMany({
+            where: { isActive: true, status: 'Active' },
+            select: { category: true },
+            distinct: ['category']
+        });
+
+        const brands = await prisma.car.findMany({
+            where: { isActive: true, status: 'Active' },
+            select: { brand: true },
+            distinct: ['brand']
+        });
 
         return (
-            <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
+            <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
                 <Navbar />
 
-                <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                    <div className="mb-12">
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">Unsere Fahrzeugflotte</h1>
-                        <div className="flex items-center gap-4 mb-4">
-                            {vehicleType !== "all" && (
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
-                                    {vehicleType === "pkw" ? (
-                                        <>
-                                            <Car className="w-4 h-4" />
-                                            <span className="font-medium">PKW Filterung aktiv</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Truck className="w-4 h-4" />
-                                            <span className="font-medium">Kastenwagen Filterung aktiv</span>
-                                        </>
-                                    )}
-                                    <Link
-                                        href="/fleet"
-                                        className="ml-2 text-xs underline hover:text-red-300"
-                                    >
-                                        Entfernen
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-400 max-w-2xl text-lg">
-                            Wählen Sie aus unserer exklusiven Auswahl an Premium-Fahrzeugen.
-                            Vom sportlichen Cabrio bis zum geräumigen SUV – wir haben das passende Auto für Ihre Bedürfnisse.
+                <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+                    {/* Header Section */}
+                    <div className="relative mb-16">
+                        <div className="absolute -left-4 top-0 w-1 h-20 bg-red-600 rounded-full blur-sm" />
+                        <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tighter mb-4">
+                            Premium <span className="text-red-600">Flotte</span>
+                        </h1>
+                        <p className="text-gray-500 dark:text-zinc-400 max-w-2xl text-lg font-medium leading-relaxed">
+                            Entdecken Sie unsere handverlesene Auswahl an erstklassigen Fahrzeugen. 
+                            Jedes Auto in unserer Flotte wird höchsten Ansprüchen an Komfort, Sicherheit ve Leistung gerecht.
                         </p>
                     </div>
 
-                    {cars.length === 0 ? (
-                        <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
-                            <Car className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Keine Fahrzeuge gefunden</h3>
-                            <p className="text-gray-500">Für den gewählten Zeitraum oder Filter sind derzeit keine Fahrzeuge verfügbar.</p>
-                            <Link href="/fleet" className="inline-block mt-6 text-red-500 hover:underline">
-                                Alle Fahrzeuge anzeigen
-                            </Link>
-                        </div>
-                    ) : (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {cars.map((car) => (
-                                <Link key={car.id} href={`/fleet/${car.id}`} className="block bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
-                                    {/* Image Area */}
-                                    <div className="h-56 bg-zinc-800 relative">
-                                        {car.imageUrl ? (
-                                            <Image
-                                                src={car.imageUrl}
-                                                alt={`${car.brand} ${car.model}`}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                                No Image
-                                            </div>
-                                        )}
-                                    </div>
+                    <div className="flex flex-col lg:flex-row gap-12">
+                        {/* Sidebar */}
+                        <FleetSidebar 
+                            categories={allCategories} 
+                            brands={brands} 
+                            activeFilters={{
+                                type: vehicleType,
+                                category: categoryParam,
+                                brand: brandParam,
+                                transmission: transParam,
+                                fuelType: fuelParam
+                            }}
+                        />
 
-                                    <div className="p-6">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <span className="text-xs font-semibold text-red-500 uppercase tracking-wider">
+                        {/* Content Area */}
+                        <div className="flex-1">
+                            {cars.length === 0 ? (
+                                <div className="text-center py-32 bg-white dark:bg-zinc-900/30 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-white/10 flex flex-col items-center justify-center">
+                                    <div className="w-20 h-20 bg-gray-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mb-6">
+                                        <Car className="w-10 h-10 text-gray-300" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Keine Fahrzeuge gefunden</h3>
+                                    <p className="text-gray-500 max-w-sm">Wir konnten keine Fahrzeuge finden, die Ihren Suchkriterien entsprechen. Versuchen Sie es mit anderen Filtern.</p>
+                                    <Link href="/fleet" className="mt-8 px-8 py-3 bg-red-600 text-white rounded-2xl font-bold hover:scale-105 transition-all">
+                                        Alle anzeigen
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="grid md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
+                                    {cars.map((car) => (
+                                        <Link 
+                                            key={car.id} 
+                                            href={`/fleet/${car.id}`} 
+                                            className="group relative bg-white dark:bg-zinc-900/40 border border-gray-200 dark:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2 flex flex-col"
+                                        >
+                                            {/* Badge */}
+                                            <div className="absolute top-4 left-4 z-10">
+                                                <span className="px-4 py-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">
                                                     {car.category}
                                                 </span>
-                                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">{car.brand} {car.model}</h3>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="block text-xl font-bold text-gray-900 dark:text-white">
-                                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
-                                                </span>
-                                                <span className="text-xs text-gray-500">/Tag</span>
-                                            </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-3 gap-4 border-t border-gray-200 dark:border-white/10 py-4 mb-4">
-                                            <div className="flex flex-col items-center gap-1 text-center">
-                                                <Fuel className="w-4 h-4 text-gray-500" />
-                                                <span className="text-xs text-gray-400">{car.fuelType}</span>
+                                            {/* Image Area */}
+                                            <div className="h-64 relative overflow-hidden bg-gray-100 dark:bg-zinc-800">
+                                                {car.imageUrl ? (
+                                                    <Image
+                                                        src={car.imageUrl}
+                                                        alt={`${car.brand} ${car.model}`}
+                                                        fill
+                                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 italic text-sm">
+                                                        Kein Bild verfügbar
+                                                    </div>
+                                                )}
+                                                {/* Overlay Gradient */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
-                                            <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
-                                                <Gauge className="w-4 h-4 text-gray-500" />
-                                                <span className="text-xs text-gray-400">{car.transmission}</span>
-                                            </div>
-                                            <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
-                                                <Users className="w-4 h-4 text-gray-500" />
-                                                <span className="text-xs text-gray-400">{car.seats} Personen</span>
-                                            </div>
-                                        </div>
 
-                                        <div
-                                            className="block w-full text-center py-3 bg-gray-200/50 dark:bg-white/5 group-hover:bg-gray-200 dark:group-hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white font-medium transition-colors"
-                                        >
-                                            Details ansehen
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                            <div className="p-8 flex-1 flex flex-col">
+                                                <div className="flex justify-between items-start mb-6">
+                                                    <div>
+                                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{car.brand} {car.model}</h3>
+                                                        <p className="text-sm text-gray-500 font-medium mt-1 uppercase tracking-tighter">Premium Rental</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="block text-2xl font-black text-red-600">
+                                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">pro Tag</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-3 gap-2 py-6 border-y border-gray-100 dark:border-white/5 mb-6">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                                                            <Fuel className="w-4 h-4 text-gray-400" />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.fuelType}</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-2 border-x border-gray-100 dark:border-white/5">
+                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                                                            <Gauge className="w-4 h-4 text-gray-400" />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.transmission}</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                                                            <Users className="w-4 h-4 text-gray-400" />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.seats} Sitze</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-auto">
+                                                    <div className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black text-sm uppercase tracking-widest transition-all group-hover:bg-red-600 group-hover:text-white flex items-center justify-center gap-2">
+                                                        Details Ansehen
+                                                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </main>
 
                 <Footer />

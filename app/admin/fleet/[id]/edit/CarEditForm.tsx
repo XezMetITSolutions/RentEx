@@ -297,14 +297,6 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max. km/Tag (Miete)</label>
                                 <input name="maxMileagePerDay" type="number" defaultValue={car.maxMileagePerDay || ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Breite (GPS)</label>
-                                <input name="latitude" type="number" step="any" defaultValue={car.latitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 47.2" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Länge (GPS)</label>
-                                <input name="longitude" type="number" step="any" defaultValue={car.longitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 9.6" />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -672,6 +664,16 @@ export default function CarEditForm({ car, allOptions, groups, locations = [], c
                                                 <option key={loc.id} value={loc.id}>{loc.name}{loc.code ? ` (${loc.code})` : ''}</option>
                                             ))}
                                         </select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Breitengrad (GPS Enlem)</label>
+                                        <input name="latitude" type="number" step="any" defaultValue={car.latitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 47.2" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Längengrad (GPS Boylam)</label>
+                                        <input name="longitude" type="number" step="any" defaultValue={car.longitude ?? ''} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white" placeholder="z.B. 9.6" />
                                     </div>
                                 </div>
                             </div>
