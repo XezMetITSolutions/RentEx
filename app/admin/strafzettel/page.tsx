@@ -208,8 +208,8 @@ export default function StrafzettelPage() {
         }
     }
 
-    const totalOpen = records.filter(r => r.status === "OPEN").reduce((s, r) => s + (r.amount ?? 0), 0);
-    const totalPaid = records.filter(r => r.status === "PAID").reduce((s, r) => s + (r.amount ?? 0), 0);
+    const totalOpen = records.filter(r => r.status === "OPEN").reduce((s, r) => s + Number(r.amount ?? 0), 0);
+    const totalPaid = records.filter(r => r.status === "PAID").reduce((s, r) => s + Number(r.amount ?? 0), 0);
 
     const filteredRecords = records.filter(r => {
         if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
