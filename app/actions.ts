@@ -261,9 +261,16 @@ export async function createRental(formData: FormData) {
 
         const car = await prisma.car.findUnique({ where: { id: carId } });
         if (!car) throw new Error('Fahrzeug nicht gefunden');
-
         const days = Math.max(1, differenceInDays(endDate, startDate));
-        const totalAmount = Number(car.dailyRate) * days;
+        let totalAmount = Number(car.dailyRate) * days;
+        
+        const optionIds = formData.getAll('options').map(id => Number(id));
+        const selectedOptions = await prisma.option.findMany({
+            where: { id: { in: optionIds } }
+        });
+
+        const optionsTotal = selectedOptions.reduce((acc, opt) => acc + Number(opt.price), 0);
+        totalAmount += optionsTotal;
 
         const data = {
             carId,
@@ -275,6 +282,7 @@ export async function createRental(formData: FormData) {
             totalAmount,
             status: 'Active',
             paymentStatus: 'Pending',
+            paymentMethod: formData.get('paymentMethod') as string || 'Cash',
             contractNumber,
             driverName: formData.get('driverName') as string || null,
             driverLicense: formData.get('driverLicense') as string || null,
@@ -282,6 +290,11 @@ export async function createRental(formData: FormData) {
             returnLocationId: formData.get('returnLocationId') ? Number(formData.get('returnLocationId')) : null,
             depositPaid: formData.get('depositPaid') ? Number(formData.get('depositPaid')) : null,
             notes: formData.get('notes') as string || null,
+            options: {
+                create: optionIds.map(id => ({
+                    optionId: id
+                }))
+            }
         };
 
         await prisma.rental.create({
@@ -292,6 +305,7 @@ export async function createRental(formData: FormData) {
             where: { id: carId },
             data: { status: 'Rented' }
         });
+
     } catch (error) {
         console.error('Error creating rental:', error);
         return { success: false, error: 'Fehler beim Erstellen der Miete' };

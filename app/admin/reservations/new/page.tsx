@@ -42,6 +42,9 @@ async function getData() {
         prisma.location.findMany({
             orderBy: { name: 'asc' },
             select: { id: true, name: true }
+        }),
+        prisma.option.findMany({
+            orderBy: { name: 'asc' }
         })
     ]);
 
@@ -51,12 +54,13 @@ async function getData() {
             ...c,
             rentalsCount: c._count.rentals
         })),
-        locations
+        locations,
+        options: options.map(opt => ({ ...opt, price: Number(opt.price) }))
     };
 }
 
 export default async function NewReservationPage() {
-    const { cars, customers, locations } = await getData();
+    const { cars, customers, locations, options } = await getData();
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -73,7 +77,7 @@ export default async function NewReservationPage() {
                 </div>
             </div>
 
-            <ReservationForm cars={cars} customers={customers} locations={locations} />
+            <ReservationForm cars={cars} customers={customers} locations={locations} options={options} />
         </div>
     );
 }

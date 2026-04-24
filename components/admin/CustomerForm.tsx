@@ -14,6 +14,13 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
     const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
+    
+    // Logic for date constraints
+    const today = new Date();
+    const maxBirthDate = new Date(today.getFullYear() - 17, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+
+    const [issueDate, setIssueDate] = useState<string>('');
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);
@@ -81,7 +88,12 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Geburtsdatum</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input name="dateOfBirth" type="date" className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                                <input 
+                                    name="dateOfBirth" 
+                                    type="date" 
+                                    max={maxBirthDate}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                                />
                             </div>
                         </div>
                         <div className="sm:col-span-2 space-y-4">
@@ -95,11 +107,24 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-xs">Ausstellungsdatum</label>
-                                    <input name="licenseIssueDate" type="date" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg text-sm" />
+                                    <input 
+                                        name="licenseIssueDate" 
+                                        type="date" 
+                                        max={todayStr}
+                                        value={issueDate}
+                                        onChange={(e) => setIssueDate(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg text-sm" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-red-500 mb-2 text-xs font-bold">Ablaufdatum *</label>
-                                    <input name="licenseExpiryDate" type="date" required className="w-full px-3 py-2 border border-red-300 dark:border-red-800 bg-white dark:bg-gray-900 rounded-lg text-sm" />
+                                    <input 
+                                        name="licenseExpiryDate" 
+                                        type="date" 
+                                        required 
+                                        min={issueDate || todayStr}
+                                        className="w-full px-3 py-2 border border-red-300 dark:border-red-800 bg-white dark:bg-gray-900 rounded-lg text-sm" 
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -4,10 +4,11 @@ import { createRental } from '@/app/actions';
 import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
-import { differenceInDays, format } from 'date-fns';
+import { differenceInDays, format, isWithinInterval, parseISO } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import CarCalendar from '@/components/admin/CarCalendar';
 import CustomerModal from '@/components/admin/CustomerModal';
+import { AlertTriangle, CreditCard, Banknote, Landmark } from 'lucide-react';
 
 type Car = {
     id: number;
@@ -34,7 +35,14 @@ type Location = {
     name: string;
 };
 
-export default function ReservationForm({ cars, customers, locations }: { cars: any[], customers: Customer[], locations: Location[] }) {
+type Option = {
+    id: number;
+    name: string;
+    price: number;
+    description: string | null;
+};
+
+export default function ReservationForm({ cars, customers, locations, options }: { cars: any[], customers: Customer[], locations: Location[], options: Option[] }) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const carIdFromUrl = searchParams.get('carId');
@@ -47,11 +55,13 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
     const [customerSearch, setCustomerSearch] = useState('');
     const [startDate, setStartDate] = useState(startDateFromUrl || '');
     const [endDate, setEndDate] = useState(endDateFromUrl || '');
-    const [depositPaid, setDepositPaid] = useState<string>('');
     const [calendarData, setCalendarData] = useState<{ rentals: any[], maintenance: any[], tasks: any[] } | null>(null);
     const [isCalendarLoading, setIsCalendarLoading] = useState(false);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
+    const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+    const [paymentMethod, setPaymentMethod] = useState('Cash');
+    const [isConflict, setIsConflict] = useState(false);
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
@@ -103,7 +113,30 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
         );
     }, [localCustomers, customerSearch]);
 
-    const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
+    // Check for conflicts
+    useEffect(() => {
+        if (!selectedCar || !startDate || !endDate || !calendarData) {
+            setIsConflict(false);
+            return;
+        }
+
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+
+        const hasRentalConflict = calendarData.rentals.some(r => {
+            const rStart = new Date(r.startDate);
+            const rEnd = new Date(r.endDate);
+            return (start < rEnd && end > rStart);
+        });
+
+        const hasMaintenanceConflict = calendarData.maintenance.some(m => {
+            const mStart = new Date(m.performedDate);
+            const mEnd = m.nextDueDate ? new Date(m.nextDueDate) : new Date(mStart.getTime() + 4 * 60 * 60 * 1000);
+            return (start < mEnd && end > mStart);
+        });
+
+        setIsConflict(hasRentalConflict || hasMaintenanceConflict);
+    }, [startDate, endDate, calendarData, selectedCar]);
     const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
     const isLicenseExpired = useMemo(() => {
@@ -124,14 +157,30 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
         }
     }, [selectedCustomer]);
 
-    const estimatedTotal = useMemo(() => {
-        if (!selectedCar || !startDate || !endDate) return 0;
+    const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
+    const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
+
+    // Pricing calculation
+    const pricing = useMemo(() => {
+        if (!selectedCar || !startDate || !endDate) return { dailyTotal: 0, optionsTotal: 0, total: 0, days: 0 };
         const start = new Date(startDate);
         const end = new Date(endDate);
         const days = differenceInDays(end, start);
-        if (days <= 0) return 0;
-        return Number(selectedCar.dailyRate) * days;
-    }, [selectedCar, startDate, endDate]);
+        if (days <= 0) return { dailyTotal: 0, optionsTotal: 0, total: 0, days: 0 };
+        
+        const dailyTotal = Number(selectedCar.dailyRate) * days;
+        const optionsTotal = selectedOptions.reduce((acc, optId) => {
+            const opt = options.find(o => o.id === optId);
+            return acc + (opt ? Number(opt.price) : 0);
+        }, 0);
+
+        return {
+            dailyTotal,
+            optionsTotal,
+            total: dailyTotal + optionsTotal,
+            days
+        };
+    }, [selectedCar, startDate, endDate, selectedOptions, options]);
 
     return (
         <>
@@ -337,6 +386,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                             name="startDate"
                             type="date"
                             required
+                            min={todayStr}
                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
@@ -348,11 +398,21 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                             name="endDate"
                             type="date"
                             required
+                            min={startDate || todayStr}
                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </div>
+                    {isConflict && (
+                        <div className="md:col-span-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 animate-pulse">
+                            <AlertTriangle className="w-6 h-6 text-red-600" />
+                            <div>
+                                <p className="text-sm font-bold text-red-800 dark:text-red-200">Achtung: Zeitliche Überschneidung!</p>
+                                <p className="text-xs text-red-700 dark:text-red-300">Das Fahrzeug ist im gewählten Zeitraum bereits belegt veya Wartungda.</p>
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Abholort</label>
                         <select name="pickupLocationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white">
@@ -381,67 +441,118 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                     Kosten & Details
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Deposit */}
-                    <div className="space-y-4">
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-                            Kaution (Security Deposit)
-                        </label>
-                        <div className="relative">
-                            <input
-                                name="depositPaid"
-                                type="number"
-                                step="0.01"
-                                className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white font-mono font-bold ${selectedCustomer?.rentalsCount! >= 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
-                                value={depositPaid}
-                                onChange={(e) => setDepositPaid(e.target.value)}
-                            />
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</div>
+                    {/* Deposit, Payment & Options */}
+                    <div className="md:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6 border-t border-gray-100 dark:border-gray-700/50">
+                        {/* Deposit */}
+                        <div className="space-y-4">
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
+                                Kaution (Security Deposit)
+                            </label>
+                            <div className="relative">
+                                <input
+                                    name="depositPaid"
+                                    type="number"
+                                    step="0.01"
+                                    className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white font-mono font-bold ${selectedCustomer?.rentalsCount! >= 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
+                                    value={depositPaid}
+                                    onChange={(e) => setDepositPaid(e.target.value)}
+                                />
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</div>
+                            </div>
+                            <p className="text-[10px] text-gray-500 bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+                                {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (3+ Mieten): 250€ Kaution applies.' : 'Neukunde: Standard 750€ Kaution applies.'}
+                            </p>
                         </div>
-                        <p className="text-[10px] text-gray-500 bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                            {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (3+ Mieten): 250€ Kaution applies.' : 'Neukunde: Standard 750€ Kaution applies.'}
-                        </p>
+
+                        {/* Payment Method */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-emerald-500" />
+                                Ödeme Yöntemi
+                            </h3>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[
+                                    { id: 'Cash', name: 'Bar', icon: Banknote },
+                                    { id: 'Card', name: 'Karte', icon: CreditCard },
+                                    { id: 'Transfer', name: 'Überweisung', icon: Landmark }
+                                ].map(method => (
+                                    <button
+                                        key={method.id}
+                                        type="button"
+                                        onClick={() => setPaymentMethod(method.id)}
+                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${paymentMethod === method.id ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'}`}
+                                    >
+                                        <method.icon className="w-5 h-5" />
+                                        <span className="text-[10px] font-bold uppercase">{method.name}</span>
+                                    </button>
+                                ))}
+                                <input type="hidden" name="paymentMethod" value={paymentMethod} />
+                            </div>
+                        </div>
+
+                        {/* Options */}
+                        <div className="md:col-span-2 space-y-4">
+                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <Save className="w-4 h-4 text-blue-500" />
+                                Zusatzoptionen & Extras
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                {options.map(opt => (
+                                    <label key={opt.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${selectedOptions.includes(opt.id) ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <input 
+                                                type="checkbox" 
+                                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                checked={selectedOptions.includes(opt.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) setSelectedOptions(prev => [...prev, opt.id]);
+                                                    else setSelectedOptions(prev => prev.filter(id => id !== opt.id));
+                                                }}
+                                            />
+                                            <input type="hidden" name="options" value={opt.id} disabled={!selectedOptions.includes(opt.id)} />
+                                            <div>
+                                                <p className="text-xs font-bold dark:text-white">{opt.name}</p>
+                                                <p className="text-[10px] text-gray-500">{opt.description}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-xs font-mono font-bold text-blue-600">€{opt.price}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Additional Driver */}
-                    <div className="space-y-4 p-4 rounded-xl bg-gray-50/50 dark:bg-gray-900/30 border border-dashed border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                                <User className="w-4 h-4" />
-                            </div>
-                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200">Zusatzfahrer (Optional)</h3>
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                            <input 
-                                name="driverName"
-                                type="text"
-                                placeholder="Name des Zusatzfahrers"
-                                className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg"
-                            />
-                            <input 
-                                name="driverLicense"
-                                type="text"
-                                placeholder="Führerscheinnummer"
-                                className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg"
-                            />
-                        </div>
-                    </div>
-                    
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notizen</label>
                         <textarea name="notes" rows={3} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white resize-none shadow-sm" placeholder="Spezielle Wünsche..."></textarea>
                     </div>
                 </div>
 
-                {estimatedTotal > 0 && (
-                    <div className="mt-8 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl shadow-blue-500/20 flex justify-between items-center text-white">
-                        <div>
-                            <p className="text-blue-100 text-sm font-medium uppercase tracking-wider">Geschätzter Gesamtpreis</p>
-                            <p className="text-3xl font-black mt-1">
-                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(estimatedTotal)}
-                            </p>
+                {pricing.total > 0 && (
+                    <div className="mt-8 overflow-hidden bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl">
+                        <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">Zusammenfassung Kosten</h3>
                         </div>
-                        <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm">
-                            <DollarSign className="w-8 h-8" />
+                        <div className="p-6 space-y-3">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">Miete ({pricing.days} Tage x €{selectedCar?.dailyRate})</span>
+                                <span className="font-mono font-bold">€{pricing.dailyTotal.toFixed(2)}</span>
+                            </div>
+                            {selectedOptions.length > 0 && (
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Extras & Optionen</span>
+                                    <span className="font-mono font-bold text-blue-600">+ €{pricing.optionsTotal.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                                <span className="text-lg font-bold text-gray-900 dark:text-white">Gesamtbetrag</span>
+                                <div className="text-right">
+                                    <span className="text-3xl font-black text-blue-600">
+                                        {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(pricing.total)}
+                                    </span>
+                                    <p className="text-[10px] text-gray-400 font-medium">Inkl. MwSt.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
