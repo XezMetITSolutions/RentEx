@@ -125,33 +125,29 @@ export default function StrafzettelPage() {
         setShowForm(true);
     }
 
-    async function analyzeFile() {
-        if (!selectedFile) return;
+    async function analyzeFile(file?: File) {
+        const f = file || selectedFile;
+        if (!f) return;
         setUploading(true);
         try {
-            const data = await detectStrafzettelData(selectedFile);
+            const data = await detectStrafzettelData(f);
             if (data) {
-                // If plate found, find matching carId
                 if (data.plate) {
                     const car = cars.find(c => c.plate.toLowerCase().includes(data.plate!.toLowerCase()));
                     if (car) {
                         setForm(p => ({ ...p, carId: car.id.toString(), plate: car.plate }));
                     }
                 }
-                
-                // Format date for input type=date (YYYY-MM-DD)
                 let formattedDate = "";
                 if (data.date) {
                     const parts = data.date.split('.');
-                    if (parts.length === 3) {
-                        formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
+                    if (parts.length === 3) formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
                 }
-
                 setForm(p => ({ 
                     ...p, 
                     amount: data.amount || p.amount,
                     issuedDate: formattedDate || p.issuedDate,
+                    referenceNumber: data.referenceNumber || p.referenceNumber,
                 }));
             }
         } catch (e) {
@@ -493,21 +489,33 @@ export default function StrafzettelPage() {
                                                 type="file" 
                                                 className="hidden" 
                                                 accept="image/*,.pdf"
-                                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] || null;
+                                                    setSelectedFile(file);
+                                                    if (file && file.type.startsWith('image/')) analyzeFile(file);
+                                                }}
                                             />
                                         </label>
                                     )}
                                 </div>
                                 {selectedFile && (
-                                    <button 
-                                        type="button"
-                                        onClick={analyzeFile}
-                                        disabled={uploading}
-                                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                                        DOKÜMANI ANALİZ ET (AI)
-                                    </button>
+                                    <div className="space-y-2">
+                                        {uploading && (
+                                            <div className="flex items-center gap-2 text-blue-500 text-xs font-medium p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Dokument wird analysiert...
+                                            </div>
+                                        )}
+                                        <button 
+                                            type="button"
+                                            onClick={() => analyzeFile()}
+                                            disabled={uploading}
+                                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            ERNEUT ANALYSIEREN
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>

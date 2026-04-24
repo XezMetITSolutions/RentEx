@@ -65,23 +65,29 @@ export async function detectStrafzettelData(file: File) {
         const { data: { text } } = await worker.recognize(imageUrl);
         await worker.terminate();
 
-        // Extract potential plate (Austrian format: X-12345X or similar)
-        const plateRegex = /[A-Z]{1,2}-[0-9]{3,5}\s?[A-Z]{0,2}/g;
+        // Extract potential plate (Austrian format: FK-850II, W-12345X)
+        // Improved to catch FK-850II more reliably
+        const plateRegex = /[A-Z]{1,2}-[0-9]{3,5}\s?[A-Z]{1,2}/g;
         const plateMatch = text.match(plateRegex);
 
         // Extract potential date (DD.MM.YYYY)
         const dateRegex = /\d{2}\.\d{2}\.\d{4}/g;
         const dateMatch = text.match(dateRegex);
 
-        // Extract potential amount (e.g. 35,00 or € 50)
+        // Extract potential amount (e.g. 70,00 or € 70)
         const amountRegex = /(?:€|EUR|Euro)\s?(\d+(?:[.,]\d{2})?)/gi;
         const amountMatch = [...text.matchAll(amountRegex)];
+
+        // Extract Reference Number (Zahl: BHBL/X/012026028620)
+        const refRegex = /(?:Zahl:|Aktenzeichen:)\s?([A-Z0-9\/]{5,30})/i;
+        const refMatch = text.match(refRegex);
 
         return {
             plate: plateMatch ? plateMatch[0].replace(/\s/g, '') : null,
             date: dateMatch ? dateMatch[0] : null,
             amount: amountMatch.length > 0 ? amountMatch[0][1].replace(',', '.') : null,
-            fullText: text // Useful for debugging
+            referenceNumber: refMatch ? refMatch[1] : null,
+            fullText: text
         };
     } catch (error) {
         console.error('OCR Strafzettel Error:', error);
