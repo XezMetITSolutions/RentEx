@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fuel, Gauge, Users, Car, Truck } from "lucide-react";
 import prisma from "@/lib/prisma";
+import FleetSidebar from "@/components/fleet/FleetSidebar";
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
 
