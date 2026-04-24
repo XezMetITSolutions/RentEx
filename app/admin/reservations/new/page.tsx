@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 async function getData() {
-    const [cars, customers, locations] = await Promise.all([
+    const [cars, customers, locations, options] = await Promise.all([
         prisma.car.findMany({
             where: { isActive: true },
             select: { 
