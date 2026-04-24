@@ -320,6 +320,7 @@ model Option {
   group       OptionGroup? @relation(fields: [groupId], references: [id])
   carId       Int?
   car         Car?         @relation(fields: [carId], references: [id], onDelete: Cascade)
+  rentals     RentalOption[]
 }
 
 
@@ -474,6 +475,7 @@ model Rental {
   fahrtenbuchEntries FahrtenbuchEntry[]
   strafzettels  StrafzettelRecord[]
   mahnungen     MahnungRecord[]
+  options       RentalOption[]
 }
 
 /// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)
@@ -750,4 +752,12 @@ model MahnungRecord {
   dueDate   DateTime
   notes     String?
   rental    Rental   @relation(fields: [rentalId], references: [id])
+}
+
+model RentalOption {
+  id        Int      @id @default(autoincrement())
+  rentalId  Int
+  optionId  Int
+  rental    Rental   @relation(fields: [rentalId], references: [id])
+  option    Option   @relation(fields: [optionId], references: [id])
 }
