@@ -4,9 +4,10 @@ import { createRental } from '@/app/actions';
 import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
-import { differenceInDays } from 'date-fns';
-import { useSearchParams } from 'next/navigation';
+import { differenceInDays, format } from 'date-fns';
+import { useSearchParams, useRouter } from 'next/navigation';
 import CarCalendar from '@/components/admin/CarCalendar';
+import CustomerModal from '@/components/admin/CustomerModal';
 
 type Car = {
     id: number;
@@ -35,21 +36,32 @@ type Location = {
 
 export default function ReservationForm({ cars, customers, locations }: { cars: any[], customers: Customer[], locations: Location[] }) {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const carIdFromUrl = searchParams.get('carId');
+    const startDateFromUrl = searchParams.get('startDate');
+    const endDateFromUrl = searchParams.get('endDate');
 
     const [selectedCarId, setSelectedCarId] = useState<number | string>(carIdFromUrl || '');
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>('');
     const [carSearch, setCarSearch] = useState('');
     const [customerSearch, setCustomerSearch] = useState('');
-    const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
-    const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+    const [startDate, setStartDate] = useState(startDateFromUrl || '');
+    const [endDate, setEndDate] = useState(endDateFromUrl || '');
     const [depositPaid, setDepositPaid] = useState<string>('');
     const [calendarData, setCalendarData] = useState<{ rentals: any[], maintenance: any[], tasks: any[] } | null>(null);
     const [isCalendarLoading, setIsCalendarLoading] = useState(false);
+    const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+    const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
-    }, [carIdFromUrl]);
+        if (startDateFromUrl) setStartDate(startDateFromUrl);
+        if (endDateFromUrl) setEndDate(endDateFromUrl);
+    }, [carIdFromUrl, startDateFromUrl, endDateFromUrl]);
+
+    useEffect(() => {
+        setLocalCustomers(customers);
+    }, [customers]);
 
     // Fetch calendar data when car changes
     useEffect(() => {
@@ -85,14 +97,14 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
 
     const filteredCustomers = useMemo(() => {
         const search = customerSearch.toLowerCase();
-        return customers.filter(c => 
+        return localCustomers.filter(c => 
             c.firstName.toLowerCase().includes(search) || 
             c.lastName.toLowerCase().includes(search)
         );
-    }, [customers, customerSearch]);
+    }, [localCustomers, customerSearch]);
 
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
-    const selectedCustomer = useMemo(() => customers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, customers]);
+    const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
     const isLicenseExpired = useMemo(() => {
         if (!selectedCustomer?.licenseExpiryDate) return false;
@@ -122,6 +134,7 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
     }, [selectedCar, startDate, endDate]);
 
     return (
+        <>
         <form action={async (formData) => { await createRental(formData); }} className="space-y-6">
             {/* Vehicle & Customer Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
@@ -162,14 +175,14 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Kunde auswählen *</label>
-                            <Link 
-                                href="/admin/customers/new" 
-                                target="_blank"
+                            <button 
+                                type="button"
+                                onClick={() => setIsCustomerModalOpen(true)}
                                 className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md"
                             >
                                 <User className="w-3 h-3" />
                                 Neuer Kunde
-                            </Link>
+                            </button>
                         </div>
                         <div className="space-y-2">
                             <input 
@@ -302,6 +315,10 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                                         maintenance={calendarData.maintenance}
                                         tasks={calendarData.tasks}
                                         carId={Number(selectedCarId)}
+                                        onSelectDates={(start, end) => {
+                                            setStartDate(format(start, 'yyyy-MM-dd'));
+                                            setEndDate(format(end, 'yyyy-MM-dd'));
+                                        }}
                                     />
                                 </div>
                             ) : null}
@@ -447,5 +464,22 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                 </button>
             </div>
         </form>
+
+        <CustomerModal 
+            isOpen={isCustomerModalOpen}
+            onClose={() => setIsCustomerModalOpen(false)}
+            onSuccess={(result) => {
+                if (result && result.success && result.customer) {
+                    const newCustomer = {
+                        ...result.customer,
+                        rentalsCount: 0
+                    };
+                    setLocalCustomers(prev => [...prev, newCustomer].sort((a, b) => a.lastName.localeCompare(b.lastName)));
+                    setSelectedCustomerId(result.customer.id);
+                }
+                router.refresh();
+            }}
+        />
+        </>
     );
 }

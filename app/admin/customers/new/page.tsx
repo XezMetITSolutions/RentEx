@@ -22,7 +22,12 @@ export default function NewCustomerPage() {
 
         startTransition(async () => {
             try {
-                await createCustomer(formData);
+                const result = await createCustomer(formData);
+                if (result && result.success) {
+                    router.push('/admin/customers');
+                } else {
+                    setError(result?.error || 'Ein Fehler ist aufgetreten');
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
             }

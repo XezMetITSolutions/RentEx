@@ -234,16 +234,17 @@ export async function createCustomer(formData: FormData) {
             notes: formData.get('notes') as string || null,
         };
 
-        await prisma.customer.create({
+        const customer = await prisma.customer.create({
             data
         });
+
+        revalidatePath('/admin/customers');
+        revalidatePath('/admin/reservations/new');
+        return { success: true, customer };
     } catch (error) {
         console.error('Error creating customer:', error);
         return { success: false, error: 'Fehler beim Erstellen des Kunden' };
     }
-
-    revalidatePath('/admin/customers');
-    redirect('/admin/customers');
 }
 
 export async function createRental(formData: FormData) {

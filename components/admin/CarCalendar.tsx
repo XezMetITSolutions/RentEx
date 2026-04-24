@@ -24,6 +24,8 @@ interface CarCalendarProps {
     rentals: any[];
     maintenance: any[];
     tasks: any[];
+    carId: number;
+    onSelectDates?: (start: Date, end: Date) => void;
 }
 
 interface CalendarEvent {
@@ -36,7 +38,7 @@ interface CalendarEvent {
     resource?: any;
 }
 
-export default function CarCalendar({ rentals, maintenance, tasks, carId }: { rentals: any[], maintenance: any[], tasks: any[], carId: number }) {
+export default function CarCalendar({ rentals, maintenance, tasks, carId, onSelectDates }: CarCalendarProps) {
     const [view, setView] = useState<any>(Views.MONTH);
     const [date, setDate] = useState(new Date());
     const router = useRouter();
@@ -75,9 +77,13 @@ export default function CarCalendar({ rentals, maintenance, tasks, carId }: { re
     }, [rentals, maintenance, tasks]);
 
     const handleSelectSlot = ({ start, end }: { start: Date, end: Date }) => {
-        const startStr = format(start, 'yyyy-MM-dd');
-        const endStr = format(end, 'yyyy-MM-dd');
-        router.push(`/admin/reservations/new?carId=${carId}&startDate=${startStr}&endDate=${endStr}`);
+        if (onSelectDates) {
+            onSelectDates(start, end);
+        } else {
+            const startStr = format(start, 'yyyy-MM-dd');
+            const endStr = format(end, 'yyyy-MM-dd');
+            router.push(`/admin/reservations/new?carId=${carId}&startDate=${startStr}&endDate=${endStr}`);
+        }
     };
 
     const handleSelectEvent = (event: CalendarEvent) => {
