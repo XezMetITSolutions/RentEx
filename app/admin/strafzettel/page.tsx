@@ -151,6 +151,8 @@ export default function StrafzettelPage() {
                     issuedDate: formattedDate || p.issuedDate,
                     issuedTime: data.time || p.issuedTime,
                     referenceNumber: data.referenceNumber || p.referenceNumber,
+                    incidentLocation: data.incidentLocation || p.incidentLocation,
+                    authority: data.authority || p.authority,
                 }));
             }
         } catch (e) {

@@ -101,12 +101,26 @@ export async function detectStrafzettelData(file: File) {
         const refRegex = /(?:Zahl:|Aktenzeichen:)\s?([A-Z0-9\/]{5,30})/i;
         const refMatch = text.match(refRegex);
 
+        // Extract Location (Ort)
+        // Looks for "Ort:" and grabs everything until the next newline or "Betroffenes"
+        const ortRegex = /Ort:\s*([^\n]*(?:\n[^\n]*)?)(?=\nBetroffenes|\nSie haben|\nEs wurde)/i;
+        const ortMatch = text.match(ortRegex);
+        let incidentLocation = ortMatch ? ortMatch[1].replace(/\n/g, ' ').trim() : null;
+
+        // Extract Authority (Behörde)
+        // Looks for common Austrian authorities like Bezirkshauptmannschaft, Landespolizeidirektion, Magistrat
+        const authorityRegex = /(Bezirkshauptmannschaft\s+[A-Za-zäöüß]+|Magistrat\s+[A-Za-zäöüß]+|Landespolizeidirektion\s+[A-Za-zäöüß]+)/i;
+        const authorityMatch = text.match(authorityRegex);
+        let authority = authorityMatch ? authorityMatch[1].trim() : null;
+
         return {
             plate: plateMatch ? plateMatch[0].replace(/\s/g, '') : null,
             date: incidentDate,
             time: timeMatch ? timeMatch[0] : null,
             amount: amountMatch.length > 0 ? amountMatch[0][1].replace(',', '.') : null,
             referenceNumber: refMatch ? refMatch[1] : null,
+            incidentLocation,
+            authority,
             fullText: text
         };
     } catch (error) {
