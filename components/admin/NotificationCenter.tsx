@@ -5,6 +5,7 @@ import { Bell, Mail, MessageSquare, Check, X, Clock, AlertCircle } from 'lucide-
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
+import { markNotificationAsRead, markAllNotificationsAsRead, deleteNotification as deleteNotificationAction } from '@/app/actions/admin';
 
 interface Notification {
     id: number;
@@ -31,19 +32,21 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
         ? notifications
         : notifications.filter(n => n.status === 'unread' || n.status === 'Pending');
 
-    const markAsRead = (id: number) => {
+    const markAsRead = async (id: number) => {
         setNotifications(prev =>
             prev.map(n => n.id === id ? { ...n, status: 'read' as const } : n)
         );
-        // In a real app, you would call a Server Action here to update DB
+        await markNotificationAsRead(id);
     };
 
-    const markAllAsRead = () => {
+    const markAllAsRead = async () => {
         setNotifications(prev => prev.map(n => ({ ...n, status: 'read' as const })));
+        await markAllNotificationsAsRead();
     };
 
-    const deleteNotification = (id: number) => {
+    const deleteNotification = async (id: number) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
+        await deleteNotificationAction(id);
     };
 
     const getIcon = (type: string) => {

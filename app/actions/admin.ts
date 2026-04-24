@@ -287,3 +287,41 @@ export async function updateTask(taskId: number, data: {
 }
 
 
+
+export async function markNotificationAsRead(id: number) {
+    try {
+        await prisma.notification.update({
+            where: { id },
+            data: { status: 'Sent' } // In our schema, 'Sent' is considered 'read' for system notifications, or we could add a 'Read' status
+        });
+        revalidatePath('/admin/notifications');
+        return { success: true };
+    } catch (error) {
+        return { error: 'Fehler beim Aktualisieren' };
+    }
+}
+
+export async function markAllNotificationsAsRead() {
+    try {
+        await prisma.notification.updateMany({
+            where: { status: 'Pending' },
+            data: { status: 'Sent' }
+        });
+        revalidatePath('/admin/notifications');
+        return { success: true };
+    } catch (error) {
+        return { error: 'Fehler beim Aktualisieren' };
+    }
+}
+
+export async function deleteNotification(id: number) {
+    try {
+        await prisma.notification.delete({
+            where: { id }
+        });
+        revalidatePath('/admin/notifications');
+        return { success: true };
+    } catch (error) {
+        return { error: 'Fehler beim Löschen' };
+    }
+}

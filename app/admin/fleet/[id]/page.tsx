@@ -17,7 +17,7 @@ import {
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { clsx } from 'clsx';
-import CarCalendar from "./CarCalendar";
+import CarCalendar from "@/components/admin/CarCalendar";
 
 async function getCarData(id: number) {
     const carPromise = prisma.car.findUnique({

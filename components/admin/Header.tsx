@@ -2,6 +2,7 @@
 
 import { Bell, Search, UserCircle, Menu } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import Link from 'next/link';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -35,10 +36,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 <div className="flex items-center gap-4 border-l border-gray-200 dark:border-gray-700 pl-6">
                     <ThemeToggle />
 
-                    <button className="relative rounded-full p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <Link 
+                        href="/admin/notifications"
+                        className="relative rounded-full p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
                         <Bell className="h-5 w-5" />
                         <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900"></span>
-                    </button>
+                    </Link>
 
                     <button className="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <div className="h-9 w-9 overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300">

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
+import CarCalendar from '@/components/admin/CarCalendar';
 
 type Car = {
     id: number;
@@ -43,10 +44,35 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
     const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
     const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
     const [depositPaid, setDepositPaid] = useState<string>('');
+    const [calendarData, setCalendarData] = useState<{ rentals: any[], maintenance: any[], tasks: any[] } | null>(null);
+    const [isCalendarLoading, setIsCalendarLoading] = useState(false);
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
     }, [carIdFromUrl]);
+
+    // Fetch calendar data when car changes
+    useEffect(() => {
+        if (selectedCarId) {
+            const fetchCalendar = async () => {
+                setIsCalendarLoading(true);
+                try {
+                    const res = await fetch(`/api/admin/cars/${selectedCarId}/calendar`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setCalendarData(data);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch calendar:', error);
+                } finally {
+                    setIsCalendarLoading(false);
+                }
+            };
+            fetchCalendar();
+        } else {
+            setCalendarData(null);
+        }
+    }, [selectedCarId]);
 
     const filteredCars = useMemo(() => {
         const search = carSearch.toLowerCase();
@@ -229,37 +255,61 @@ export default function ReservationForm({ cars, customers, locations }: { cars: 
                 
                 {/* Availability Preview */}
                 {selectedCar ? (
-                    <div className="mb-8 p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-2xl">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                                    <Calendar className="w-4 h-4" />
-                                </div>
-                                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Belegte Termine (Vormerkungen)</h3>
-                            </div>
-                            <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">Live Status</span>
-                        </div>
-                        {selectedCar.rentals && selectedCar.rentals.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {selectedCar.rentals.map((rental: { startDate: string | Date; endDate: string | Date }, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                        <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
-                                            {new Date(rental.startDate).toLocaleDateString('de-AT')} - {new Date(rental.endDate).toLocaleDateString('de-AT')}
-                                        </span>
+                    <div className="space-y-6">
+                        <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-2xl">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
+                                        <Calendar className="w-4 h-4" />
                                     </div>
-                                ))}
+                                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Schnellübersicht Belegung</h3>
+                                </div>
+                                <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">Live Status</span>
                             </div>
-                        ) : (
-                            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                                <span className="text-lg">✅</span>
-                                <p className="text-xs font-bold uppercase tracking-wider">Fahrzeug ist aktuell vollständig verfügbar</p>
-                            </div>
-                        )}
+                            {selectedCar.rentals && selectedCar.rentals.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedCar.rentals.map((rental: { startDate: string | Date; endDate: string | Date }, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                            <span className="text-xs font-mono font-bold text-gray-700 dark:text-gray-300">
+                                                {new Date(rental.startDate).toLocaleDateString('de-AT')} - {new Date(rental.endDate).toLocaleDateString('de-AT')}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                    <span className="text-lg">✅</span>
+                                    <p className="text-xs font-bold uppercase tracking-wider">Keine aktuellen Buchungen</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Full Calendar View */}
+                        <div className="mt-4">
+                            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 px-2">Detaillierter Fahrzeug-Kalender</h3>
+                            {isCalendarLoading ? (
+                                <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                        <p className="text-xs text-gray-500">Kalenderdaten werden geladen...</p>
+                                    </div>
+                                </div>
+                            ) : calendarData ? (
+                                <div className="transform scale-[0.95] origin-top">
+                                    <CarCalendar 
+                                        rentals={calendarData.rentals}
+                                        maintenance={calendarData.maintenance}
+                                        tasks={calendarData.tasks}
+                                        carId={Number(selectedCarId)}
+                                    />
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                 ) : (
                     <div className="mb-8 p-6 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben ein Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
+                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben bir Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
                     </div>
                 )}
 
