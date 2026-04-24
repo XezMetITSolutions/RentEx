@@ -125,7 +125,15 @@ async function getCars(filters: FilterParams) {
 export default async function FleetPage({
     searchParams,
 }: {
-    searchParams: Promise<{ type?: string | string[]; pickup?: string | string[]; return?: string | string[] }>;
+    searchParams: Promise<{ 
+        type?: string | string[]; 
+        pickup?: string | string[]; 
+        return?: string | string[]; 
+        category?: string | string[];
+        brand?: string | string[];
+        transmission?: string | string[];
+        fuelType?: string | string[];
+    }>;
 }) {
     try {
         const resolvedSearchParams = await searchParams;
