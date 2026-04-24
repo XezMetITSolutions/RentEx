@@ -73,6 +73,25 @@ export async function detectStrafzettelData(file: File) {
         // Extract potential date (DD.MM.YYYY)
         const dateRegex = /\d{2}\.\d{2}\.\d{4}/g;
         const dateMatch = text.match(dateRegex);
+        
+        let incidentDate = null;
+        if (dateMatch && dateMatch.length > 0) {
+            // Find the earliest date (incident date is always before issue date)
+            const parsedDates = dateMatch.map(d => {
+                const parts = d.split('.');
+                return { str: d, val: new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime() };
+            }).filter(d => !isNaN(d.val));
+            
+            if (parsedDates.length > 0) {
+                incidentDate = parsedDates.reduce((min, curr) => curr.val < min.val ? curr : min).str;
+            } else {
+                incidentDate = dateMatch[0];
+            }
+        }
+
+        // Extract Time (HH:MM)
+        const timeRegex = /\b([01]?[0-9]|2[0-3]):([0-5][0-9])\b/g;
+        const timeMatch = text.match(timeRegex);
 
         // Extract potential amount (e.g. 70,00 or € 70)
         const amountRegex = /(?:€|EUR|Euro)\s?(\d+(?:[.,]\d{2})?)/gi;
@@ -84,7 +103,8 @@ export async function detectStrafzettelData(file: File) {
 
         return {
             plate: plateMatch ? plateMatch[0].replace(/\s/g, '') : null,
-            date: dateMatch ? dateMatch[0] : null,
+            date: incidentDate,
+            time: timeMatch ? timeMatch[0] : null,
             amount: amountMatch.length > 0 ? amountMatch[0][1].replace(',', '.') : null,
             referenceNumber: refMatch ? refMatch[1] : null,
             fullText: text

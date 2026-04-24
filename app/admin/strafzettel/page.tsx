@@ -134,9 +134,11 @@ export default function StrafzettelPage() {
             if (data) {
                 if (data.plate) {
                     const car = cars.find(c => c.plate.toLowerCase().includes(data.plate!.toLowerCase()));
-                    if (car) {
-                        setForm(p => ({ ...p, carId: car.id.toString(), plate: car.plate }));
-                    }
+                    setForm(p => ({ 
+                        ...p, 
+                        plate: car ? car.plate : data.plate!, 
+                        carId: car ? car.id.toString() : "" 
+                    }));
                 }
                 let formattedDate = "";
                 if (data.date) {
@@ -147,6 +149,7 @@ export default function StrafzettelPage() {
                     ...p, 
                     amount: data.amount || p.amount,
                     issuedDate: formattedDate || p.issuedDate,
+                    issuedTime: data.time || p.issuedTime,
                     referenceNumber: data.referenceNumber || p.referenceNumber,
                 }));
             }
