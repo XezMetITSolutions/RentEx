@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import {
     AlertTriangle, Plus, Edit2, Check, X, Car, FileText,
-    ExternalLink, Clock, DollarSign, Filter, User
+    ExternalLink, Clock, DollarSign, Filter, User, Upload, Trash2, Loader2
 } from "lucide-react";
+import { detectStrafzettelData } from "@/lib/ocr";
 
 type Status = "OPEN" | "FORWARDED" | "PAID" | "DISPUTED";
 
@@ -47,8 +48,10 @@ export default function StrafzettelPage() {
     const [form, setForm] = useState({
         carId: "", rentalId: "", plate: "", issuedDate: "", issuedTime: "",
         incidentLocation: "", amount: "", authority: "", referenceNumber: "",
-        notes: "", status: "OPEN", paidBy: "",
+        notes: "", status: "OPEN", paidBy: "", addServiceFee: false,
     });
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [identifiedRental, setIdentifiedRental] = useState<any>(null);
     const [identifying, setIdentifying] = useState(false);
@@ -107,27 +110,101 @@ export default function StrafzettelPage() {
             issuedTime: r.issuedTime ?? "", incidentLocation: r.incidentLocation ?? "",
             amount: r.amount?.toString() ?? "", authority: r.authority ?? "",
             referenceNumber: r.referenceNumber ?? "", notes: r.notes ?? "",
-            status: r.status, paidBy: r.paidBy ?? "",
+            status: r.status, paidBy: r.paidBy ?? "", addServiceFee: false,
         });
         setIdentifiedRental(r.rental);
+        setSelectedFile(null);
         setShowForm(true);
     }
 
     function openNew() {
         setEditTarget(null);
-        setForm({ carId: "", rentalId: "", plate: "", issuedDate: "", issuedTime: "", incidentLocation: "", amount: "", authority: "", referenceNumber: "", notes: "", status: "OPEN", paidBy: "" });
+        setForm({ carId: "", rentalId: "", plate: "", issuedDate: "", issuedTime: "", incidentLocation: "", amount: "", authority: "", referenceNumber: "", notes: "", status: "OPEN", paidBy: "", addServiceFee: true });
         setIdentifiedRental(null);
+        setSelectedFile(null);
         setShowForm(true);
+    }
+
+    async function analyzeFile() {
+        if (!selectedFile) return;
+        setUploading(true);
+        try {
+            const data = await detectStrafzettelData(selectedFile);
+            if (data) {
+                // If plate found, find matching carId
+                if (data.plate) {
+                    const car = cars.find(c => c.plate.toLowerCase().includes(data.plate!.toLowerCase()));
+                    if (car) {
+                        setForm(p => ({ ...p, carId: car.id.toString(), plate: car.plate }));
+                    }
+                }
+                
+                // Format date for input type=date (YYYY-MM-DD)
+                let formattedDate = "";
+                if (data.date) {
+                    const parts = data.date.split('.');
+                    if (parts.length === 3) {
+                        formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                }
+
+                setForm(p => ({ 
+                    ...p, 
+                    amount: data.amount || p.amount,
+                    issuedDate: formattedDate || p.issuedDate,
+                }));
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setUploading(false);
+        }
     }
 
     async function save() {
         setSaving(true);
-        const url = editTarget ? `/api/admin/strafzettel/${editTarget.id}` : "/api/admin/strafzettel";
-        const method = editTarget ? "PUT" : "POST";
-        await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-        setSaving(false);
-        setShowForm(false);
-        load();
+        try {
+            let documentUrl = editTarget?.documentUrl || null;
+
+            // Upload file if selected
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                const uploadRes = await fetch('/api/admin/strafzettel/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (uploadRes.ok) {
+                    const uploadData = await uploadRes.json();
+                    documentUrl = uploadData.url;
+                } else {
+                    console.error('Upload failed');
+                }
+            }
+
+            const url = editTarget ? `/api/admin/strafzettel/${editTarget.id}` : "/api/admin/strafzettel";
+            const method = editTarget ? "PUT" : "POST";
+            const payload = { ...form, documentUrl };
+            
+            const res = await fetch(url, { 
+                method, 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify(payload) 
+            });
+
+            if (res.ok) {
+                setShowForm(false);
+                load();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Fehler beim Speichern');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Ein unerwarteter Fehler ist aufgetreten');
+        } finally {
+            setSaving(false);
+        }
     }
 
     const totalOpen = records.filter(r => r.status === "OPEN").reduce((s, r) => s + (r.amount ?? 0), 0);
@@ -364,11 +441,75 @@ export default function StrafzettelPage() {
                             ].map(f => (
                                 <div key={f.key}>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
-                                    <input type={f.type} value={(form as Record<string, string>)[f.key]}
+                                    <input type={f.type} value={(form as any)[f.key]}
                                         onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
                                 </div>
                             ))}
+
+                            {/* Service Fee Toggle */}
+                            <div className="p-4 rounded-xl border border-dashed border-gray-200 dark:border-white/10 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                        <DollarSign className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white">Bearbeitungsgebühr (25€)</p>
+                                        <p className="text-[10px] text-gray-500">Diese Gebühr automatisch zur Miete hinzufügen.</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={() => setForm(p => ({ ...p, addServiceFee: !p.addServiceFee }))}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${form.addServiceFee ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${form.addServiceFee ? 'left-7' : 'left-1'}`} />
+                                </button>
+                                <input type="hidden" name="addServiceFee" value={form.addServiceFee ? "true" : "false"} />
+                            </div>
+
+                            {/* File Upload Section */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Dokument (Foto/Scan)</label>
+                                <div className={`border-2 border-dashed rounded-xl p-6 transition-all ${selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-gray-300 dark:border-white/10 hover:border-red-500/50'}`}>
+                                    {selectedFile ? (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="w-5 h-5 text-emerald-500" />
+                                                <div>
+                                                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{selectedFile.name}</p>
+                                                    <p className="text-[10px] text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setSelectedFile(null)} className="p-1 hover:bg-red-500/10 text-red-500 rounded">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex flex-col items-center gap-2 cursor-pointer">
+                                            <Upload className="w-8 h-8 text-gray-400" />
+                                            <p className="text-xs text-gray-500">Klicken zum Hochladen oder Drag & Drop</p>
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                accept="image/*,.pdf"
+                                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                                {selectedFile && (
+                                    <button 
+                                        type="button"
+                                        onClick={analyzeFile}
+                                        disabled={uploading}
+                                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                                        DOKÜMANI ANALİZ ET (AI)
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
                             <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Abbrechen</button>

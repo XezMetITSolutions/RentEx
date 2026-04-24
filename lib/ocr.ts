@@ -55,6 +55,40 @@ function extractBestNumber(text: string): string | null {
     return sorted[0];
 }
 
+export async function detectStrafzettelData(file: File) {
+    if (typeof window === 'undefined') return null;
+
+    try {
+        const worker = await createWorker(['deu', 'eng']); // Use German and English
+        const imageUrl = await preprocessImage(file);
+        
+        const { data: { text } } = await worker.recognize(imageUrl);
+        await worker.terminate();
+
+        // Extract potential plate (Austrian format: X-12345X or similar)
+        const plateRegex = /[A-Z]{1,2}-[0-9]{3,5}\s?[A-Z]{0,2}/g;
+        const plateMatch = text.match(plateRegex);
+
+        // Extract potential date (DD.MM.YYYY)
+        const dateRegex = /\d{2}\.\d{2}\.\d{4}/g;
+        const dateMatch = text.match(dateRegex);
+
+        // Extract potential amount (e.g. 35,00 or € 50)
+        const amountRegex = /(?:€|EUR|Euro)\s?(\d+(?:[.,]\d{2})?)/gi;
+        const amountMatch = [...text.matchAll(amountRegex)];
+
+        return {
+            plate: plateMatch ? plateMatch[0].replace(/\s/g, '') : null,
+            date: dateMatch ? dateMatch[0] : null,
+            amount: amountMatch.length > 0 ? amountMatch[0][1].replace(',', '.') : null,
+            fullText: text // Useful for debugging
+        };
+    } catch (error) {
+        console.error('OCR Strafzettel Error:', error);
+        return null;
+    }
+}
+
 function preprocessImage(file: File): Promise<string> {
     return new Promise((resolve) => {
         const url = URL.createObjectURL(file);

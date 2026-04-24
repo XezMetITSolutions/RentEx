@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { carId, rentalId, plate, issuedDate, issuedTime, incidentLocation,
-            amount, authority, referenceNumber, notes, documentUrl } = body;
+            amount, authority, referenceNumber, notes, documentUrl, addServiceFee } = body;
 
         if (!carId || !plate || !issuedDate) {
             return NextResponse.json({ error: "carId, plate und issuedDate erforderlich" }, { status: 400 });
@@ -64,6 +64,45 @@ export async function POST(req: NextRequest) {
                 documentUrl: documentUrl || null,
             },
         });
+
+        // Add service fee if requested and rental exists
+        if (addServiceFee && rentalId) {
+            const rid = parseInt(rentalId);
+            
+            // Find or create the service fee option
+            let option = await prisma.option.findFirst({
+                where: { name: "Strafzettel Bearbeitungsgebühr" }
+            });
+
+            if (!option) {
+                option = await prisma.option.create({
+                    data: {
+                        name: "Strafzettel Bearbeitungsgebühr",
+                        description: "Administrative Bearbeitung von Verkehrsübertretungen",
+                        price: 25.00,
+                        type: "Extra"
+                    }
+                });
+            }
+
+            // Link option to rental
+            await prisma.rentalOption.create({
+                data: {
+                    rentalId: rid,
+                    optionId: option.id
+                }
+            });
+
+            // Update rental total amount
+            const rental = await prisma.rental.findUnique({ where: { id: rid } });
+            if (rental) {
+                await prisma.rental.update({
+                    where: { id: rid },
+                    data: { totalAmount: Number(rental.totalAmount) + 25.00 }
+                });
+            }
+        }
+
         return NextResponse.json(record, { status: 201 });
     } catch (e) {
         return NextResponse.json({ error: "Fehler beim Erstellen" }, { status: 500 });
