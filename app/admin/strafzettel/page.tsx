@@ -41,6 +41,7 @@ export default function StrafzettelPage() {
     const [cars, setCars] = useState<{ id: number; plate: string; brand: string; model: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
+    const [searchQuery, setSearchQuery] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [editTarget, setEditTarget] = useState<StrafzettelRecord | null>(null);
     const [form, setForm] = useState({
@@ -132,6 +133,10 @@ export default function StrafzettelPage() {
     const totalOpen = records.filter(r => r.status === "OPEN").reduce((s, r) => s + (r.amount ?? 0), 0);
     const totalPaid = records.filter(r => r.status === "PAID").reduce((s, r) => s + (r.amount ?? 0), 0);
 
+    const filteredRecords = records.filter(r => 
+        r.plate.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-black/50">
             <div className="flex items-center justify-between mb-8">
@@ -169,15 +174,28 @@ export default function StrafzettelPage() {
             </div>
 
             {/* Filter */}
-            <div className="flex items-center gap-2 mb-4">
-                <Filter className="w-4 h-4 text-gray-400" />
-                {["ALL", ...Object.keys(STATUS_CONFIG)].map(s => (
-                    <button key={s}
-                        onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === s ? "bg-red-600 text-white" : "bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10"}`}>
-                        {s === "ALL" ? "Alle" : STATUS_CONFIG[s as Status].label}
-                    </button>
-                ))}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-gray-400" />
+                    {["ALL", ...Object.keys(STATUS_CONFIG)].map(s => (
+                        <button key={s}
+                            onClick={() => setStatusFilter(s)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === s ? "bg-red-600 text-white" : "bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10"}`}>
+                            {s === "ALL" ? "Alle" : STATUS_CONFIG[s as Status].label}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="relative flex-1 max-w-sm">
+                    <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                        type="text" 
+                        placeholder="Kennzeichen suchen..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all dark:text-white"
+                    />
+                </div>
             </div>
 
             {/* Table */}
@@ -194,7 +212,7 @@ export default function StrafzettelPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {records.map(r => (
+                            {filteredRecords.map(r => (
                                 <tr key={r.id} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
@@ -308,7 +326,11 @@ export default function StrafzettelPage() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-gray-900 dark:text-white">{identifiedRental.customer.firstName} {identifiedRental.customer.lastName}</p>
-                                            <p className="text-xs text-gray-500">Vertrag: {identifiedRental.contractNumber ?? `#${identifiedRental.id}`}</p>
+                                            <div className="mt-1">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                                    Vertrag: {identifiedRental.contractNumber ?? `#${identifiedRental.id}`}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
