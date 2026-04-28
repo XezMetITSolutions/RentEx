@@ -761,3 +761,33 @@ model RentalOption {
   rental    Rental   @relation(fields: [rentalId], references: [id])
   option    Option   @relation(fields: [optionId], references: [id])
 }
+
+// ─────────────────────────────────────────────
+// COMPETITOR PRICE MONITORING
+// ─────────────────────────────────────────────
+model CompetitorCompany {
+  id              Int                      @id @default(autoincrement())
+  name            String                   @unique
+  website         String?
+  logo            String?
+  notes           String?
+  isActive        Boolean                  @default(true)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  competitorPrices CompetitorPrice[]
+}
+
+model CompetitorPrice {
+  id                 Int                  @id @default(autoincrement())
+  competitorId       Int
+  brand              String
+  model              String
+  dailyRate          Decimal
+  weeklyRate         Decimal?
+  monthlyRate        Decimal?
+  notes              String?
+  recordedAt         DateTime             @default(now())
+  competitor         CompetitorCompany    @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([competitorId, brand, model, recordedAt])
+}
