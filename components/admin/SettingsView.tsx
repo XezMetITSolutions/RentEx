@@ -125,6 +125,12 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                             <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl font-bold">
                                 {settings['admin_firstname']?.[0] || 'A'}{settings['admin_lastname']?.[0] || 'U'}
                             </div>
+                            <button
+                                onClick={() => alert('Bild-Upload ist noch in Entwicklung')}
+                                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                Bild ändern
+                            </button>
                         </div>
 
                         <form onSubmit={handleProfileSubmit} className="grid gap-6 sm:grid-cols-2">

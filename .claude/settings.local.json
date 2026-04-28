@@ -12,9 +12,7 @@
       "Bash(cat)",
       "Read(//tmp/**)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(grep -v \"^\\\\s*//\")",
-      "Bash(git commit -m 'Remove placeholder buttons and unused imports *)"
+      "Bash(git commit -m ' *)"
     ]
   }
 }
