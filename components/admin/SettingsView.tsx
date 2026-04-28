@@ -14,10 +14,12 @@ import {
     FileText,
     Wallet,
     Zap,
-    ExternalLink
+    ExternalLink,
+    Upload
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
+import Image from 'next/image';
 import { updateSystemSetting } from '@/app/actions';
 import { registerKasseWithBMF } from '@/app/actions/admin';
 
@@ -37,6 +39,8 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
     const [activeSection, setActiveSection] = useState('profile');
     const [settings, setSettings] = useState(initialSettings);
     const [isPending, startTransition] = useTransition();
+    const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleSave = (key: string, value: string) => {
         startTransition(async () => {
@@ -59,7 +63,6 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
             await updateSystemSetting('admin_lastname', formData.get('lastname') as string);
             await updateSystemSetting('admin_email', formData.get('email') as string);
 
-            // State'i güncelle
             setSettings(prev => ({
                 ...prev,
                 admin_firstname: formData.get('firstname') as string,
@@ -69,6 +72,40 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
 
             alert('Profil erfolgreich gespeichert!');
         });
+    };
+
+    const handlePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingPicture(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/admin/profile-picture/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(`Fehler: ${error.error}`);
+                return;
+            }
+
+            const data = await response.json();
+            setSettings(prev => ({ ...prev, admin_profile_picture: data.imageUrl }));
+            alert('Profilbild erfolgreich aktualisiert!');
+        } catch (error) {
+            console.error('Picture upload error:', error);
+            alert('Fehler beim Hochladen des Bildes');
+        } finally {
+            setIsUploadingPicture(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
 
     return (
@@ -122,15 +159,48 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                         </div>
 
                         <div className="flex items-center gap-6">
-                            <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl font-bold">
-                                {settings['admin_firstname']?.[0] || 'A'}{settings['admin_lastname']?.[0] || 'U'}
+                            <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center overflow-hidden">
+                                {settings['admin_profile_picture'] ? (
+                                    <Image
+                                        src={settings['admin_profile_picture']}
+                                        alt="Profil"
+                                        width={96}
+                                        height={96}
+                                        className="h-24 w-24 object-cover"
+                                    />
+                                ) : (
+                                    <span className="text-blue-600 dark:text-blue-400 text-3xl font-bold">
+                                        {settings['admin_firstname']?.[0] || 'A'}{settings['admin_lastname']?.[0] || 'U'}
+                                    </span>
+                                )}
                             </div>
-                            <button
-                                onClick={() => alert('Bild-Upload ist noch in Entwicklung')}
-                                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                                Bild ändern
-                            </button>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploadingPicture}
+                                    className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                                >
+                                    {isUploadingPicture ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Wird hochgeladen...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="h-4 w-4" />
+                                            Bild ändern
+                                        </>
+                                    )}
+                                </button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePictureUpload}
+                                    className="hidden"
+                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Max. 5MB</p>
+                            </div>
                         </div>
 
                         <form onSubmit={handleProfileSubmit} className="grid gap-6 sm:grid-cols-2">

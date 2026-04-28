@@ -1,9 +1,10 @@
 'use client';
 
-import { BarChart3, PieChart, Calendar, FileText, Download, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import { BarChart3, PieChart, Calendar, FileText, Download, CheckCircle2, AlertTriangle, Clock, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { useState } from 'react';
 
 interface ReportsData {
     carStats: {
@@ -18,8 +19,36 @@ interface ReportsData {
 }
 
 export default function ReportsView({ data }: { data: ReportsData }) {
+    const [isDownloading, setIsDownloading] = useState(false);
 
-    // Calculate percentages for progress bars
+    const handleDownloadReport = async () => {
+        setIsDownloading(true);
+        try {
+            const response = await fetch('/api/admin/reports/export', {
+                method: 'POST',
+            });
+
+            if (!response.ok) {
+                throw new Error('Report generation failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Flottenreport_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Error downloading report:', error);
+            alert('Fehler beim Herunterladen des Reports');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const activePercent = (data.carStats.active / data.carStats.total) * 100 || 0;
     const rentedPercent = (data.carStats.rented / data.carStats.total) * 100 || 0;
     const maintenancePercent = (data.carStats.maintenance / data.carStats.total) * 100 || 0;
@@ -34,11 +63,21 @@ export default function ReportsView({ data }: { data: ReportsData }) {
                     </p>
                 </div>
                 <button
-                    onClick={() => alert('Bericht wird generiert...')}
-                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                    onClick={handleDownloadReport}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    <Download className="h-4 w-4" />
-                    Bericht herunterladen
+                    {isDownloading ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Wird generiert...
+                        </>
+                    ) : (
+                        <>
+                            <Download className="h-4 w-4" />
+                            Bericht herunterladen
+                        </>
+                    )}
                 </button>
             </div>
 
