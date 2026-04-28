@@ -1,21 +1,20 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { AUTH_CONFIG } from './config';
 
 const COOKIE_NAME = 'rentex_customer';
-const SALT_LEN = 16;
-const KEY_LEN = 64;
-const SCRYPT_OPTS = { N: 16384, r: 8, p: 1 };
 
 function hashPassword(password: string): string {
-    const salt = crypto.randomBytes(SALT_LEN).toString('hex');
-    const hash = crypto.scryptSync(password, salt, KEY_LEN, SCRYPT_OPTS).toString('hex');
-    return `${salt}.${hash}`;
+    const salt = crypto.randomBytes(AUTH_CONFIG.PASSWORD_SALT_LENGTH).toString('hex');
+    const hash = crypto.scryptSync(password, salt, AUTH_CONFIG.PASSWORD_KEY_LENGTH, AUTH_CONFIG.PASSWORD_SCRYPT_OPTS).toString('hex');
+    return `${salt}:${hash}`;
 }
 
 export function verifyPassword(password: string, stored: string): boolean {
-    const [salt, hash] = stored.split('.');
+    const separator = stored.includes(':') ? ':' : '.';
+    const [salt, hash] = stored.split(separator);
     if (!salt || !hash) return false;
-    const derived = crypto.scryptSync(password, salt, KEY_LEN, SCRYPT_OPTS).toString('hex');
+    const derived = crypto.scryptSync(password, salt, AUTH_CONFIG.PASSWORD_KEY_LENGTH, AUTH_CONFIG.PASSWORD_SCRYPT_OPTS).toString('hex');
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(derived, 'hex'));
 }
 
@@ -25,7 +24,7 @@ export async function setSession(customerId: number) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+        maxAge: AUTH_CONFIG.CUSTOMER_SESSION_TTL,
         path: '/',
     });
 }

@@ -5,6 +5,33 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { differenceInDays } from 'date-fns';
 
+export async function getFeaturedCars() {
+    const cars = await prisma.car.findMany({
+        where: {
+            status: 'Active'
+        },
+        orderBy: {
+            dailyRate: 'asc'
+        }
+    });
+
+    const grouped = cars.reduce((acc, car) => {
+        const key = `${car.brand}-${car.model}`;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(car);
+        return acc;
+    }, {} as Record<string, typeof cars>);
+
+    const uniqueCars = Object.values(grouped).map(group => {
+        const randomIndex = Math.floor(Math.random() * group.length);
+        return group[randomIndex];
+    });
+
+    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate)).slice(0, 3);
+}
+
 const safeNumber = (val: any) => {
     const n = Number(val);
     return isNaN(n) ? null : n;

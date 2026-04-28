@@ -1,37 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Fuel, Gauge, Users } from "lucide-react";
-import prisma from "@/lib/prisma";
-
-async function getFeaturedCars() {
-    const cars = await prisma.car.findMany({
-        where: {
-            status: 'Active'
-        },
-        orderBy: {
-            dailyRate: 'asc'
-        }
-    });
-
-    // Group by model (Brand + Model)
-    const grouped = cars.reduce((acc, car) => {
-        const key = `${car.brand}-${car.model}`;
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(car);
-        return acc;
-    }, {} as Record<string, typeof cars>);
-
-    // Select one random car from each group
-    const uniqueCars = Object.values(grouped).map(group => {
-        const randomIndex = Math.floor(Math.random() * group.length);
-        return group[randomIndex];
-    });
-
-    // Sort by price and take top 3
-    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate)).slice(0, 3);
-}
+import { getFeaturedCars } from "@/app/actions";
 
 export default async function CarFleetPreview() {
     const featuredCars = await getFeaturedCars();

@@ -6,6 +6,175 @@ import { redirect } from 'next/navigation';
 import { registerCashRegister } from '@/lib/bmf';
 import crypto from 'crypto';
 
+import { startOfDay, endOfDay, differenceInDays, addDays } from 'date-fns';
+
+export async function getActivityLogs() {
+    const logs = await prisma.activityLog.findMany({
+        take: 20,
+        orderBy: { createdAt: 'desc' }
+    });
+
+    return logs.map(log => ({
+        id: String(log.id),
+        userName: log.userName ?? undefined,
+        action: log.action,
+        entityType: log.entityType,
+        description: log.description,
+        createdAt: log.createdAt,
+        ipAddress: log.ipAddress ?? undefined
+    }));
+}
+
+export async function getTodayEvents() {
+    const today = new Date();
+    const startDay = startOfDay(today);
+    const endDay = endOfDay(today);
+
+    const rentals = await prisma.rental.findMany({
+        where: {
+            OR: [
+                {
+                    startDate: {
+                        gte: startDay,
+                        lte: endDay
+                    },
+                    status: 'Pending'
+                },
+                {
+                    endDate: {
+                        gte: startDay,
+                        lte: endDay
+                    },
+                    status: 'Active'
+                }
+            ]
+        },
+        include: {
+            car: true,
+            customer: true,
+            pickupLocation: true,
+            returnLocation: true
+        },
+        orderBy: {
+            startDate: 'asc'
+        }
+    });
+
+    return rentals.map(rental => {
+        const isPickup = rental.startDate >= startDay && rental.startDate <= endDay;
+        const locName = isPickup
+            ? rental.pickupLocation?.name
+            : rental.returnLocation?.name;
+
+        return {
+            id: rental.id,
+            type: isPickup ? 'pickup' as const : 'return' as const,
+            time: new Intl.DateTimeFormat('de-AT', { hour: '2-digit', minute: '2-digit' }).format(
+                isPickup ? rental.startDate : rental.endDate
+            ),
+            car: `${rental.car.brand} ${rental.car.model}`,
+            customer: `${rental.customer.firstName} ${rental.customer.lastName}`,
+            location: locName,
+            status: 'upcoming' as const
+        };
+    });
+}
+
+export async function getMaintenanceAlerts() {
+    interface MaintenanceAlert {
+        id: number;
+        car: string;
+        plate: string;
+        type: 'oil' | 'tire' | 'inspection' | 'vignette';
+        dueDate: Date;
+        urgency: 'critical' | 'warning' | 'info';
+        lastService?: Date;
+        currentMileage?: number;
+    }
+
+    const cars = await prisma.car.findMany({
+        where: {
+            isActive: true
+        }
+    });
+
+    const alerts: MaintenanceAlert[] = [];
+    const today = new Date();
+
+    for (const car of cars) {
+        if (car.nextOilChange) {
+            const daysUntil = differenceInDays(car.nextOilChange, today);
+            if (daysUntil <= 30) {
+                alerts.push({
+                    id: car.id * 10 + 1,
+                    car: `${car.brand} ${car.model}`,
+                    plate: car.plate,
+                    type: 'oil',
+                    dueDate: car.nextOilChange,
+                    urgency: daysUntil < 0 ? 'critical' : daysUntil <= 7 ? 'warning' : 'info',
+                    lastService: car.lastOilChange || undefined,
+                    currentMileage: car.currentMileage || undefined
+                });
+            }
+        }
+
+        if (car.nextInspection) {
+            const daysUntil = differenceInDays(car.nextInspection, today);
+            if (daysUntil <= 30) {
+                alerts.push({
+                    id: car.id * 10 + 2,
+                    car: `${car.brand} ${car.model}`,
+                    plate: car.plate,
+                    type: 'inspection',
+                    dueDate: car.nextInspection,
+                    urgency: daysUntil < 0 ? 'critical' : daysUntil <= 7 ? 'warning' : 'info',
+                    lastService: car.lastServiceDate || undefined,
+                    currentMileage: car.currentMileage || undefined
+                });
+            }
+        }
+
+        if (car.vignetteValidUntil) {
+            const daysUntil = differenceInDays(car.vignetteValidUntil, today);
+            if (daysUntil <= 30) {
+                alerts.push({
+                    id: car.id * 10 + 3,
+                    car: `${car.brand} ${car.model}`,
+                    plate: car.plate,
+                    type: 'vignette',
+                    dueDate: car.vignetteValidUntil,
+                    urgency: daysUntil < 0 ? 'critical' : daysUntil <= 7 ? 'warning' : 'info',
+                    currentMileage: car.currentMileage || undefined
+                });
+            }
+        }
+
+        if (car.lastTireChange) {
+            const daysSinceChange = differenceInDays(today, car.lastTireChange);
+            if (daysSinceChange >= 150) {
+                alerts.push({
+                    id: car.id * 10 + 4,
+                    car: `${car.brand} ${car.model}`,
+                    plate: car.plate,
+                    type: 'tire',
+                    dueDate: addDays(car.lastTireChange, 180),
+                    urgency: daysSinceChange >= 180 ? 'warning' : 'info',
+                    lastService: car.lastTireChange,
+                    currentMileage: car.currentMileage || undefined
+                });
+            }
+        }
+    }
+
+    return alerts.sort((a, b) => {
+        const urgencyOrder = { critical: 0, warning: 1, info: 2 };
+        if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+            return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+        }
+        return a.dueDate.getTime() - b.dueDate.getTime();
+    });
+}
+
 /** Tüm araçları "Rent-Ex Feldkirch" standortuna atar (locationId + homeLocationId). Plakalar değiştirilmez. */
 export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message: string; count?: number }> {
     const feldkirch = await prisma.location.findFirst({

@@ -1,12 +1,14 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/adminAuth";
+import { FEES_CONFIG } from "@/lib/config";
+import { ApiErrorHandler } from "@/lib/errors";
 
 // GET /api/admin/strafzettel
 export async function GET(req: NextRequest) {
     const session = await getAdminSession();
     if (!session) {
-        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+        return ApiErrorHandler.unauthorized("Nicht autorisiert");
     }
 
     const { searchParams } = new URL(req.url);
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const session = await getAdminSession();
     if (!session) {
-        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+        return ApiErrorHandler.unauthorized("Nicht autorisiert");
     }
 
     try {
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
             amount, authority, referenceNumber, notes, documentUrl, addServiceFee } = body;
 
         if (!carId || !plate || !issuedDate) {
-            return NextResponse.json({ error: "carId, plate und issuedDate erforderlich" }, { status: 400 });
+            return ApiErrorHandler.badRequest("carId, plate und issuedDate erforderlich");
         }
 
         const record = await prisma.strafzettelRecord.create({
@@ -69,7 +71,6 @@ export async function POST(req: NextRequest) {
         if (addServiceFee && rentalId) {
             const rid = parseInt(rentalId);
             
-            // Find or create the service fee option
             let option = await prisma.option.findFirst({
                 where: { name: "Strafzettel Bearbeitungsgebühr" }
             });
@@ -79,13 +80,12 @@ export async function POST(req: NextRequest) {
                     data: {
                         name: "Strafzettel Bearbeitungsgebühr",
                         description: "Administrative Bearbeitung von Verkehrsübertretungen",
-                        price: 25.00,
+                        price: FEES_CONFIG.STRAFZETTEL_PROCESSING_FEE,
                         type: "Extra"
                     }
                 });
             }
 
-            // Link option to rental
             await prisma.rentalOption.create({
                 data: {
                     rentalId: rid,
@@ -93,18 +93,18 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            // Update rental total amount
             const rental = await prisma.rental.findUnique({ where: { id: rid } });
             if (rental) {
                 await prisma.rental.update({
                     where: { id: rid },
-                    data: { totalAmount: Number(rental.totalAmount) + 25.00 }
+                    data: { totalAmount: Number(rental.totalAmount) + FEES_CONFIG.STRAFZETTEL_PROCESSING_FEE }
                 });
             }
         }
 
-        return NextResponse.json(record, { status: 201 });
+        return ApiErrorHandler.json(record, 201);
     } catch (e) {
-        return NextResponse.json({ error: "Fehler beim Erstellen" }, { status: 500 });
+        console.error('[POST /api/admin/strafzettel]', e);
+        return ApiErrorHandler.serverError("Fehler beim Erstellen");
     }
 }

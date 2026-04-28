@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
-import { signMobileToken } from '@/lib/mobileAuth';
+import { signToken } from '@/lib/mobileAuth';
 import { validateName } from '@/lib/nameValidation';
 
 export async function POST(req: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       data: { firstName, lastName, email, phone, passwordHash },
     });
 
-    const token = signMobileToken(customer.id);
+    const token = signToken(customer.id, 'customer');
     return NextResponse.json({
       token,
       customer: {

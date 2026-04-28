@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { AUTH_CONFIG } from './config';
 
 const ADMIN_COOKIE_NAME = 'rentex_admin_session';
 
@@ -25,7 +26,7 @@ export async function setAdminSession(staffId: number) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 12, // 12 hours
+        maxAge: AUTH_CONFIG.ADMIN_SESSION_TTL,
         path: '/',
     });
 }

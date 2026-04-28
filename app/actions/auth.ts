@@ -23,19 +23,7 @@ export async function adminLogin(formData: FormData) {
         return { error: 'Ungültige Anmeldedaten oder Konto deaktiviert.' };
     }
 
-    // Since staff uses scrypt from crypto manually in staff/route.ts, 
-    // I need to ensure verifyPassword handles both . and : separators or standardize.
-    // Looking at staff/route.ts: const passwordHash = `${salt}:${hash}`;
-    // Looking at auth.ts: const derived = crypto.scryptSync(password, salt, KEY_LEN, SCRYPT_OPTS).toString('hex');
-    
-    const [salt, storedHash] = staff.passwordHash.includes(':') 
-        ? staff.passwordHash.split(':') 
-        : staff.passwordHash.split('.');
-
-    const { scryptSync } = await import("crypto");
-    const hash = scryptSync(password, salt, 64).toString("hex");
-    
-    if (hash !== storedHash) {
+    if (!verifyPassword(password, staff.passwordHash)) {
         return { error: 'Ungültige Anmeldedaten.' };
     }
 

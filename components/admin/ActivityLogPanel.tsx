@@ -1,24 +1,7 @@
-import prisma from '@/lib/prisma';
 import { Activity, User, Car, Calendar, CreditCard, Settings as SettingsIcon, Filter, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-
-async function getActivityLogs() {
-    const logs = await prisma.activityLog.findMany({
-        take: 20,
-        orderBy: { createdAt: 'desc' }
-    });
-
-    return logs.map(log => ({
-        id: String(log.id),
-        userName: log.userName ?? undefined,
-        action: log.action,
-        entityType: log.entityType,
-        description: log.description,
-        createdAt: log.createdAt,
-        ipAddress: log.ipAddress ?? undefined
-    }));
-}
+import { getActivityLogs } from '@/app/actions/admin';
 
 export default async function ActivityLogPanel() {
     const logs = await getActivityLogs();

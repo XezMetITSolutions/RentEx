@@ -25,11 +25,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Delimiter is always ':' for staff (created by admin panel).
-    // Legacy '.' delimiter (used by customer auth) is not valid here.
-    const parts = staff.passwordHash.split(':');
+    const separator = staff.passwordHash.includes(':') ? ':' : '.';
+    const parts = staff.passwordHash.split(separator);
     if (parts.length !== 2 || !parts[0] || !parts[1]) {
-      console.error(`[mobile-admin-login] Invalid passwordHash format for staff id=${staff.id}`);
       return NextResponse.json({ error: 'Ungültige Anmeldedaten.' }, { status: 401 });
     }
     const [salt, storedHash] = parts;

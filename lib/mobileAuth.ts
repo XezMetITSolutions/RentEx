@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import { NextRequest } from 'next/server';
+import { AUTH_CONFIG } from './config';
 
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days for customer
-const STAFF_TOKEN_TTL_SECONDS = 60 * 60 * 12; // 12 hours for staff
+const TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_CUSTOMER_TOKEN_TTL;
+const STAFF_TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_STAFF_TOKEN_TTL;
 
 function getSecret(): string {
   const secret = process.env.MOBILE_TOKEN_SECRET || process.env.JWT_SECRET;
@@ -52,11 +53,6 @@ export function signToken(
   const payloadB64 = base64url(JSON.stringify(payload));
   const sig = crypto.createHmac('sha256', getSecret()).update(payloadB64).digest();
   return `${payloadB64}.${base64url(sig)}`;
-}
-
-// Legacy alias
-export function signMobileToken(customerId: number): string {
-  return signToken(customerId, 'customer');
 }
 
 export function verifyMobileToken(token: string): MobileTokenPayload | null {
