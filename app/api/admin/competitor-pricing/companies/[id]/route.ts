@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id: idStr } = await params;
     const session = await getAdminSession();
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }
 
     try {
-        const id = parseInt(params.id);
+        const id = parseInt(idStr);
         await prisma.competitorCompany.delete({
             where: { id },
         });

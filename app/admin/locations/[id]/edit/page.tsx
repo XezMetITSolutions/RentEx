@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { MapPin, Phone, Mail, Clock, Save, X, Trash2, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { use, useState, useEffect } from 'react';
 
-export default function EditLocationPage({ params }: { params: { id: string } }) {
+export default function EditLocationPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: idParam } = use(params);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -28,11 +26,11 @@ export default function EditLocationPage({ params }: { params: { id: string } })
 
     useEffect(() => {
         fetchLocation();
-    }, [params.id]);
+    }, [idParam]);
 
     const fetchLocation = async () => {
         try {
-            const response = await fetch(`/api/locations/${params.id}`);
+            const response = await fetch(`/api/locations/${idParam}`);
             if (!response.ok) throw new Error('Failed to fetch location');
 
             const data = await response.json();
@@ -64,7 +62,7 @@ export default function EditLocationPage({ params }: { params: { id: string } })
         setSaving(true);
 
         try {
-            const response = await fetch(`/api/locations/${params.id}`, {
+            const response = await fetch(`/api/locations/${idParam}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -94,7 +92,7 @@ export default function EditLocationPage({ params }: { params: { id: string } })
         setDeleting(true);
 
         try {
-            const response = await fetch(`/api/locations/${params.id}`, {
+            const response = await fetch(`/api/locations/${idParam}`, {
                 method: 'DELETE',
             });
 
