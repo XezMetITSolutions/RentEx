@@ -61,8 +61,8 @@ export interface Booking {
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number | string;
-  pickupLocation?: string | null;
-  returnLocation?: string | null;
+  pickupLocation?: { name: string; address: string | null; city: string | null } | null;
+  returnLocation?: { name: string; address: string | null; city: string | null } | null;
   createdAt: string;
 }
 

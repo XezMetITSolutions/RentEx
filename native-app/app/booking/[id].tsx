@@ -48,6 +48,7 @@ export default function BookingDetailScreen() {
   const [damageType, setDamageType] = useState('Other');
   const [damageLocation, setDamageLocation] = useState('');
   const [submittingDamage, setSubmittingDamage] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const load = useCallback(async () => {
     const bookingId = Number(id);
@@ -228,10 +229,10 @@ export default function BookingDetailScreen() {
           <Text style={styles.sectionTitle}>Standort</Text>
           <View style={[styles.detailCard, { backgroundColor: colors.card }]}>
             {booking.pickupLocation && (
-              <DetailRow label="Abholort" value={booking.pickupLocation} icon="location-outline" color={colors.tint} colors={colors} />
+              <DetailRow label="Abholort" value={booking.pickupLocation.name} icon="location-outline" color={colors.tint} colors={colors} />
             )}
             {booking.returnLocation && (
-              <DetailRow label="Rückgabeort" value={booking.returnLocation} icon="flag-outline" color={colors.tint} colors={colors} />
+              <DetailRow label="Rückgabeort" value={booking.returnLocation.name} icon="flag-outline" color={colors.tint} colors={colors} />
             )}
           </View>
         </>
@@ -329,6 +330,88 @@ export default function BookingDetailScreen() {
           <Text style={{ color: '#f59e0b', fontWeight: 'bold' }}>Schaden melden</Text>
         </TouchableOpacity>
       )}
+
+      {/* NEW BUTTONS */}
+      <View style={{ marginTop: 20, gap: 10 }}>
+        <TouchableOpacity
+          onPress={() => router.push(`/check-in/${booking.id}`)}
+          style={[styles.primaryBtn, { backgroundColor: colors.text }]}
+        >
+          <Ionicons name="qr-code-outline" size={20} color={colors.background} />
+          <Text style={[styles.primaryBtnText, { color: colors.background }]}>Self Check-in starten</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setShowInstructions(true)}
+          style={[styles.secondaryBtn, { borderColor: colors.border }]}
+        >
+          <Ionicons name="help-circle-outline" size={20} color={colors.text} />
+          <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Wie kann ich einchecken?</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Instructions Modal */}
+      <Modal visible={showInstructions} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.card, maxHeight: '80%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Check-in Anleitung</Text>
+              <TouchableOpacity onPress={() => setShowInstructions(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={[styles.instructionBox, { backgroundColor: colors.background }]}>
+                <Text style={[styles.instructionStep, { color: colors.text }]}>1. Zum Standort fahren</Text>
+                <Text style={[styles.instructionText, { color: colors.tabIconDefault }]}>
+                  {booking.pickupLocation?.address ? `${booking.pickupLocation.address}, ${booking.pickupLocation.city}` : 'Hauptniederlassung Feldkirch'}
+                </Text>
+                
+                {booking.pickupLocation?.address && (
+                  <TouchableOpacity 
+                    onPress={() => {
+                      const addr = `${booking.pickupLocation?.address}, ${booking.pickupLocation?.city}`;
+                      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`);
+                    }}
+                    style={[styles.mapsBtn, { borderColor: colors.tint }]}
+                  >
+                    <Ionicons name="map-outline" size={16} color={colors.tint} />
+                    <Text style={[styles.mapsBtnText, { color: colors.tint }]}>Route in Google Maps</Text>
+                  </TouchableOpacity>
+                )}
+
+                <View style={styles.stepDivider} />
+
+                <Text style={styles.instructionStep}>2. Safe-Code nutzen</Text>
+                <Text style={[styles.instructionText, { color: colors.tabIconDefault }]}>
+                  Geben Sie den Code <Text style={{ fontWeight: '800', color: colors.tint }}>8421</Text> am Tastenfeld des Safes beim Haupteingang ein.
+                </Text>
+
+                <View style={styles.stepDivider} />
+
+                <Text style={styles.instructionStep}>3. Schlüssel entnehmen</Text>
+                <Text style={[styles.instructionText, { color: colors.tabIconDefault }]}>
+                  Entnehmen Sie den Schlüssel für das Fahrzeug ({car?.brand} {car?.model}) mit dem Kennzeichen <Text style={{ fontWeight: '800', color: colors.text }}>{car?.plate || 'unbekannt'}</Text>.
+                </Text>
+
+                <View style={styles.stepDivider} />
+
+                <Text style={styles.instructionStep}>4. Fahrzeug prüfen</Text>
+                <Text style={[styles.instructionText, { color: colors.tabIconDefault }]}>
+                  Überprüfen Sie das Fahrzeug auf Vorschäden und dokumentieren Sie diese ggf. in der App.
+                </Text>
+              </View>
+              
+              <TouchableOpacity
+                onPress={() => setShowInstructions(false)}
+                style={[styles.primaryBtn, { backgroundColor: colors.text, marginTop: 20 }]}
+              >
+                <Text style={[styles.primaryBtnText, { color: colors.background }]}>Verstanden</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={damageModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -540,5 +623,66 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
+  },
+  primaryBtn: {
+    flexDirection: 'row',
+    height: 54,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  primaryBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  secondaryBtn: {
+    flexDirection: 'row',
+    height: 54,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderWidth: 1.5,
+  },
+  secondaryBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  instructionBox: {
+    padding: 20,
+    borderRadius: 16,
+    marginTop: 10,
+  },
+  instructionStep: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  instructionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  stepDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginBottom: 16,
+  },
+  mapsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    marginTop: -8,
+  },
+  mapsBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

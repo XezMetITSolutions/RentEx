@@ -23,6 +23,7 @@ function serializeCar(car: any) {
     doors: car.doors,
     description: car.description,
     features: parseFeatures(car.features),
+    plate: car.plate,
   };
 }
 
@@ -48,8 +49,16 @@ function serializeBooking(r: any) {
     status: r.status,
     paymentStatus: r.paymentStatus,
     totalAmount: r.totalAmount?.toString?.() ?? r.totalAmount,
-    pickupLocation: r.pickupLocation?.name ?? null,
-    returnLocation: r.returnLocation?.name ?? null,
+    pickupLocation: r.pickupLocation ? {
+      name: r.pickupLocation.name,
+      address: r.pickupLocation.address,
+      city: r.pickupLocation.city,
+    } : null,
+    returnLocation: r.returnLocation ? {
+      name: r.returnLocation.name,
+      address: r.returnLocation.address,
+      city: r.returnLocation.city,
+    } : null,
     createdAt: r.createdAt.toISOString(),
     payments: (r.payments ?? []).map(serializePayment),
   };
