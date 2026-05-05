@@ -42,7 +42,7 @@ function parseEuropcarHTML(html: string): ScrapedPrice[] {
 
     try {
         // Try to extract JSON-LD structured data
-        const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
+        const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
         if (jsonLdMatch) {
             try {
                 const jsonData = JSON.parse(jsonLdMatch[1]);
@@ -55,7 +55,7 @@ function parseEuropcarHTML(html: string): ScrapedPrice[] {
         // Europcar typically uses patterns like:
         // <article class="vehicle">...<h4>Mercedes E-Class</h4>...<span class="daily-price">€120/day</span>
         const priceMatches = html.matchAll(
-            /<article[^>]*class="[^"]*vehicle[^"]*"[^>]*>.*?<h[234][^>]*>([^<]+)<\/h[234]>.*?<span[^>]*class="[^"]*(?:daily-price|price)[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/gs
+            /<article[^>]*class="[^"]*vehicle[^"]*"[^>]*>[\s\S]*?<h[234][^>]*>([^<]+)<\/h[234]>[\s\S]*?<span[^>]*class="[^"]*(?:daily-price|price)[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/g
         );
 
         for (const match of priceMatches) {

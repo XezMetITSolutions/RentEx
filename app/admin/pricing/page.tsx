@@ -18,31 +18,30 @@ export default async function PricingAnalysisPage() {
 
     // 2. Fetch competitor prices
     const competitorPrices = await prisma.competitorPrice.findMany({
-        orderBy: { fetchedAt: 'desc' }
+        orderBy: { recordedAt: 'desc' },
+        include: { competitor: true }
     });
 
     // 3. Process data for the view
     const data = cars.map(car => {
-        const carName = `${car.brand} ${car.model}`;
         const relevantCompetitors = competitorPrices.filter(cp =>
-            cp.carModel === carName ||
-            (cp.category === car.category && !cp.carModel) // Fallback to category match if exact model not found
+            (cp.brand === car.brand && cp.model === car.model)
         );
 
         // Get unique competitors (latest price for each company)
         const latestPrices = new Map();
         relevantCompetitors.forEach(cp => {
-            if (!latestPrices.has(cp.competitorName)) {
-                latestPrices.set(cp.competitorName, cp);
+            if (!latestPrices.has(cp.competitor.name)) {
+                latestPrices.set(cp.competitor.name, cp);
             }
         });
 
         const competitors = Array.from(latestPrices.values()).map(cp => ({
-            competitor: cp.competitorName,
+            competitor: cp.competitor.name,
             dailyRate: Number(cp.dailyRate),
             weeklyRate: 0, // Calculated in frontend
             monthlyRate: 0, // Calculated in frontend
-            lastUpdated: cp.fetchedAt.toISOString()
+            lastUpdated: cp.recordedAt.toISOString()
         }));
 
         const marketAverage = competitors.length > 0

@@ -59,12 +59,13 @@ export async function GET(request: Request) {
     const offers = await page.evaluate((targetCat) => {
       const cards = document.querySelectorAll('div[data-testid="offer-card"], div[class*="OfferCard"]');
       return Array.from(cards).map(card => {
-        const model = card.querySelector('h4')?.innerText || 'Araç Modeli';
-        const price = card.querySelector('span[class*="price-value"]')?.innerText || '0';
-        const currency = card.querySelector('span[class*="currency"]')?.innerText || '€';
-        const group = card.querySelector('p[class*="vehicle-group"]')?.innerText || '';
-        const transmission = card.innerText.includes('Manuell') ? 'Manuel' : 'Otomatik';
-        const image = card.querySelector('img')?.src || '';
+        const htmlCard = card as HTMLElement;
+        const model = (card.querySelector('h4') as HTMLElement)?.innerText || 'Araç Modeli';
+        const price = (card.querySelector('span[class*="price-value"]') as HTMLElement)?.innerText || '0';
+        const currency = (card.querySelector('span[class*="currency"]') as HTMLElement)?.innerText || '€';
+        const group = (card.querySelector('p[class*="vehicle-group"]') as HTMLElement)?.innerText || '';
+        const transmission = htmlCard.innerText.includes('Manuell') ? 'Manuel' : 'Otomatik';
+        const image = (card.querySelector('img') as HTMLImageElement)?.src || '';
 
         return {
           id: Math.random().toString(36),

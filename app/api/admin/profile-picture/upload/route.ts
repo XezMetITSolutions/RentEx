@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
 
         const imageUrl = `${R2_PUBLIC_URL}/${key}`;
 
-        await prisma.systemSetting.upsert({
+        await prisma.systemSettings.upsert({
             where: { key: 'admin_profile_picture' },
             update: { value: imageUrl },
-            create: { key: 'admin_profile_picture', value: imageUrl },
+            create: { key: 'admin_profile_picture', value: imageUrl, category: 'Admin' },
         });
 
         return NextResponse.json(

@@ -42,7 +42,7 @@ function parseEnterpriseHTML(html: string): ScrapedPrice[] {
 
     try {
         // Try to extract JSON-LD structured data
-        const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
+        const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
         if (jsonLdMatch) {
             try {
                 const jsonData = JSON.parse(jsonLdMatch[1]);
@@ -55,7 +55,7 @@ function parseEnterpriseHTML(html: string): ScrapedPrice[] {
         // Enterprise typically uses patterns like:
         // <div class="vehicle-card">...<h3>BMW 320</h3>...<div class="rate">€85/day</div>
         const priceMatches = html.matchAll(
-            /<div[^>]*class="[^"]*vehicle[^"]*"[^>]*>.*?<h[234][^>]*>([^<]+)<\/h[234]>.*?<div[^>]*class="[^"]*rate[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/div>/gs
+            /<div[^>]*class="[^"]*vehicle[^"]*"[^>]*>[\s\S]*?<h[234][^>]*>([^<]+)<\/h[234]>[\s\S]*?<div[^>]*class="[^"]*rate[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/div>/g
         );
 
         for (const match of priceMatches) {

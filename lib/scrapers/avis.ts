@@ -42,7 +42,7 @@ function parseAvisHTML(html: string): ScrapedPrice[] {
 
     try {
         // Try to extract JSON-LD structured data
-        const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
+        const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
         if (jsonLdMatch) {
             try {
                 const jsonData = JSON.parse(jsonLdMatch[1]);
@@ -55,7 +55,7 @@ function parseAvisHTML(html: string): ScrapedPrice[] {
         // Avis typically uses patterns like:
         // <div class="offer-card">...<span class="model">BMW 3 Series</span>...<span class="price">€99/day</span>
         const priceMatches = html.matchAll(
-            /<div[^>]*class="[^"]*offer[^"]*"[^>]*>.*?<span[^>]*class="[^"]*model[^"]*"[^>]*>([^<]+)<\/span>.*?<span[^>]*class="[^"]*price[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/gs
+            /<div[^>]*class="[^"]*offer[^"]*"[^>]*>[\s\S]*?<span[^>]*class="[^"]*model[^"]*"[^>]*>([^<]+)<\/span>[\s\S]*?<span[^>]*class="[^"]*price[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/g
         );
 
         for (const match of priceMatches) {

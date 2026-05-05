@@ -45,7 +45,7 @@ function parseHertzHTML(html: string): ScrapedPrice[] {
     // Bu sadece skeleton'dur
     try {
         // JSON LD structured data arasından veri çek (Hertz'in sitesinde olabilir)
-        const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
+        const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
         if (jsonLdMatch) {
             const jsonData = JSON.parse(jsonLdMatch[1]);
             // Parse JSON data for prices
@@ -55,7 +55,7 @@ function parseHertzHTML(html: string): ScrapedPrice[] {
         // Hertz genellikle şu pattern'i kullanır:
         // <span class="price">€150/day</span>
         const priceMatches = html.matchAll(
-            /<div[^>]*class="[^"]*vehicle[^"]*"[^>]*>.*?<h[234][^>]*>([^<]+)<\/h[234]>.*?<span[^>]*class="[^"]*price[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/gs
+            /<div[^>]*class="[^"]*vehicle[^"]*"[^>]*>[\s\S]*?<h[234][^>]*>([^<]+)<\/h[234]>[\s\S]*?<span[^>]*class="[^"]*price[^"]*"[^>]*>€?(\d+(?:,\d+)?)<\/span>/g
         );
 
         for (const match of priceMatches) {
