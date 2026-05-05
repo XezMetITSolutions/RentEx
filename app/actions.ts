@@ -392,24 +392,38 @@ export async function updateCompetitorPrices() {
         distinct: ['brand', 'model']
     });
 
-    const competitors = ['Sixt', 'Europcar', 'Hertz', 'Avis'];
+    const competitorNames = ['Sixt', 'Europcar', 'Hertz', 'Avis'];
+    
+    // Get or create competitor companies
+    const competitorCompanies = await Promise.all(
+        competitorNames.map(name => 
+            prisma.competitorCompany.upsert({
+                where: { name },
+                update: {},
+                create: { 
+                    name, 
+                    website: `https://www.${name.toLowerCase()}.com`,
+                    isActive: true
+                }
+            })
+        )
+    );
 
     for (const car of cars) {
-        const carModelName = `${car.brand} ${car.model}`;
         const basePrice = Number(car.dailyRate) || 100;
 
-        for (const competitor of competitors) {
+        for (const company of competitorCompanies) {
             // Generate a price roughly +/- 20% of our price
             const variance = (Math.random() * 0.4) - 0.2; // -0.2 to +0.2
             const simulatedPrice = basePrice * (1 + variance);
 
             await prisma.competitorPrice.create({
                 data: {
-                    carModel: carModelName,
-                    competitorName: competitor,
+                    competitorId: company.id,
+                    brand: car.brand,
+                    model: car.model,
                     dailyRate: simulatedPrice,
-                    category: car.category,
-                    fetchedAt: new Date(),
+                    recordedAt: new Date(),
                 }
             });
         }
