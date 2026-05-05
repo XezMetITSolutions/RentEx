@@ -15,7 +15,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
 import type { Car } from '@/lib/types';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, resolveImageUrl } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
 const { width } = Dimensions.get('window');
@@ -84,7 +84,7 @@ export default function CarDetailScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {car.imageUrl ? (
-          <Image source={{ uri: car.imageUrl }} style={styles.hero} resizeMode="cover" />
+          <Image source={{ uri: resolveImageUrl(car.imageUrl) }} style={styles.hero} resizeMode="cover" />
         ) : (
           <View style={[styles.hero, { backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }]}>
             <Ionicons name="car" size={80} color={colors.tabIconDefault} />

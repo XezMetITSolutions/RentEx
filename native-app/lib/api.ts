@@ -44,6 +44,10 @@ async function request<T>(
     if (token) finalHeaders['Authorization'] = `Bearer ${token}`;
   }
 
+  if (rest.body instanceof FormData) {
+    delete finalHeaders['Content-Type'];
+  }
+
   let res: Response;
   try {
     res = await fetch(`${Config.apiBase}${path}`, { ...rest, headers: finalHeaders });
@@ -244,6 +248,15 @@ export const api = {
       method: 'POST',
       auth: true,
       body: JSON.stringify({ token, platform }),
+    });
+  },
+  async uploadDocument(file: any) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<{ url: string }>('/api/mobile/upload', {
+      method: 'POST',
+      auth: true,
+      body: formData as any,
     });
   },
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, RefreshCw, CheckCircle } from 'lucide-react';
 
 interface Competitor {
     id: number;
@@ -37,6 +37,8 @@ export default function CompetitorPricingPage() {
     const [prices, setPrices] = useState<CompetitorPrice[]>([]);
     const [ourCars, setOurCars] = useState<OurCar[]>([]);
     const [loading, setLoading] = useState(true);
+    const [scraping, setScraping] = useState(false);
+    const [lastScrapedAt, setLastScrapedAt] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -61,15 +63,52 @@ export default function CompetitorPricingPage() {
         }
     };
 
+    const handleScrape = async () => {
+        setScraping(true);
+        try {
+            const res = await fetch('/api/admin/competitor-pricing/scrape', { method: 'POST' });
+            if (res.ok) {
+                setLastScrapedAt(new Date().toISOString());
+                await loadData();
+                alert('Web-Scraping abgeschlossen!');
+            } else {
+                alert('Fehler beim Scrapen');
+            }
+        } catch (error) {
+            console.error('Scraping error:', error);
+            alert('Fehler beim Scrapen');
+        } finally {
+            setScraping(false);
+        }
+    };
+
     if (loading) {
         return <div className="p-6">Laden...</div>;
     }
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Konkurrenzbewertung</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Überwachen und vergleichen Sie die Preise von Wettbewerbern</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Konkurrenzbewertung</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Überwachen und vergleichen Sie die Preise von Wettbewerbern</p>
+                </div>
+                <div className="space-y-2">
+                    <button
+                        onClick={handleScrape}
+                        disabled={scraping}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${scraping ? 'animate-spin' : ''}`} />
+                        {scraping ? 'Scraping...' : 'Web-Scraping starten'}
+                    </button>
+                    {lastScrapedAt && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            Zuletzt aktualisiert: {new Date(lastScrapedAt).toLocaleString('de-AT')}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Tabs */}

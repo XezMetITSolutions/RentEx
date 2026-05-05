@@ -13,6 +13,11 @@ function serialize(c: any) {
     city: c.city,
     postalCode: c.postalCode,
     country: c.country,
+    licenseNumber: c.licenseNumber,
+    idNumber: c.idNumber,
+    idType: c.idType,
+    licensePhotoUrl: c.licensePhotoUrl,
+    idPhotoUrl: c.idPhotoUrl,
   };
 }
 
@@ -40,7 +45,10 @@ export async function PATCH(req: NextRequest) {
   }
 
   const data: Record<string, any> = {};
-  const allowed = ['firstName', 'lastName', 'phone', 'address', 'city', 'postalCode', 'country'];
+  const allowed = [
+    'firstName', 'lastName', 'phone', 'address', 'city', 'postalCode', 'country',
+    'licenseNumber', 'idNumber', 'idType', 'licensePhotoUrl', 'idPhotoUrl'
+  ];
   for (const key of allowed) {
     if (key in body) {
       const val = body[key];

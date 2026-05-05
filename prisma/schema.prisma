@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -448,7 +448,7 @@ model Rental {
   updatedAt     DateTime      @updatedAt
 
   stripeSessionId String?      @unique
-  signature      String?       @db.Text
+  signature      String?
   mileagePhoto   String?
   fuelPhoto      String?
   checkInAt      DateTime?
@@ -593,21 +593,6 @@ model SystemSettings {
   updatedBy     String?
 }
 
-model CompetitorPrice {
-  id              Int      @id @default(autoincrement())
-  carModel        String   // e.g. "BMW 320i", "VW Golf" - Araba modelini eşleştirmek için
-  competitorName  String   // e.g. "Sixt", "Europcar", "Hertz"
-  dailyRate       Decimal  // Günlük fiyat
-  currency        String   @default("EUR")
-  sourceUrl       String?  // Fiyatın alındığı kaynak URL
-  fetchedAt       DateTime @default(now())
-  
-  // Opsiyonel: Bizim veritabanımızdaki bir araç kategorisi ile eşleştirme
-  category        String?  // Kleinwagen, Limousine, SUV
-  
-  @@index([carModel])
-  @@index([fetchedAt])
-}
 
 // ─────────────────────────────────────────────
 // STAFF / ROLE MANAGEMENT
@@ -690,7 +675,7 @@ model ReferralBonus {
 model AgbVersion {
   id          Int      @id @default(autoincrement())
   version     String   @unique  // e.g. "2.0", "2.1"
-  content     String   @db.Text
+  content     String
   publishedAt DateTime @default(now())
   notifiedAt  DateTime?  // When customers were e-mailed
   isActive    Boolean  @default(false)
@@ -732,7 +717,7 @@ model AmtlicheAnfrage {
   authority    String   // Polizei, Finanzamt, Innenministerium, etc.
   requestDate  DateTime
   incidentDate DateTime?
-  description  String   @db.Text
+  description  String
   responseNote String?
   respondedAt  DateTime?
   status       String   @default("PENDING") // PENDING | RESPONDED | ARCHIVED

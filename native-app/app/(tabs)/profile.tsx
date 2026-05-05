@@ -152,13 +152,19 @@ export default function ProfileScreen() {
         icon="language-outline"
         label="Sprache"
         value="Deutsch"
-        onPress={() => {}}
+        onPress={() => {
+          if (Platform.OS === 'web') alert('Sprachauswahl wird in Kürze verfügbar sein.');
+          else Alert.alert('Sprache', 'Sprachauswahl wird in Kürze verfügbar sein.');
+        }}
       />
       <MenuItem
         icon="moon-outline"
         label="Theme"
         value={colorScheme === 'dark' ? 'Dunkel' : 'Hell'}
-        onPress={() => {}}
+        onPress={() => {
+          if (Platform.OS === 'web') alert('Theme-Umschaltung folgt in Kürze.');
+          else Alert.alert('Theme', 'Theme-Umschaltung folgt in Kürze.');
+        }}
       />
       {biometricAvailable && (
         <View style={[styles.menuItem, { backgroundColor: colors.card }]}>
@@ -204,10 +210,6 @@ export default function ProfileScreen() {
         onPress={handleLogout}
         danger
       />
-
-      <Text style={[styles.version, { color: colors.tabIconDefault }]}>
-        {Config.appName} · v1.0.0
-      </Text>
     </ScrollView>
   );
 }

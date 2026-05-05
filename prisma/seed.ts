@@ -1,4 +1,4 @@
-﻿import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -364,7 +364,7 @@ async function main() {
             hasBluetoothAudio: true,
             description: 'Wendiger Kleinwagen fÃ¼r die Stadt.',
             features: 'Klimaanlage, Bluetooth, Kompakt',
-            imageUrl: 'https://images.unsplash.com/photo-1591112611240-540af4ee74db?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/VWPolo.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -401,7 +401,7 @@ async function main() {
             hasBackupCamera: true,
             description: 'Umweltfreundlich und effizient.',
             features: 'Elektroantrieb, Navi, Sitzheizung',
-            imageUrl: 'https://images.unsplash.com/photo-1609529669235-c07e4e1bd6e9?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/hyundai_ioniq.jpg',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -475,7 +475,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Vollelektrische Performance mit GT-Power.',
             features: '487 PS, Allrad, 0-100 in 3.7s, Panoramadach',
-            imageUrl: 'https://images.unsplash.com/photo-1570733577530-363675629c41?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/Ford_Mustang_MachE_GT.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -548,7 +548,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Sportlicher Kombi mit viel Platz.',
             features: 'Klimaanlage, Tempomat, Sportliches Design',
-            imageUrl: 'https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/Seat_Leon_Kombi.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -585,7 +585,7 @@ async function main() {
             hasCruiseControl: true,
             description: 'Der beliebteste Kombi fÃ¼r Business und Familie.',
             features: 'Automatik, Navi, ACC, Sitzheizung',
-            imageUrl: 'https://images.unsplash.com/photo-1580273916550-e323be2ebcc3?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/Skoda_Superb_Kombi.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }
@@ -620,7 +620,7 @@ async function main() {
             hasBluetoothAudio: true,
             description: 'Jugendlicher Kleinwagen mit Stil.',
             features: 'Klimaanlage, Bluetooth, LED-Tagfahrlicht',
-            imageUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=800',
+            imageUrl: '/assets/cars/VW_Golf_Kombi.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
         }

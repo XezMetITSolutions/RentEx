@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <Image
-                    src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2500"
+                    src="/assets/cars/skoda_superb.png"
                     alt="Background"
                     fill
                     className="object-cover opacity-50 grayscale-[0.5]"

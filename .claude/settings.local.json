@@ -14,7 +14,22 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git commit -m 'Implement placeholder button features: Report Download and Profile Picture Upload *)",
-      "Bash(git commit -m 'Add competitor price monitoring system *)"
+      "Bash(git commit -m 'Add competitor price monitoring system *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(psql --version)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(./psql --version)",
+      "Bash(./psql -U postgres -c \"SELECT 1\")",
+      "PowerShell(Start-Service -Name postgresql-x64-18 -ErrorAction SilentlyContinue)",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\psql.exe\" -U postgres -c \"SELECT version\\(\\);\")",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\pg_ctl.exe\" -D \"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\data\" start)",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\pg_ctl.exe\" -D \"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\data\" status)",
+      "Bash(npx prisma *)",
+      "Bash(curl -s http://localhost:3000/api/admin/competitor-pricing/companies -H \"Content-Type: application/json\")",
+      "Bash(curl -s http://localhost:3000/api/admin/competitor-pricing/companies)",
+      "Bash(curl -s http://localhost:3000/sixt-demo)",
+      "Bash(curl -s http://localhost:3000/api/sixt?category=suv)"
     ]
   }
 }

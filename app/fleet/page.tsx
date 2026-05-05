@@ -113,11 +113,8 @@ async function getCars(filters: FilterParams) {
         return acc;
     }, {} as Record<string, typeof cars>);
 
-    // Select one random car from each group
-    const uniqueCars = Object.values(grouped).map(group => {
-        const randomIndex = Math.floor(Math.random() * group.length);
-        return group[randomIndex];
-    });
+    // Select the first car from each group deterministically
+    const uniqueCars = Object.values(grouped).map(group => group[0]);
 
     // Sort by price
     return uniqueCars.sort((a, b) => (Number(a.dailyRate) || 0) - (Number(b.dailyRate) || 0));

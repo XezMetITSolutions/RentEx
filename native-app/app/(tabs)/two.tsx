@@ -15,7 +15,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
 import type { Booking, BookingStatus } from '@/lib/types';
-import { formatCurrency, formatDateRange } from '@/lib/format';
+import { formatCurrency, formatDateRange, resolveImageUrl } from '@/lib/format';
 
 const STATUS_META: Record<BookingStatus, { color: string; label: string }> = {
   Pending: { color: '#f59e0b', label: 'Ausstehend' },
@@ -74,7 +74,7 @@ export default function BookingsScreen() {
         onPress={() => router.push(`/booking/${booking.id}`)}
       >
         {car?.imageUrl ? (
-          <Image source={{ uri: car.imageUrl }} style={styles.carThumbnail} />
+          <Image source={{ uri: resolveImageUrl(car.imageUrl) }} style={styles.carThumbnail} />
         ) : (
           <View style={[styles.carThumbnail, { backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center' }]}>
             <Ionicons name="car" size={28} color={colors.tabIconDefault} />

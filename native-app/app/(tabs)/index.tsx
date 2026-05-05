@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Dimensions,
   Modal,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -17,18 +18,16 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
 import type { Car } from '@/lib/types';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, resolveImageUrl } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
 const { width } = Dimensions.get('window');
 
 const CATEGORIES = [
   { id: 'Alle', name: 'Alle', icon: 'apps' },
-  { id: 'Kompakt', name: 'Kompakt', icon: 'car' },
-  { id: 'Mittelklasse', name: 'Mittelklasse', icon: 'car-sport' },
-  { id: 'SUV', name: 'SUV', icon: 'trail-sign' },
-  { id: 'Premium', name: 'Premium', icon: 'diamond' },
-  { id: 'Transporter', name: 'Transporter', icon: 'bus' },
+  { id: 'PKW', name: 'PKW', icon: 'car' },
+  { id: 'Kastenwagen', name: 'Kastenwagen', icon: 'bus' },
+  { id: 'Bus', name: 'Bus', icon: 'people' },
 ] as const;
 
 export default function HomeScreen() {
@@ -85,6 +84,18 @@ export default function HomeScreen() {
     return result;
   }, [cars, category, seats, search]);
 
+  const categoryPrices = useMemo(() => {
+    const prices: Record<string, number> = {};
+    cars.forEach(c => {
+      if (!c.category) return;
+      const rate = typeof c.dailyRate === 'string' ? parseFloat(c.dailyRate) : c.dailyRate;
+      if (!prices[c.category] || rate < prices[c.category]) {
+        prices[c.category] = rate;
+      }
+    });
+    return prices;
+  }, [cars]);
+
   const renderSectionHeader = (kicker: string, title: string, action?: string) => (
     <View style={styles.sectionHead}>
       <Text style={[styles.kicker, { color: colors.tint }]}>{kicker}</Text>
@@ -103,30 +114,44 @@ export default function HomeScreen() {
     >
       <View style={styles.carImageContainer}>
         {car.imageUrl ? (
-          <Image source={{ uri: car.imageUrl }} style={styles.carImage} resizeMode="cover" />
+          <Image source={{ uri: resolveImageUrl(car.imageUrl) }} style={styles.carImage} resizeMode="cover" />
         ) : (
           <View style={[styles.carImage, { backgroundColor: colors.surfaceAlt, justifyContent: 'center', alignItems: 'center' }]}>
             <Ionicons name="car-outline" size={48} color={colors.textFaint} />
           </View>
         )}
-        <View style={[styles.carTag, { backgroundColor: colors.tint }]}>
-          <Text style={[styles.carTagText, { color: colors.accentInk }]}>{car.seats || 5} SITZE</Text>
+        <View style={[styles.carTag, { backgroundColor: colors.background, opacity: 0.9 }]}>
+          <Text style={[styles.carTagText, { color: colors.text }]}>{car.category?.toUpperCase()}</Text>
         </View>
       </View>
       <View style={styles.carInfo}>
-        <Text style={[styles.carModel, { color: colors.text }]}>{car.brand} {car.model}</Text>
-        <Text style={[styles.carTrim, { color: colors.textMuted }]}>
-          {car.category} · {car.fuelType} · {car.transmission}
-        </Text>
+        <View style={styles.carHeaderRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.carModel, { color: colors.text }]}>{car.brand} {car.model}</Text>
+            <Text style={[styles.carTrim, { color: colors.textMuted }]}>
+              {car.fuelType} · {car.transmission}
+            </Text>
+          </View>
+          <View style={styles.ratingRowSmall}>
+            <Ionicons name="star" size={12} color={colors.tint} />
+            <Text style={[styles.ratingTextSmall, { color: colors.textMuted }]}>
+              {car.rating ? `${car.rating} (${car.reviewCount})` : 'Neu'}
+            </Text>
+          </View>
+        </View>
+        
         <View style={[styles.cardDivider, { backgroundColor: colors.border }]} />
+        
         <View style={styles.cardFooter}>
           <View style={styles.priceContainer}>
             <Text style={[styles.priceValue, { color: colors.text }]}>{formatCurrency(car.dailyRate)}</Text>
             <Text style={[styles.priceUnit, { color: colors.textFaint }]}>/Tag</Text>
           </View>
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={14} color={colors.tint} />
-            <Text style={[styles.ratingText, { color: colors.textMuted }]}>4.8</Text>
+          <View style={styles.featuresRow}>
+            <View style={styles.featureItem}>
+               <Ionicons name="people-outline" size={14} color={colors.textFaint} />
+               <Text style={[styles.featureText, { color: colors.textFaint }]}>{car.seats}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -156,7 +181,6 @@ export default function HomeScreen() {
 
         {/* Greeting Block */}
         <View style={styles.greetingBlock}>
-          <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>RUND UM FELDKIRCH</Text>
           <Text style={[styles.greetingName, { color: colors.text }]}>Auto finden.</Text>
         </View>
 
@@ -216,19 +240,24 @@ export default function HomeScreen() {
           {renderSectionHeader('FAHRZEUGKLASSEN', 'Nach Klasse stöbern')}
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
-          {CATEGORIES.map(c => (
-            <TouchableOpacity
-              key={c.id}
-              onPress={() => setCategory(c.id)}
-              style={[
-                styles.categoryCard,
-                { backgroundColor: category === c.id ? colors.text : colors.card, borderColor: category === c.id ? colors.text : colors.border }
-              ]}
-            >
-              <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
-              <Text style={[styles.categoryFrom, { color: category === c.id ? colors.tint : colors.textFaint }]}>ab € 29/Tag</Text>
-            </TouchableOpacity>
-          ))}
+          {CATEGORIES.map(c => {
+            const minPrice = categoryPrices[c.id];
+            return (
+              <TouchableOpacity
+                key={c.id}
+                onPress={() => setCategory(c.id)}
+                style={[
+                  styles.categoryCard,
+                  { backgroundColor: category === c.id ? colors.text : colors.card, borderColor: category === c.id ? colors.text : colors.border }
+                ]}
+              >
+                <Text style={[styles.categoryName, { color: category === c.id ? colors.background : colors.text }]}>{c.name}</Text>
+                <Text style={[styles.categoryFrom, { color: category === c.id ? colors.tint : colors.textFaint }]}>
+                  {minPrice ? `ab ${formatCurrency(minPrice)}` : 'auf Anfrage'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* Fleet Grid */}
@@ -244,19 +273,40 @@ export default function HomeScreen() {
         </View>
 
         {/* Rewards Card */}
-        <View style={[styles.rewardsCard, { backgroundColor: colors.text }]}>
+        <View style={[styles.rewardsCard, { backgroundColor: colorScheme === 'dark' ? '#111' : '#1a1a1a' }]}>
           <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
-          <Text style={[styles.rewardsKicker, { color: colors.tint }]}>KM-GUTHABEN</Text>
-          <View style={styles.kmValueRow}>
-            <Text style={[styles.kmValue, { color: colors.background }]}>1.240</Text>
-            <Text style={[styles.kmUnit, { color: colors.background, opacity: 0.55 }]}>km</Text>
+          
+          {/* Decorative Icon */}
+          <View style={styles.rewardsIconWrapper}>
+             <Ionicons name="gift-outline" size={64} color="rgba(255,255,255,0.05)" />
           </View>
-          <Text style={[styles.rewardsDesc, { color: colors.background, opacity: 0.65 }]}>
-            Lade Freunde ein und verdiene 250 km pro Empfehlung.
+          
+          <View style={styles.rewardsHeader}>
+            <Ionicons name="star" size={14} color={colors.tint} />
+            <Text style={[styles.rewardsKicker, { color: colors.tint, marginBottom: 0, marginLeft: 6 }]}>KM-GUTHABEN</Text>
+          </View>
+
+          <View style={styles.kmValueRow}>
+            <Text style={[styles.kmValue, { color: '#fff' }]}>1.240</Text>
+            <Text style={[styles.kmUnit, { color: '#fff', opacity: 0.7 }]}>km</Text>
+          </View>
+          <Text style={[styles.rewardsDesc, { color: '#fff', opacity: 0.8 }]}>
+            Lade Freunde ein und verdiene 250 km gratis für jede erfolgreiche Empfehlung.
           </Text>
-          <TouchableOpacity style={[styles.rewardBtn, { backgroundColor: colors.tint }]}>
-            <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Freund einladen</Text>
-            <Ionicons name="arrow-forward" size={14} color={colors.accentInk} />
+          <TouchableOpacity 
+            style={[styles.rewardBtn, { backgroundColor: colors.tint }]}
+            onPress={async () => {
+              try {
+                await Share.share({
+                  message: 'Hey! Melde dich bei RentEx an und wir beide bekommen 250 km gratis für unsere nächste Fahrt. Lade die App herunter: https://rentex.app/invite/1240',
+                });
+              } catch (error) {
+                console.error(error);
+              }
+            }}
+          >
+            <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Jetzt Freunde einladen</Text>
+            <Ionicons name="share-social-outline" size={16} color={colors.accentInk} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
 
@@ -482,7 +532,7 @@ const styles = StyleSheet.create({
   },
   carList: {
     paddingHorizontal: 20,
-    gap: 16,
+    gap: 24,
   },
   carCard: {
     borderRadius: 14,
@@ -554,6 +604,35 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  carHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  ratingRowSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingTop: 2,
+  },
+  ratingTextSmall: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  featuresRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  featureText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
@@ -644,6 +723,19 @@ const styles = StyleSheet.create({
     left: 0,
     width: 4,
     height: '100%',
+  },
+  rewardsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    zIndex: 2,
+  },
+  rewardsIconWrapper: {
+    position: 'absolute',
+    right: -10,
+    top: -10,
+    zIndex: 1,
+    transform: [{ rotate: '15deg' }],
   },
   rewardsKicker: {
     fontSize: 10,

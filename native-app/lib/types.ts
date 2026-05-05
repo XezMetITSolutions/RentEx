@@ -7,6 +7,8 @@ export interface Car {
   imageUrl: string | null;
   fuelType: string;
   transmission: string | null;
+  rating?: number;
+  reviewCount?: number;
   year?: number | null;
   seats?: number | null;
   doors?: number | null;

@@ -243,7 +243,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
                             </button>
                         </div>
                         <div className="relative group">
-                            <img src={rental.car.imageUrl || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=800"} className="w-full h-auto rounded-[3rem] shadow-2xl transition-transform group-hover:scale-[1.02] duration-700" alt="Car" />
+                            <img src={rental.car.imageUrl || "/assets/cars/skoda_superb.png"} className="w-full h-auto rounded-[3rem] shadow-2xl transition-transform group-hover:scale-[1.02] duration-700" alt="Car" />
                             <div className="absolute top-8 right-8 px-6 py-3 bg-white/90 backdrop-blur rounded-full shadow-lg font-black text-gray-900 tracking-tighter">
                                 {rental.car.plate}
                             </div>

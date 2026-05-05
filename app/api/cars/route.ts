@@ -20,20 +20,42 @@ export async function GET(req: NextRequest) {
 
     const cars = await prisma.car.findMany({
       where,
-      select: {
-        id: true,
-        brand: true,
-        model: true,
-        category: true,
-        dailyRate: true,
-        imageUrl: true,
-        fuelType: true,
-        transmission: true,
-      },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { dailyRate: 'asc' },
     });
 
-    return NextResponse.json(cars);
+    // Group by model (Brand + Model) like in the web fleet page
+    const grouped = cars.reduce((acc, car) => {
+      const key = `${car.brand}-${car.model}`;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(car);
+      return acc;
+    }, {} as Record<string, typeof cars>);
+
+    // Select the first car from each group (or random)
+    const uniqueCars = Object.values(grouped).map(group => group[0]);
+
+    // Re-sort by price just in case
+    const sorted = uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
+
+    // Add deterministic ratings
+    const withRatings = sorted.map(car => {
+      // Deterministic pseudo-random based on ID
+      const seed = car.id * 12345;
+      const pseudoRandom = (seed % 100) / 100; // 0.0 to 0.99
+      
+      const rating = 4.5 + (pseudoRandom * 0.5); // 4.5 to 5.0
+      const reviewCount = 10 + (seed % 90); // 10 to 100 reviews
+
+      return {
+        ...car,
+        rating: Number(rating.toFixed(1)),
+        reviewCount,
+      };
+    });
+
+    return NextResponse.json(withRatings);
   } catch (error) {
     console.error('[GET /api/cars]', error);
     return NextResponse.json({ error: 'Fahrzeuge konnten nicht geladen werden.' }, { status: 500 });

@@ -210,7 +210,7 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
                             alt={activeView}
                             className="w-full h-auto rounded-xl select-none"
                             onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=800'; // Fallback
+                                (e.target as HTMLImageElement).src = '/assets/cars/skoda_superb.png'; // Fallback
                             }}
                         />
 

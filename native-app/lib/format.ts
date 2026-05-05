@@ -57,3 +57,10 @@ export function addDays(base: Date, days: number): Date {
 export function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
+
+export function resolveImageUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith('http')) return path;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${Config.apiBase}${encodeURI(normalizedPath)}`;
+}
