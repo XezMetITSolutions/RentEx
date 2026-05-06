@@ -274,6 +274,38 @@ export async function createCustomer(formData: FormData) {
     }
 }
 
+export async function updateCustomer(id: number, formData: FormData) {
+    try {
+        const data = {
+            firstName: formData.get('firstName') as string,
+            lastName: formData.get('lastName') as string,
+            email: formData.get('email') as string,
+            phone: formData.get('phone') as string || null,
+            address: formData.get('address') as string || null,
+            city: formData.get('city') as string || null,
+            postalCode: formData.get('postalCode') as string || null,
+            country: formData.get('country') as string || 'Österreich',
+            licenseNumber: formData.get('licenseNumber') as string || null,
+            licenseIssueDate: formData.get('licenseIssueDate') ? new Date(formData.get('licenseIssueDate') as string) : null,
+            licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
+            dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
+            notes: formData.get('notes') as string || null,
+        };
+
+        const customer = await prisma.customer.update({
+            where: { id },
+            data
+        });
+
+        revalidatePath('/admin/customers');
+        revalidatePath(`/admin/customers/${id}`);
+        return { success: true, customer };
+    } catch (error) {
+        console.error('Error updating customer:', error);
+        return { success: false, error: 'Fehler beim Aktualisieren des Kunden' };
+    }
+}
+
 export async function createRental(formData: FormData) {
     try {
         const carId = Number(formData.get('carId'));

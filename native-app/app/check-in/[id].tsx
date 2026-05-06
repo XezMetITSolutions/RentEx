@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -86,6 +87,22 @@ export default function CheckInScreen() {
     }
   }
 
+  const openMaps = () => {
+    if (!booking?.pickupLocation) return;
+    const { address, city, name } = booking.pickupLocation;
+    const query = encodeURIComponent(`${address || ''} ${city || ''} ${name || ''}`.trim());
+    const url = Platform.select({
+      ios: `maps:0,0?q=${query}`,
+      android: `geo:0,0?q=${query}`,
+    });
+
+    if (url) {
+      Linking.openURL(url).catch(() => {
+        Alert.alert('Fehler', 'Google Maps konnte nicht geöffnet werden.');
+      });
+    }
+  };
+
   async function handleSubmit() {
     if (!agbAccepted) {
       Alert.alert('Hinweis', 'Bitte akzeptieren Sie die Bedingungen.');
@@ -144,20 +161,57 @@ export default function CheckInScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {step === 'WELCOME' && (
           <View style={styles.stepContainer}>
-            <Image source={{ uri: car?.imageUrl || '' }} style={styles.carHero} />
-            <Text style={styles.title}>{car?.brand} {car?.model}</Text>
-            <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>
-              Kennzeichen: {car?.plate}
-            </Text>
-            <View style={styles.infoBox}>
-              <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
-              <Text style={styles.infoText}>
-                In den nächsten Schritten dokumentieren wir gemeinsam den Zustand Ihres Fahrzeugs.
-              </Text>
+            <View style={styles.heroContainer}>
+              <Image source={{ uri: car?.imageUrl || '' }} style={styles.carHero} />
+              <View style={styles.plateBadge}>
+                <Text style={styles.plateText}>{car?.plate || car?.licensePlate || 'N/A'}</Text>
+              </View>
             </View>
-            <TouchableOpacity style={[styles.mainBtn, { backgroundColor: colors.text }]} onPress={() => setStep('MILEAGE')}>
-              <Text style={[styles.mainBtnText, { color: colors.background }]}>JETZT STARTEN</Text>
-            </TouchableOpacity>
+            
+            <View style={styles.contentCard}>
+              <Text style={[styles.title, { color: colors.text }]}>{car?.brand} {car?.model}</Text>
+              <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+                Fahrzeug zur Abholung bereit
+              </Text>
+
+              {booking?.pickupLocation && (
+                <View style={[styles.locationCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <View style={styles.locationInfo}>
+                    <View style={[styles.iconCircle, { backgroundColor: colors.accentSoft }]}>
+                      <Ionicons name="location" size={20} color={colors.tint} />
+                    </View>
+                    <View style={styles.locationTexts}>
+                      <Text style={[styles.locationLabel, { color: colors.textFaint }]}>ABHOLORT</Text>
+                      <Text style={[styles.locationName, { color: colors.text }]}>{booking.pickupLocation.name}</Text>
+                      <Text style={[styles.locationAddress, { color: colors.textMuted }]}>
+                        {booking.pickupLocation.address}, {booking.pickupLocation.city}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.navBtn, { borderColor: colors.tint }]} 
+                    onPress={openMaps}
+                  >
+                    <Ionicons name="navigate" size={18} color={colors.tint} />
+                    <Text style={[styles.navBtnText, { color: colors.tint }]}>NAVIGATION</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={[styles.infoBox, { backgroundColor: colors.accentSoft }]}>
+                <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
+                <Text style={[styles.infoText, { color: colors.tint }]}>
+                  Bitte führen Sie den Self Check-in direkt am Fahrzeug durch, um den aktuellen Zustand zu dokumentieren.
+                </Text>
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.mainBtn, { backgroundColor: colors.text }]} 
+                onPress={() => setStep('MILEAGE')}
+              >
+                <Text style={[styles.mainBtnText, { color: colors.background }]}>JETZT STARTEN</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -329,31 +383,87 @@ const styles = StyleSheet.create({
   },
   backBtn: { p: 8 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  scrollContent: { padding: 20, paddingBottom: 60 },
-  stepContainer: { alignItems: 'center' },
+  scrollContent: { padding: 16, paddingBottom: 60 },
+  stepContainer: { alignItems: 'center', width: '100%' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  carHero: { width: '100%', height: 200, borderRadius: 20, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
-  subtitle: { fontSize: 14, marginBottom: 20 },
+  
+  heroContainer: { width: '100%', height: 220, marginBottom: 20, position: 'relative' },
+  carHero: { width: '100%', height: '100%', borderRadius: 24 },
+  plateBadge: { 
+    position: 'absolute', 
+    bottom: 12, 
+    right: 12, 
+    backgroundColor: '#fff', 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#eee'
+  },
+  plateText: { fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+
+  contentCard: { width: '100%' },
+  title: { fontSize: 26, fontWeight: '800', textAlign: 'left', marginBottom: 4 },
+  subtitle: { fontSize: 16, marginBottom: 24, textAlign: 'left' },
+  
+  locationCard: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  locationInfo: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  iconCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  locationTexts: { flex: 1 },
+  locationLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5, marginBottom: 4 },
+  locationName: { fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
+  locationAddress: { fontSize: 14 },
+  
+  navBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 8, 
+    paddingVertical: 10, 
+    borderRadius: 12, 
+    borderWidth: 1.5 
+  },
+  navBtnText: { fontSize: 13, fontWeight: 'bold' },
+
   description: { fontSize: 14, textAlign: 'center', color: '#666', marginBottom: 20 },
   infoBox: {
     flexDirection: 'row',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     gap: 12,
-    marginBottom: 30,
+    marginBottom: 20,
   },
-  infoText: { flex: 1, fontSize: 14, color: '#1e40af' },
+  infoText: { flex: 1, fontSize: 14, fontWeight: '500' },
   mainBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: 16,
+    height: 58,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  mainBtnText: { fontSize: 16, fontWeight: 'bold' },
+  mainBtnText: { fontSize: 17, fontWeight: 'bold', letterSpacing: 0.5 },
   label: { alignSelf: 'flex-start', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', color: '#888', marginBottom: 8, marginTop: 20 },
   input: {
     width: '100%',

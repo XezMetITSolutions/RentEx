@@ -1,16 +1,19 @@
 'use client';
 
-import { createCustomer } from '@/app/actions';
+import { createCustomer, updateCustomer } from '@/app/actions';
 import { User, Mail, Phone, MapPin, Calendar, FileText, Save, AlertCircle, Upload, X } from 'lucide-react';
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CustomerFormProps {
+    customer?: any;
     onSuccess?: (customer: any) => void;
     onCancel?: () => void;
     isModal?: boolean;
 }
 
-export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerFormProps) {
+export default function CustomerForm({ customer, onSuccess, onCancel, isModal }: CustomerFormProps) {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
     const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
@@ -20,7 +23,9 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
     const maxBirthDate = new Date(today.getFullYear() - 17, today.getMonth(), today.getDate()).toISOString().split('T')[0];
     const todayStr = today.toISOString().split('T')[0];
 
-    const [issueDate, setIssueDate] = useState<string>('');
+    const [issueDate, setIssueDate] = useState<string>(
+        customer?.licenseIssueDate ? new Date(customer.licenseIssueDate).toISOString().split('T')[0] : ''
+    );
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);
@@ -32,13 +37,22 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
 
         startTransition(async () => {
             try {
-                const result = await createCustomer(formData);
+                let result;
+                if (customer?.id) {
+                    result = await updateCustomer(customer.id, formData);
+                } else {
+                    result = await createCustomer(formData);
+                }
+
                 if (result && !result.success) {
                     setError(result.error || 'Ein Fehler ist aufgetreten');
-                } else if (onSuccess) {
-                    // We might need to fetch the newly created customer or have the action return it
-                    // For now, we assume success and trigger callback
-                    onSuccess(result);
+                } else {
+                    if (onSuccess) {
+                        onSuccess(result.customer);
+                    } else if (!isModal) {
+                        router.push('/admin/customers');
+                        router.refresh();
+                    }
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -78,11 +92,23 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vorname *</label>
-                            <input name="firstName" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                            <input 
+                                name="firstName" 
+                                type="text" 
+                                required 
+                                defaultValue={customer?.firstName}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nachname *</label>
-                            <input name="lastName" type="text" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                            <input 
+                                name="lastName" 
+                                type="text" 
+                                required 
+                                defaultValue={customer?.lastName}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                            />
                         </div>
                         <div className="sm:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Geburtsdatum</label>
@@ -92,6 +118,7 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                                     name="dateOfBirth" 
                                     type="date" 
                                     max={maxBirthDate}
+                                    defaultValue={customer?.dateOfBirth ? new Date(customer.dateOfBirth).toISOString().split('T')[0] : ''}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
                                 />
                             </div>
@@ -101,7 +128,12 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Führerscheinnummer</label>
                                 <div className="relative">
                                     <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input name="licenseNumber" type="text" className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                                    <input 
+                                        name="licenseNumber" 
+                                        type="text" 
+                                        defaultValue={customer?.licenseNumber}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                                    />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -123,6 +155,7 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                                         type="date" 
                                         required 
                                         min={issueDate || todayStr}
+                                        defaultValue={customer?.licenseExpiryDate ? new Date(customer.licenseExpiryDate).toISOString().split('T')[0] : ''}
                                         className="w-full px-3 py-2 border border-red-300 dark:border-red-800 bg-white dark:bg-gray-900 rounded-lg text-sm" 
                                     />
                                 </div>
@@ -142,28 +175,54 @@ export default function CustomerForm({ onSuccess, onCancel, isModal }: CustomerF
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email *</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input name="email" type="email" required className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                                    <input 
+                                        name="email" 
+                                        type="email" 
+                                        required 
+                                        defaultValue={customer?.email}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefon</label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input name="phone" type="tel" className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                                    <input 
+                                        name="phone" 
+                                        type="tel" 
+                                        defaultValue={customer?.phone}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Straße & Hausnummer</label>
-                                <input name="address" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" />
+                                <input 
+                                    name="address" 
+                                    type="text" 
+                                    defaultValue={customer?.address}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" 
+                                />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PLZ</label>
-                                    <input name="postalCode" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" />
+                                    <input 
+                                        name="postalCode" 
+                                        type="text" 
+                                        defaultValue={customer?.postalCode}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stadt</label>
-                                    <input name="city" type="text" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" />
+                                    <input 
+                                        name="city" 
+                                        type="text" 
+                                        defaultValue={customer?.city}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg" 
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -3,40 +3,41 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
     const origin = request.headers.get('origin') || '';
-    const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://rentex.at';
-    
-    // Check if the origin is allowed
-    const isAllowedOrigin = origin === allowedOrigin || 
-                           origin === 'http://localhost:8081' || 
-                           origin === 'http://localhost:19006' || // Older Expo Web
-                           origin === 'http://localhost:19000'; // Expo Go Web
+    console.log(`[Middleware] Request from Origin: ${origin}, Path: ${request.nextUrl.pathname}, Method: ${request.method}`);
+
+    const allowedOrigins = [
+        'http://localhost:8081',
+        'http://localhost:8082',
+        'http://localhost:3000',
+        'http://localhost:19000',
+        'http://localhost:19006',
+        'https://rentex.at'
+    ];
+
+    const isAllowedOrigin = allowedOrigins.includes(origin) || origin.includes('localhost:');
 
     if (request.method === 'OPTIONS') {
         const response = new NextResponse(null, { status: 204 });
-        if (isAllowedOrigin) {
-            response.headers.set('Access-Control-Allow-Origin', origin);
-        } else if (process.env.NODE_ENV === 'development') {
-            response.headers.set('Access-Control-Allow-Origin', '*');
-        }
         
+        // In development, we allow everything for CORS preflight
+        response.headers.set('Access-Control-Allow-Origin', origin || '*');
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        response.headers.set('Access-Control-Allow-Credentials', 'true');
         response.headers.set('Vary', 'Origin');
+        
         return response;
     }
 
     const { pathname } = request.nextUrl;
     let response = NextResponse.next();
 
-    // Add CORS headers to API routes
+    // Add CORS headers to ALL API routes in development
     if (pathname.startsWith('/api/')) {
-        if (isAllowedOrigin) {
-            response.headers.set('Access-Control-Allow-Origin', origin);
-        } else if (process.env.NODE_ENV === 'development') {
-            response.headers.set('Access-Control-Allow-Origin', '*');
-        }
+        response.headers.set('Access-Control-Allow-Origin', origin || '*');
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        response.headers.set('Access-Control-Allow-Credentials', 'true');
         response.headers.set('Vary', 'Origin');
     }
 
