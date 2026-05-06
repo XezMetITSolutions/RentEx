@@ -29,12 +29,16 @@ export default function NewBookingScreen() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<'CONFIG' | 'EXTRAS' | 'REVIEW' | 'SUCCESS'>('CONFIG');
+  const [bookingId, setBookingId] = useState<number | null>(null);
+  const [agbAccepted, setAgbAccepted] = useState(false);
 
   const today = useMemo(() => new Date(), []);
   const [startDate, setStartDate] = useState<Date>(today);
   const [endDate, setEndDate] = useState<Date>(addDays(today, 3));
   const [pickupLocation, setPickupLocation] = useState('');
   const [returnLocation, setReturnLocation] = useState('');
+  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
 
   useEffect(() => {
     const id = Number(carId);
@@ -65,20 +69,23 @@ export default function NewBookingScreen() {
     })();
   }, [carId]);
 
+  const EXTRAS = [
+    { id: 'insurance', name: 'Premium-Versicherung', price: 15, icon: 'shield-checkmark' },
+    { id: 'gps', name: 'GPS Navigationssystem', price: 5, icon: 'navigate' },
+    { id: 'seat', name: 'Kindersitz', price: 8, icon: 'body' },
+  ];
+
   const days = daysBetween(startDate, endDate);
   const dailyRate = car ? Number(car.dailyRate) || 0 : 0;
-  const total = dailyRate * days;
+  const extrasTotal = selectedExtras.reduce((acc, id) => {
+    const extra = EXTRAS.find(e => e.id === id);
+    return acc + (extra?.price || 0);
+  }, 0) * days;
+  const subtotal = dailyRate * days;
+  const total = subtotal + extrasTotal;
 
   async function handleSubmit() {
     if (!car) return;
-    if (endDate <= startDate) {
-      setError('Rückgabedatum muss nach Abholung liegen.');
-      return;
-    }
-    if (!pickupLocation) {
-      setError('Bitte wählen Sie einen Abholort.');
-      return;
-    }
     setSubmitting(true);
     setError(null);
     try {
@@ -89,20 +96,22 @@ export default function NewBookingScreen() {
         pickupLocation: pickupLocation,
         returnLocation: returnLocation || pickupLocation,
       });
-      if (Platform.OS === 'web') {
-        router.replace(`/booking/${booking.id}`);
-      } else {
-        Alert.alert('Buchung erfolgreich', `Ihre Buchung #${booking.id} wurde erstellt.`, [
-          { text: 'OK', onPress: () => router.replace(`/booking/${booking.id}`) },
-        ]);
-      }
+      setBookingId(booking.id);
+      setStep('SUCCESS');
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Buchung fehlgeschlagen.';
       setError(msg);
+      setStep('REVIEW');
     } finally {
       setSubmitting(false);
     }
   }
+
+  const toggleExtra = (id: string) => {
+    setSelectedExtras(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   function adjustDate(which: 'start' | 'end', delta: number) {
     if (which === 'start') {
@@ -133,130 +142,174 @@ export default function NewBookingScreen() {
     );
   }
 
+  if (step === 'SUCCESS') {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.background, padding: 30 }]}>
+        <View style={styles.successIconCircle}>
+          <Ionicons name="checkmark" size={60} color="#fff" />
+        </View>
+        <Text style={styles.successTitle}>Buchung Erfolgreich!</Text>
+        <Text style={styles.successSubtitle}>
+          Deine Buchung #{bookingId} wurde erstellt. Wir freuen uns auf dich!
+        </Text>
+        <TouchableOpacity 
+          style={[styles.mainBtn, { backgroundColor: colors.tint }]}
+          onPress={() => router.replace(`/booking/${bookingId}`)}
+        >
+          <Text style={styles.mainBtnText}>ZUR BUCHUNG</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={{ marginTop: 20 }}
+          onPress={() => router.replace('/(tabs)')}
+        >
+          <Text style={{ color: colors.tabIconDefault, fontWeight: 'bold' }}>ZURÜCK ZUR ÜBERSICHT</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
-        <View style={[styles.carCard, { backgroundColor: colors.card }]}>
-          {car.imageUrl ? (
-            <Image source={{ uri: car.imageUrl }} style={styles.carImage} />
-          ) : (
-            <View style={[styles.carImage, { backgroundColor: colors.border, alignItems: 'center', justifyContent: 'center' }]}>
-              <Ionicons name="car" size={32} color={colors.tabIconDefault} />
+        {/* Progress Bar */}
+        <View style={styles.progressRow}>
+          {['CONFIG', 'EXTRAS', 'REVIEW'].map((s, i) => (
+            <View key={s} style={styles.progressStepContainer}>
+              <View style={[
+                styles.progressDot, 
+                { backgroundColor: step === s || ['EXTRAS', 'REVIEW'].includes(step) && i < 1 || step === 'REVIEW' && i < 2 ? colors.tint : colors.border }
+              ]} />
+              {i < 2 && <View style={[styles.progressLine, { backgroundColor: ['EXTRAS', 'REVIEW'].includes(step) && i < 1 || step === 'REVIEW' && i < 2 ? colors.tint : colors.border }]} />}
             </View>
-          )}
-          <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-            <Text style={styles.carName}>
-              {car.brand} {car.model}
-            </Text>
-            <Text style={[styles.carCategory, { color: colors.tabIconDefault }]}>{car.category}</Text>
-            <Text style={[styles.carPrice, { color: colors.tint }]}>
-              {formatCurrency(dailyRate)} / Tag
-            </Text>
-          </View>
+          ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Zeitraum</Text>
-        <View style={[styles.dateRow, { backgroundColor: colors.card }]}>
-          <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-            <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>Abholung</Text>
-            <Text style={styles.dateValue}>{formatDate(startDate)}</Text>
-            <View style={styles.stepperRow}>
-              <TouchableOpacity
-                onPress={() => adjustDate('start', -1)}
-                style={[styles.stepBtn, { backgroundColor: colors.background }]}
-              >
-                <Ionicons name="remove" size={16} color={colors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => adjustDate('start', 1)}
-                style={[styles.stepBtn, { backgroundColor: colors.background }]}
-              >
-                <Ionicons name="add" size={16} color={colors.text} />
-              </TouchableOpacity>
+        {step === 'CONFIG' && (
+          <View style={{ backgroundColor: 'transparent' }}>
+            <View style={[styles.carCard, { backgroundColor: colors.card }]}>
+              {car.imageUrl ? (
+                <Image source={{ uri: car.imageUrl }} style={styles.carImage} />
+              ) : (
+                <View style={[styles.carImage, { backgroundColor: colors.border, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Ionicons name="car" size={32} color={colors.tabIconDefault} />
+                </View>
+              )}
+              <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+                <Text style={styles.carName}>{car.brand} {car.model}</Text>
+                <Text style={[styles.carCategory, { color: colors.tabIconDefault }]}>{car.category}</Text>
+                <Text style={[styles.carPrice, { color: colors.tint }]}>{formatCurrency(dailyRate)} / Tag</Text>
+              </View>
             </View>
-          </View>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-          <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-            <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>RÜCKGABE</Text>
-            <Text style={styles.dateValue}>{formatDate(endDate)}</Text>
-            <View style={styles.stepperRow}>
-              <TouchableOpacity
-                onPress={() => adjustDate('end', -1)}
-                style={[styles.stepBtn, { backgroundColor: colors.background }]}
-              >
-                <Ionicons name="remove" size={16} color={colors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => adjustDate('end', 1)}
-                style={[styles.stepBtn, { backgroundColor: colors.background }]}
-              >
-                <Ionicons name="add" size={16} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-        <Text style={[styles.daysText, { color: colors.tabIconDefault }]}>
-          {days} {days === 1 ? 'Tag' : 'Tage'}
-        </Text>
 
-        <Text style={styles.sectionTitle}>Abholort</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-          {locations.map((loc) => (
-            <TouchableOpacity
-              key={`pickup-${loc.id}`}
-              onPress={() => setPickupLocation(loc.name)}
-              style={[
-                styles.locationChip,
-                { 
-                  backgroundColor: pickupLocation === loc.name ? colors.tint : colors.card,
-                  borderColor: pickupLocation === loc.name ? colors.tint : colors.border
-                }
-              ]}
+            <Text style={styles.sectionTitle}>Zeitraum</Text>
+            <View style={[styles.dateRow, { backgroundColor: colors.card }]}>
+              <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+                <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>Abholung</Text>
+                <Text style={styles.dateValue}>{formatDate(startDate)}</Text>
+                <View style={styles.stepperRow}>
+                  <TouchableOpacity onPress={() => adjustDate('start', -1)} style={[styles.stepBtn, { backgroundColor: colors.background }]}><Ionicons name="remove" size={16} color={colors.text} /></TouchableOpacity>
+                  <TouchableOpacity onPress={() => adjustDate('start', 1)} style={[styles.stepBtn, { backgroundColor: colors.background }]}><Ionicons name="add" size={16} color={colors.text} /></TouchableOpacity>
+                </View>
+              </View>
+              <View style={[styles.separator, { backgroundColor: colors.border }]} />
+              <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+                <Text style={[styles.dateLabel, { color: colors.tabIconDefault }]}>RÜCKGABE</Text>
+                <Text style={styles.dateValue}>{formatDate(endDate)}</Text>
+                <View style={styles.stepperRow}>
+                  <TouchableOpacity onPress={() => adjustDate('end', -1)} style={[styles.stepBtn, { backgroundColor: colors.background }]}><Ionicons name="remove" size={16} color={colors.text} /></TouchableOpacity>
+                  <TouchableOpacity onPress={() => adjustDate('end', 1)} style={[styles.stepBtn, { backgroundColor: colors.background }]}><Ionicons name="add" size={16} color={colors.text} /></TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Abholort</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+              {locations.map((loc) => (
+                <TouchableOpacity
+                  key={`pickup-${loc.id}`}
+                  onPress={() => setPickupLocation(loc.name)}
+                  style={[styles.locationChip, { backgroundColor: pickupLocation === loc.name ? colors.tint : colors.card, borderColor: pickupLocation === loc.name ? colors.tint : colors.border }]}
+                >
+                  <Text style={{ color: pickupLocation === loc.name ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>{loc.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {step === 'EXTRAS' && (
+          <View style={{ backgroundColor: 'transparent' }}>
+            <Text style={styles.stepTitle}>Wähle deine Extras</Text>
+            <Text style={styles.stepSubtitle}>Mache deine Fahrt noch komfortabler</Text>
+            {EXTRAS.map(extra => (
+              <TouchableOpacity 
+                key={extra.id} 
+                onPress={() => toggleExtra(extra.id)}
+                style={[styles.extraCard, { backgroundColor: colors.card, borderColor: selectedExtras.includes(extra.id) ? colors.tint : 'transparent' }]}
+              >
+                <View style={[styles.extraIcon, { backgroundColor: colors.background }]}>
+                  <Ionicons name={extra.icon as any} size={24} color={selectedExtras.includes(extra.id) ? colors.tint : colors.tabIconDefault} />
+                </View>
+                <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+                  <Text style={styles.extraName}>{extra.name}</Text>
+                  <Text style={styles.extraPrice}>{formatCurrency(extra.price)} / Tag</Text>
+                </View>
+                <Ionicons 
+                  name={selectedExtras.includes(extra.id) ? "checkbox" : "square-outline"} 
+                  size={24} 
+                  color={selectedExtras.includes(extra.id) ? colors.tint : colors.border} 
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {step === 'REVIEW' && (
+          <View style={{ backgroundColor: 'transparent' }}>
+            <Text style={styles.stepTitle}>Prüfen & Bestätigen</Text>
+            <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+              <View style={styles.summaryRow}>
+                <Text style={{ color: colors.tabIconDefault }}>Miete ({days} Tage)</Text>
+                <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
+              </View>
+              {selectedExtras.map(id => {
+                const e = EXTRAS.find(x => x.id === id);
+                return (
+                  <View key={id} style={styles.summaryRow}>
+                    <Text style={{ color: colors.tabIconDefault }}>{e?.name}</Text>
+                    <Text style={styles.summaryValue}>{formatCurrency((e?.price || 0) * days)}</Text>
+                  </View>
+                );
+              })}
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryTotalLabel}>Gesamtbetrag</Text>
+                <Text style={[styles.summaryTotalValue, { color: colors.tint }]}>{formatCurrency(total)}</Text>
+              </View>
+            </View>
+
+            <View style={[styles.infoBox, { backgroundColor: colors.card, marginTop: 20 }]}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.tint} />
+              <Text style={{ flex: 1, fontSize: 13, color: colors.text }}>
+                Ihre Daten werden sicher verschlüsselt übertragen.
+              </Text>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.checkboxRow} 
+              onPress={() => setAgbAccepted(!agbAccepted)}
             >
-              <Text style={{ color: pickupLocation === loc.name ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>
-                {loc.name}
+              <Ionicons 
+                name={agbAccepted ? "checkbox" : "square-outline"} 
+                size={24} 
+                color={agbAccepted ? colors.tint : colors.tabIconDefault} 
+              />
+              <Text style={styles.checkboxText}>
+                Ich akzeptiere die AGB und die Mietbedingungen der Rent-Ex GmbH.
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionTitle}>Rückgabeort</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {locations.map((loc) => (
-            <TouchableOpacity
-              key={`return-${loc.id}`}
-              onPress={() => setReturnLocation(loc.name)}
-              style={[
-                styles.locationChip,
-                { 
-                  backgroundColor: returnLocation === loc.name ? colors.tint : colors.card,
-                  borderColor: returnLocation === loc.name ? colors.tint : colors.border
-                }
-              ]}
-            >
-              <Text style={{ color: returnLocation === loc.name ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>
-                {loc.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionTitle}>Zusammenfassung</Text>
-        <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-          <View style={styles.summaryRow}>
-            <Text style={{ color: colors.tabIconDefault }}>
-              {formatCurrency(dailyRate)} × {days} {days === 1 ? 'Tag' : 'Tage'}
-            </Text>
-            <Text style={styles.summaryValue}>{formatCurrency(total)}</Text>
           </View>
-          <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryTotalLabel}>Gesamt</Text>
-            <Text style={[styles.summaryTotalValue, { color: colors.tint }]}>
-              {formatCurrency(total)}
-            </Text>
-          </View>
-        </View>
+        )}
 
         {error && (
           <View style={[styles.errorBox, { backgroundColor: '#fee2e2' }]}>
@@ -267,20 +320,36 @@ export default function NewBookingScreen() {
       </ScrollView>
 
       <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={submitting}
-          style={[styles.confirmBtn, { backgroundColor: colors.tint, opacity: submitting ? 0.7 : 1 }]}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.confirmBtnText}>Buchung bestätigen · {formatCurrency(total)}</Text>
-              <Ionicons name="arrow-forward" size={18} color="#fff" />
-            </>
-          )}
-        </TouchableOpacity>
+        {step === 'CONFIG' && (
+          <TouchableOpacity
+            onPress={() => {
+              if (!pickupLocation) setError('Bitte wähle einen Abholort.');
+              else setStep('EXTRAS');
+            }}
+            style={[styles.confirmBtn, { backgroundColor: colors.text }]}
+          >
+            <Text style={[styles.confirmBtnText, { color: colors.background }]}>ZUR AUSWAHL</Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.background} />
+          </TouchableOpacity>
+        )}
+        {step === 'EXTRAS' && (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity onPress={() => setStep('CONFIG')} style={[styles.confirmBtn, { flex: 1, backgroundColor: colors.border }]}><Text style={{ color: colors.text, fontWeight: 'bold' }}>ZURÜCK</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setStep('REVIEW')} style={[styles.confirmBtn, { flex: 2, backgroundColor: colors.text }]}><Text style={[styles.confirmBtnText, { color: colors.background }]}>ZUR ÜBERSICHT</Text></TouchableOpacity>
+          </View>
+        )}
+        {step === 'REVIEW' && (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity onPress={() => setStep('EXTRAS')} style={[styles.confirmBtn, { flex: 1, backgroundColor: colors.border }]}><Text style={{ color: colors.text, fontWeight: 'bold' }}>ZURÜCK</Text></TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={submitting || !agbAccepted}
+              style={[styles.confirmBtn, { flex: 2, backgroundColor: colors.tint, opacity: (submitting || !agbAccepted) ? 0.5 : 1 }]}
+            >
+              {submitting ? <ActivityIndicator color="#fff" /> : <><Text style={styles.confirmBtnText}>JETZT BUCHEN · {formatCurrency(total)}</Text><Ionicons name="flash" size={18} color="#fff" /></>}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -367,4 +436,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   confirmBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+  progressRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  progressStepContainer: { flexDirection: 'row', alignItems: 'center' },
+  progressDot: { width: 10, height: 10, borderRadius: 5 },
+  progressLine: { width: 40, height: 2 },
+  stepTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+  stepSubtitle: { fontSize: 14, color: '#888', marginBottom: 20 },
+  extraCard: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16, marginBottom: 10, borderWidth: 2 },
+  extraIcon: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  extraName: { fontSize: 16, fontWeight: 'bold' },
+  extraPrice: { fontSize: 12, color: '#888' },
+  infoBox: { flexDirection: 'row', gap: 10, padding: 16, borderRadius: 14 },
+  successIconCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  successTitle: { fontSize: 28, fontWeight: 'bold', textAlign: 'center' },
+  successSubtitle: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 10, marginBottom: 40 },
+  mainBtn: { width: '100%', height: 58, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  mainBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20, paddingHorizontal: 10 },
+  checkboxText: { flex: 1, fontSize: 13, color: '#666' },
 });

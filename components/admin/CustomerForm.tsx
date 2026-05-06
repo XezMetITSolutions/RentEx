@@ -1,9 +1,10 @@
 'use client';
 
 import { createCustomer, updateCustomer } from '@/app/actions';
-import { User, Mail, Phone, MapPin, Calendar, FileText, Save, AlertCircle, Upload, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, FileText, Save, AlertCircle, Upload, X, ShieldCheck } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import ImageUpload from './ImageUpload';
 
 interface CustomerFormProps {
     customer?: any;
@@ -16,7 +17,6 @@ export default function CustomerForm({ customer, onSuccess, onCancel, isModal }:
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
-    const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
     
     // Logic for date constraints
     const today = new Date();
@@ -29,11 +29,6 @@ export default function CustomerForm({ customer, onSuccess, onCancel, isModal }:
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);
-
-        // Add license files to formData
-        licenseFiles.forEach((file, index) => {
-            formData.append(`licenseFile${index}`, file);
-        });
 
         startTransition(async () => {
             try {
@@ -60,16 +55,6 @@ export default function CustomerForm({ customer, onSuccess, onCancel, isModal }:
         });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setLicenseFiles(prev => [...prev, ...newFiles]);
-        }
-    };
-
-    const removeFile = (index: number) => {
-        setLicenseFiles(prev => prev.filter((_, i) => i !== index));
-    };
 
     return (
         <form action={handleSubmit} className="space-y-6">
@@ -228,28 +213,29 @@ export default function CustomerForm({ customer, onSuccess, onCancel, isModal }:
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 space-y-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Upload className="w-5 h-5 text-gray-400" />
+                            <ShieldCheck className="w-5 h-5 text-gray-400" />
                             Dokumente
                         </h2>
-                        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                            <input type="file" id="licenseUpload" multiple accept="image/*,.pdf" onChange={handleFileChange} className="hidden" />
-                            <label htmlFor="licenseUpload" className="cursor-pointer block">
-                                <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                                <p className="text-xs text-gray-500">Klicken zum Hochladen</p>
-                            </label>
+                        
+                        <div className="grid grid-cols-1 gap-6">
+                            <ImageUpload 
+                                name="licensePhotoUrl"
+                                label="Führerschein"
+                                defaultValue={customer?.licensePhotoUrl}
+                                uploadUrl="/api/admin/customers/upload"
+                                accept="image/*,.pdf"
+                            />
+
+                            <ImageUpload 
+                                name="idPhotoUrl"
+                                label="Personalausweis / Reisepass"
+                                defaultValue={customer?.idPhotoUrl}
+                                uploadUrl="/api/admin/customers/upload"
+                                accept="image/*,.pdf"
+                            />
                         </div>
-                        {licenseFiles.length > 0 && (
-                            <div className="mt-4 space-y-2">
-                                {licenseFiles.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded text-xs">
-                                        <span className="truncate max-w-[150px]">{file.name}</span>
-                                        <button type="button" onClick={() => removeFile(index)}><X className="w-3 h-3 text-red-500" /></button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

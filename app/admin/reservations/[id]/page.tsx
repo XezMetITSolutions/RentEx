@@ -29,7 +29,12 @@ async function getRental(id: number) {
     const rental = await prisma.rental.findUnique({
         where: { id },
         include: {
-            car: true,
+            car: {
+                include: {
+                    currentLocation: true,
+                    homeLocation: true
+                }
+            },
             customer: true,
             pickupLocation: true,
             returnLocation: true,
@@ -154,7 +159,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                         <p className="text-lg font-bold text-gray-900 dark:text-white">{format(start, 'dd.MM.yyyy HH:mm', { locale: de })}</p>
                                         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                                             <MapPin className="w-3 h-3" />
-                                            {rental.pickupLocation?.name || 'Hauptstandort'}
+                                            {rental.pickupLocation?.name || rental.car.currentLocation?.name || rental.car.homeLocation?.name || 'Hauptstandort'}
                                         </p>
                                     </div>
                                 </div>
@@ -169,7 +174,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                         <p className="text-lg font-bold text-gray-900 dark:text-white">{format(end, 'dd.MM.yyyy HH:mm', { locale: de })}</p>
                                         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                                             <MapPin className="w-3 h-3" />
-                                            {rental.returnLocation?.name || 'Hauptstandort'}
+                                            {rental.returnLocation?.name || rental.car.currentLocation?.name || rental.car.homeLocation?.name || 'Hauptstandort'}
                                         </p>
                                     </div>
                                 </div>

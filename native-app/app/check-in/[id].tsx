@@ -22,7 +22,12 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { api, ApiError } from '@/lib/api';
 import type { Booking } from '@/lib/types';
 
-type Step = 'WELCOME' | 'MILEAGE' | 'FUEL' | 'PHOTOS' | 'CONFIRM';
+type Step = 'WELCOME' | 'MILEAGE' | 'FUEL' | 'DAMAGE_FRONT' | 'DAMAGE_BACK' | 'DAMAGE_LEFT' | 'DAMAGE_RIGHT' | 'SIGNATURE' | 'CONFIRM';
+
+const STEPS: Step[] = ['WELCOME', 'MILEAGE', 'FUEL', 'DAMAGE_FRONT', 'DAMAGE_BACK', 'DAMAGE_LEFT', 'DAMAGE_RIGHT', 'SIGNATURE', 'CONFIRM'];
+
+import SignaturePad from '@/components/SignaturePad';
+import DamageSelector, { Damage } from '@/components/DamageSelector';
 
 export default function CheckInScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,23 +35,21 @@ export default function CheckInScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<Step>('WELCOME');
   const [submitting, setSubmitting] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
 
   // Form State
   const [mileage, setMileage] = useState('');
   const [mileagePhoto, setMileagePhoto] = useState<string | null>(null);
   const [fuelLevel, setFuelLevel] = useState('Full');
   const [fuelPhoto, setFuelPhoto] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<{ [key: string]: string | null }>({
-    front: null,
-    back: null,
-    left: null,
-    right: null,
-  });
+  const [damages, setDamages] = useState<Damage[]>([]);
+  const [signature, setSignature] = useState<string | null>(null);
   const [agbAccepted, setAgbAccepted] = useState(false);
+  const [viewImages, setViewImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadBooking();
@@ -59,12 +62,33 @@ export default function CheckInScreen() {
       if (data.car?.currentMileage) {
         setMileage(data.car.currentMileage.toString());
       }
+      
+      // Load car template images
+      if (data.car?.checkInTemplate) {
+        // We'll simulate fetching template images or use the car image as fallback
+        // In a real app, you'd fetch this from the API
+        setViewImages({
+          front: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/front.png`,
+          back: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/back.png`,
+          left: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/left.png`,
+          right: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/right.png`,
+        });
+      }
     } catch (err) {
       Alert.alert('Fehler', 'Buchung konnte nicht geladen werden.');
       router.back();
     } finally {
       setLoading(false);
     }
+  }
+
+  async function simulateOCR(uri: string) {
+    setRecognizing(true);
+    // Simulate API call for OCR
+    setTimeout(() => {
+      // Just keep current mileage or randomly increment slightly for "realism"
+      setRecognizing(false);
+    }, 1500);
   }
 
   async function takePhoto(target: string) {
@@ -81,9 +105,11 @@ export default function CheckInScreen() {
 
     if (!result.canceled && result.assets[0].uri) {
       const uri = result.assets[0].uri;
-      if (target === 'mileage') setMileagePhoto(uri);
+      if (target === 'mileage') {
+        setMileagePhoto(uri);
+        simulateOCR(uri);
+      }
       else if (target === 'fuel') setFuelPhoto(uri);
-      else setPhotos(prev => ({ ...prev, [target]: uri }));
     }
   }
 
@@ -104,6 +130,10 @@ export default function CheckInScreen() {
   };
 
   async function handleSubmit() {
+    if (!signature) {
+      Alert.alert('Hinweis', 'Bitte unterschreiben Sie das Protokoll.');
+      return;
+    }
     if (!agbAccepted) {
       Alert.alert('Hinweis', 'Bitte akzeptieren Sie die Bedingungen.');
       return;
@@ -111,51 +141,68 @@ export default function CheckInScreen() {
 
     setSubmitting(true);
     try {
-      // In a real app, we would upload photos to a server first.
-      // For this demo/setup, we'll simulate it or use the api if it supports base64/uri.
+      // In a real app, photos would be uploaded to S3/Cloudinary first.
       
-      // Construct the damages/photos payload similar to admin check-in
-      const damages = [];
-      if (mileagePhoto) damages.push({ type: 'PROOF_MILEAGE', description: `KM: ${mileage}`, photoUrl: mileagePhoto, locationOnCar: 'interior' });
-      if (fuelPhoto) damages.push({ type: 'PROOF_FUEL', description: `Fuel: ${fuelLevel}`, photoUrl: fuelPhoto, locationOnCar: 'interior' });
-      
-      Object.entries(photos).forEach(([side, uri]) => {
-        if (uri) {
-          damages.push({ type: 'CHECKIN_PHOTO', description: `Photo ${side}`, photoUrl: uri, locationOnCar: side });
-        }
-      });
+      const payload = {
+          mileage: Number(mileage),
+          fuelLevel,
+          signature,
+          damages: damages.map(d => ({
+              type: d.reason,
+              description: d.location,
+              photoUrl: d.photoUrl,
+              locationOnCar: d.side,
+              xPosition: d.x,
+              yPosition: d.y
+          }))
+      };
 
-      // Using the admin check-in API for now or a similar customer one if available
-      // Note: customers might need a specific endpoint, but let's try the existing one logic
-      await api.reportDamage(Number(id), {
-          description: `Self Check-in completed. Mileage: ${mileage}, Fuel: ${fuelLevel}`,
-          type: 'Check-in',
-      });
+      // Call the API
+      await api.post(`/api/mobile/bookings/${id}/checkin`, payload);
 
       Alert.alert('Erfolg', 'Check-in erfolgreich abgeschlossen! Gute Fahrt.', [
         { text: 'OK', onPress: () => router.replace(`/booking/${id}`) }
       ]);
     } catch (err) {
+      console.error(err);
       Alert.alert('Fehler', 'Check-in fehlgeschlagen.');
     } finally {
       setSubmitting(false);
     }
   }
 
+  const nextStep = () => {
+    const idx = STEPS.indexOf(step);
+    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+  };
+
+  const prevStep = () => {
+    const idx = STEPS.indexOf(step);
+    if (idx > 0) setStep(STEPS[idx - 1]);
+  };
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={colors.tint} /></View>;
   if (!booking) return <View style={styles.center}><Text>Buchung nicht gefunden.</Text></View>;
 
   const car = booking.car;
+  const progress = ((STEPS.indexOf(step)) / (STEPS.length - 1)) * 100;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+      {/* Header with Progress */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={prevStep} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Self Check-in</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Self Check-in</Text>
+          <Text style={styles.stepIndicator}>Schritt {STEPS.indexOf(step) + 1} von {STEPS.length}</Text>
+        </View>
         <View style={{ width: 40 }} />
+      </View>
+      
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, { width: `${progress}%`, backgroundColor: colors.tint }]} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -219,17 +266,26 @@ export default function CheckInScreen() {
           <View style={styles.stepContainer}>
             <Ionicons name="speedometer-outline" size={48} color={colors.tint} />
             <Text style={styles.title}>Kilometerstand</Text>
-            <Text style={styles.label}>Aktueller Stand (km)</Text>
-            <TextInput
-              style={[styles.input, { borderColor: colors.border, color: colors.text }]}
-              value={mileage}
-              onChangeText={setMileage}
-              keyboardType="numeric"
-              placeholder="z.B. 12450"
-              placeholderTextColor={colors.tabIconDefault}
-            />
+            <Text style={styles.description}>Fotografieren Sie das Dashboard und bestätigen Sie den Wert.</Text>
+            
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+                value={mileage}
+                onChangeText={setMileage}
+                keyboardType="numeric"
+                placeholder="00000"
+              />
+              {recognizing && (
+                <View style={styles.ocrLoader}>
+                  <ActivityIndicator size="small" color={colors.tint} />
+                  <Text style={styles.ocrText}>Lese...</Text>
+                </View>
+              )}
+            </View>
+
             <TouchableOpacity 
-              style={[styles.photoBtn, { borderColor: colors.tint }]} 
+              style={[styles.photoBtn, mileagePhoto && { borderColor: '#22c55e', backgroundColor: '#f0fdf4' }]} 
               onPress={() => takePhoto('mileage')}
             >
               {mileagePhoto ? (
@@ -237,14 +293,14 @@ export default function CheckInScreen() {
               ) : (
                 <>
                   <Ionicons name="camera" size={24} color={colors.tint} />
-                  <Text style={{ color: colors.tint, fontWeight: 'bold' }}>FOTO VOM DASHBOARD</Text>
+                  <Text style={{ color: colors.tint, fontWeight: 'bold' }}>DASHBOARD FOTO</Text>
                 </>
               )}
             </TouchableOpacity>
             <TouchableOpacity 
-              disabled={!mileage || !mileagePhoto}
-              style={[styles.mainBtn, { backgroundColor: colors.text, opacity: (!mileage || !mileagePhoto) ? 0.5 : 1 }]} 
-              onPress={() => setStep('FUEL')}
+              disabled={!mileage || !mileagePhoto || recognizing}
+              style={[styles.mainBtn, { backgroundColor: colors.text, opacity: (!mileage || !mileagePhoto || recognizing) ? 0.5 : 1 }]} 
+              onPress={nextStep}
             >
               <Text style={[styles.mainBtnText, { color: colors.background }]}>WEITER</Text>
             </TouchableOpacity>
@@ -255,6 +311,8 @@ export default function CheckInScreen() {
           <View style={styles.stepContainer}>
             <Ionicons name="water-outline" size={48} color={colors.tint} />
             <Text style={styles.title}>Tankfüllung</Text>
+            <Text style={styles.description}>Wählen Sie den Füllstand und machen Sie ein Foto der Anzeige.</Text>
+            
             <View style={styles.fuelGrid}>
               {['Full', '3/4', '1/2', '1/4', 'Empty'].map(level => (
                 <TouchableOpacity 
@@ -266,12 +324,13 @@ export default function CheckInScreen() {
                     fuelLevel === level && { backgroundColor: colors.tint, borderColor: colors.tint }
                   ]}
                 >
-                  <Text style={[styles.fuelChipText, fuelLevel === level && { color: '#fff' }]}>{level}</Text>
+                  <Text style={[styles.fuelChipText, fuelLevel === level && { color: '#fff' }]}>{level === 'Full' ? 'VOLL' : level === 'Empty' ? 'LEER' : level}</Text>
                 </TouchableOpacity>
               ))}
             </View>
+
             <TouchableOpacity 
-              style={[styles.photoBtn, { borderColor: colors.tint }]} 
+              style={[styles.photoBtn, fuelPhoto && { borderColor: '#22c55e', backgroundColor: '#f0fdf4' }]} 
               onPress={() => takePhoto('fuel')}
             >
               {fuelPhoto ? (
@@ -279,49 +338,62 @@ export default function CheckInScreen() {
               ) : (
                 <>
                   <Ionicons name="camera" size={24} color={colors.tint} />
-                  <Text style={{ color: colors.tint, fontWeight: 'bold' }}>FOTO TANKANZEIGE</Text>
+                  <Text style={{ color: colors.tint, fontWeight: 'bold' }}>TANKANZEIGE FOTO</Text>
                 </>
               )}
             </TouchableOpacity>
             <TouchableOpacity 
               disabled={!fuelPhoto}
               style={[styles.mainBtn, { backgroundColor: colors.text, opacity: !fuelPhoto ? 0.5 : 1 }]} 
-              onPress={() => setStep('PHOTOS')}
+              onPress={nextStep}
             >
               <Text style={[styles.mainBtnText, { color: colors.background }]}>WEITER</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {step === 'PHOTOS' && (
+        {step.startsWith('DAMAGE_') && (
           <View style={styles.stepContainer}>
-            <Ionicons name="camera-outline" size={48} color={colors.tint} />
-            <Text style={styles.title}>Fahrzeug-Fotos</Text>
-            <Text style={styles.description}>Bitte fotografieren Sie das Fahrzeug von allen vier Seiten.</Text>
+            <Ionicons name="car-outline" size={48} color={colors.tint} />
+            <Text style={styles.title}>
+              {step === 'DAMAGE_FRONT' ? 'Vorne' : step === 'DAMAGE_BACK' ? 'Hinten' : step === 'DAMAGE_LEFT' ? 'Links' : 'Rechts'}
+            </Text>
+            <Text style={styles.description}>Markieren Sie eventuelle Schäden auf dem Bild.</Text>
             
-            <View style={styles.photoGrid}>
-              {['front', 'back', 'left', 'right'].map(side => (
-                <TouchableOpacity 
-                  key={side} 
-                  style={[styles.gridPhotoBtn, { borderColor: colors.border }]} 
-                  onPress={() => takePhoto(side)}
-                >
-                  {photos[side] ? (
-                    <Image source={{ uri: photos[side]! }} style={styles.gridPhoto} />
-                  ) : (
-                    <>
-                      <Ionicons name="camera" size={20} color={colors.tabIconDefault} />
-                      <Text style={styles.gridPhotoLabel}>{side.toUpperCase()}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              ))}
+            <DamageSelector 
+              viewImages={viewImages}
+              damages={damages}
+              activeSide={step.replace('DAMAGE_', '').toLowerCase() as any}
+              onAddDamage={(d) => setDamages([...damages, d])}
+              onRemoveDamage={(id) => setDamages(damages.filter(d => d.id !== id))}
+            />
+
+            <TouchableOpacity 
+              style={[styles.mainBtn, { backgroundColor: colors.text, marginTop: 30 }]} 
+              onPress={nextStep}
+            >
+              <Text style={[styles.mainBtnText, { color: colors.background }]}>NÄCHSTE SEITE</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {step === 'SIGNATURE' && (
+          <View style={styles.stepContainer}>
+            <Ionicons name="create-outline" size={48} color={colors.tint} />
+            <Text style={styles.title}>Unterschrift</Text>
+            <Text style={styles.description}>Bitte unterschreiben Sie das Protokoll auf dem Display.</Text>
+            
+            <View style={styles.signatureBox}>
+              <SignaturePad 
+                onSave={setSignature} 
+                onClear={() => setSignature(null)} 
+              />
             </View>
 
             <TouchableOpacity 
-              disabled={!photos.front || !photos.back || !photos.left || !photos.right}
-              style={[styles.mainBtn, { backgroundColor: colors.text, opacity: (!photos.front || !photos.back || !photos.left || !photos.right) ? 0.5 : 1 }]} 
-              onPress={() => setStep('CONFIRM')}
+              disabled={!signature}
+              style={[styles.mainBtn, { backgroundColor: colors.text, opacity: !signature ? 0.5 : 1, marginTop: 20 }]} 
+              onPress={nextStep}
             >
               <Text style={[styles.mainBtnText, { color: colors.background }]}>WEITER</Text>
             </TouchableOpacity>
@@ -331,12 +403,28 @@ export default function CheckInScreen() {
         {step === 'CONFIRM' && (
           <View style={styles.stepContainer}>
             <Ionicons name="checkmark-circle-outline" size={48} color="#22c55e" />
-            <Text style={styles.title}>Abschließen</Text>
+            <Text style={styles.title}>Zusammenfassung</Text>
+            <Text style={styles.description}>Prüfen Sie Ihre Angaben ein letztes Mal.</Text>
+            
             <View style={[styles.summaryBox, { backgroundColor: colors.card }]}>
-              <Text style={styles.summaryTitle}>Zusammenfassung</Text>
-              <Text style={styles.summaryItem}>KM: {mileage} km</Text>
-              <Text style={styles.summaryItem}>Tank: {fuelLevel}</Text>
-              <Text style={styles.summaryItem}>Fotos: 4/4 vorhanden</Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>KM-Stand:</Text>
+                <Text style={styles.summaryValue}>{mileage} km</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Tankfüllung:</Text>
+                <Text style={styles.summaryValue}>{fuelLevel}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Gemeldete Schäden:</Text>
+                <Text style={styles.summaryValue}>{damages.length}</Text>
+              </View>
+              {signature && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Unterschrift:</Text>
+                  <Text style={[styles.summaryValue, { color: '#22c55e' }]}>Vorhanden</Text>
+                </View>
+              )}
             </View>
 
             <TouchableOpacity 
@@ -349,7 +437,7 @@ export default function CheckInScreen() {
                 color={agbAccepted ? colors.tint : colors.tabIconDefault} 
               />
               <Text style={styles.checkboxText}>
-                Ich bestätige den Fahrzeugzustand und akzeptiere die AGB.
+                Ich bestätige die Richtigkeit der Angaben und akzeptiere die Mietbedingungen.
               </Text>
             </TouchableOpacity>
 
@@ -361,7 +449,7 @@ export default function CheckInScreen() {
               {submitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={[styles.mainBtnText, { color: '#fff' }]}>CHECK-IN ABSCHLIESSEN</Text>
+                <Text style={[styles.mainBtnText, { color: '#fff' }]}>JETZT ABSCHLIESSEN</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -382,30 +470,29 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   backBtn: { p: 8 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  scrollContent: { padding: 16, paddingBottom: 60 },
-  stepContainer: { alignItems: 'center', width: '100%' },
+  headerTitleContainer: { alignItems: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: 'bold' },
+  stepIndicator: { fontSize: 10, color: '#888', fontWeight: 'bold', textTransform: 'uppercase' },
+  progressBarContainer: { height: 4, width: '100%', backgroundColor: '#eee' },
+  progressBar: { height: '100%' },
+  scrollContent: { padding: 16, paddingBottom: 100 },
+  stepContainer: { alignItems: 'center', width: '100%', paddingTop: 10 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   
-  heroContainer: { width: '100%', height: 220, marginBottom: 20, position: 'relative' },
+  heroContainer: { width: '100%', height: 200, marginBottom: 20, position: 'relative' },
   carHero: { width: '100%', height: '100%', borderRadius: 24 },
   plateBadge: { 
     position: 'absolute', 
     bottom: 12, 
     right: 12, 
     backgroundColor: '#fff', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#eee'
   },
-  plateText: { fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+  plateText: { fontWeight: 'bold', fontSize: 12, letterSpacing: 0.5 },
 
   contentCard: { width: '100%' },
   title: { fontSize: 26, fontWeight: '800', textAlign: 'left', marginBottom: 4 },
@@ -441,7 +528,7 @@ const styles = StyleSheet.create({
   },
   navBtnText: { fontSize: 13, fontWeight: 'bold' },
 
-  description: { fontSize: 14, textAlign: 'center', color: '#666', marginBottom: 20 },
+  description: { fontSize: 14, textAlign: 'center', color: '#666', marginBottom: 20, paddingHorizontal: 20 },
   infoBox: {
     flexDirection: 'row',
     padding: 16,
@@ -450,13 +537,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoText: { flex: 1, fontSize: 14, fontWeight: '500' },
+  inputWrapper: { width: '100%', position: 'relative' },
+  ocrLoader: { position: 'absolute', right: 20, top: 15, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', padding: 5, borderRadius: 8 },
+  ocrText: { fontSize: 10, color: '#2563eb', fontWeight: 'bold' },
   mainBtn: {
     width: '100%',
     height: 58,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -494,9 +584,11 @@ const styles = StyleSheet.create({
   gridPhotoBtn: { width: '47%', height: 120, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   gridPhoto: { width: '100%', height: '100%' },
   gridPhotoLabel: { fontSize: 10, fontWeight: 'bold', color: '#888' },
-  summaryBox: { width: '100%', padding: 20, borderRadius: 20, marginTop: 20 },
-  summaryTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
-  summaryItem: { fontSize: 14, marginBottom: 4, color: '#666' },
-  checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 30, paddingHorizontal: 10 },
+  signatureBox: { width: '100%', marginTop: 10 },
+  summaryBox: { width: '100%', padding: 20, borderRadius: 20, marginTop: 10, gap: 12 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLabel: { fontSize: 14, color: '#666' },
+  summaryValue: { fontSize: 14, fontWeight: 'bold', color: '#333' },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20, paddingHorizontal: 10 },
   checkboxText: { flex: 1, fontSize: 13, color: '#666' },
 });

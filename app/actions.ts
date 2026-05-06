@@ -259,6 +259,8 @@ export async function createCustomer(formData: FormData) {
             licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
             dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
             notes: formData.get('notes') as string || null,
+            licensePhotoUrl: formData.get('licensePhotoUrl') as string || null,
+            idPhotoUrl: formData.get('idPhotoUrl') as string || null,
         };
 
         const customer = await prisma.customer.create({
@@ -290,6 +292,8 @@ export async function updateCustomer(id: number, formData: FormData) {
             licenseExpiryDate: formData.get('licenseExpiryDate') ? new Date(formData.get('licenseExpiryDate') as string) : null,
             dateOfBirth: formData.get('dateOfBirth') ? new Date(formData.get('dateOfBirth') as string) : null,
             notes: formData.get('notes') as string || null,
+            licensePhotoUrl: formData.get('licensePhotoUrl') as string || null,
+            idPhotoUrl: formData.get('idPhotoUrl') as string || null,
         };
 
         const customer = await prisma.customer.update({

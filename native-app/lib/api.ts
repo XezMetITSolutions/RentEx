@@ -176,6 +176,13 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+  async post(path: string, data: any) {
+    return request(path, {
+      method: 'POST',
+      auth: true,
+      body: JSON.stringify(data),
+    });
+  },
 
   // ── Admin ──
   async adminLogin(email: string, password: string): Promise<StaffSession> {

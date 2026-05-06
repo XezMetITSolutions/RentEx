@@ -8,9 +8,18 @@ interface ImageUploadProps {
     name: string;
     label?: string;
     onUploadSuccess?: (url: string) => void;
+    uploadUrl?: string;
+    accept?: string;
 }
 
-export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeugfoto', onUploadSuccess }: ImageUploadProps) {
+export default function ImageUpload({ 
+    defaultValue = '', 
+    name, 
+    label = 'Fahrzeugfoto', 
+    onUploadSuccess,
+    uploadUrl = '/api/admin/cars/upload',
+    accept = 'image/*'
+}: ImageUploadProps) {
     const [imageUrl, setImageUrl] = useState(defaultValue);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,7 +36,7 @@ export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeug
         formData.append('file', file);
 
         try {
-            const response = await fetch('/api/admin/cars/upload', {
+            const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData,
             });
@@ -53,17 +62,27 @@ export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeug
         setImageUrl('');
     };
 
+    const isPdf = imageUrl?.toLowerCase().endsWith('.pdf');
+
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
 
             <div className="flex flex-col gap-4">
                 {/* Image Preview or Placeholder */}
-                <div className="relative group w-full aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center overflow-hidden transition-all hover:border-red-400 dark:hover:border-red-500">
+                <div className="relative group w-full aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center overflow-hidden transition-all hover:border-blue-400 dark:hover:border-blue-500">
                     {imageUrl ? (
                         <>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={imageUrl} alt="Upload Preview" className="w-full h-full object-cover" />
+                            {isPdf ? (
+                                <div className="flex flex-col items-center gap-2 p-4">
+                                    <FileText className="w-12 h-12 text-blue-500" />
+                                    <span className="text-xs font-medium truncate max-w-[200px]">{imageUrl.split('/').pop()}</span>
+                                    <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 underline">PDF ansehen</a>
+                                </div>
+                            ) : (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={imageUrl} alt="Upload Preview" className="w-full h-full object-cover" />
+                            )}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <button
                                     type="button"
@@ -85,17 +104,17 @@ export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeug
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                            className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                         >
                             <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                                 {isUploading ? (
-                                    <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+                                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                                 ) : (
                                     <Upload className="w-8 h-8" />
                                 )}
                             </div>
-                            <span className="text-sm font-medium">Bilder vom Computer wählen</span>
-                            <span className="text-xs">PNG, JPG bis 10MB</span>
+                            <span className="text-sm font-medium">Datei wählen</span>
+                            <span className="text-xs">{accept.replace('image/*', 'PNG, JPG').replace('.pdf', ', PDF')}</span>
                         </button>
                     )}
                 </div>
@@ -111,8 +130,8 @@ export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeug
                             name={name}
                             value={imageUrl}
                             onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="Oder Bild-URL hier einfügen..."
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-red-500 dark:text-white"
+                            placeholder="Oder URL hier einfügen..."
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
                         />
                     </div>
                 </div>
@@ -127,7 +146,7 @@ export default function ImageUpload({ defaultValue = '', name, label = 'Fahrzeug
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/*"
+                accept={accept}
                 className="hidden"
             />
         </div>
