@@ -94,20 +94,20 @@ export default function CompetitorPricingPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Konkurrenzbewertung</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Überwachen und vergleichen Sie die Preise von Wettbewerbern</p>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col items-end gap-2">
                     <button
                         onClick={handleScrape}
                         disabled={scraping}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-medium transition-all"
                     >
                         <RefreshCw className={`h-4 w-4 ${scraping ? 'animate-spin' : ''}`} />
-                        {scraping ? 'Scraping...' : 'Web-Scraping starten'}
+                        {scraping ? 'Scraping läuft...' : 'Preise jetzt abrufen'}
                     </button>
                     {lastScrapedAt && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            Zuletzt aktualisiert: {new Date(lastScrapedAt).toLocaleString('de-AT')}
-                        </div>
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            Zuletzt: {new Date(lastScrapedAt).toLocaleString('de-AT')}
+                        </span>
                     )}
                 </div>
             </div>
