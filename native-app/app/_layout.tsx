@@ -13,6 +13,8 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { authenticate, isBiometricEnabled, isBiometricSupported } from '@/lib/biometric';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 
 export {
   ErrorBoundary,
@@ -57,6 +59,7 @@ function RootLayoutNav() {
   const { role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [biometricNeeded, setBiometricNeeded] = useState<boolean | null>(null);
   const [biometricError, setBiometricError] = useState<string | null>(null);
@@ -81,11 +84,11 @@ function RootLayoutNav() {
     if (!biometricNeeded || promptedRef.current) return;
     promptedRef.current = true;
     (async () => {
-      const ok = await authenticate('Bitte entsperren Sie RentEx');
+      const ok = await authenticate(t('lock.prompt'));
       if (ok) {
         setBiometricNeeded(false);
       } else {
-        setBiometricError('Authentifizierung fehlgeschlagen.');
+        setBiometricError(t('lock.failed'));
       }
     })();
   }, [biometricNeeded]);
@@ -137,9 +140,9 @@ function RootLayoutNav() {
           <View style={[lockStyles.lockIcon, { backgroundColor: colors.tint }]}>
             <Ionicons name="lock-closed" size={36} color="#fff" />
           </View>
-          <Text style={lockStyles.title}>RentEx gesperrt</Text>
+          <Text style={lockStyles.title}>{t('lock.title')}</Text>
           <Text style={{ color: colors.tabIconDefault, marginTop: 6, textAlign: 'center', paddingHorizontal: 32 }}>
-            Authentifizieren Sie sich, um fortzufahren.
+            {t('lock.subtitle')}
           </Text>
           {biometricError && (
             <Text style={{ color: '#dc2626', marginTop: 12 }}>{biometricError}</Text>
@@ -148,14 +151,14 @@ function RootLayoutNav() {
             onPress={async () => {
               setBiometricError(null);
               promptedRef.current = true;
-              const ok = await authenticate('Bitte entsperren Sie RentEx');
+              const ok = await authenticate(t('lock.prompt'));
               if (ok) setBiometricNeeded(false);
-              else setBiometricError('Authentifizierung fehlgeschlagen.');
+              else setBiometricError(t('lock.failed'));
             }}
             style={[lockStyles.btn, { backgroundColor: colors.tint }]}
           >
             <Ionicons name="finger-print" size={20} color="#fff" />
-            <Text style={lockStyles.btnText}>Entsperren</Text>
+            <Text style={lockStyles.btnText}>{t('lock.unlock')}</Text>
           </TouchableOpacity>
         </View>
       )}

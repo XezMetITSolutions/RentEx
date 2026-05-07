@@ -1,0 +1,93 @@
+{
+  "auth": {
+    "login": "Log in",
+    "logout": "Log out",
+    "logoutConfirm": "Are you sure you want to unsubscribe?",
+    "email": "e-mail",
+    "password": "password",
+    "changePassword": "Change password",
+    "loggingOut": "Log out..."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "name": "Name",
+    "phone": "Telephone",
+    "status": "Status",
+    "info": "Info",
+    "back": "Back"
+  },
+  "lock": {
+    "title": "RentEx locked",
+    "subtitle": "Authenticate yourself to continue.",
+    "unlock": "Unlock",
+    "failed": "Authentication failed.",
+    "prompt": "Please unblock RentEx"
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit profile",
+    "documents": "My documents",
+    "notifications": "Notifications",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "theme": "Theme",
+    "help": "Help & FAQ",
+    "contact": "Contact us",
+    "terms": "General terms and conditions & data protection",
+    "support": "SUPPORT"
+  },
+  "booking": {
+    "title": "Booking",
+    "pickup": "Collection",
+    "return": "Return",
+    "duration": "Duration",
+    "day": "Day",
+    "days": "Days",
+    "pickupLocation": "Pick-up location",
+    "returnLocation": "Place of return",
+    "ourPrice": "Our price"
+  },
+  "home": {
+    "findCar": "Find a car.",
+    "period": "Period",
+    "persons": "Persons",
+    "any": "Any",
+    "weekend": "Weekend",
+    "nineSeater": "9-seater",
+    "browseByClass": "Browse by class",
+    "popularVehicles": "Popular vehicles",
+    "all": "All",
+    "rewardsTitle": "KM-GUTHABEN",
+    "rewardsDesc": "Invite friends and earn 250 km free for every successful referral.",
+    "inviteFriends": "Invite friends now",
+    "shareMessage": "Hey, sign up for RentEx and we'll both get 250 km free for our next ride. Download the app: https://rentex.app/invite/1240",
+    "adjustSearch": "Customise search",
+    "howManyPersons": "HOW MANY PEOPLE?",
+    "choosePeriod": "SELECT PERIOD",
+    "pickup": "COLLECTION",
+    "return": "RETURN",
+    "updateSearch": "Update search",
+    "fromPrice": "from {{price}}"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "scanner": "Scan QR code",
+    "activity": "Activity log",
+    "biometricUnavailable": "Biometrics not available",
+    "handover": "Handover",
+    "damage": "Damage",
+    "logbook": "Driver's logbook",
+    "report": "Protocol",
+    "license": "Driving licence",
+    "from": "From",
+    "to": "Until",
+    "total": "Total",
+    "dailyRate": "Tagessatz",
+    "actualReturn": "Tatsächl. Rückgabe",
+    "mileage": "Kilometerstand"
+  }
+}

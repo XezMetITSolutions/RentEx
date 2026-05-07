@@ -20,6 +20,7 @@ import { api, ApiError } from '@/lib/api';
 import type { Car } from '@/lib/types';
 import { formatCurrency, resolveImageUrl } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +36,7 @@ export default function HomeScreen() {
   const colors = Colors[colorScheme];
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,7 +183,7 @@ export default function HomeScreen() {
 
         {/* Greeting Block */}
         <View style={styles.greetingBlock}>
-          <Text style={[styles.greetingName, { color: colors.text }]}>Auto finden.</Text>
+          <Text style={[styles.greetingName, { color: colors.text }]}>{t('home.findCar')}</Text>
         </View>
 
         {/* Interaktif Booking Bar */}
@@ -193,7 +195,7 @@ export default function HomeScreen() {
             >
               <Ionicons name="calendar-outline" size={18} color={colors.tint} />
               <View style={{ marginLeft: 10 }}>
-                <Text style={[styles.searchLabel, { color: colors.textFaint }]}> Zeitraum</Text>
+                <Text style={[styles.searchLabel, { color: colors.textFaint }]}>{t('home.period')}</Text>
                 <Text style={[styles.searchValue, { color: colors.text }]}>{startDate.split(',')[0]} – {endDate.split(',')[0]}</Text>
               </View>
             </TouchableOpacity>
@@ -206,8 +208,8 @@ export default function HomeScreen() {
             >
               <Ionicons name="people-outline" size={18} color={colors.tint} />
               <View style={{ marginLeft: 10 }}>
-                <Text style={[styles.searchLabel, { color: colors.textFaint }]}>Personen</Text>
-                <Text style={[styles.searchValue, { color: colors.text }]}>{seats === 1 ? 'Beliebig' : `${seats}+`}</Text>
+                <Text style={[styles.searchLabel, { color: colors.textFaint }]}>{t('home.persons')}</Text>
+                <Text style={[styles.searchValue, { color: colors.text }]}>{seats === 1 ? t('home.any') : `${seats}+`}</Text>
               </View>
             </TouchableOpacity>
 
@@ -224,7 +226,7 @@ export default function HomeScreen() {
                onPress={() => { setStartDate('Sa. 22'); setEndDate('So. 23'); }}
                style={[styles.chip, { borderColor: colors.border }]}
             >
-              <Text style={[styles.chipText, { color: colors.textMuted }]}>Wochenende</Text>
+              <Text style={[styles.chipText, { color: colors.textMuted }]}>{t('home.weekend')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                onPress={() => { setSeats(9); setCategory('Transporter'); }}
@@ -237,7 +239,7 @@ export default function HomeScreen() {
 
         {/* Category Strip */}
         <View style={{ marginBottom: 8 }}>
-          {renderSectionHeader('FAHRZEUGKLASSEN', 'Nach Klasse stöbern')}
+          {renderSectionHeader(t('home.vehicleClasses') || 'FAHRZEUGKLASSEN', t('home.browseByClass'))}
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryStrip} contentContainerStyle={{ paddingHorizontal: 20 }}>
           {CATEGORIES.map(c => {
@@ -262,7 +264,7 @@ export default function HomeScreen() {
 
         {/* Fleet Grid */}
         <View style={styles.fleetSection}>
-          {renderSectionHeader('FÜR DICH AUSGEWÄHLT', 'Beliebte Fahrzeuge', 'Alle →')}
+          {renderSectionHeader(t('home.selectedForYou') || 'FÜR DICH AUSGEWÄHLT', t('home.popularVehicles'), (t('home.all') || 'Alle') + ' →')}
           {loading ? (
             <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />
           ) : (
@@ -283,7 +285,7 @@ export default function HomeScreen() {
           
           <View style={styles.rewardsHeader}>
             <Ionicons name="star" size={14} color={colors.tint} />
-            <Text style={[styles.rewardsKicker, { color: colors.tint, marginBottom: 0, marginLeft: 6 }]}>KM-GUTHABEN</Text>
+            <Text style={[styles.rewardsKicker, { color: colors.tint, marginBottom: 0, marginLeft: 6 }]}>{t('home.rewardsTitle')}</Text>
           </View>
 
           <View style={styles.kmValueRow}>
@@ -291,7 +293,7 @@ export default function HomeScreen() {
             <Text style={[styles.kmUnit, { color: '#fff', opacity: 0.7 }]}>km</Text>
           </View>
           <Text style={[styles.rewardsDesc, { color: '#fff', opacity: 0.8 }]}>
-            Lade Freunde ein und verdiene 250 km gratis für jede erfolgreiche Empfehlung.
+            {t('home.rewardsDesc')}
           </Text>
           <TouchableOpacity 
             style={[styles.rewardBtn, { backgroundColor: colors.tint }]}

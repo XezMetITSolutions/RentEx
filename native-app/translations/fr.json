@@ -1,0 +1,93 @@
+{
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "logoutConfirm": "Möchten Sie sich wirklich abmelden?",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "changePassword": "Passwort ändern",
+    "loggingOut": "Abmelden…"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "name": "Name",
+    "phone": "Telefon",
+    "status": "Status",
+    "info": "Info",
+    "back": "Zurück"
+  },
+  "lock": {
+    "title": "RentEx gesperrt",
+    "subtitle": "Authentifizieren Sie sich, um fortzufahren.",
+    "unlock": "Entsperren",
+    "failed": "Authentifizierung fehlgeschlagen.",
+    "prompt": "Bitte entsperren Sie RentEx"
+  },
+  "profile": {
+    "title": "Profil",
+    "edit": "Profil bearbeiten",
+    "documents": "Meine Dokumente",
+    "notifications": "Benachrichtigungen",
+    "language": "Sprache",
+    "selectLanguage": "Sprache wählen",
+    "theme": "Theme",
+    "help": "Hilfe & FAQ",
+    "contact": "Kontakt",
+    "terms": "AGB & Datenschutz",
+    "support": "SUPPORT"
+  },
+  "booking": {
+    "title": "Buchung",
+    "pickup": "Abholung",
+    "return": "Rückgabe",
+    "duration": "Dauer",
+    "day": "Tag",
+    "days": "Tage",
+    "pickupLocation": "Abholort",
+    "returnLocation": "Rückgabeort",
+    "ourPrice": "Unser Preis"
+  },
+  "home": {
+    "findCar": "Auto finden.",
+    "period": "Zeitraum",
+    "persons": "Personen",
+    "any": "Beliebig",
+    "weekend": "Wochenende",
+    "nineSeater": "9-Sitzer",
+    "browseByClass": "Nach Klasse stöbern",
+    "popularVehicles": "Beliebte Fahrzeuge",
+    "all": "Alle",
+    "rewardsTitle": "KM-GUTHABEN",
+    "rewardsDesc": "Lade Freunde ein und verdiene 250 km gratis für jede erfolgreiche Empfehlung.",
+    "inviteFriends": "Jetzt Freunde einladen",
+    "shareMessage": "Hey! Melde dich bei RentEx an und wir beide bekommen 250 km gratis für unsere nächste Fahrt. Lade die App herunter: https://rentex.app/invite/1240",
+    "adjustSearch": "Suche anpassen",
+    "howManyPersons": "WIE VIELE PERSONEN?",
+    "choosePeriod": "ZEITRAUM WÄHLEN",
+    "pickup": "ABHOLUNG",
+    "return": "RÜCKGABE",
+    "updateSearch": "Suche aktualisieren",
+    "fromPrice": "ab {{price}}"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "scanner": "QR-Code scannen",
+    "activity": "Aktivitäts-Protokoll",
+    "biometricUnavailable": "Biometrie nicht verfügbar",
+    "handover": "Übergabe",
+    "damage": "Schaden",
+    "logbook": "Fahrtenbuch",
+    "report": "Protokoll",
+    "license": "Führerschein",
+    "from": "Von",
+    "to": "Bis",
+    "total": "Gesamt",
+    "dailyRate": "Tagessatz",
+    "actualReturn": "Tatsächl. Rückgabe",
+    "mileage": "Kilometerstand"
+  }
+}

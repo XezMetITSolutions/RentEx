@@ -55,7 +55,8 @@
           "faceIDPermission": "Mit Face ID entsperren Sie die App schneller."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

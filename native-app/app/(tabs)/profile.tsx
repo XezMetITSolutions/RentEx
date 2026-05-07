@@ -14,8 +14,9 @@ import { useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { useAuth } from '@/lib/auth';
 import { Config } from '@/constants/Config';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 import {
   authenticate,
   isBiometricEnabled,
@@ -27,10 +28,19 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const router = useRouter();
-  const { user, signOut } = useAuth();
+   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const [loggingOut, setLoggingOut] = useState(false);
   const [biometricOn, setBiometricOn] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
+
+  const languages: Record<string, string> = {
+    de: 'Deutsch',
+    en: 'English',
+    tr: 'Türkçe',
+    it: 'Italiano',
+    fr: 'Français',
+  };
 
   useEffect(() => {
     (async () => {
@@ -58,12 +68,29 @@ export default function ProfileScreen() {
         setLoggingOut(false);
       }
     };
-    if (Platform.OS === 'web') {
-      if (window.confirm('Abmelden?')) await doLogout();
+     if (Platform.OS === 'web') {
+      if (window.confirm(t('auth.logout') + '?')) await doLogout();
     } else {
-      Alert.alert('Abmelden', 'Möchten Sie sich wirklich abmelden?', [
-        { text: 'Abbrechen', style: 'cancel' },
-        { text: 'Abmelden', style: 'destructive', onPress: doLogout },
+      Alert.alert(t('auth.logout'), t('auth.logoutConfirm') || 'Möchten Sie sich wirklich abmelden?', [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('auth.logout'), style: 'destructive', onPress: doLogout },
+      ]);
+    }
+  }
+
+  function changeLanguage() {
+    const options = Object.entries(languages).map(([code, name]) => ({
+      text: name,
+      onPress: () => i18n.changeLanguage(code),
+    }));
+
+    if (Platform.OS === 'web') {
+      const code = window.prompt('Sprache wählen (de, en, tr, it, fr)', i18n.language);
+      if (code && languages[code]) i18n.changeLanguage(code);
+    } else {
+      Alert.alert(t('profile.language'), t('profile.selectLanguage') || 'Sprache wählen', [
+        ...options,
+        { text: t('common.cancel'), style: 'cancel' },
       ]);
     }
   }
@@ -125,19 +152,19 @@ export default function ProfileScreen() {
       </View>
 
       <Text style={[styles.sectionTitle, { color: colors.tabIconDefault }]}>KONTO</Text>
-      <MenuItem
+       <MenuItem
         icon="person-outline"
-        label="Profil bearbeiten"
+        label={t('profile.edit')}
         onPress={() => router.push('/profile/edit')}
       />
       <MenuItem
         icon="lock-closed-outline"
-        label="Passwort ändern"
+        label={t('auth.changePassword')}
         onPress={() => router.push('/profile/password')}
       />
       <MenuItem
         icon="document-text-outline"
-        label="Meine Dokumente"
+        label={t('profile.documents')}
         onPress={() => router.push('/profile/documents')}
         value="Führerschein, Ausweis"
       />
@@ -148,18 +175,15 @@ export default function ProfileScreen() {
         label="Benachrichtigungen"
         onPress={() => router.push('/modal')}
       />
-      <MenuItem
+       <MenuItem
         icon="language-outline"
-        label="Sprache"
-        value="Deutsch"
-        onPress={() => {
-          if (Platform.OS === 'web') alert('Sprachauswahl wird in Kürze verfügbar sein.');
-          else Alert.alert('Sprache', 'Sprachauswahl wird in Kürze verfügbar sein.');
-        }}
+        label={t('profile.language')}
+        value={languages[i18n.language] || languages[i18n.language.split('-')[0]] || 'Deutsch'}
+        onPress={changeLanguage}
       />
       <MenuItem
         icon="moon-outline"
-        label="Theme"
+        label={t('profile.theme')}
         value={colorScheme === 'dark' ? 'Dunkel' : 'Hell'}
         onPress={() => {
           if (Platform.OS === 'web') alert('Theme-Umschaltung folgt in Kürze.');
@@ -185,28 +209,28 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      <Text style={[styles.sectionTitle, { color: colors.tabIconDefault }]}>SUPPORT</Text>
+      <Text style={[styles.sectionTitle, { color: colors.tabIconDefault }]}>{t('profile.support') || 'SUPPORT'}</Text>
       <MenuItem
         icon="help-circle-outline"
-        label="Hilfe & FAQ"
+        label={t('profile.help')}
         onPress={() => Linking.openURL('https://rentex.app/faq').catch(() => {})}
       />
       <MenuItem
         icon="mail-outline"
-        label="Kontakt"
+        label={t('profile.contact')}
         value={Config.supportEmail}
         onPress={() => Linking.openURL(`mailto:${Config.supportEmail}`).catch(() => {})}
       />
       <MenuItem
         icon="document-outline"
-        label="AGB & Datenschutz"
+        label={t('profile.terms')}
         onPress={() => Linking.openURL('https://rentex.app/agb').catch(() => {})}
       />
 
       <View style={{ height: 20 }} />
       <MenuItem
         icon="log-out-outline"
-        label={loggingOut ? 'Abmelden…' : 'Abmelden'}
+        label={loggingOut ? t('auth.loggingOut') : t('auth.logout')}
         onPress={handleLogout}
         danger
       />
