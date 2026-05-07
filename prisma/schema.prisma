@@ -538,6 +538,7 @@ model MaintenanceRecord {
   nextDueMileage Int?
   
   invoiceNumber String?
+  invoiceUrl    String?
   notes         String?
   
   createdAt     DateTime      @default(now())

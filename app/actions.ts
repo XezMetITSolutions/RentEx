@@ -387,10 +387,12 @@ export async function createMaintenance(formData: FormData) {
             maintenanceType: formData.get('maintenanceType') as string,
             description: formData.get('description') as string,
             cost: formData.get('cost') ? Number(formData.get('cost')) : null,
+            mileage: formData.get('mileage') ? Number(formData.get('mileage')) : null,
             performedBy: formData.get('performedBy') as string || null,
             performedDate: formData.get('performedDate') ? new Date(formData.get('performedDate') as string) : new Date(),
-            nextMaintenanceDate: formData.get('nextMaintenanceDate') ? new Date(formData.get('nextMaintenanceDate') as string) : null,
-            currentMileage: formData.get('currentMileage') ? Number(formData.get('currentMileage')) : null,
+            nextDueDate: formData.get('nextDueDate') ? new Date(formData.get('nextDueDate') as string) : null,
+            invoiceUrl: formData.get('invoiceUrl') as string || null,
+            notes: formData.get('notes') as string || null,
         };
 
         await prisma.maintenanceRecord.create({
@@ -609,7 +611,17 @@ export async function fixDatabaseSchema() {
             END $$;
         `);
 
-        // 3. Drop the many-to-many join table if it exists
+        // 3. Add invoiceUrl column to MaintenanceRecord if it doesn't exist
+        await prisma.$executeRawUnsafe(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='MaintenanceRecord' AND column_name='invoiceUrl') THEN
+                    ALTER TABLE "MaintenanceRecord" ADD COLUMN "invoiceUrl" TEXT;
+                END IF;
+            END $$;
+        `);
+
+        // 4. Drop the many-to-many join table if it exists
         await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "_CarOptions";`);
         await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "_CarToOption";`);
 

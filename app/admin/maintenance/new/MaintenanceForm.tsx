@@ -1,8 +1,10 @@
 'use client';
 
 import { createMaintenance } from '@/app/actions';
-import { Wrench, Calendar, DollarSign, Save, FileText, Activity } from 'lucide-react';
+import { Wrench, Calendar, DollarSign, Save, FileText, Activity, Search, FileUp } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useMemo } from 'react';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 type Car = {
     id: number;
@@ -10,8 +12,20 @@ type Car = {
     model: string;
     plate: string;
 };
-
 export default function MaintenanceForm({ cars }: { cars: Car[] }) {
+    const [carSearch, setCarSearch] = useState('');
+    const [selectedCarId, setSelectedCarId] = useState<number | string>('');
+    const [invoiceUrl, setInvoiceUrl] = useState('');
+
+    const filteredCars = useMemo(() => {
+        const search = carSearch.toLowerCase();
+        return cars.filter(car => 
+            car.brand.toLowerCase().includes(search) || 
+            car.model.toLowerCase().includes(search) || 
+            car.plate.toLowerCase().includes(search)
+        );
+    }, [cars, carSearch]);
+
     return (
         <form action={async (formData) => { await createMaintenance(formData); }} className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
@@ -20,11 +34,27 @@ export default function MaintenanceForm({ cars }: { cars: Car[] }) {
                     Wartungsdetails
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fahrzeug auswählen *</label>
-                        <select name="carId" required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    <div className="md:col-span-2 space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fahrzeug auswählen *</label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input 
+                                type="text"
+                                placeholder="Nach Kennzeichen, Marke oder Modell suchen..."
+                                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white mb-1"
+                                value={carSearch}
+                                onChange={(e) => setCarSearch(e.target.value)}
+                            />
+                        </div>
+                        <select 
+                            name="carId" 
+                            required 
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={selectedCarId}
+                            onChange={(e) => setSelectedCarId(e.target.value)}
+                        >
                             <option value="">Bitte wählen...</option>
-                            {cars.map(car => (
+                            {filteredCars.map(car => (
                                 <option key={car.id} value={car.id}>
                                     {car.brand} {car.model} ({car.plate})
                                 </option>
@@ -76,6 +106,21 @@ export default function MaintenanceForm({ cars }: { cars: Car[] }) {
                         <textarea name="notes" rows={3} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white resize-none"></textarea>
                     </div>
                 </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <FileUp className="w-5 h-5 text-gray-400" />
+                    Rechnung hochladen
+                </h2>
+                <ImageUpload 
+                    name="invoiceUrl" 
+                    label="Rechnung / Beleg (PDF oder Bild)" 
+                    uploadUrl="/api/admin/maintenance/upload"
+                    accept="image/*,.pdf"
+                    onUploadSuccess={(url) => setInvoiceUrl(url)}
+                />
+                <input type="hidden" name="invoiceUrl" value={invoiceUrl} />
             </div>
 
             <div className="flex items-center justify-end gap-4 pt-4">
