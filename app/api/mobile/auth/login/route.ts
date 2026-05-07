@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth';
 import { signToken } from '@/lib/mobileAuth';
+import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +12,15 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json({ error: 'E-Mail und Passwort erforderlich.' }, { status: 400 });
+    }
+
+    const ip = getClientIp(req);
+    const rl = rateLimit(`mobile-login:${ip}:${email}`, RATE_LIMITS.AUTH_LOGIN);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: rateLimitErrorMessage(rl) },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+      );
     }
 
     const customer = await prisma.customer.findUnique({ where: { email } });

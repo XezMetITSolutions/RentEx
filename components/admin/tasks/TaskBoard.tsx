@@ -7,6 +7,7 @@ import { Plus, Clock, CheckCircle, PlayCircle, Circle } from 'lucide-react';
 import TaskCard from './TaskCard';
 import { updateTaskStatus } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface TaskBoardProps {
     initialTasks: any[];
@@ -54,7 +55,7 @@ export default function TaskBoard({ initialTasks }: TaskBoardProps) {
             console.error('Failed to update task status:', error);
             // Rollback on error
             setTasks(initialTasks);
-            alert('Fehler beim Aktualisieren des Status');
+            toast.error('Fehler beim Aktualisieren des Status');
         }
     };
 

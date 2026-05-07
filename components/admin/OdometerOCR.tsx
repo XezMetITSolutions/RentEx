@@ -4,6 +4,7 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Loader2 } from 'lucide-react';
 import { detectMileageFromImage } from '@/lib/ocr';
+import { toast } from 'sonner';
 
 interface OdometerOCRProps {
     onDetected: (mileage: string) => void;
@@ -24,11 +25,11 @@ export default function OdometerOCR({ onDetected, className }: OdometerOCRProps)
             if (mileage) {
                 onDetected(mileage);
             } else {
-                alert('Kilometerstand konnte nicht erkannt werden. Bitte deutlichere Aufnahme machen oder manuell eingeben.');
+                toast.error('Kilometerstand konnte nicht erkannt werden. Bitte deutlichere Aufnahme machen oder manuell eingeben.');
             }
         } catch (error) {
             console.error('OCR Error:', error);
-            alert('Fehler bei der Texterkennung');
+            toast.error('Fehler bei der Texterkennung');
         } finally {
             setIsLoading(false);
         }

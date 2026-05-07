@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
+import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   const customerId = getAuthCustomerId(req);
   if (!customerId) {
     return NextResponse.json({ error: 'Nicht angemeldet.' }, { status: 401 });
+  }
+
+  const ip = getClientIp(req);
+  const rl = rateLimit(`mobile-change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: rateLimitErrorMessage(rl) },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
   }
 
   const body = await req.json().catch(() => null);

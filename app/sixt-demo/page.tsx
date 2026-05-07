@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const categories = [
   { id: 'sedan', label: 'Limousine', icon: '🚗' },
@@ -33,7 +34,7 @@ export default function SixtDemo() {
       setResults(data);
     } catch (err) {
       console.error(err);
-      alert('Sorgulama sırasında bir hata oluştu.');
+      toast.error('Sorgulama sırasında bir hata oluştu.');
     } finally {
       setLoading(false);
     }

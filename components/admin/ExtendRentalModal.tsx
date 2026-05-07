@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Calendar, Plus, Clock, Euro, X } from 'lucide-react';
 import { format, addDays, differenceInDays } from 'date-fns';
 import { extendRental } from '@/app/actions/extend-rental';
+import { toast } from 'sonner';
 
 export default function ExtendRentalModal({ rental, onClose }: { rental: any, onClose: () => void }) {
     const [newDate, setNewDate] = useState(format(addDays(new Date(rental.endDate), 1), 'yyyy-MM-dd'));
@@ -21,7 +22,7 @@ export default function ExtendRentalModal({ rental, onClose }: { rental: any, on
             await extendRental(rental.id, newDate, extraCost);
             onClose();
         } catch (error) {
-            alert('Fehler beim Verlängern');
+            toast.error('Fehler beim Verlängern');
         } finally {
             setIsSubmitting(false);
         }

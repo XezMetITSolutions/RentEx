@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/adminAuth";
+import { hashPassword } from "@/lib/auth";
 
 // GET /api/admin/staff
 export async function GET() {
@@ -36,10 +37,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Fehlende Pflichtfelder" }, { status: 400 });
         }
 
-        const { scryptSync, randomBytes } = await import("crypto");
-        const salt = randomBytes(16).toString("hex");
-        const hash = scryptSync(password, salt, 64).toString("hex");
-        const passwordHash = `${salt}:${hash}`;
+        const passwordHash = hashPassword(password);
 
         const staff = await prisma.staff.create({
             data: {

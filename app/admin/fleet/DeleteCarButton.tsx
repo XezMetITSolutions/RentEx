@@ -3,6 +3,7 @@
 import { Trash2, Loader2 } from 'lucide-react';
 import { useTransition } from 'react';
 import { deleteCar } from '@/app/actions';
+import { toast } from 'sonner';
 
 export function DeleteCarButton({ carId }: { carId: number }) {
     const [isPending, startTransition] = useTransition();
@@ -12,7 +13,7 @@ export function DeleteCarButton({ carId }: { carId: number }) {
             startTransition(async () => {
                 const result = await deleteCar(carId);
                 if (!result.success) {
-                    alert(result.error);
+                    toast.error(result.error);
                 }
             });
         }

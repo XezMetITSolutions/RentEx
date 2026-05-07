@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import {
     Folder,
@@ -53,9 +54,9 @@ export default function CheckInSetupPage() {
             await assignTemplateToCars(selectedCarIds, selectedFolder);
             await loadData();
             setSelectedCarIds([]);
-            alert("Erfolgreich gespeichert!");
+            toast.success('Erfolgreich gespeichert!');
         } catch (error) {
-            alert("Fehler beim Speichern");
+            toast.error('Fehler beim Speichern');
         } finally {
             setSaving(false);
         }

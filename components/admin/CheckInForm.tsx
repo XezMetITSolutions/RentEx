@@ -24,6 +24,7 @@ import SignaturePad from '@/components/admin/SignaturePad';
 import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
 import { performCheckIn } from '@/app/actions/check-in';
 import { detectMileageFromImage } from '@/lib/ocr';
+import { toast } from 'sonner';
 
 type Step = 'SUMMARY' | 'MILEAGE' | 'FUEL' | 'DAMAGE_FRONT' | 'DAMAGE_BACK' | 'DAMAGE_LEFT' | 'DAMAGE_RIGHT' | 'SIGNATURE';
 
@@ -137,7 +138,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
             }
         } catch (error) {
             console.error('Upload Error:', error);
-            alert('Upload fehlgeschlagen - Das Bild ist evtl. zu groß.');
+            toast.error('Upload fehlgeschlagen — das Bild ist evtl. zu groß.');
             setIsRecognizing(false);
         } finally {
             setUploadingPhoto(null);
@@ -177,7 +178,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
             router.push(`/admin/reservations/${rental.id}`);
         } catch (error) {
             console.error(error);
-            alert('Fehler beim Check-In');
+            toast.error('Fehler beim Check-In');
         } finally {
             setIsSubmitting(false);
         }

@@ -1,33 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { getAdminSession } from '@/lib/adminAuth';
+import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         const formData = await request.formData();
         const file = formData.get('pdf') as File;
 
-        if (!file) {
-            return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
+        const v = await validateUpload({
+            file,
+            allowed: UPLOAD_PRESETS.PDF_ONLY,
+            maxBytes: 15 * 1024 * 1024,
+        });
+        if (!v.ok) {
+            return NextResponse.json({ error: v.error }, { status: v.status });
         }
-
-        if (file.type !== 'application/pdf') {
-            return NextResponse.json({ error: 'Nur PDF-Dateien erlaubt' }, { status: 400 });
-        }
-
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+        const { buffer } = v;
 
         // Ensure public directory exists
         const publicDir = path.join(process.cwd(), 'public');
         await mkdir(publicDir, { recursive: true });
 
         const filePath = path.join(publicDir, 'damage-report-template.pdf');
-        await writeFile(filePath, buffer);
-
-        console.log('PDF successfully uploaded to:', filePath);
+        await writeFile(filePath, buffer!);
 
         return NextResponse.json({ success: true, message: 'PDF erfolgreich hochgeladen' });
     } catch (error) {

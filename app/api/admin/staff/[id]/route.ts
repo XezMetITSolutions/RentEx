@@ -1,8 +1,13 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/adminAuth";
+import { hashPassword } from "@/lib/auth";
 
 // GET /api/admin/staff/[id]
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+
     const { id } = await params;
     const staff = await prisma.staff.findUnique({
         where: { id: parseInt(id) },
@@ -15,6 +20,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 // PUT /api/admin/staff/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+
     const { id } = await params;
     try {
         const body = await req.json();
@@ -24,10 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (locationId !== undefined) updateData.locationId = locationId ? parseInt(locationId) : null;
 
         if (password) {
-            const { scryptSync, randomBytes } = await import("crypto");
-            const salt = randomBytes(16).toString("hex");
-            const hash = scryptSync(password, salt, 64).toString("hex");
-            updateData.passwordHash = `${salt}:${hash}`;
+            updateData.passwordHash = hashPassword(password);
         }
 
         const staff = await prisma.staff.update({
@@ -43,7 +48,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/admin/staff/[id]
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+
     const { id } = await params;
+    // Prevent admin from deleting themselves
+    if (session.id === parseInt(id)) {
+        return NextResponse.json({ error: "Eigenes Konto kann nicht gelöscht werden." }, { status: 400 });
+    }
+
     await prisma.staff.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
 }

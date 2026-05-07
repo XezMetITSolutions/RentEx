@@ -3,6 +3,7 @@ import { getAdminSession } from '@/lib/adminAuth';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import prisma from '@/lib/prisma';
+import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
 export async function POST(req: NextRequest) {
     const session = await getAdminSession();
@@ -14,26 +15,24 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
         const file = formData.get('file') as File;
 
-        if (!file) {
-            return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
+        const v = await validateUpload({
+            file,
+            allowed: UPLOAD_PRESETS.IMAGES_ONLY,
+            maxBytes: 5 * 1024 * 1024,
+        });
+        if (!v.ok) {
+            return NextResponse.json({ error: v.error }, { status: v.status });
         }
+        const { buffer, mime } = v;
 
-        if (!file.type.startsWith('image/')) {
-            return NextResponse.json({ error: 'Nur Bilddateien erlaubt' }, { status: 400 });
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            return NextResponse.json({ error: 'Datei zu groß (max 5MB)' }, { status: 400 });
-        }
-
-        const buffer = await file.arrayBuffer();
-        const key = `admin-profiles/${session.id}-${Date.now()}.${file.type.split('/')[1]}`;
+        const ext = mime.split('/')[1];
+        const key = `admin-profiles/${session.id}-${Date.now()}.${ext}`;
 
         const command = new PutObjectCommand({
             Bucket: R2_BUCKET_NAME,
             Key: key,
-            Body: Buffer.from(buffer),
-            ContentType: file.type,
+            Body: buffer!,
+            ContentType: mime,
         });
 
         await r2.send(command);

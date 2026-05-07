@@ -11,6 +11,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { getTemplateMapping } from '@/app/actions/check-in-setup';
+import { toast } from 'sonner';
 
 export interface Damage {
     id: string;
@@ -153,7 +154,7 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
             else throw new Error(data.error || 'Upload failed');
         } catch (error) {
             console.error('Damage Photo Upload Error:', error);
-            alert('Upload fehlgeschlagen - Das Bild ist evtl. zu groß.');
+            toast.error('Upload fehlgeschlagen — das Bild ist evtl. zu groß.');
         } finally {
             setIsUploading(false);
         }

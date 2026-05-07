@@ -599,17 +599,22 @@ model SystemSettings {
 // STAFF / ROLE MANAGEMENT
 // ─────────────────────────────────────────────
 model Staff {
-  id           Int       @id @default(autoincrement())
-  name         String
-  email        String    @unique
-  role         String    // SUPERADMIN | MANAGER | AGENT | DRIVER
-  locationId   Int?
-  location     Location? @relation(fields: [locationId], references: [id])
-  isActive     Boolean   @default(true)
-  passwordHash String
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                   Int       @id @default(autoincrement())
+  name                 String
+  email                String    @unique
+  role                 String    // SUPERADMIN | MANAGER | AGENT | DRIVER
+  locationId           Int?
+  location             Location? @relation(fields: [locationId], references: [id])
+  isActive             Boolean   @default(true)
+  passwordHash         String
+  lastLoginAt          DateTime?
+  // 2FA (TOTP)
+  twoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret      String?   // base32-encoded TOTP secret
+  twoFactorBackupCodes String?   // JSON array of hashed one-time backup codes
+  twoFactorVerifiedAt  DateTime? // when the user last completed 2FA setup
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
 
 // ─────────────────────────────────────────────

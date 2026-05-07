@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { updateRentalStatus } from '@/app/actions/rental-updates';
 import ExtendRentalModal from './ExtendRentalModal';
+import { toast } from 'sonner';
 
 export default function RentalActionsClient({ rental }: { rental: any }) {
     const [showExtendModal, setShowExtendModal] = useState(false);
@@ -28,10 +29,10 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Fehler');
-            alert(data.message || 'Erstattung erfolgreich.');
+            toast.success(data.message || 'Erstattung erfolgreich.');
             window.location.reload();
         } catch (err: any) {
-            alert(`Fehler: ${err.message}`);
+            toast.error(err.message);
         } finally {
             setRefunding(false);
         }
@@ -81,11 +82,11 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                             const input = document.getElementById(`returnMileage-${rental.id}`) as HTMLInputElement;
                             const mileage = parseInt(input.value);
                             if (isNaN(mileage)) {
-                                alert("Bitte gültigen KM-Stand eingeben.");
+                                toast.error('Bitte gültigen KM-Stand eingeben.');
                                 return;
                             }
                             if (mileage < rental.pickupMileage) {
-                                alert(`KM-Stand kann nicht niedriger als bei Abholung (${rental.pickupMileage}) sein.`);
+                                toast.error(`KM-Stand kann nicht niedriger als bei Abholung (${rental.pickupMileage}) sein.`);
                                 return;
                             }
                             if (confirm(`Miete abschließen? KM-Stand: ${mileage}`)) {

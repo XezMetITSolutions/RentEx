@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { updateTaskStatus } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import EditTaskModal from './EditTaskModal';
 
 export default function TaskCard({ task }: { task: any }) {
@@ -39,7 +40,7 @@ export default function TaskCard({ task }: { task: any }) {
             router.refresh();
         } catch (error) {
             console.error('Failed to update task status:', error);
-            alert('Fehler beim Aktualisieren des Status');
+            toast.error('Fehler beim Aktualisieren des Status');
         } finally {
             setIsLoading(false);
         }

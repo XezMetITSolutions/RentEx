@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Phone, Mail, Clock, Globe, Save, X } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function NewLocationPage() {
     const router = useRouter();
@@ -45,7 +46,7 @@ export default function NewLocationPage() {
             router.refresh();
         } catch (error) {
             console.error('Error creating location:', error);
-            alert('Fehler beim Erstellen des Standorts');
+            toast.error('Fehler beim Erstellen des Standorts');
         } finally {
             setLoading(false);
         }

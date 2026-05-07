@@ -3,9 +3,19 @@ import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { signToken } from '@/lib/mobileAuth';
 import { validateName } from '@/lib/nameValidation';
+import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const rl = rateLimit(`mobile-register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: rateLimitErrorMessage(rl) },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+      );
+    }
+
     const body = await req.json().catch(() => null);
     const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : '';
     const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : '';

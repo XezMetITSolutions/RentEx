@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
+import { refundRental } from '@/lib/refunds';
 
 export async function updateProfile(formData: FormData) {
     const customerId = await getSession();
@@ -52,6 +53,20 @@ export async function cancelReservation(formData: FormData) {
     if (!rental) return { error: 'Reservierung nicht gefunden.' };
     if (rental.status !== 'Pending') return { error: 'Nur ausstehende Reservierungen können storniert werden.' };
 
+    // If the rental was already paid, refund through Stripe before cancelling.
+    let refundedAmount = 0;
+    if (rental.paymentStatus === 'Paid') {
+        const refund = await refundRental({
+            rentalId,
+            reason: 'Stornierung durch Kunden',
+            actor: { kind: 'customer', customerId },
+        });
+        if (!refund.ok) {
+            return { error: refund.error };
+        }
+        refundedAmount = refund.amount;
+    }
+
     await prisma.rental.update({
         where: { id: rentalId },
         data: { status: 'Cancelled' },
@@ -61,7 +76,7 @@ export async function cancelReservation(formData: FormData) {
     revalidatePath('/dashboard/rentals/[id]');
     revalidatePath('/dashboard/reservations');
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, refundedAmount };
 }
 
 export async function submitDamageReport(formData: FormData) {

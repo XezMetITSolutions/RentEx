@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Save, Trash2, Calendar, User, AlertTriangle } from 'lucide-react';
 import { updateTask } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface EditTaskModalProps {
     task: any;
@@ -33,7 +34,7 @@ export default function EditTaskModal({ task, onClose }: EditTaskModalProps) {
             router.refresh();
             onClose();
         } catch (error) {
-            alert('Fehler beim Aktualisieren der Aufgabe');
+            toast.error('Fehler beim Aktualisieren der Aufgabe');
         } finally {
             setIsLoading(false);
         }

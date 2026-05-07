@@ -5,6 +5,7 @@ import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import crypto from 'crypto';
 import path from 'path';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
+import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
 export const runtime = 'nodejs';
 
@@ -18,16 +19,15 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const file = formData.get('file') as File;
 
-        if (!file) {
-            return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
+        const v = await validateUpload({
+            file,
+            allowed: UPLOAD_PRESETS.IMAGES_AND_PDF,
+            maxBytes: 15 * 1024 * 1024,
+        });
+        if (!v.ok) {
+            return NextResponse.json({ error: v.error }, { status: v.status });
         }
-
-        if (!file.type.startsWith('image/')) {
-            return NextResponse.json({ error: 'Nur Bilder erlaubt' }, { status: 400 });
-        }
-
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+        const { buffer, mime } = v;
 
         const originalName = file.name || 'document.jpg';
         const fileExtension = path.extname(originalName) || '.jpg';
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
         await r2.send(new PutObjectCommand({
             Bucket: R2_BUCKET_NAME,
             Key: key,
-            Body: buffer,
-            ContentType: file.type,
+            Body: buffer!,
+            ContentType: mime,
         }));
 
         const publicUrl = R2_PUBLIC_URL

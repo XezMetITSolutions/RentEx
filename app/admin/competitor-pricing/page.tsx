@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, RefreshCw, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Competitor {
     id: number;
@@ -57,7 +58,7 @@ export default function CompetitorPricingPage() {
             if (carsRes.ok) setOurCars(await carsRes.json());
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Fehler beim Laden der Daten');
+            toast.error('Fehler beim Laden der Daten');
         } finally {
             setLoading(false);
         }
@@ -70,13 +71,13 @@ export default function CompetitorPricingPage() {
             if (res.ok) {
                 setLastScrapedAt(new Date().toISOString());
                 await loadData();
-                alert('Web-Scraping abgeschlossen!');
+                toast.success('Web-Scraping abgeschlossen!');
             } else {
-                alert('Fehler beim Scrapen');
+                toast.error('Fehler beim Scrapen');
             }
         } catch (error) {
             console.error('Scraping error:', error);
-            alert('Fehler beim Scrapen');
+            toast.error('Fehler beim Scrapen');
         } finally {
             setScraping(false);
         }
@@ -163,7 +164,7 @@ function CompaniesSection({ competitors, onRefresh }: { competitors: Competitor[
 
     const handleAddCompany = async () => {
         if (!newCompany.name) {
-            alert('Firmennamen erforderlich');
+            toast.error('Firmennamen erforderlich');
             return;
         }
 
@@ -178,9 +179,9 @@ function CompaniesSection({ competitors, onRefresh }: { competitors: Competitor[
             if (res.ok) {
                 setNewCompany({ name: '', website: '' });
                 onRefresh();
-                alert('Unternehmen hinzugefügt!');
+                toast.success('Unternehmen hinzugefügt!');
             } else {
-                alert('Fehler beim Hinzufügen');
+                toast.error('Fehler beim Hinzufügen');
             }
         } finally {
             setSaving(false);
@@ -194,10 +195,10 @@ function CompaniesSection({ competitors, onRefresh }: { competitors: Competitor[
             const res = await fetch(`/api/admin/competitor-pricing/companies/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 onRefresh();
-                alert('Gelöscht!');
+                toast.success('Gelöscht!');
             }
         } catch (error) {
-            alert('Fehler beim Löschen');
+            toast.error('Fehler beim Löschen');
         }
     };
 
@@ -261,7 +262,7 @@ function PricesSection({ prices, competitors, onRefresh }: { prices: CompetitorP
 
     const handleAddPrice = async () => {
         if (!formData.brand || !formData.model || !formData.dailyRate) {
-            alert('Alle Felder erforderlich');
+            toast.error('Alle Felder erforderlich');
             return;
         }
 
@@ -280,7 +281,7 @@ function PricesSection({ prices, competitors, onRefresh }: { prices: CompetitorP
             if (res.ok) {
                 setFormData({ brand: '', model: '', dailyRate: '' });
                 onRefresh();
-                alert('Preis hinzugefügt!');
+                toast.success('Preis hinzugefügt!');
             }
         } finally {
             setSaving(false);

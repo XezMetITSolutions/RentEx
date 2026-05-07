@@ -15,13 +15,15 @@ import {
     Wallet,
     Zap,
     ExternalLink,
-    Upload
+    Upload,
+    ShieldCheck
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useState, useTransition, useRef } from 'react';
 import Image from 'next/image';
 import { updateSystemSetting } from '@/app/actions';
 import { registerKasseWithBMF } from '@/app/actions/admin';
+import { toast } from 'sonner';
 
 const sections = [
     { id: 'profile', label: 'Profil', icon: User },
@@ -49,7 +51,7 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                 setSettings(prev => ({ ...prev, [key]: value }));
                 // Opsiyonel: Başarı mesajı göster
             } else {
-                alert('Fehler beim Speichern');
+                toast.error('Fehler beim Speichern');
             }
         });
     };
@@ -70,7 +72,7 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                 admin_email: formData.get('email') as string,
             }));
 
-            alert('Profil erfolgreich gespeichert!');
+            toast.success('Profil erfolgreich gespeichert!');
         });
     };
 
@@ -90,16 +92,16 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
 
             if (!response.ok) {
                 const error = await response.json();
-                alert(`Fehler: ${error.error}`);
+                toast.error(error.error || 'Upload-Fehler');
                 return;
             }
 
             const data = await response.json();
             setSettings(prev => ({ ...prev, admin_profile_picture: data.imageUrl }));
-            alert('Profilbild erfolgreich aktualisiert!');
+            toast.success('Profilbild erfolgreich aktualisiert!');
         } catch (error) {
             console.error('Picture upload error:', error);
-            alert('Fehler beim Hochladen des Bildes');
+            toast.error('Fehler beim Hochladen des Bildes');
         } finally {
             setIsUploadingPicture(false);
             if (fileInputRef.current) {
@@ -143,6 +145,17 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                         <div className="flex items-center gap-3">
                             <FileText className="h-5 w-5 text-gray-400" />
                             PDF Mapping
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </a>
+
+                    <a
+                        href="/admin/settings/2fa"
+                        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <ShieldCheck className="h-5 w-5 text-gray-400" />
+                            Zwei-Faktor-Auth.
                         </div>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                     </a>
@@ -382,10 +395,10 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                                         startTransition(async () => {
                                             const res = await registerKasseWithBMF();
                                             if (res.success) {
-                                                alert(res.message);
+                                                toast.success(res.message);
                                                 window.location.reload();
                                             } else {
-                                                alert(res.error);
+                                                toast.error(res.error);
                                             }
                                         });
                                     }

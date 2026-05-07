@@ -6,6 +6,7 @@ import {
     ExternalLink, Clock, DollarSign, Filter, User, Upload, Trash2, Loader2
 } from "lucide-react";
 import { detectStrafzettelData } from "@/lib/ocr";
+import { toast } from "sonner";
 
 type Status = "OPEN" | "FORWARDED" | "PAID" | "DISPUTED";
 
@@ -198,11 +199,11 @@ export default function StrafzettelPage() {
                 load();
             } else {
                 const err = await res.json();
-                alert(err.error || 'Fehler beim Speichern');
+                toast.error(err.error || 'Fehler beim Speichern');
             }
         } catch (e) {
             console.error(e);
-            alert('Ein unerwarteter Fehler ist aufgetreten');
+            toast.error('Ein unerwarteter Fehler ist aufgetreten');
         } finally {
             setSaving(false);
         }

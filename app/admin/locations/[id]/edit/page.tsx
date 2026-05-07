@@ -4,6 +4,7 @@ import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Phone, Mail, Clock, Save, X, Trash2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function EditLocationPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: idParam } = use(params);
@@ -54,7 +55,7 @@ export default function EditLocationPage({ params }: { params: Promise<{ id: str
             });
         } catch (error) {
             console.error('Error fetching location:', error);
-            alert('Fehler beim Laden des Standorts');
+            toast.error('Fehler beim Laden des Standorts');
         } finally {
             setLoading(false);
         }
@@ -81,7 +82,7 @@ export default function EditLocationPage({ params }: { params: Promise<{ id: str
             router.refresh();
         } catch (error) {
             console.error('Error updating location:', error);
-            alert('Fehler beim Aktualisieren des Standorts');
+            toast.error('Fehler beim Aktualisieren des Standorts');
         } finally {
             setSaving(false);
         }
@@ -108,7 +109,7 @@ export default function EditLocationPage({ params }: { params: Promise<{ id: str
             router.refresh();
         } catch (error: any) {
             console.error('Error deleting location:', error);
-            alert(error.message || 'Fehler beim Löschen des Standorts');
+            toast.error(error.message || 'Fehler beim Löschen des Standorts');
         } finally {
             setDeleting(false);
         }

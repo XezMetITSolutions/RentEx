@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ReportsData {
     carStats: {
@@ -43,7 +44,7 @@ export default function ReportsView({ data }: { data: ReportsData }) {
             document.body.removeChild(a);
         } catch (error) {
             console.error('Error downloading report:', error);
-            alert('Fehler beim Herunterladen des Reports');
+            toast.error('Fehler beim Herunterladen des Reports');
         } finally {
             setIsDownloading(false);
         }
