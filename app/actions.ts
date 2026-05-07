@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Backward-compatible barrel for the legacy `@/app/actions` import path.
  *
