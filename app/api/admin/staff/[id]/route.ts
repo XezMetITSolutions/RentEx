@@ -1,27 +1,29 @@
 import prisma from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getAdminSession } from "@/lib/adminAuth";
 import { hashPassword } from "@/lib/auth";
+import { apiOk, apiUnauthorized, apiNotFound, apiValidation, apiInternal } from "@/lib/apiResponse";
+import { auditLog } from "@/lib/audit";
 
 // GET /api/admin/staff/[id]
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    if (!session) return apiUnauthorized();
 
     const { id } = await params;
     const staff = await prisma.staff.findUnique({
         where: { id: parseInt(id) },
         include: { location: true },
     });
-    if (!staff) return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
+    if (!staff) return apiNotFound();
     const { passwordHash: _ignored, ...safe } = staff;
-    return NextResponse.json(safe);
+    return apiOk(safe);
 }
 
 // PUT /api/admin/staff/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    if (!session) return apiUnauthorized();
 
     const { id } = await params;
     try {
@@ -40,23 +42,46 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: updateData as Parameters<typeof prisma.staff.update>[0]["data"],
         });
         const { passwordHash: _ignored, ...safe } = staff;
-        return NextResponse.json(safe);
+
+        await auditLog({
+            action: 'STAFF_UPDATED',
+            entityType: 'Staff',
+            entityId: staff.id,
+            actor: { kind: 'admin', id: session.id, name: session.name },
+            description: `Mitarbeiter aktualisiert: ${staff.email}`,
+            metadata: {
+                fieldsChanged: Object.keys(updateData),
+                passwordReset: Boolean(password),
+            },
+        });
+
+        return apiOk(safe);
     } catch (e) {
-        return NextResponse.json({ error: "Fehler beim Aktualisieren" }, { status: 500 });
+        return apiInternal("Fehler beim Aktualisieren");
     }
 }
 
 // DELETE /api/admin/staff/[id]
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
+    if (!session) return apiUnauthorized();
 
     const { id } = await params;
     // Prevent admin from deleting themselves
     if (session.id === parseInt(id)) {
-        return NextResponse.json({ error: "Eigenes Konto kann nicht gelöscht werden." }, { status: 400 });
+        return apiValidation("Eigenes Konto kann nicht gelöscht werden.");
     }
 
+    const target = await prisma.staff.findUnique({ where: { id: parseInt(id) } });
     await prisma.staff.delete({ where: { id: parseInt(id) } });
-    return NextResponse.json({ success: true });
+
+    await auditLog({
+        action: 'STAFF_DELETED',
+        entityType: 'Staff',
+        entityId: parseInt(id),
+        actor: { kind: 'admin', id: session.id, name: session.name },
+        description: `Mitarbeiter gelöscht: ${target?.email ?? id}`,
+    });
+
+    return apiOk({ success: true });
 }

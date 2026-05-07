@@ -124,12 +124,18 @@ model Car {
   options       Option[]
   cartSessions  CartSession[]
   strafzettels  StrafzettelRecord[]
+
+  @@index([status])
+  @@index([locationId])
+  @@index([category])
 }
 
 model CarCategory {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique
-  sortOrder Int     @default(0)
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Location {
@@ -219,6 +225,10 @@ model DamageRecord {
 
   car           Car      @relation(fields: [carId], references: [id])
   rental        Rental?  @relation(fields: [rentalId], references: [id])
+
+  @@index([carId])
+  @@index([rentalId])
+  @@index([status])
 }
 
 /// Finanzamt: Fahrtenbuch pro Fahrzeug (Dienst-/Privatfahrten)
@@ -267,18 +277,23 @@ model Task {
   id            Int      @id @default(autoincrement())
   title         String
   description   String?
-  
+
   priority      String   @default("medium") // low, medium, high, urgent
   status        String   @default("todo")    // todo, in_progress, done
-  
+
   dueDate       DateTime?
   assignedTo    String?  // Username or User ID string
-  
+
   relatedCarId  Int?
   car           Car?     @relation(fields: [relatedCarId], references: [id])
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([assignedTo])
+  @@index([relatedCarId])
+  @@index([dueDate])
 }
 
 model OptionGroup {
@@ -386,6 +401,10 @@ model Customer {
   kmTransfersTo     KmTransfer[]    @relation("KmTransferTo")
   referralsSent     ReferralBonus[] @relation("ReferralFrom")
   referralReceived  ReferralBonus[] @relation("ReferralTo")
+  pushTokens        PushToken[]
+
+  @@index([referredById])
+  @@index([isBlacklisted])
 }
 
 model Rental {
@@ -476,6 +495,13 @@ model Rental {
   strafzettels  StrafzettelRecord[]
   mahnungen     MahnungRecord[]
   options       RentalOption[]
+
+  @@index([carId])
+  @@index([customerId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([startDate, endDate])
+  @@index([isOverdue])
 }
 
 /// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)
@@ -510,77 +536,91 @@ model Invoice {
 model Payment {
   id            Int           @id @default(autoincrement())
   rentalId      Int
-  
+
   amount        Decimal
   paymentMethod String        // Cash, Card, Transfer, Online
   paymentDate   DateTime      @default(now())
-  
+
   transactionId String?
   notes         String?
-  
+
   createdAt     DateTime      @default(now())
-  
+
   rental        Rental        @relation(fields: [rentalId], references: [id])
+
+  @@index([rentalId])
+  @@index([paymentDate])
+  @@index([transactionId])
 }
 
 model MaintenanceRecord {
   id            Int           @id @default(autoincrement())
   carId         Int
-  
+
   maintenanceType String      // Oil Change, Tire Change, Inspection, Repair, Service
   description   String
   cost          Decimal?
   mileage       Int?
-  
+
   performedBy   String?       // Workshop name or technician
   performedDate DateTime
   nextDueDate   DateTime?
   nextDueMileage Int?
-  
+
   invoiceNumber String?
   invoiceUrl    String?
   notes         String?
-  
+
   createdAt     DateTime      @default(now())
-  
+
   car           Car           @relation(fields: [carId], references: [id])
+
+  @@index([carId])
+  @@index([nextDueDate])
 }
 
 model Notification {
   id            Int           @id @default(autoincrement())
-  
+
   type          String        // Email, SMS, Push, System
   recipient     String        // Email or phone number
   subject       String?
   message       String
-  
+
   status        String        // Pending, Sent, Failed
   sentAt        DateTime?
   errorMessage  String?
-  
+
   // Related entities
   relatedType   String?       // Rental, Car, Customer, Payment
   relatedId     Int?
-  
+
   createdAt     DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([relatedType, relatedId])
 }
 
 model ActivityLog {
   id            Int           @id @default(autoincrement())
-  
+
   userId        String?       // User who performed the action
   userName      String?
   action        String        // Created, Updated, Deleted, Viewed, etc.
   entityType    String        // Car, Rental, Customer, etc.
   entityId      Int?
-  
+
   description   String        // Human-readable description
   metadata      String?       // JSON with additional details
-  
+
   ipAddress     String?
   userAgent     String?
-  
+
   createdAt     DateTime      @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model SystemSettings {
@@ -615,6 +655,26 @@ model Staff {
   twoFactorVerifiedAt  DateTime? // when the user last completed 2FA setup
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+
+  pushTokens           PushToken[]
+}
+
+// ─────────────────────────────────────────────
+// PUSH NOTIFICATION TOKENS (Expo)
+// ─────────────────────────────────────────────
+model PushToken {
+  id         Int       @id @default(autoincrement())
+  token      String    @unique          // ExponentPushToken[xxxxx]
+  platform   String                     // ios | android | web
+  customerId Int?
+  staffId    Int?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  staff      Staff?    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([staffId])
 }
 
 // ─────────────────────────────────────────────
@@ -711,6 +771,10 @@ model StrafzettelRecord {
   createdAt             DateTime @default(now())
   car                   Car      @relation(fields: [carId], references: [id])
   rental                Rental?  @relation(fields: [rentalId], references: [id])
+
+  @@index([carId])
+  @@index([rentalId])
+  @@index([status])
 }
 
 // ─────────────────────────────────────────────
@@ -743,14 +807,20 @@ model MahnungRecord {
   dueDate   DateTime
   notes     String?
   rental    Rental   @relation(fields: [rentalId], references: [id])
+
+  @@index([rentalId])
 }
 
 model RentalOption {
   id        Int      @id @default(autoincrement())
   rentalId  Int
   optionId  Int
+  createdAt DateTime @default(now())
   rental    Rental   @relation(fields: [rentalId], references: [id])
   option    Option   @relation(fields: [optionId], references: [id])
+
+  @@index([rentalId])
+  @@index([optionId])
 }
 
 // ─────────────────────────────────────────────

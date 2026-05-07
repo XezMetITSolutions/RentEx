@@ -11,6 +11,7 @@
  */
 import prisma from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { auditLog } from '@/lib/audit';
 
 export type RefundActor =
     | { kind: 'admin'; staffId: number; staffName: string }
@@ -116,6 +117,18 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
             transactionId: stripeRefundId ?? null,
             notes: `Erstattung${opts.reason ? `: ${opts.reason}` : ''} — ${actorLabel}`,
         },
+    });
+
+    await auditLog({
+        action: 'REFUND_ISSUED',
+        entityType: 'Rental',
+        entityId: opts.rentalId,
+        actor:
+            opts.actor.kind === 'admin'
+                ? { kind: 'admin', id: opts.actor.staffId, name: opts.actor.staffName }
+                : { kind: 'customer', id: opts.actor.customerId },
+        description: `Erstattung €${totalPaid.toFixed(2)}${opts.reason ? ` — ${opts.reason}` : ''}`,
+        metadata: { amount: totalPaid, stripeRefundId, reason: opts.reason ?? null },
     });
 
     return { ok: true, stripeRefundId, amount: totalPaid };

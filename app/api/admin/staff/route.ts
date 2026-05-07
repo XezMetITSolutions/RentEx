@@ -1,14 +1,14 @@
 import prisma from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getAdminSession } from "@/lib/adminAuth";
 import { hashPassword } from "@/lib/auth";
+import { apiOk, apiUnauthorized, apiValidation, apiError, apiInternal, ERROR_CODES } from "@/lib/apiResponse";
+import { auditLog } from "@/lib/audit";
 
 // GET /api/admin/staff
 export async function GET() {
     const session = await getAdminSession();
-    if (!session) {
-        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-    }
+    if (!session) return apiUnauthorized();
 
     try {
         const staff = await prisma.staff.findMany({
@@ -16,25 +16,23 @@ export async function GET() {
             orderBy: { createdAt: "desc" },
         });
         // Never return passwordHash
-        return NextResponse.json(staff.map(({ passwordHash: _ignored, ...s }) => s));
+        return apiOk(staff.map(({ passwordHash: _ignored, ...s }) => s));
     } catch (e) {
-        return NextResponse.json({ error: "Fehler beim Laden der Mitarbeiter" }, { status: 500 });
+        return apiInternal("Fehler beim Laden der Mitarbeiter");
     }
 }
 
 // POST /api/admin/staff — Create new staff member
 export async function POST(req: NextRequest) {
     const session = await getAdminSession();
-    if (!session) {
-        return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
-    }
+    if (!session) return apiUnauthorized();
 
     try {
         const body = await req.json();
         const { name, email, role, locationId, password } = body;
 
         if (!name || !email || !role || !password) {
-            return NextResponse.json({ error: "Fehlende Pflichtfelder" }, { status: 400 });
+            return apiValidation("Fehlende Pflichtfelder");
         }
 
         const passwordHash = hashPassword(password);
@@ -50,11 +48,21 @@ export async function POST(req: NextRequest) {
         });
 
         const { passwordHash: _ignored, ...safe } = staff;
-        return NextResponse.json(safe, { status: 201 });
+
+        await auditLog({
+            action: 'STAFF_CREATED',
+            entityType: 'Staff',
+            entityId: staff.id,
+            actor: { kind: 'admin', id: session.id, name: session.name },
+            description: `Mitarbeiter erstellt: ${staff.email} (${staff.role})`,
+            metadata: { email: staff.email, role: staff.role, locationId: staff.locationId },
+        });
+
+        return apiOk(safe, 201);
     } catch (e: any) {
         if (e.code === "P2002") {
-            return NextResponse.json({ error: "E-Mail bereits vergeben" }, { status: 409 });
+            return apiError("E-Mail bereits vergeben", 409, ERROR_CODES.CONFLICT);
         }
-        return NextResponse.json({ error: "Fehler beim Erstellen" }, { status: 500 });
+        return apiInternal("Fehler beim Erstellen");
     }
 }

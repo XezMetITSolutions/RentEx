@@ -1,22 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { apiOk, apiValidation, apiUnauthorized, apiRateLimited } from '@/lib/apiResponse';
 
 export async function POST(req: NextRequest) {
   const customerId = getAuthCustomerId(req);
   if (!customerId) {
-    return NextResponse.json({ error: 'Nicht angemeldet.' }, { status: 401 });
+    return apiUnauthorized('Nicht angemeldet.');
   }
 
   const ip = getClientIp(req);
   const rl = rateLimit(`mobile-change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: rateLimitErrorMessage(rl) },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
-    );
+    return apiRateLimited(rl, rateLimitErrorMessage(rl));
   }
 
   const body = await req.json().catch(() => null);
@@ -24,10 +22,10 @@ export async function POST(req: NextRequest) {
   const newPassword = body?.newPassword;
 
   if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
-    return NextResponse.json({ error: 'Ungültige Anfrage.' }, { status: 400 });
+    return apiValidation('Ungültige Anfrage.');
   }
   if (newPassword.length < 6) {
-    return NextResponse.json({ error: 'Neues Passwort mindestens 6 Zeichen.' }, { status: 400 });
+    return apiValidation('Neues Passwort mindestens 6 Zeichen.');
   }
 
   const customer = await prisma.customer.findUnique({
@@ -36,15 +34,15 @@ export async function POST(req: NextRequest) {
   });
 
   if (!customer?.passwordHash) {
-    return NextResponse.json({ error: 'Kein Passwort gesetzt.' }, { status: 400 });
+    return apiValidation('Kein Passwort gesetzt.');
   }
   if (!verifyPassword(currentPassword, customer.passwordHash)) {
-    return NextResponse.json({ error: 'Aktuelles Passwort ist falsch.' }, { status: 401 });
+    return apiUnauthorized('Aktuelles Passwort ist falsch.');
   }
 
   await prisma.customer.update({
     where: { id: customerId },
     data: { passwordHash: hashPassword(newPassword) },
   });
-  return NextResponse.json({ success: true });
+  return apiOk({ success: true });
 }

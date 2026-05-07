@@ -20,6 +20,7 @@ import {
     generateBackupCodes,
     consumeBackupCode,
 } from '@/lib/totp';
+import { auditLog } from '@/lib/audit';
 
 export async function adminLogin(formData: FormData) {
     const email = (formData.get('email') as string)?.trim();
@@ -41,24 +42,52 @@ export async function adminLogin(formData: FormData) {
     });
 
     if (!staff || !staff.passwordHash || !staff.isActive) {
+        await auditLog({
+            action: 'ADMIN_LOGIN_FAILED',
+            entityType: 'Auth',
+            actor: { kind: 'system' },
+            description: `Ungültige Anmeldedaten für ${email}`,
+            metadata: { email, reason: 'unknown_or_inactive' },
+        });
         return { error: 'Ungültige Anmeldedaten oder Konto deaktiviert.' };
     }
 
     if (!verifyPassword(password, staff.passwordHash)) {
+        await auditLog({
+            action: 'ADMIN_LOGIN_FAILED',
+            entityType: 'Auth',
+            entityId: staff.id,
+            actor: { kind: 'system' },
+            description: `Falsches Passwort für ${email}`,
+            metadata: { email, reason: 'wrong_password' },
+        });
         return { error: 'Ungültige Anmeldedaten.' };
     }
 
     if (staff.twoFactorEnabled && staff.twoFactorSecret) {
         await setAdmin2FAPending(staff.id);
+        await auditLog({
+            action: 'ADMIN_LOGIN_2FA_PENDING',
+            entityType: 'Auth',
+            entityId: staff.id,
+            actor: { kind: 'admin', id: staff.id, name: staff.name },
+            description: 'Passwort akzeptiert, 2FA-Code erforderlich',
+        });
         redirect('/admin/login/2fa');
     }
 
     await setAdminSession(staff.id);
-
-    // Update last login
     await prisma.staff.update({
         where: { id: staff.id },
-        data: { lastLoginAt: new Date() }
+        data: { lastLoginAt: new Date() },
+    });
+
+    await auditLog({
+        action: 'ADMIN_LOGIN_SUCCESS',
+        entityType: 'Auth',
+        entityId: staff.id,
+        actor: { kind: 'admin', id: staff.id, name: staff.name },
+        description: `Admin angemeldet: ${staff.email}`,
     });
 
     redirect('/admin');
@@ -102,6 +131,18 @@ export async function verifyAdmin2FA(formData: FormData) {
         where: { id: staff.id },
         data: { lastLoginAt: new Date() },
     });
+
+    await auditLog({
+        action: 'ADMIN_LOGIN_2FA_SUCCESS',
+        entityType: 'Auth',
+        entityId: staff.id,
+        actor: { kind: 'admin', id: staff.id, name: staff.name },
+        description: useBackup
+            ? '2FA mit Backup-Code bestanden'
+            : '2FA mit Authenticator-Code bestanden',
+        metadata: { method: useBackup ? 'backup_code' : 'totp' },
+    });
+
     redirect('/admin');
 }
 
@@ -150,6 +191,14 @@ export async function confirmAdmin2FASetup(formData: FormData): Promise<
         },
     });
 
+    await auditLog({
+        action: 'ADMIN_2FA_ENABLED',
+        entityType: 'Staff',
+        entityId: staff.id,
+        actor: { kind: 'admin', id: staff.id, name: staff.name },
+        description: '2FA aktiviert',
+    });
+
     return { backupCodes: plaintext };
 }
 
@@ -175,6 +224,15 @@ export async function disableAdmin2FA(formData: FormData): Promise<{ error?: str
             twoFactorVerifiedAt: null,
         },
     });
+
+    await auditLog({
+        action: 'ADMIN_2FA_DISABLED',
+        entityType: 'Staff',
+        entityId: staff.id,
+        actor: { kind: 'admin', id: staff.id, name: staff.name },
+        description: '2FA deaktiviert',
+    });
+
     return { success: true };
 }
 

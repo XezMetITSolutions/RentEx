@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
+import { notifyCustomer } from '@/lib/pushNotifications';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -67,6 +68,13 @@ export async function POST(req: Request) {
                     },
                 };
                 await sendEmail(rental.customer.email, emailTemplates.paymentConfirmation(templateData));
+
+                // Push notification (best effort — never blocks)
+                notifyCustomer(rental.customer.id, {
+                    title: 'Zahlung bestätigt',
+                    body: `Buchung ${rental.contractNumber} ist jetzt bezahlt.`,
+                    data: { type: 'payment_confirmed', rentalId: rental.id },
+                }).catch((err) => console.error('[stripe-webhook] push failed:', err));
             }
 
             console.log(`Rental ${rentalId} marked as Paid.`);

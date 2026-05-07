@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth';
 import { signToken } from '@/lib/mobileAuth';
 import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { apiOk, apiValidation, apiUnauthorized, apiForbidden, apiInternal, apiRateLimited } from '@/lib/apiResponse';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,36 +12,30 @@ export async function POST(req: NextRequest) {
     const password = typeof body?.password === 'string' ? body.password : '';
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'E-Mail und Passwort erforderlich.' }, { status: 400 });
+      return apiValidation('E-Mail und Passwort erforderlich.');
     }
 
     const ip = getClientIp(req);
     const rl = rateLimit(`mobile-login:${ip}:${email}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rateLimitErrorMessage(rl) },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
-      );
+      return apiRateLimited(rl, rateLimitErrorMessage(rl));
     }
 
     const customer = await prisma.customer.findUnique({ where: { email } });
     if (!customer || !customer.passwordHash) {
-      return NextResponse.json({ error: 'Ungültige Anmeldedaten.' }, { status: 401 });
+      return apiUnauthorized('Ungültige Anmeldedaten.');
     }
 
     if (!verifyPassword(password, customer.passwordHash)) {
-      return NextResponse.json({ error: 'Ungültige Anmeldedaten.' }, { status: 401 });
+      return apiUnauthorized('Ungültige Anmeldedaten.');
     }
 
     if (customer.isBlacklisted) {
-      return NextResponse.json(
-        { error: 'Konto gesperrt. Bitte kontaktieren Sie den Support.' },
-        { status: 403 }
-      );
+      return apiForbidden('Konto gesperrt. Bitte kontaktieren Sie den Support.');
     }
 
     const token = signToken(customer.id, 'customer');
-    return NextResponse.json({
+    return apiOk({
       token,
       customer: {
         id: customer.id,
@@ -56,6 +51,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('[mobile-login]', err);
-    return NextResponse.json({ error: 'Serverfehler.' }, { status: 500 });
+    return apiInternal();
   }
 }
