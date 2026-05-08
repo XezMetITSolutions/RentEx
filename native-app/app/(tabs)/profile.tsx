@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useAuth } from '@/lib/auth';
 import { Config } from '@/constants/Config';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/lib/i18n';
