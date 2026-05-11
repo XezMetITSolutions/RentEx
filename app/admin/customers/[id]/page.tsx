@@ -39,6 +39,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         notFound();
     }
 
+    // Serialize Decimal values and dates for client components
+    const serializedCustomer = JSON.parse(JSON.stringify(customer));
+    const serializedCountries = JSON.parse(JSON.stringify(countries));
+
     // Calculate stats
     const totalRentals = customer._count.rentals;
     const totalRevenue = customer.rentals.reduce((sum, r) => sum + Number(r.totalAmount), 0);
@@ -142,7 +146,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
                         <div className="group bg-white dark:bg-gray-800/40 p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600 dark:purple-400 group-hover:scale-110 transition-transform">
+                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
                                     <TrendingUp className="w-6 h-6" />
                                 </div>
                                 <div>
@@ -192,7 +196,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                             <span className="text-[10px] font-black uppercase tracking-[2px] text-gray-400">Profil bearbeiten</span>
                         </div>
                         <div className="p-8">
-                            <CustomerForm customer={customer} countries={countries} />
+                            <CustomerForm customer={serializedCustomer} countries={serializedCountries} />
                         </div>
                     </div>
 

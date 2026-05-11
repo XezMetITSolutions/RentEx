@@ -1,4 +1,5 @@
 import { createInvoiceFormAction } from '@/app/actions/admin';
+import { PlusCircle } from 'lucide-react';
 
 export default function CreateInvoiceButton({ rentalId }: { rentalId: number }) {
     return (
@@ -6,9 +7,10 @@ export default function CreateInvoiceButton({ rentalId }: { rentalId: number }) 
             <input type="hidden" name="rentalId" value={rentalId} />
             <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="group flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
             >
-                Rechnung erstellen
+                <PlusCircle className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
+                Rechnung Erstellen
             </button>
         </form>
     );
