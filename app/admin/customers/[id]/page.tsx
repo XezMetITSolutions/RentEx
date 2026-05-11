@@ -126,7 +126,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                         <span className="text-xs font-bold uppercase tracking-wider">Wohnsitz</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xl">🇦🇹</span>
+                        <span className="text-xl">
+                            {customer.country === 'Deutschland' ? '🇩🇪' : 
+                             customer.country === 'Schweiz' ? '🇨🇭' : 
+                             customer.country === 'Italien' ? '🇮🇹' : 
+                             customer.country === 'Türkei' ? '🇹🇷' : '🇦🇹'}
+                        </span>
                         <p className="text-lg font-black text-gray-900 dark:text-white">
                             {customer.country || 'Österreich'}
                         </p>
@@ -167,10 +172,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                                 <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                                     <History className="w-5 h-5 text-purple-600" />
                                 </div>
-                                <h2 className="text-xl font-black tracking-tight dark:text-white">Kiralama Geçmişi</h2>
+                                <h2 className="text-xl font-black tracking-tight dark:text-white">Mietverlauf</h2>
                             </div>
                             <Link href={`/admin/customers/${id}/rentals`} className="text-xs font-bold uppercase tracking-widest text-blue-600 hover:underline">
-                                Alle ansehen
+                                Alle anzeigen
                             </Link>
                         </div>
 
@@ -231,15 +236,15 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-xl">
                         <h3 className="text-sm font-black uppercase tracking-wider mb-4 flex items-center gap-2 text-gray-500">
                             <FileText className="w-4 h-4" />
-                            Dahili Notlar
+                            Interne Notizen
                         </h3>
                         <textarea 
                             className="w-full h-32 bg-gray-50 dark:bg-white/5 border-none rounded-2xl p-4 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
-                            placeholder="Müşteri hakkında notlar bırakın..."
+                            placeholder="Notizen zum Kunden hinterlassen..."
                             defaultValue={customer.notes || ''}
                         />
                         <button className="w-full mt-4 bg-gray-900 dark:bg-white dark:text-black text-white font-black py-3 rounded-2xl text-xs uppercase tracking-widest hover:opacity-90 transition-opacity">
-                            Notu Kaydet
+                            Notiz speichern
                         </button>
                     </div>
 
@@ -255,11 +260,11 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                                 <CheckCircle2 className="w-4 h-4 text-green-500" />
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
-                                <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Ehliyet yüklendi</span>
+                                <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Führerschein hochgeladen</span>
                                 {customer.licensePhotoUrl ? <CheckCircle2 className="w-4 h-4 text-blue-500" /> : <Ban className="w-4 h-4 text-gray-300" />}
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
-                                <span className="text-xs font-bold text-gray-600 dark:text-gray-400">ID verified (Austria)</span>
+                                <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Identität verifiziert (AT)</span>
                                 {customer.idAustriaVerified ? <CheckCircle2 className="w-4 h-4 text-blue-500" /> : <Ban className="w-4 h-4 text-gray-300" />}
                             </div>
                         </div>
