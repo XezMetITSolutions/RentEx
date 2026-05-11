@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
                 <div className="bg-white/10 backdrop-blur-2xl border border-white/10 p-10 rounded-[40px] shadow-2xl">
                     <div className="mb-8">
                         <h1 className="text-2xl font-black tracking-tight text-white mb-2">
-                            Willkommen zurÃ¼ck
+                            Willkommen zurück
                         </h1>
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
                             Admin-Portal Anmeldung
@@ -100,7 +100,7 @@ export default function AdminLoginPage() {
                                     name="password"
                                     required
                                     className="w-full bg-transparent border-b border-white/10 py-4 pl-10 pr-4 text-white font-medium outline-none focus:border-red-600 transition-all placeholder:text-white/10"
-                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    placeholder="••••••••"
                                 />
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -182,7 +182,7 @@ export async function createBooking(prevState: any, formData: FormData) {
         data: {
             type: 'System',
             subject: 'Neue Reservierung erhalten',
-            message: `Neue Buchung fÃ¼r ${car.brand} ${car.model} von ${firstName} ${lastName} erhalten. Vertragsnummer: ${contractNumber}`,
+            message: `Neue Buchung für ${car.brand} ${car.model} von ${firstName} ${lastName} erhalten. Vertragsnummer: ${contractNumber}`,
             status: 'Pending',
             relatedType: 'Rental',
             relatedId: rental.id,
