@@ -1,4 +1,6 @@
 import prisma from '@/lib/prisma';
+export const dynamic = 'force-dynamic';
+
 import { Search, Mail, Phone, MapPin, Crown, Gift, Shield, Calendar, TrendingUp, Star, Award, FileText } from 'lucide-react';
 import { clsx } from 'clsx';
 import { format, differenceInDays } from 'date-fns';
