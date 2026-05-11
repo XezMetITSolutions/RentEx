@@ -30,6 +30,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         }
     });
 
+    const countries = await prisma.country.findMany({
+        orderBy: { nicename: 'asc' }
+    });
+
     if (!customer) {
         notFound();
     }
@@ -162,7 +166,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                             </div>
                             <h2 className="text-xl font-black tracking-tight dark:text-white">Stammdaten bearbeiten</h2>
                         </div>
-                        <CustomerForm customer={customer} />
+                        <CustomerForm customer={customer} countries={countries} />
                     </div>
 
                     {/* Rental History */}

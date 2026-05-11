@@ -8,12 +8,13 @@ import ImageUpload from './ImageUpload';
 
 interface CustomerFormProps {
     customer?: any;
+    countries?: any[];
     onSuccess?: (customer: any) => void;
     onCancel?: () => void;
     isModal?: boolean;
 }
 
-export default function CustomerForm({ customer, onSuccess, onCancel, isModal }: CustomerFormProps) {
+export default function CustomerForm({ customer, countries = [], onSuccess, onCancel, isModal }: CustomerFormProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
@@ -217,15 +218,19 @@ export default function CustomerForm({ customer, onSuccess, onCancel, isModal }:
                                      defaultValue={customer?.country || 'Österreich'}
                                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
                                  >
-                                     <option value="Österreich">Österreich</option>
-                                     <option value="Deutschland">Deutschland</option>
-                                     <option value="Schweiz">Schweiz</option>
-                                     <option value="Italien">Italien</option>
-                                     <option value="Slowenien">Slowenien</option>
-                                     <option value="Ungarn">Ungarn</option>
-                                     <option value="Tschechien">Tschechien</option>
-                                     <option value="Slowakei">Slowakei</option>
-                                     <option value="Andere">Andere</option>
+                                     {countries.length > 0 ? (
+                                         countries.map((c: any) => (
+                                             <option key={c.id} value={c.nicename}>
+                                                 {c.nicename}
+                                             </option>
+                                         ))
+                                     ) : (
+                                         <>
+                                             <option value="Österreich">Österreich</option>
+                                             <option value="Deutschland">Deutschland</option>
+                                             <option value="Schweiz">Schweiz</option>
+                                         </>
+                                     )}
                                  </select>
                              </div>
                         </div>

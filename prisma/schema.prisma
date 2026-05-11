@@ -853,3 +853,15 @@ model CompetitorPrice {
 
   @@unique([competitorId, brand, model, recordedAt])
 }
+// ─────────────────────────────────────────────
+// COUNTRIES (Global country list)
+// ─────────────────────────────────────────────
+model Country {
+  id        Int     @id @default(autoincrement())
+  iso       String  @db.Char(2)
+  name      String  @db.VarChar(80)
+  nicename  String  @db.VarChar(80)
+  iso3      String? @db.Char(3)
+  numcode   Int?
+  phonecode Int
+}
