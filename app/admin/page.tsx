@@ -1,4 +1,4 @@
-import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus } from 'lucide-react';
+import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import prisma from '@/lib/prisma';
 import { formatDistanceToNow, startOfMonth } from 'date-fns';
@@ -16,7 +16,6 @@ async function getStats(locationId?: number | null) {
         where.pickupLocationId = locationId;
     }
 
-    // 1. Total Revenue (Confirmed rentals, excluding cancelled)
     const totalRevenueResult = await prisma.rental.aggregate({
         _sum: { totalAmount: true },
         where: {
@@ -26,7 +25,6 @@ async function getStats(locationId?: number | null) {
     });
     const totalRevenue = Number(totalRevenueResult._sum.totalAmount || 0);
 
-    // 2. Ongoing/Active Business (Active + Pending reservations)
     const activeRentalsCount = await prisma.rental.count({
         where: { 
             ...where,
@@ -34,19 +32,14 @@ async function getStats(locationId?: number | null) {
         }
     });
 
-    // 3. New Customers (This Month) - Note: Customers are global, but we could link them to location via their first rental if needed.
-    // For now, let's keep customers global or filter if staff is restricted? 
-    // Usually Filialleiter only cares about customers who rented at their location.
     const startOfCurrentMonth = startOfMonth(new Date());
     const newCustomersCount = await prisma.customer.count({
         where: { 
             createdAt: { gte: startOfCurrentMonth },
-            // If restricted, maybe only show customers with rentals at this location?
             ...(locationId ? { rentals: { some: { pickupLocationId: locationId } } } : {})
         }
     });
 
-    // 4. Pending Reservations
     const pendingReservationsCount = await prisma.rental.count({ 
         where: { 
             ...where,
@@ -58,18 +51,18 @@ async function getStats(locationId?: number | null) {
         {
             name: 'Gesamteinnahmen',
             value: new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalRevenue),
-            change: 'Gesamt',
+            change: 'Gesamtumsatz',
             trend: 'neutral',
             icon: Wallet,
-            color: 'bg-green-500',
+            color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/50',
         },
         {
             name: 'Aktive Vermietungen',
             value: activeRentalsCount.toString(),
-            change: 'Aktuell',
+            change: 'Derzeit im Einsatz',
             trend: 'neutral',
             icon: Car,
-            color: 'bg-blue-500',
+            color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50',
         },
         {
             name: 'Neue Kunden',
@@ -77,20 +70,18 @@ async function getStats(locationId?: number | null) {
             change: 'Diesen Monat',
             trend: 'up',
             icon: Users,
-            color: 'bg-purple-500',
+            color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/50',
         },
         {
-            name: 'Ausstehende Reservierungen',
+            name: 'Offene Reservierungen',
             value: pendingReservationsCount.toString(),
-            change: 'Zu bearbeiten',
+            change: 'Warten auf Bearbeitung',
             trend: 'down',
             icon: CalendarClock,
-            color: 'bg-orange-500',
+            color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50',
         },
     ];
 }
-
-
 
 async function getRecentRentals(locationId?: number | null) {
     const where: any = {};
@@ -115,7 +106,7 @@ export default async function AdminDashboard() {
     
     if (!staff) {
         redirect('/admin/login');
-        return null; // unreachable but safe for TS
+        return null;
     }
 
     const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
@@ -127,21 +118,22 @@ export default async function AdminDashboard() {
     ]);
 
     return (
-        <div className="space-y-10 pb-10">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+        <div className="max-w-[1400px] mx-auto space-y-8 pb-10 px-4 sm:px-6">
+            
+            {/* Header Area (Clean SaaS Style) */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-gray-800">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
                         Willkommen zurück, {staff?.name?.split(' ')[0] || 'Admin'}
                     </h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                        Hier ist die Übersicht für <span className="font-semibold text-zinc-900 dark:text-zinc-100">{staff?.location?.name || 'alle Standorte'}</span> heute.
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Übersicht für <span className="font-medium text-gray-900 dark:text-gray-200">{staff?.location?.name || 'alle Standorte'}</span> am {format(new Date(), 'dd. MMMM yyyy', { locale: de })}.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link 
                         href="/admin/reservations/new"
-                        className="flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95"
+                        className="flex items-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
                     >
                         <Plus className="h-4 w-4" />
                         Neue Reservierung
@@ -149,95 +141,96 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Stats Grid (Minimalist Cards) */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <div
                         key={stat.name}
-                        className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900/50 p-6 shadow-sm border border-zinc-200 dark:border-zinc-800 transition-all hover:shadow-md group"
+                        className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:border-gray-300 dark:hover:border-gray-700"
                     >
-                        <div className="flex items-center justify-between relative z-10">
-                            <div>
-                                <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{stat.name}</p>
-                                <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{stat.value}</p>
-                            </div>
-                            <div className={clsx('rounded-2xl p-3 text-white shadow-lg transition-transform group-hover:rotate-6', stat.color)}>
+                        <div className="flex items-center justify-between">
+                            <div className={clsx('rounded-lg p-2 border', stat.color)}>
                                 <stat.icon className="h-5 w-5" />
                             </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-[11px] font-bold">
                             <span
                                 className={clsx(
-                                    'flex items-center rounded-full px-2 py-0.5',
-                                    stat.trend === 'up' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' :
-                                        stat.trend === 'down' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-400'
+                                    'text-xs font-medium px-2 py-0.5 rounded-full',
+                                    stat.trend === 'up' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
+                                    stat.trend === 'down' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' : 
+                                    'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                                 )}
                             >
-                                {stat.trend === 'up' && <ArrowUpRight className="mr-1 h-3 w-3" />}
-                                {stat.trend === 'down' && <ArrowDownRight className="mr-1 h-3 w-3" />}
+                                {stat.trend === 'up' && '+ '}
                                 {stat.change}
                             </span>
+                        </div>
+                        <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.name}</p>
+                            <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1 tracking-tight">{stat.value}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
             <div className="space-y-8">
-                {/* Primary Operations View */}
+                {/* Primary Operations View (Check-ins/Outs) */}
                 <TodayOverview />
 
-                {/* Recent Content */}
-                <div className="rounded-3xl bg-white dark:bg-zinc-900/50 shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-                    <div className="px-6 py-5 flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
-                        <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-blue-500" />
-                            Letzte Vermietungen
-                        </h3>
-                        <Link href="/admin/reservations" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">Alle anzeigen</Link>
+                {/* Recent Rentals Table (Clean Design) */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Activity className="h-4 w-4 text-gray-400" />
+                            <h3 className="font-semibold text-gray-900 dark:text-white">Letzte Vermietungen</h3>
+                        </div>
+                        <Link href="/admin/reservations" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                            Alle anzeigen <ChevronRight className="w-4 h-4" />
+                        </Link>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-zinc-600 dark:text-zinc-300">
-                            <thead className="bg-zinc-50/50 dark:bg-zinc-950 text-zinc-900 dark:text-white">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 uppercase tracking-wider">
                                 <tr>
-                                    <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Fahrzeug</th>
-                                    <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Kunde</th>
-                                    <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 font-bold text-xs uppercase tracking-wider text-right">Betrag</th>
+                                    <th className="px-6 py-3 font-medium">Fahrzeug</th>
+                                    <th className="px-6 py-3 font-medium">Kunde</th>
+                                    <th className="px-6 py-3 font-medium">Status</th>
+                                    <th className="px-6 py-3 font-medium text-right">Betrag</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                                 {recentRentals.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-                                            Keine Vermietungen gefunden
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                            Keine aktuellen Vermietungen vorhanden.
                                         </td>
                                     </tr>
                                 ) : (
                                     recentRentals.map((rental) => (
-                                        <tr key={rental.id} className="group hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors cursor-pointer relative">
+                                        <tr key={rental.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                             <td className="px-6 py-4">
-                                                <Link href={`/admin/reservations/${rental.id}`} className="absolute inset-0 z-0" />
-                                                <div className="font-bold text-zinc-900 dark:text-white relative z-10">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono relative z-10">{rental.car.plate}</div>
+                                                <div className="font-medium text-gray-900 dark:text-white">{rental.car.brand} {rental.car.model}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5 font-mono">{rental.car.plate}</div>
                                             </td>
-                                            <td className="px-6 py-4 relative z-10 font-medium">{rental.customer.firstName} {rental.customer.lastName}</td>
-                                            <td className="px-6 py-4 relative z-10">
+                                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">
+                                                {rental.customer.firstName} {rental.customer.lastName}
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 <span
                                                     className={clsx(
-                                                        'inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight',
-                                                        rental.status === 'Active' && 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',
-                                                        rental.status === 'Completed' && 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
-                                                        rental.status === 'Pending' && 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300',
-                                                        rental.status === 'Cancelled' && 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                                        'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium border',
+                                                        rental.status === 'Active' && 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/50',
+                                                        rental.status === 'Completed' && 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700',
+                                                        rental.status === 'Pending' && 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50',
+                                                        rental.status === 'Cancelled' && 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50'
                                                     )}
                                                 >
                                                     {rental.status === 'Active' && 'Aktiv'}
-                                                    {rental.status === 'Completed' && 'Beendet'}
-                                                    {rental.status === 'Pending' && 'Offen'}
+                                                    {rental.status === 'Completed' && 'Abgeschlossen'}
+                                                    {rental.status === 'Pending' && 'Ausstehend'}
                                                     {rental.status === 'Cancelled' && 'Storniert'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-bold text-zinc-900 dark:text-white text-right relative z-10">
+                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white text-right">
                                                 {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                             </td>
                                         </tr>
