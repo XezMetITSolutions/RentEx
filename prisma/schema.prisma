@@ -370,6 +370,7 @@ model Customer {
   blacklistReason String?
   customerType  String?       // Private, Business, VIP
   notes         String?
+  isActive      Boolean @default(true)
 
   // Referral System
   referralCode          String?   @unique
