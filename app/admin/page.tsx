@@ -1,7 +1,7 @@
 import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import prisma from '@/lib/prisma';
-import { formatDistanceToNow, startOfMonth } from 'date-fns';
+import { formatDistanceToNow, startOfMonth, format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
