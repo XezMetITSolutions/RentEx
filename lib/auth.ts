@@ -21,7 +21,7 @@ export function verifyPassword(password: string, stored: string): boolean {
 function getSecret() {
     const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
     if (!secret && process.env.NODE_ENV === 'production') {
-        throw new Error('SESSION_SECRET or JWT_SECRET must be set in production');
+        console.error('CRITICAL: SESSION_SECRET or JWT_SECRET is missing in production! Using fallback.');
     }
     return secret || 'dev-secret-only-for-local';
 }

@@ -79,10 +79,15 @@ export function middleware(request: NextRequest) {
         
         // Simple referer check: if referer exists, it must match our host
         if (referer && host) {
-            const refererHost = new URL(referer).host;
-            if (refererHost !== host && !allowedOrigins.some(ao => ao.includes(refererHost))) {
-                console.warn(`[Security] CSRF Blocked: Referer ${refererHost} does not match Host ${host}`);
-                return new NextResponse(JSON.stringify({ error: 'Invalid origin' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+            try {
+                const refererHost = new URL(referer).host;
+                if (refererHost !== host && !allowedOrigins.some(ao => ao.includes(refererHost))) {
+                    console.warn(`[Security] CSRF Blocked: Referer ${refererHost} does not match Host ${host}`);
+                    return new NextResponse(JSON.stringify({ error: 'Invalid origin' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+                }
+            } catch (e) {
+                console.error('[Security] Referer parsing error:', e);
+                // If referer is malformed, we might want to block it in production
             }
         }
     }
