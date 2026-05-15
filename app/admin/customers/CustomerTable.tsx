@@ -5,7 +5,7 @@ import {
     Mail, Phone, MapPin, Crown, Gift, Shield, 
     Calendar, TrendingUp, Star, Award, FileText,
     ToggleLeft, ToggleRight, Trash2, Loader2,
-    Eye, History
+    Eye, History, Users
 } from "lucide-react";
 import { clsx } from "clsx";
 import { format } from "date-fns";
