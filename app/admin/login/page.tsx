@@ -138,10 +138,10 @@ export default function AdminLoginPage() {
                     </div>
                 </div>
                 
-                {/* Footer removed XezMet text */}
+                {/* Footer Section */}
                 <div className="text-center mt-12">
-                    <p className="text-[10px] font-medium text-white/10 uppercase tracking-[0.3em]">
-                        RentEx Global Security Protocol &copy; 2026
+                    <p className="text-[10px] font-medium text-white/5 uppercase tracking-[0.4em]">
+                        RentEx &copy; 2026
                     </p>
                 </div>
             </div>
