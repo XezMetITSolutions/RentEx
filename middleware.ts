@@ -61,9 +61,6 @@ export function middleware(request: NextRequest) {
         return response;
     }
 
-    const { pathname } = request.nextUrl;
-    let response = NextResponse.next();
-
     // 1. Security Headers
     response.headers.set('X-DNS-Prefetch-Control', 'on');
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

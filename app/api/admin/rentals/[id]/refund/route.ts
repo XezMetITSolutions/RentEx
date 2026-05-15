@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { getAdminSession } from '@/lib/adminAuth';
 import { refundRental } from '@/lib/refunds';
 import { apiOk, apiUnauthorized, apiValidation, apiError, ERROR_CODES } from '@/lib/apiResponse';
-import { logActivity } from '@/lib/audit';
+import { auditLog } from '@/lib/audit';
 
 
 export async function POST(
@@ -48,7 +48,7 @@ export async function POST(
   }
 
   // AUDIT LOG
-  await logActivity({
+  await auditLog({
     userId: session.id,
     userName: session.name,
     action: 'REFUND',

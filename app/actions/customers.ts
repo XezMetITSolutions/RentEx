@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { customerSchema, formDataToObject, safeValidate } from '@/lib/schemas';
 
 import { getAdminSession } from '@/lib/adminAuth';
-import { logActivity } from '@/lib/audit';
+import { auditLog } from '@/lib/audit';
 
 
 export async function createCustomer(formData: FormData) {
@@ -20,7 +20,7 @@ export async function createCustomer(formData: FormData) {
         const customer = await prisma.customer.create({
             data: { ...parsed.data, country: parsed.data.country ?? 'Österreich' },
         });
-        await logActivity({
+        await auditLog({
             userId: session.id,
             userName: session.name,
             action: 'CREATE',
@@ -51,7 +51,7 @@ export async function updateCustomer(id: number, formData: FormData) {
             where: { id },
             data: { ...parsed.data, country: parsed.data.country ?? 'Österreich' },
         });
-        await logActivity({
+        await auditLog({
             userId: session.id,
             userName: session.name,
             action: 'UPDATE',

@@ -1,10 +1,10 @@
-﻿import jsPDF from 'jspdf';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 const COMPANY_NAME    = process.env.COMPANY_NAME    || 'RentEx GmbH';
-const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'HauptstraÃŸe 1, 6800 Feldkirch, Ã–sterreich';
+const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Hauptstraße 1, 6800 Feldkirch, Österreich';
 const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 5522 123456';
 const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'info@rent-ex.at';
 const COMPANY_VAT     = process.env.COMPANY_VAT     || 'ATU12345678';
@@ -71,7 +71,7 @@ export function generateRentalContract(data: RentalContract): void {
         `Email: ${data.customer.email}`,
         data.customer.phone ? `Telefon: ${data.customer.phone}` : '',
         data.customer.address ? `Adresse: ${data.customer.address}` : '',
-        data.customer.licenseNumber ? `FÃ¼hrerschein-Nr.: ${data.customer.licenseNumber}` : '',
+        data.customer.licenseNumber ? `Führerschein-Nr.: ${data.customer.licenseNumber}` : '',
     ].filter(Boolean);
 
     let yPos = 68;
@@ -115,11 +115,11 @@ export function generateRentalContract(data: RentalContract): void {
         ['Mietbeginn:', format(data.rental.startDate, 'dd.MM.yyyy HH:mm', { locale: de })],
         ['Mietende:', format(data.rental.endDate, 'dd.MM.yyyy HH:mm', { locale: de })],
         ['Abholort:', data.rental.pickupLocation || 'Hauptfiliale'],
-        ['RÃ¼ckgabeort:', data.rental.returnLocation || 'Hauptfiliale'],
+        ['Rückgabeort:', data.rental.returnLocation || 'Hauptfiliale'],
         ['Mietdauer:', `${data.rental.totalDays} Tage`],
-        ['Tagespreis:', `â‚¬${data.rental.dailyRate.toFixed(2)}`],
+        ['Tagespreis:', `€${data.rental.dailyRate.toFixed(2)}`],
         ['Versicherung:', data.rental.insuranceType || 'Basis'],
-        ['Kaution:', data.rental.depositAmount ? `â‚¬${data.rental.depositAmount.toFixed(2)}` : 'Keine'],
+        ['Kaution:', data.rental.depositAmount ? `€${data.rental.depositAmount.toFixed(2)}` : 'Keine'],
     ];
 
     autoTable(doc, {
@@ -142,23 +142,23 @@ export function generateRentalContract(data: RentalContract): void {
     doc.rect(20, yPos, 170, 12, 'F');
     doc.setTextColor(255);
     doc.text('GESAMTBETRAG:', 25, yPos + 8);
-    doc.text(`â‚¬${data.rental.totalAmount.toFixed(2)}`, 165, yPos + 8, { align: 'right' });
+    doc.text(`€${data.rental.totalAmount.toFixed(2)}`, 165, yPos + 8, { align: 'right' });
 
     // Terms and Conditions
     yPos += 20;
     doc.setFontSize(12);
     doc.setTextColor(37, 99, 235);
-    doc.text('Allgemeine GeschÃ¤ftsbedingungen', 20, yPos);
+    doc.text('Allgemeine Geschäftsbedingungen', 20, yPos);
 
     yPos += 8;
     doc.setFontSize(9);
     doc.setTextColor(0);
     const terms = [
-        '1. Das Fahrzeug wird in einwandfreiem Zustand Ã¼bergeben und ist in gleichem Zustand zurÃ¼ckzugeben.',
-        '2. Der Mieter haftet fÃ¼r alle SchÃ¤den am Fahrzeug wÃ¤hrend der Mietdauer.',
-        '3. Die Kaution wird nach ordnungsgemÃ¤ÃŸer RÃ¼ckgabe des Fahrzeugs erstattet.',
-        '4. Das Fahrzeug darf nur vom Mieter oder autorisierten Fahrern gefÃ¼hrt werden.',
-        '5. Bei verspÃ¤teter RÃ¼ckgabe wird eine zusÃ¤tzliche GebÃ¼hr berechnet.',
+        '1. Das Fahrzeug wird in einwandfreiem Zustand übergeben und ist in gleichem Zustand zurückzugeben.',
+        '2. Der Mieter haftet für alle Schäden am Fahrzeug während der Mietdauer.',
+        '3. Die Kaution wird nach ordnungsgemäßer Rückgabe des Fahrzeugs erstattet.',
+        '4. Das Fahrzeug darf nur vom Mieter oder autorisierten Fahrern geführt werden.',
+        '5. Bei verspäteter Rückgabe wird eine zusätzliche Gebühr berechnet.',
     ];
 
     terms.forEach(term => {
@@ -217,11 +217,11 @@ export function generateInvoice(data: RentalContract): void {
 
     // Invoice Table
     const tableData = [
-        ['Fahrzeugmiete', `${data.car.brand} ${data.car.model}`, `${data.rental.totalDays} Tage`, `â‚¬${data.rental.dailyRate.toFixed(2)}`, `â‚¬${(data.rental.totalDays * data.rental.dailyRate).toFixed(2)}`],
+        ['Fahrzeugmiete', `${data.car.brand} ${data.car.model}`, `${data.rental.totalDays} Tage`, `€${data.rental.dailyRate.toFixed(2)}`, `€${(data.rental.totalDays * data.rental.dailyRate).toFixed(2)}`],
     ];
 
     if (data.rental.insuranceType) {
-        tableData.push(['Versicherung', data.rental.insuranceType, `${data.rental.totalDays} Tage`, 'â‚¬10.00', `â‚¬${(data.rental.totalDays * 10).toFixed(2)}`]);
+        tableData.push(['Versicherung', data.rental.insuranceType, `${data.rental.totalDays} Tage`, '€10.00', `€${(data.rental.totalDays * 10).toFixed(2)}`]);
     }
 
     autoTable(doc, {
@@ -245,17 +245,17 @@ export function generateInvoice(data: RentalContract): void {
 
     doc.setFontSize(10);
     doc.text('Zwischensumme:', 120, finalY);
-    doc.text(`â‚¬${subtotal.toFixed(2)}`, 190, finalY, { align: 'right' });
+    doc.text(`€${subtotal.toFixed(2)}`, 190, finalY, { align: 'right' });
 
     doc.text('MwSt. (20%):', 120, finalY + 6);
-    doc.text(`â‚¬${tax.toFixed(2)}`, 190, finalY + 6, { align: 'right' });
+    doc.text(`€${tax.toFixed(2)}`, 190, finalY + 6, { align: 'right' });
 
     doc.setFontSize(12);
     doc.setFillColor(37, 99, 235);
     doc.rect(115, finalY + 12, 75, 10, 'F');
     doc.setTextColor(255);
     doc.text('GESAMTBETRAG:', 120, finalY + 19);
-    doc.text(`â‚¬${total.toFixed(2)}`, 185, finalY + 19, { align: 'right' });
+    doc.text(`€${total.toFixed(2)}`, 185, finalY + 19, { align: 'right' });
 
     // Payment Info
     doc.setFontSize(10);
@@ -268,7 +268,7 @@ export function generateInvoice(data: RentalContract): void {
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text('Vielen Dank fÃ¼r Ihr Vertrauen!', 105, 280, { align: 'center' });
+    doc.text('Vielen Dank für Ihr Vertrauen!', 105, 280, { align: 'center' });
     doc.text(`${COMPANY_NAME} | Tel: ${COMPANY_PHONE} | Email: ${COMPANY_EMAIL}`, 105, 285, { align: 'center' });
 
     doc.save(`Rechnung_${data.contractNumber}.pdf`);

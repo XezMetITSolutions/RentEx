@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { stripe } from "@/lib/stripe";
 import { hashPassword, setSession, getSession } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
-import { logActivity } from "@/lib/audit";
+import { auditLog } from "@/lib/audit";
 
 
 export async function createBooking(prevState: any, formData: FormData) {
@@ -69,7 +69,7 @@ export async function createBooking(prevState: any, formData: FormData) {
             await setSession(customer.id);
         }
 
-        await logActivity({
+        await auditLog({
             userId: adminSession?.id || customer.id,
             userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
             action: 'CREATE',
@@ -108,7 +108,7 @@ export async function createBooking(prevState: any, formData: FormData) {
             }
         });
 
-        await logActivity({
+        await auditLog({
             userId: adminSession?.id || customer.id,
             userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
             action: 'UPDATE',
@@ -212,7 +212,7 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
-    await logActivity({
+    await auditLog({
         userId: adminSession?.id || customer.id,
         userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
         action: 'CREATE',

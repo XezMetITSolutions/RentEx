@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
             <div className="absolute inset-0 z-0">
                 <Image
                     src="/assets/luxury-bg.png"
-                    alt="Background"
+                    alt="Hintergrund"
                     fill
                     className="object-cover opacity-60"
                     priority
@@ -66,10 +66,10 @@ export default function AdminLoginPage() {
                         
                         <div className="mb-10 text-center">
                             <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                                Admin Access
+                                Admin-Zugang
                             </h1>
                             <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
-                                Secure Control Center
+                                Sicheres Kontrollzentrum
                             </p>
                         </div>
 
@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
                         <form onSubmit={handleSubmit} className="space-y-7">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 ml-1">
-                                    Operator ID / Email
+                                    Operator-ID / E-Mail
                                 </label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 ml-1">
-                                    Access Key
+                                    Zugriffsschlüssel
                                 </label>
                                 <div className="relative">
                                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
@@ -127,7 +127,7 @@ export default function AdminLoginPage() {
                                             <Loader2 className="h-5 w-5 animate-spin text-white" />
                                         ) : (
                                             <>
-                                                <span className="text-white font-bold uppercase tracking-[0.2em] text-xs">Enter Portal</span>
+                                                <span className="text-white font-bold uppercase tracking-[0.2em] text-xs">Portal betreten</span>
                                                 <div className="w-6 h-[1px] bg-white/30"></div>
                                             </>
                                         )}

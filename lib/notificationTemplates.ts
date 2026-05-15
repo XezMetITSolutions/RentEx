@@ -1,4 +1,4 @@
-﻿import { format } from 'date-fns';
+import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { de } from 'date-fns/locale';
 // format is used inside fmt() below
@@ -10,7 +10,7 @@ function fmt(date: Date, pattern: string): string {
 }
 
 const COMPANY_NAME    = process.env.COMPANY_NAME    || 'RentEx GmbH';
-const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'HauptstraÃŸe 1, 6800 Feldkirch, Ã–sterreich';
+const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Hauptstraße 1, 6800 Feldkirch, Österreich';
 const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 5522 123456';
 const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'info@rent-ex.at';
 const COMPANY_WEB     = process.env.COMPANY_WEB     || 'www.rent-ex.at';
@@ -45,14 +45,14 @@ interface RentalData {
 export const emailTemplates = {
     // Booking Confirmation
     bookingConfirmation: (data: RentalData): EmailTemplate => ({
-        subject: `BuchungsbestÃ¤tigung - ${data.contractNumber}`,
+        subject: `Buchungsbestätigung - ${data.contractNumber}`,
         body: `
 Sehr geehrte/r ${data.customer.firstName} ${data.customer.lastName},
 
-vielen Dank fÃ¼r Ihre Buchung bei RentEx!
+vielen Dank für Ihre Buchung bei RentEx!
 
 Ihre Buchungsdetails:
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Vertragsnummer: ${data.contractNumber}
 Fahrzeug: ${data.car.brand} ${data.car.model}
 Kennzeichen: ${data.car.plate}
@@ -61,26 +61,26 @@ Mietbeginn: ${fmt(data.rental.startDate, 'dd.MM.yyyy HH:mm')}
 Mietende: ${fmt(data.rental.endDate, 'dd.MM.yyyy HH:mm')}
 Abholort: ${data.rental.pickupLocation || DEFAULT_BRANCH}
 
-Gesamtbetrag: â‚¬${data.rental.totalAmount.toFixed(2)}
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+Gesamtbetrag: €${data.rental.totalAmount.toFixed(2)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Wichtige Hinweise:
-â€¢ Bitte bringen Sie Ihren FÃ¼hrerschein und Personalausweis mit
-â€¢ Die FahrzeugÃ¼bergabe erfolgt nach Vorlage aller Dokumente
-â€¢ Bei Fragen erreichen Sie uns unter ${COMPANY_PHONE}
+• Bitte bringen Sie Ihren Führerschein und Personalausweis mit
+• Die Fahrzeugübergabe erfolgt nach Vorlage aller Dokumente
+• Bei Fragen erreichen Sie uns unter ${COMPANY_PHONE}
 
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Kein Konto? Registrieren Sie sich, um Ihre Buchungen
 zu verwalten und von exklusiven Vorteilen zu profitieren:
 ${APP_URL}/register?email=${encodeURIComponent(data.customer.email)}
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Wir freuen uns auf Ihren Besuch!
 
-Mit freundlichen GrÃ¼ÃŸen
+Mit freundlichen Grüßen
 Ihr RentEx Team
 
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${COMPANY_NAME}
 ${COMPANY_ADDRESS}
 Tel: ${COMPANY_PHONE} | Email: ${COMPANY_EMAIL}
@@ -101,13 +101,13 @@ Fahrzeug: ${data.car.brand} ${data.car.model}
 Abholort: ${data.rental.pickupLocation || DEFAULT_BRANCH}
 
 Bitte bringen Sie mit:
-âœ“ GÃ¼ltiger FÃ¼hrerschein
-âœ“ Personalausweis/Reisepass
-âœ“ Kreditkarte fÃ¼r die Kaution
+✓ Gültiger Führerschein
+✓ Personalausweis/Reisepass
+✓ Kreditkarte für die Kaution
 
-Bei VerspÃ¤tung oder Ã„nderungen kontaktieren Sie uns bitte umgehend.
+Bei Verspätung oder Änderungen kontaktieren Sie uns bitte umgehend.
 
-Mit freundlichen GrÃ¼ÃŸen
+Mit freundlichen Grüßen
 Ihr RentEx Team
 
 Tel: ${COMPANY_PHONE}
@@ -116,45 +116,45 @@ Tel: ${COMPANY_PHONE}
 
     // Return Reminder
     returnReminder: (data: RentalData): EmailTemplate => ({
-        subject: `Erinnerung: FahrzeugrÃ¼ckgabe morgen - ${data.contractNumber}`,
+        subject: `Erinnerung: Fahrzeugrückgabe morgen - ${data.contractNumber}`,
         body: `
 Sehr geehrte/r ${data.customer.firstName} ${data.customer.lastName},
 
-Ihre Mietdauer endet morgen. Bitte geben Sie das Fahrzeug rechtzeitig zurÃ¼ck.
+Ihre Mietdauer endet morgen. Bitte geben Sie das Fahrzeug rechtzeitig zurück.
 
-RÃ¼ckgabetermin: ${fmt(data.rental.endDate, 'dd.MM.yyyy HH:mm')}
+Rückgabetermin: ${fmt(data.rental.endDate, 'dd.MM.yyyy HH:mm')}
 Fahrzeug: ${data.car.brand} ${data.car.model} (${data.car.plate})
-RÃ¼ckgabeort: ${data.rental.pickupLocation || DEFAULT_BRANCH}
+Rückgabeort: ${data.rental.pickupLocation || DEFAULT_BRANCH}
 
 Wichtig:
-â€¢ Bitte tanken Sie das Fahrzeug voll
-â€¢ Entfernen Sie alle persÃ¶nlichen GegenstÃ¤nde
-â€¢ Bei verspÃ¤teter RÃ¼ckgabe fallen zusÃ¤tzliche GebÃ¼hren an
+• Bitte tanken Sie das Fahrzeug voll
+• Entfernen Sie alle persönlichen Gegenstände
+• Bei verspäteter Rückgabe fallen zusätzliche Gebühren an
 
-Vielen Dank fÃ¼r Ihr Vertrauen!
+Vielen Dank für Ihr Vertrauen!
 
-Mit freundlichen GrÃ¼ÃŸen
+Mit freundlichen Grüßen
 Ihr RentEx Team
     `.trim()
     }),
 
     // Payment Confirmation
     paymentConfirmation: (data: RentalData): EmailTemplate => ({
-        subject: `ZahlungsbestÃ¤tigung - ${data.contractNumber}`,
+        subject: `Zahlungsbestätigung - ${data.contractNumber}`,
         body: `
 Sehr geehrte/r ${data.customer.firstName} ${data.customer.lastName},
 
-wir bestÃ¤tigen den Eingang Ihrer Zahlung.
+wir bestätigen den Eingang Ihrer Zahlung.
 
 Vertragsnummer: ${data.contractNumber}
-Betrag: â‚¬${data.rental.totalAmount.toFixed(2)}
+Betrag: €${data.rental.totalAmount.toFixed(2)}
 Datum: ${fmt(new Date(), 'dd.MM.yyyy HH:mm')}
 
 Eine detaillierte Rechnung finden Sie im Anhang.
 
-Vielen Dank fÃ¼r Ihr Vertrauen!
+Vielen Dank für Ihr Vertrauen!
 
-Mit freundlichen GrÃ¼ÃŸen
+Mit freundlichen Grüßen
 Ihr RentEx Team
 
 ${COMPANY_NAME}
@@ -164,21 +164,21 @@ ${COMPANY_EMAIL} | ${COMPANY_PHONE}
 
     // Cancellation Confirmation
     cancellationConfirmation: (data: RentalData): EmailTemplate => ({
-        subject: `StornierungsbestÃ¤tigung - ${data.contractNumber}`,
+        subject: `Stornierungsbestätigung - ${data.contractNumber}`,
         body: `
 Sehr geehrte/r ${data.customer.firstName} ${data.customer.lastName},
 
-wir bestÃ¤tigen die Stornierung Ihrer Buchung.
+wir bestätigen die Stornierung Ihrer Buchung.
 
 Vertragsnummer: ${data.contractNumber}
 Fahrzeug: ${data.car.brand} ${data.car.model}
-UrsprÃ¼nglicher Termin: ${fmt(data.rental.startDate, 'dd.MM.yyyy')}
+Ursprünglicher Termin: ${fmt(data.rental.startDate, 'dd.MM.yyyy')}
 
-GemÃ¤ÃŸ unseren Stornierungsbedingungen wird die RÃ¼ckerstattung innerhalb von 5-7 Werktagen bearbeitet.
+Gemäß unseren Stornierungsbedingungen wird die Rückerstattung innerhalb von 5-7 Werktagen bearbeitet.
 
-Bei Fragen stehen wir Ihnen gerne zur VerfÃ¼gung.
+Bei Fragen stehen wir Ihnen gerne zur Verfügung.
 
-Mit freundlichen GrÃ¼ÃŸen
+Mit freundlichen Grüßen
 Ihr RentEx Team
     `.trim()
     }),
@@ -192,7 +192,7 @@ Wartungserinnerung
 Fahrzeug: ${carData.brand} ${carData.model}
 Kennzeichen: ${carData.plate}
 Wartungsart: ${carData.maintenanceType}
-FÃ¤llig am: ${fmt(carData.dueDate, 'dd.MM.yyyy')}
+Fällig am: ${fmt(carData.dueDate, 'dd.MM.yyyy')}
 
 Bitte planen Sie die Wartung rechtzeitig ein.
 
@@ -203,16 +203,16 @@ RentEx Wartungsmanagement
 
 export const smsTemplates = {
     pickupReminder: (data: RentalData): string =>
-        `RentEx: Erinnerung - Fahrzeugabholung morgen ${fmt(data.rental.startDate, 'dd.MM HH:mm')}. ${data.car.brand} ${data.car.model}. FÃ¼hrerschein mitbringen!`,
+        `RentEx: Erinnerung - Fahrzeugabholung morgen ${fmt(data.rental.startDate, 'dd.MM HH:mm')}. ${data.car.brand} ${data.car.model}. Führerschein mitbringen!`,
 
     returnReminder: (data: RentalData): string =>
-        `RentEx: RÃ¼ckgabe morgen ${fmt(data.rental.endDate, 'dd.MM HH:mm')}. ${data.car.brand} ${data.car.model} (${data.car.plate}). Bitte vollgetankt zurÃ¼ckgeben.`,
+        `RentEx: Rückgabe morgen ${fmt(data.rental.endDate, 'dd.MM HH:mm')}. ${data.car.brand} ${data.car.model} (${data.car.plate}). Bitte vollgetankt zurückgeben.`,
 
     bookingConfirmation: (data: RentalData): string =>
-        `RentEx: Buchung bestÃ¤tigt! ${data.contractNumber}. ${data.car.brand} ${data.car.model}. Abholung: ${fmt(data.rental.startDate, 'dd.MM HH:mm')}`,
+        `RentEx: Buchung bestätigt! ${data.contractNumber}. ${data.car.brand} ${data.car.model}. Abholung: ${fmt(data.rental.startDate, 'dd.MM HH:mm')}`,
 
     paymentReceived: (data: RentalData): string =>
-        `RentEx: Zahlung â‚¬${data.rental.totalAmount.toFixed(2)} erhalten. Vielen Dank! ${data.contractNumber}`,
+        `RentEx: Zahlung €${data.rental.totalAmount.toFixed(2)} erhalten. Vielen Dank! ${data.contractNumber}`,
 };
 
 function getResend() {
@@ -244,7 +244,7 @@ export async function sendEmail(to: string, template: EmailTemplate): Promise<bo
     }
 }
 
-// SMS is not yet integrated â€” log only
+// SMS is not yet integrated — log only
 export async function sendSMS(to: string, message: string): Promise<boolean> {
     console.log('[sendSMS] (not integrated) to:', to, 'message:', message);
     return false;

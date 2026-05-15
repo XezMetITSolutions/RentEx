@@ -14,7 +14,7 @@ interface AuditParams {
   userAgent?: string;
 }
 
-export async function logActivity({
+export async function auditLog({
   userId,
   userName,
   action,
@@ -41,6 +41,5 @@ export async function logActivity({
     });
   } catch (error) {
     console.error('[AuditLog Error]:', error);
-    // We don't want to crash the main operation if logging fails
   }
 }
