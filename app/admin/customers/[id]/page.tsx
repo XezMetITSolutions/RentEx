@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 import CustomerForm from '@/components/admin/CustomerForm';
+import CustomerActions from './CustomerActions';
 import { notFound } from 'next/navigation';
 import { 
     ChevronLeft, Mail, Phone, MapPin, Globe, 
@@ -101,23 +102,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-                        <Mail className="w-4 h-4" />
-                        Nachricht
-                    </button>
-                    {!customer.isBlacklisted ? (
-                        <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
-                            <Ban className="w-4 h-4" />
-                            Sperren
-                        </button>
-                    ) : (
-                        <button className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50 rounded-lg text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Entsperren
-                        </button>
-                    )}
-                </div>
+                <CustomerActions customer={{
+                    id: customer.id,
+                    email: customer.email,
+                    isBlacklisted: customer.isBlacklisted,
+                    blacklistReason: customer.blacklistReason
+                }} />
             </div>
 
             {/* Main Content Grid */}
