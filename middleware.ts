@@ -60,6 +60,7 @@ export function middleware(request: NextRequest) {
         
         return response;
     }
+    let response = NextResponse.next();
 
     // 1. Security Headers
     response.headers.set('X-DNS-Prefetch-Control', 'on');
