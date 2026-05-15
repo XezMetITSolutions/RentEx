@@ -43,7 +43,7 @@ function plateForIndex(index: number): string {
     return `FK-${index.toString().padStart(2, '0')}-${s}`;
 }
 
-export async function GET() {
+export async function POST() {
     const session = await getAdminSession();
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });

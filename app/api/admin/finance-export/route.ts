@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,11 @@ function escapeCsvCell(value: string | number): string {
 }
 
 export async function GET() {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const rentals = await prisma.rental.findMany({
         where: { status: { not: 'Cancelled' } },
         include: {

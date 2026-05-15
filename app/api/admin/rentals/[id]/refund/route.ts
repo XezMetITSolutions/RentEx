@@ -12,6 +12,12 @@ export async function POST(
     return apiUnauthorized();
   }
 
+  // RBAC: Only SUPERADMIN and MANAGER can process refunds
+  if (session.role !== 'SUPERADMIN' && session.role !== 'MANAGER') {
+    return apiError('Forbidden: Insufficient permissions', 403, ERROR_CODES.FORBIDDEN);
+  }
+
+
   const { id } = await context.params;
   const rentalId = Number(id);
   if (!rentalId) {

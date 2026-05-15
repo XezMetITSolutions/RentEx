@@ -4,8 +4,14 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { customerSchema, formDataToObject, safeValidate } from '@/lib/schemas';
 
+import { getAdminSession } from '@/lib/adminAuth';
+
 export async function createCustomer(formData: FormData) {
+    const session = await getAdminSession();
+    if (!session) return { success: false, error: 'Unauthorized' };
+
     const parsed = safeValidate(customerSchema, formDataToObject(formData));
+
     if (!parsed.ok) return { success: false, error: parsed.error };
 
     try {
@@ -22,7 +28,11 @@ export async function createCustomer(formData: FormData) {
 }
 
 export async function updateCustomer(id: number, formData: FormData) {
+    const session = await getAdminSession();
+    if (!session) return { success: false, error: 'Unauthorized' };
+
     const parsed = safeValidate(customerSchema, formDataToObject(formData));
+
     if (!parsed.ok) return { success: false, error: parsed.error };
 
     try {

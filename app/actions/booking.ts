@@ -3,9 +3,13 @@
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { stripe } from "@/lib/stripe";
-import { hashPassword, setSession } from "@/lib/auth";
+import { hashPassword, setSession, getSession } from "@/lib/auth";
+import { getAdminSession } from "@/lib/adminAuth";
 
 export async function createBooking(prevState: any, formData: FormData) {
+    const adminSession = await getAdminSession();
+    const customerSession = await getSession();
+
 
     // 1. Extract Data
     const carId = parseInt(formData.get('carId') as string);
@@ -63,6 +67,17 @@ export async function createBooking(prevState: any, formData: FormData) {
             await setSession(customer.id);
         }
     } else {
+        // If customer exists, check if requester has permission to update
+        const isSelf = customerSession === customer.id;
+        const isAdmin = !!adminSession;
+
+        if (!isSelf && !isAdmin) {
+            return { 
+                success: false, 
+                error: `Ein Konto mit ${email} existiert bereits. Bitte melden Sie sich an.` 
+            };
+        }
+
         // Update customer details 
         customer = await prisma.customer.update({
             where: { id: customer.id },

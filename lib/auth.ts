@@ -18,9 +18,41 @@ export function verifyPassword(password: string, stored: string): boolean {
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(derived, 'hex'));
 }
 
+function getSecret() {
+    const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+        throw new Error('SESSION_SECRET or JWT_SECRET must be set in production');
+    }
+    return secret || 'dev-secret-only-for-local';
+}
+
+function sign(value: string) {
+    const hmac = crypto.createHmac('sha256', getSecret());
+    hmac.update(value);
+    return `${value}.${hmac.digest('hex')}`;
+}
+
+function verify(signedValue: string): string | null {
+    const [value, signature] = signedValue.split('.');
+    if (!value || !signature) return null;
+    
+    const hmac = crypto.createHmac('sha256', getSecret());
+    hmac.update(value);
+    const expected = hmac.digest('hex');
+    
+    try {
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+            return value;
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+
 export async function setSession(customerId: number) {
     const c = await cookies();
-    c.set(COOKIE_NAME, String(customerId), {
+    c.set(COOKIE_NAME, sign(String(customerId)), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -31,9 +63,13 @@ export async function setSession(customerId: number) {
 
 export async function getSession(): Promise<number | null> {
     const c = await cookies();
-    const v = c.get(COOKIE_NAME)?.value;
-    if (!v) return null;
-    const id = parseInt(v, 10);
+    const signedValue = c.get(COOKIE_NAME)?.value;
+    if (!signedValue) return null;
+    
+    const customerId = verify(signedValue);
+    if (!customerId) return null;
+    
+    const id = parseInt(customerId, 10);
     return Number.isNaN(id) ? null : id;
 }
 

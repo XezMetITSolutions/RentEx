@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAdminSession } from '@/lib/adminAuth';
 
 // GET - Single location
 export async function GET(
@@ -42,6 +43,8 @@ export async function PUT(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const params = await props.params;
     try {
         const body = await request.json();
@@ -80,6 +83,8 @@ export async function DELETE(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const params = await props.params;
     try {
         // Check if there are any cars assigned to this location

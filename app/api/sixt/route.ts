@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { chromium } from 'playwright';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export async function GET(request: Request) {
+  const session = await getAdminSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category') || 'suv';
   const puDate = searchParams.get('puDate') || '2026-06-01';

@@ -1,12 +1,15 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { getAdminSession } from '@/lib/adminAuth';
 
 /**
  * One-shot manual schema corrections for legacy environments. Should be
  * a no-op on a current database (each step is guarded with IF NOT EXISTS).
  */
 export async function fixDatabaseSchema() {
+    const session = await getAdminSession();
+    if (!session) throw new Error('Unauthorized');
     try {
         // 1. Add carId column to Option if it doesn't exist
         await prisma.$executeRawUnsafe(`
@@ -51,6 +54,8 @@ export async function fixDatabaseSchema() {
 
 
 export async function runDiagnostics() {
+    const session = await getAdminSession();
+    if (!session) throw new Error('Unauthorized');
     const results: any = {
         database: { status: 'unknown', error: null },
         models: {},
@@ -87,6 +92,8 @@ export async function runDiagnostics() {
 }
 
 export async function testUpdateCarAction(id: number) {
+    const session = await getAdminSession();
+    if (!session) throw new Error('Unauthorized');
     try {
         const car = await prisma.car.findUnique({
             where: { id },
@@ -114,9 +121,7 @@ export async function testUpdateCarAction(id: number) {
         console.error('CRITICAL ERROR DURING TEST UPDATE:', error);
         return {
             success: false,
-            error: `Technischer Fehler: ${error.message}`,
-            stack: error.stack,
-            code: error.code,
+            error: `Technischer Fehler: Es gab ein Problem bei der Verarbeitung.`,
         };
     }
 }

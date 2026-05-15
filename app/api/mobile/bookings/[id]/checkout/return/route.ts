@@ -6,9 +6,21 @@ export async function GET(
 ) {
   const { id } = await context.params;
   const url = new URL(req.url);
-  const status = url.searchParams.get('status') || 'success';
-  const scheme = url.searchParams.get('app') || 'rentex';
+  const status = url.searchParams.get('status') === 'cancel' ? 'cancel' : 'success';
+  // Whitelist scheme to only allow 'rentex' or other known app schemes
+  const scheme = url.searchParams.get('app') === 'rentex' ? 'rentex' : 'rentex';
+  
   const deepLink = `${scheme}://booking/${id}?payment=${status}`;
+  
+  // Basic HTML escape function
+  const escapeHtml = (unsafe: string) => {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
 
   const html = `<!doctype html>
 <html lang="de">
@@ -31,7 +43,7 @@ export async function GET(
   <div class="${status === 'success' ? 'ok' : 'fail'}">${status === 'success' ? '✓' : '✕'}</div>
   <h1>${status === 'success' ? 'Zahlung erfolgreich' : 'Zahlung abgebrochen'}</h1>
   <p>Sie werden zur App zurückgeleitet…</p>
-  <a class="btn" href="${deepLink}">Zur App</a>
+  <a class="btn" href="${escapeHtml(deepLink)}">Zur App</a>
 </div>
 <script>setTimeout(function(){ window.location.href = ${JSON.stringify(deepLink)}; }, 900);</script>
 </body>

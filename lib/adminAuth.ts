@@ -8,7 +8,11 @@ const ADMIN_2FA_PENDING_COOKIE = 'rentex_admin_2fa_pending';
 const ADMIN_2FA_PENDING_TTL = 5 * 60; // 5 minutes
 
 function getSecret() {
-    return process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-123-replace-me';
+    const secret = process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+        throw new Error('ADMIN_SESSION_SECRET or JWT_SECRET must be set in production');
+    }
+    return secret || 'dev-secret-only-for-local';
 }
 
 function sign(value: string) {

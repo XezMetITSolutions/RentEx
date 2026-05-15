@@ -33,6 +33,31 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     let response = NextResponse.next();
 
+    // 1. Security Headers
+    response.headers.set('X-DNS-Prefetch-Control', 'on');
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+
+    // 2. CSRF / Origin Protection for state-changing requests
+    const stateChangingMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+    if (stateChangingMethods.includes(request.method)) {
+        const referer = request.headers.get('referer');
+        const host = request.headers.get('host');
+        
+        // Simple referer check: if referer exists, it must match our host
+        if (referer && host) {
+            const refererHost = new URL(referer).host;
+            if (refererHost !== host && !allowedOrigins.some(ao => ao.includes(refererHost))) {
+                console.warn(`[Security] CSRF Blocked: Referer ${refererHost} does not match Host ${host}`);
+                return new NextResponse(JSON.stringify({ error: 'Invalid origin' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
+    }
+
     if (pathname.startsWith('/api/')) {
         response.headers.set('Access-Control-Allow-Origin', corsOrigin);
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -40,8 +65,6 @@ export function middleware(request: NextRequest) {
         response.headers.set('Access-Control-Allow-Credentials', 'true');
         response.headers.set('Vary', 'Origin');
     }
-
-    const cookie = request.cookies.get('rentex_customer')?.value;
 
     if (pathname.startsWith('/dashboard')) {
         if (!request.cookies.get('rentex_customer')?.value) {

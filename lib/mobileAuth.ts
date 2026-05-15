@@ -6,8 +6,11 @@ const TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_CUSTOMER_TOKEN_TTL;
 const STAFF_TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_STAFF_TOKEN_TTL;
 
 function getSecret(): string {
-  const secret = process.env.MOBILE_TOKEN_SECRET || process.env.JWT_SECRET || 'fallback-secret-do-not-use-in-prod-1234567890';
-  return secret;
+  const secret = process.env.MOBILE_TOKEN_SECRET || process.env.JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('MOBILE_TOKEN_SECRET or JWT_SECRET must be set in production');
+  }
+  return secret || 'dev-secret-only-for-local';
 }
 
 function base64url(input: Buffer | string): string {

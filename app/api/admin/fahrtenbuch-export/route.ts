@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,11 @@ function escapeCsv(s: string | number): string {
 }
 
 export async function GET(request: Request) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const formatType = searchParams.get('format') || 'csv';
 

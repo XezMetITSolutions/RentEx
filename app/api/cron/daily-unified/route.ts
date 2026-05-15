@@ -1,13 +1,23 @@
-﻿import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { emailTemplates, sendEmail } from "@/lib/notificationTemplates";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret && process.env.NODE_ENV === "production") {
+        throw new Error("CRON_SECRET must be set in production");
+    }
+
+    const providedSecret = authHeader?.replace("Bearer ", "");
+
+    if (!cronSecret || !providedSecret || !crypto.timingSafeEqual(Buffer.from(providedSecret), Buffer.from(cronSecret))) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {

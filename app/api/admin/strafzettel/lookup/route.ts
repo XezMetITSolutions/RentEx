@@ -1,7 +1,11 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/adminAuth";
 
 export async function GET(req: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     try {
         const { searchParams } = new URL(req.url);
         const carId = searchParams.get("carId");
