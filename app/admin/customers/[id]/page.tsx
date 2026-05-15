@@ -8,7 +8,7 @@ import {
     Calendar, TrendingUp, History, Shield, 
     Clock, CreditCard, Ban, CheckCircle2,
     FileText, User, Star, ExternalLink,
-    AlertCircle
+    AlertCircle, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, differenceInDays } from 'date-fns';
