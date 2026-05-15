@@ -1,0 +1,10 @@
+{
+  "scan_id": "419225d7-02df-407c-b72f-095e60cfd82c",
+  "started_at": "2026-05-15T13:34:00Z",
+  "status": "in-progress",
+  "current_phase": 0,
+  "completed_skills": [],
+  "failed_skills": [],
+  "detected_languages": ["typescript", "javascript", "php"],
+  "findings_count": 0
+}

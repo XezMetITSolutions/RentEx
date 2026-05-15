@@ -49,15 +49,6 @@ export async function fixDatabaseSchema() {
     }
 }
 
-export async function runDebugQuery(sql: string) {
-    try {
-        const data = await prisma.$queryRawUnsafe(sql);
-        return { success: true, data };
-    } catch (error: any) {
-        console.error('Debug query failed:', error);
-        return { success: false, error: error.message };
-    }
-}
 
 export async function runDiagnostics() {
     const results: any = {

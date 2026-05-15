@@ -1,14 +1,44 @@
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { AUTH_CONFIG } from './config';
+import crypto from 'crypto';
 
 const ADMIN_COOKIE_NAME = 'rentex_admin_session';
 const ADMIN_2FA_PENDING_COOKIE = 'rentex_admin_2fa_pending';
 const ADMIN_2FA_PENDING_TTL = 5 * 60; // 5 minutes
 
+function getSecret() {
+    return process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-123-replace-me';
+}
+
+function sign(value: string) {
+    const hmac = crypto.createHmac('sha256', getSecret());
+    hmac.update(value);
+    return `${value}.${hmac.digest('hex')}`;
+}
+
+function verify(signedValue: string): string | null {
+    const [value, signature] = signedValue.split('.');
+    if (!value || !signature) return null;
+    const hmac = crypto.createHmac('sha256', getSecret());
+    hmac.update(value);
+    const expected = hmac.digest('hex');
+    try {
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+            return value;
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+
 export async function getAdminSession() {
     const c = await cookies();
-    const staffId = c.get(ADMIN_COOKIE_NAME)?.value;
+    const signedId = c.get(ADMIN_COOKIE_NAME)?.value;
+    if (!signedId) return null;
+
+    const staffId = verify(signedId);
     if (!staffId) return null;
 
     const id = parseInt(staffId, 10);
@@ -24,7 +54,7 @@ export async function getAdminSession() {
 
 export async function setAdminSession(staffId: number) {
     const c = await cookies();
-    c.set(ADMIN_COOKIE_NAME, String(staffId), {
+    c.set(ADMIN_COOKIE_NAME, sign(String(staffId)), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -45,7 +75,7 @@ export async function clearAdminSession() {
 
 export async function setAdmin2FAPending(staffId: number) {
     const c = await cookies();
-    c.set(ADMIN_2FA_PENDING_COOKIE, String(staffId), {
+    c.set(ADMIN_2FA_PENDING_COOKIE, sign(String(staffId)), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -56,9 +86,13 @@ export async function setAdmin2FAPending(staffId: number) {
 
 export async function getAdmin2FAPendingStaffId(): Promise<number | null> {
     const c = await cookies();
-    const v = c.get(ADMIN_2FA_PENDING_COOKIE)?.value;
-    if (!v) return null;
-    const id = parseInt(v, 10);
+    const signedId = c.get(ADMIN_2FA_PENDING_COOKIE)?.value;
+    if (!signedId) return null;
+
+    const staffId = verify(signedId);
+    if (!staffId) return null;
+
+    const id = parseInt(staffId, 10);
     return isNaN(id) ? null : id;
 }
 

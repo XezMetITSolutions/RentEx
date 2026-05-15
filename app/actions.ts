@@ -38,7 +38,6 @@ export {
 
 export {
     fixDatabaseSchema,
-    runDebugQuery,
     runDiagnostics,
     testUpdateCarAction,
 } from './actions/diagnostics';

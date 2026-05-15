@@ -7,7 +7,10 @@ async function addAdmin() {
     console.log('Adding new admin: admin@rent-ex.at');
 
     const email = 'admin@rent-ex.at';
-    const password = '01528797Mb##';
+    const password = process.env.ADMIN_SETUP_PASSWORD || 'CHANGE_ME_NOW_123!';
+    if (password === 'CHANGE_ME_NOW_123!') {
+        console.warn('WARNING: Using default placeholder password. Please set ADMIN_SETUP_PASSWORD env var.');
+    }
     
     // Hash password using the same method as app/api/admin/staff/route.ts
     const salt = randomBytes(16).toString('hex');

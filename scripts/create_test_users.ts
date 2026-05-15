@@ -26,7 +26,7 @@ async function main() {
 
     // 1. Create/Update Test Customer
     const customerEmail = 'test@test.com';
-    const customerPassword = 'testpassword';
+    const customerPassword = process.env.TEST_CUSTOMER_PASSWORD || 'testpassword';
     const customerHash = hashCustomerPassword(customerPassword);
 
     await prisma.customer.upsert({
@@ -44,7 +44,7 @@ async function main() {
 
     // 2. Create/Update Test Admin
     const adminEmail = 'admin@test.com';
-    const adminPassword = 'adminpassword';
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD || 'adminpassword';
     const adminHash = hashStaffPassword(adminPassword);
 
     await prisma.staff.upsert({

@@ -11,16 +11,17 @@ export function middleware(request: NextRequest) {
         'http://localhost:3000',
         'http://localhost:19000',
         'http://localhost:19006',
-        'https://rentex.at'
+        'https://rentex.at',
+        'https://rent-ex.vercel.app'
     ];
 
     const isAllowedOrigin = allowedOrigins.includes(origin) || origin.includes('localhost:');
+    const corsOrigin = isAllowedOrigin ? origin : allowedOrigins[0];
 
     if (request.method === 'OPTIONS') {
         const response = new NextResponse(null, { status: 204 });
         
-        // In development, we allow everything for CORS preflight
-        response.headers.set('Access-Control-Allow-Origin', origin || '*');
+        response.headers.set('Access-Control-Allow-Origin', corsOrigin);
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
         response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -32,9 +33,8 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     let response = NextResponse.next();
 
-    // Add CORS headers to ALL API routes in development
     if (pathname.startsWith('/api/')) {
-        response.headers.set('Access-Control-Allow-Origin', origin || '*');
+        response.headers.set('Access-Control-Allow-Origin', corsOrigin);
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
         response.headers.set('Access-Control-Allow-Credentials', 'true');
