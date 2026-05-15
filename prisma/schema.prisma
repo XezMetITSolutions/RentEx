@@ -89,6 +89,7 @@ model Car {
   tireType          String?      // Sommerreifen, Winterreifen, Allwetter
   nextServiceDate   DateTime?
   lastServiceDate   DateTime?
+  nextServiceKm     Int?
   
   // Location & Availability
   locationId        Int?

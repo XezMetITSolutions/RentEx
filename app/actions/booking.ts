@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { stripe } from "@/lib/stripe";
 import { hashPassword, setSession, getSession } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
+import { logActivity } from "@/lib/audit";
+
 
 export async function createBooking(prevState: any, formData: FormData) {
     const adminSession = await getAdminSession();
@@ -66,6 +68,15 @@ export async function createBooking(prevState: any, formData: FormData) {
         if (password && password.length >= 6) {
             await setSession(customer.id);
         }
+
+        await logActivity({
+            userId: adminSession?.id || customer.id,
+            userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
+            action: 'CREATE',
+            entityType: 'Customer',
+            entityId: customer.id,
+            description: `Customer account created during booking: ${customer.email}`
+        });
     } else {
         // If customer exists, check if requester has permission to update
         const isSelf = customerSession === customer.id;
@@ -95,6 +106,15 @@ export async function createBooking(prevState: any, formData: FormData) {
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
                 licenseNumber: licenseNumber || undefined
             }
+        });
+
+        await logActivity({
+            userId: adminSession?.id || customer.id,
+            userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
+            action: 'UPDATE',
+            entityType: 'Customer',
+            entityId: customer.id,
+            description: `Customer details updated during booking: ${customer.email}`
         });
     }
 
@@ -190,6 +210,16 @@ export async function createBooking(prevState: any, formData: FormData) {
             paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
             includedKm: includedKm
         }
+    });
+
+    await logActivity({
+        userId: adminSession?.id || customer.id,
+        userName: adminSession?.name || `${customer.firstName} ${customer.lastName}`,
+        action: 'CREATE',
+        entityType: 'Rental',
+        entityId: rental.id,
+        description: `Booking created for car ${car.brand} ${car.model}. Contract: ${contractNumber}`,
+        metadata: { totalAmount, days, carId }
     });
 
     // 4. Create Notification

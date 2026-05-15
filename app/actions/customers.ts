@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { customerSchema, formDataToObject, safeValidate } from '@/lib/schemas';
 
 import { getAdminSession } from '@/lib/adminAuth';
+import { logActivity } from '@/lib/audit';
+
 
 export async function createCustomer(formData: FormData) {
     const session = await getAdminSession();
@@ -18,6 +20,15 @@ export async function createCustomer(formData: FormData) {
         const customer = await prisma.customer.create({
             data: { ...parsed.data, country: parsed.data.country ?? 'Österreich' },
         });
+        await logActivity({
+            userId: session.id,
+            userName: session.name,
+            action: 'CREATE',
+            entityType: 'Customer',
+            entityId: customer.id,
+            description: `Created customer ${customer.firstName} ${customer.lastName}`
+        });
+
         revalidatePath('/admin/customers');
         revalidatePath('/admin/reservations/new');
         return { success: true, customer };
@@ -40,6 +51,15 @@ export async function updateCustomer(id: number, formData: FormData) {
             where: { id },
             data: { ...parsed.data, country: parsed.data.country ?? 'Österreich' },
         });
+        await logActivity({
+            userId: session.id,
+            userName: session.name,
+            action: 'UPDATE',
+            entityType: 'Customer',
+            entityId: id,
+            description: `Updated customer ${customer.firstName} ${customer.lastName}`
+        });
+
         revalidatePath('/admin/customers');
         revalidatePath(`/admin/customers/${id}`);
         return { success: true, customer };

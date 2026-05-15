@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { getAdminSession } from '@/lib/adminAuth';
 import { refundRental } from '@/lib/refunds';
 import { apiOk, apiUnauthorized, apiValidation, apiError, ERROR_CODES } from '@/lib/apiResponse';
+import { logActivity } from '@/lib/audit';
+
 
 export async function POST(
   req: NextRequest,
@@ -44,6 +46,19 @@ export async function POST(
   if (result.amount === 0) {
     return apiValidation('Keine Zahlung zum Erstatten vorhanden.');
   }
+
+  // AUDIT LOG
+  await logActivity({
+    userId: session.id,
+    userName: session.name,
+    action: 'REFUND',
+    entityType: 'Rental',
+    entityId: rentalId,
+    description: `Refund processed for rental ${rentalId}. Amount: ${result.amount}€. Reason: ${reason || 'Not specified'}`,
+    metadata: { stripeRefundId: result.stripeRefundId, amount: result.amount, reason },
+    ipAddress: req.headers.get('x-forwarded-for') || undefined,
+    userAgent: req.headers.get('user-agent') || undefined
+  });
 
   return apiOk({
     success: true,

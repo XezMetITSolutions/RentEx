@@ -1,7 +1,38 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Basic in-memory rate limiting (per edge instance)
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+
 export function middleware(request: NextRequest) {
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const { pathname } = request.nextUrl;
+
+    // --- RATE LIMITING ---
+    if (pathname.startsWith('/api/') || pathname === '/admin/login') {
+        const now = Date.now();
+        const limitInfo = rateLimitMap.get(ip) || { count: 0, lastReset: now };
+        
+        // Reset every 60 seconds
+        if (now - limitInfo.lastReset > 60000) {
+            limitInfo.count = 0;
+            limitInfo.lastReset = now;
+        }
+
+        limitInfo.count++;
+        rateLimitMap.set(ip, limitInfo);
+
+        const limit = (pathname === '/admin/login' || pathname.startsWith('/api/mobile/auth/')) ? 10 : 100;
+        
+        if (limitInfo.count > limit) {
+            console.warn(`[Security] Rate limit exceeded for IP ${ip} on ${pathname}`);
+            return new NextResponse(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie eine Minute.' }), { 
+                status: 429, 
+                headers: { 'Content-Type': 'application/json' } 
+            });
+        }
+    }
+
     const origin = request.headers.get('origin') || '';
     console.log(`[Middleware] Request from Origin: ${origin}, Path: ${request.nextUrl.pathname}, Method: ${request.method}`);
 
