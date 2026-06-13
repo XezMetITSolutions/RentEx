@@ -293,9 +293,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                 <table width="100%" maxWidth="600px" align="center" cellpadding="0" cellspacing="0" border="0" style="background-color: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; max-width: 600px; margin: 0 auto;">
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="background-color: #09090b; padding: 25px 25px 20px 25px; border-bottom: 3px solid #dc2626;">
-                            <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app'}/assets/logo.png" alt="Rent-Ex Logo" style="height: 45px; width: auto; display: block; border: 0; margin-bottom: 8px;">
-                            <span style="color: #ffffff; font-size: 14px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; display: block;">RENT<span style="color: #dc2626;">EX</span> <span style="font-size: 11px; font-weight: normal; color: #a1a1aa; letter-spacing: normal; margin-left: 5px; vertical-align: middle;">ADMIN PANEL</span></span>
+                        <td align="center" style="background-color: #09090b; padding: 25px; border-bottom: 3px solid #dc2626;">
+                            <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app'}/assets/logo.png" alt="Rent-Ex Logo" style="height: 45px; width: auto; display: block; border: 0;">
                         </td>
                     </tr>
                     
