@@ -236,6 +236,17 @@ export default async function RechnungenPage() {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
+                                                {inv.pdfPath && inv.pdfPath.startsWith('http') && (
+                                                     <a
+                                                         href={inv.pdfPath}
+                                                         target="_blank"
+                                                         rel="noopener noreferrer"
+                                                         className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
+                                                         title="In SevDesk öffnen"
+                                                     >
+                                                         <ExternalLink className="w-4 h-4" />
+                                                     </a>
+                                                 )}
                                                 <button className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-800 rounded-md transition-colors">
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </button>

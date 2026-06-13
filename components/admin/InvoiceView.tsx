@@ -32,6 +32,7 @@ interface InvoiceViewProps {
         taxAmount: number | string;
         total: number | string;
         status: string;
+        pdfPath?: string | null;
         rental: {
             contractNumber: string | null;
             startDate: Date | string;
@@ -243,6 +244,17 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                         <Printer className="w-4 h-4 mr-2" />
                         Drucken
                     </button>
+                    {invoice.pdfPath && invoice.pdfPath.startsWith('http') && (
+                        <a
+                            href={invoice.pdfPath}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-blue-600/20"
+                        >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            In SevDesk öffnen
+                        </a>
+                    )}
                     <button
                         onClick={handleDownloadPDF}
                         className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-red-600/20"

@@ -329,11 +329,21 @@ export async function createInvoiceFormAction(formData: FormData) {
     await createInvoiceForRental(rentalId);
 }
 
+import { createSevDeskInvoice } from '@/lib/sevdesk';
+
 /** Rechnung für eine Miete erstellen (Registrierkassa-ready) */
 export async function createInvoiceForRental(rentalId: number) {
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
-        include: { car: true, customer: true },
+        include: { 
+            car: true, 
+            customer: true,
+            options: {
+                include: {
+                    option: true
+                }
+            }
+        },
     });
     if (!rental) {
         redirect('/admin/rechnungen?error=notfound');
@@ -348,24 +358,34 @@ export async function createInvoiceForRental(rentalId: number) {
         return;
     }
 
-    const total = Number(rental.totalAmount);
-    const taxRate = 20; // Österreich USt 20 %
-    const subtotal = Math.round((total / (1 + taxRate / 100)) * 100) / 100;
-    const taxAmount = Math.round((total - subtotal) * 100) / 100;
+    try {
+        const optionsList = rental.options.map(o => o.option).filter(Boolean);
+        const sevdeskResult = await createSevDeskInvoice(rental, rental.customer, optionsList);
 
-    const invoiceNumber = await getNextInvoiceNumber();
+        const total = Number(rental.totalAmount);
+        const taxRate = 20; // Österreich USt 20 %
+        const subtotal = Math.round((total / (1 + taxRate / 100)) * 100) / 100;
+        const taxAmount = Math.round((total - subtotal) * 100) / 100;
 
-    await prisma.invoice.create({
-        data: {
-            rentalId,
-            invoiceNumber,
-            subtotal,
-            taxRate,
-            taxAmount,
-            total,
-            status: 'ISSUED',
-        },
-    });
+        await prisma.invoice.create({
+            data: {
+                rentalId,
+                invoiceNumber: sevdeskResult.invoiceNumber,
+                subtotal,
+                taxRate,
+                taxAmount,
+                total,
+                status: 'ISSUED',
+                pdfPath: `https://my.sevdesk.de/#/default/invoice/view;id=${sevdeskResult.id}`,
+                registrierkassaBelegId: sevdeskResult.id
+            },
+        });
+    } catch (err: any) {
+        console.error('Error creating SevDesk invoice:', err);
+        redirect(`/admin/rechnungen?error=sevdesk_failed&message=${encodeURIComponent(err.message || '')}`);
+        return;
+    }
+
     revalidatePath('/admin/rechnungen');
     revalidatePath(`/admin/reservations`);
     redirect('/admin/rechnungen');

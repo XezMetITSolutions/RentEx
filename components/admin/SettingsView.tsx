@@ -25,12 +25,15 @@ import { updateSystemSetting } from '@/app/actions';
 import { registerKasseWithBMF } from '@/app/actions/admin';
 import { toast } from 'sonner';
 
+
+
 const sections = [
     { id: 'profile', label: 'Profil', icon: User },
     // { id: 'notifications', label: 'Benachrichtigungen', icon: Bell },
     // { id: 'security', label: 'Sicherheit', icon: Lock },
     { id: 'appearance', label: 'Erscheinungsbild', icon: Moon },
     { id: 'registrierkassa', label: 'Registrierkassa (BMF)', icon: Wallet },
+    { id: 'sevdesk', label: 'SevDesk Integration', icon: FileText },
 ];
 
 interface SettingsViewProps {
@@ -409,6 +412,40 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                                 {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                                 Jetzt beim BMF registrieren
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {activeSection === 'sevdesk' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-top-2">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">SevDesk Integration</h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Verbinden Sie Ihre Anwendung mit der SevDesk-Buchhaltungssoftware, um Rechnungen automatisch zu synchronisieren.</p>
+                        </div>
+
+                        <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex gap-4">
+                            <FileText className="h-5 w-5 text-gray-400 shrink-0" />
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                <p className="font-semibold text-gray-900 dark:text-white">Einrichtungsschritte</p>
+                                <p className="mt-1">
+                                    1. Loggen Sie sich in Ihren SevDesk-Account ein.<br />
+                                    2. Gehen Sie zu <i>Einstellungen &gt; Benutzer</i> und kopieren Sie Ihren <b>API-Token</b>.<br />
+                                    3. Fügen Sie den Token unten ein. Neue Rechnungen werden dann automatisch als Entwürfe in SevDesk angelegt.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-6 sm:grid-cols-1">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">SevDesk API Token</label>
+                                <input
+                                    type="password"
+                                    onBlur={(e) => handleSave('sevdesk_api_token', e.target.value)}
+                                    defaultValue={settings['sevdesk_api_token'] || ''}
+                                    placeholder="Ihr SevDesk API-Token..."
+                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-white"
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
