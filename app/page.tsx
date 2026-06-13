@@ -2,6 +2,7 @@ import Navbar from "@/components/home/Navbar";
 import Hero from "@/components/home/Hero";
 import Features from "@/components/home/Features";
 import CarFleetPreview from "@/components/home/CarFleetPreview";
+import HomeTrustAndSteps from "@/components/home/HomeTrustAndSteps";
 import Footer from "@/components/home/Footer";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         <Hero />
         <Features />
         <CarFleetPreview />
+        <HomeTrustAndSteps />
       </main>
 
       <Footer />
