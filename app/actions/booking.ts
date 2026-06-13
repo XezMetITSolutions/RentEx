@@ -8,6 +8,8 @@ import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
 
 
+import { fromZonedTime } from 'date-fns-tz';
+
 export async function createBooking(prevState: any, formData: FormData) {
     const adminSession = await getAdminSession();
     const customerSession = await getSession();
@@ -15,8 +17,10 @@ export async function createBooking(prevState: any, formData: FormData) {
 
     // 1. Extract Data
     const carId = parseInt(formData.get('carId') as string);
-    const startDate = new Date(formData.get('startDate') as string);
-    const endDate = new Date(formData.get('endDate') as string);
+    const startDateVal = formData.get('startDate') as string;
+    const endDateVal = formData.get('endDate') as string;
+    const startDate = fromZonedTime(`${startDateVal} 10:00:00`, 'Europe/Vienna');
+    const endDate = fromZonedTime(`${endDateVal} 10:00:00`, 'Europe/Vienna');
     const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
     const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
 

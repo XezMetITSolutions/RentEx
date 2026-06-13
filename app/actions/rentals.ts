@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { differenceInDays } from 'date-fns';
 import { rentalSchema, safeValidate } from '@/lib/schemas';
+import { fromZonedTime } from 'date-fns-tz';
 
 export async function createRental(formData: FormData) {
     // Build a typed object from FormData. `options` may appear multiple
@@ -29,6 +30,11 @@ export async function createRental(formData: FormData) {
     const data = parsed.data;
 
     try {
+        const startStr = formData.get('startDate') as string;
+        const endStr = formData.get('endDate') as string;
+        const startDate = fromZonedTime(`${startStr} 10:00:00`, 'Europe/Vienna');
+        const endDate = fromZonedTime(`${endStr} 10:00:00`, 'Europe/Vienna');
+
         // Auto-generate contract number: REX-YY-XXXXX
         const year = new Date().getFullYear().toString().slice(-2);
         const random = Math.floor(10000 + Math.random() * 90000);
@@ -36,7 +42,7 @@ export async function createRental(formData: FormData) {
 
         const car = await prisma.car.findUnique({ where: { id: data.carId } });
         if (!car) throw new Error('Fahrzeug nicht gefunden');
-        const days = Math.max(1, differenceInDays(data.endDate, data.startDate));
+        const days = Math.max(1, differenceInDays(endDate, startDate));
         let totalAmount = Number(car.dailyRate) * days;
 
         const selectedOptions = data.options.length
@@ -50,8 +56,8 @@ export async function createRental(formData: FormData) {
             data: {
                 carId: data.carId,
                 customerId: data.customerId,
-                startDate: data.startDate,
-                endDate: data.endDate,
+                startDate: startDate,
+                endDate: endDate,
                 dailyRate: car.dailyRate,
                 totalDays: days,
                 totalAmount,

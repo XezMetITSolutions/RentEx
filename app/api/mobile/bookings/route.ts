@@ -46,6 +46,8 @@ function serializeBooking(r: any) {
   };
 }
 
+import { fromZonedTime } from 'date-fns-tz';
+
 export async function GET(req: NextRequest) {
   try {
     const customerId = getAuthCustomerId(req);
@@ -79,8 +81,15 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => null);
     const carId = Number(body?.carId);
-    const startDate = body?.startDate ? new Date(body.startDate) : null;
-    const endDate = body?.endDate ? new Date(body.endDate) : null;
+    let startDate = body?.startDate ? new Date(body.startDate) : null;
+    let endDate = body?.endDate ? new Date(body.endDate) : null;
+
+    if (body?.startDate && typeof body.startDate === 'string' && body.startDate.length === 10) {
+      startDate = fromZonedTime(`${body.startDate} 10:00:00`, 'Europe/Vienna');
+    }
+    if (body?.endDate && typeof body.endDate === 'string' && body.endDate.length === 10) {
+      endDate = fromZonedTime(`${body.endDate} 10:00:00`, 'Europe/Vienna');
+    }
 
     if (!carId || !startDate || !endDate || isNaN(+startDate) || isNaN(+endDate)) {
       return NextResponse.json({ error: 'Ungültige Daten.' }, { status: 400 });

@@ -17,8 +17,23 @@ interface AdminLayoutWrapperProps {
 
 export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayoutWrapperProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarPinned, setIsSidebarPinned] = useState(true);
     const pathname = usePathname();
     const isLoginPage = pathname === '/admin/login';
+
+    // Load pin preference from localStorage
+    useEffect(() => {
+        const stored = localStorage.getItem('admin_sidebar_pinned');
+        if (stored !== null) {
+            setIsSidebarPinned(stored === 'true');
+        }
+    }, []);
+
+    const handlePinToggle = () => {
+        const newValue = !isSidebarPinned;
+        setIsSidebarPinned(newValue);
+        localStorage.setItem('admin_sidebar_pinned', String(newValue));
+    };
 
     // Close sidebar on mobile when route changes
     useEffect(() => {
@@ -31,7 +46,7 @@ export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayo
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-            {/* Sidebar with mobile toggle logic */}
+            {/* Sidebar with mobile toggle & pin logic */}
             <Sidebar
                 activeRentals={stats.activeRentals}
                 todayRevenue={stats.todayRevenue}
@@ -39,6 +54,8 @@ export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayo
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 staff={staff}
+                isPinned={isSidebarPinned}
+                onPinToggle={handlePinToggle}
             />
 
             {/* Mobile Backdrop */}

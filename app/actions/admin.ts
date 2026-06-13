@@ -69,7 +69,11 @@ export async function getTodayEvents() {
         return {
             id: rental.id,
             type: isPickup ? 'pickup' as const : 'return' as const,
-            time: new Intl.DateTimeFormat('de-AT', { hour: '2-digit', minute: '2-digit' }).format(
+            time: new Intl.DateTimeFormat('de-AT', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Europe/Vienna'
+            }).format(
                 isPickup ? rental.startDate : rental.endDate
             ),
             car: `${rental.car.brand} ${rental.car.model}`,
