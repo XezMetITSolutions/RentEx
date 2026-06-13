@@ -68,7 +68,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             return;
         }
         try {
-            const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501&priority_distance=1000`);
+            const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501`);
             const data = await res.json();
             setSuggestions(data.features || []);
             setShowSuggestions(true);
