@@ -215,28 +215,35 @@ export const smsTemplates = {
         `RentEx: Zahlung €${data.rental.totalAmount.toFixed(2)} erhalten. Vielen Dank! ${data.contractNumber}`,
 };
 
-function getResend() {
-    const key = process.env.RESEND_API_KEY;
-    if (!key) throw new Error('RESEND_API_KEY is not configured');
-    const { Resend } = require('resend');
-    return new Resend(key);
+function getTransporter() {
+    const host = process.env.SMTP_HOST || 'w01dc0ea.kasserver.com';
+    const port = parseInt(process.env.SMTP_PORT || '465', 10);
+    const user = process.env.SMTP_USER || 'rentex@metechnik.at';
+    const pass = process.env.SMTP_PASS || '01528797Mb##';
+
+    const nodemailer = require('nodemailer');
+    return nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465, // true for 465, false for other ports
+        auth: {
+            user,
+            pass,
+        },
+    });
 }
 
-const FROM = process.env.EMAIL_FROM || 'noreply@rent-ex.at';
+const FROM = process.env.EMAIL_FROM || 'rentex@metechnik.at';
 
 export async function sendEmail(to: string, template: EmailTemplate): Promise<boolean> {
     try {
-        const resend = getResend();
-        const { error } = await resend.emails.send({
-            from: FROM,
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: `"RentEx" <${FROM}>`,
             to,
             subject: template.subject,
             text: template.body,
         });
-        if (error) {
-            console.error('[sendEmail] Resend error:', error);
-            return false;
-        }
         return true;
     } catch (err) {
         console.error('[sendEmail] Failed:', err);
@@ -249,3 +256,4 @@ export async function sendSMS(to: string, message: string): Promise<boolean> {
     console.log('[sendSMS] (not integrated) to:', to, 'message:', message);
     return false;
 }
+
