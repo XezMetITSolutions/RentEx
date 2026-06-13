@@ -24,8 +24,7 @@ import Image from 'next/image';
 import { updateSystemSetting } from '@/app/actions';
 import { registerKasseWithBMF } from '@/app/actions/admin';
 import { toast } from 'sonner';
-
-
+import { useTheme } from 'next-themes';
 
 const sections = [
     { id: 'profile', label: 'Profil', icon: User },
@@ -41,6 +40,7 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({ initialSettings }: SettingsViewProps) {
+    const { theme, setTheme } = useTheme();
     const [activeSection, setActiveSection] = useState('profile');
     const [settings, setSettings] = useState(initialSettings);
     const [isPending, startTransition] = useTransition();
@@ -270,20 +270,52 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <button className="group relative rounded-xl border-2 border-transparent p-4 text-left ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <button
+                                onClick={() => setTheme('light')}
+                                className={clsx(
+                                    "group relative rounded-xl border-2 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all",
+                                    theme === 'light' ? "border-blue-600 shadow-md" : "border-transparent ring-1 ring-gray-200 dark:ring-gray-700"
+                                )}
+                            >
                                 <div className="mb-2 h-20 rounded-lg bg-gray-100 border border-gray-200"></div>
                                 <span className="font-medium text-gray-900 dark:text-white">Hell</span>
+                                {theme === 'light' && (
+                                    <div className="absolute top-4 right-4 text-blue-600">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                )}
                             </button>
-                            <button className="group relative rounded-xl border-2 border-transparent p-4 text-left ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+
+                            <button
+                                onClick={() => setTheme('dark')}
+                                className={clsx(
+                                    "group relative rounded-xl border-2 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all",
+                                    theme === 'dark' ? "border-blue-600 shadow-md" : "border-transparent ring-1 ring-gray-200 dark:ring-gray-700"
+                                )}
+                            >
                                 <div className="mb-2 h-20 rounded-lg bg-gray-900 border border-gray-800"></div>
                                 <span className="font-medium text-gray-900 dark:text-white">Dunkel</span>
+                                {theme === 'dark' && (
+                                    <div className="absolute top-4 right-4 text-blue-600">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                )}
                             </button>
-                            <button className="group relative rounded-xl border-2 border-blue-600 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50">
+
+                            <button
+                                onClick={() => setTheme('system')}
+                                className={clsx(
+                                    "group relative rounded-xl border-2 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all",
+                                    theme === 'system' ? "border-blue-600 shadow-md" : "border-transparent ring-1 ring-gray-200 dark:ring-gray-700"
+                                )}
+                            >
                                 <div className="mb-2 h-20 rounded-lg bg-gradient-to-br from-white to-gray-900 border border-gray-200"></div>
                                 <span className="font-medium text-gray-900 dark:text-white">System</span>
-                                <div className="absolute top-4 right-4 text-blue-600">
-                                    <CheckCircle2 className="h-5 w-5" />
-                                </div>
+                                {theme === 'system' && (
+                                    <div className="absolute top-4 right-4 text-blue-600">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                )}
                             </button>
                         </div>
                     </div>
