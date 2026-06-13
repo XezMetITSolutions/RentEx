@@ -44,3 +44,5 @@ export {
 
 export { updateCompetitorPrices } from './actions/competitor-pricing';
 export { updateSystemSetting } from './actions/system';
+export { getGoogleReviews } from './actions/reviews';
+
