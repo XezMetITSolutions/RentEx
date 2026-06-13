@@ -125,6 +125,23 @@ export async function createBooking(prevState: any, formData: FormData) {
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) throw new Error("Car not found");
 
+    // Check for conflicting bookings
+    const conflictingRental = await prisma.rental.findFirst({
+        where: {
+            carId,
+            status: { in: ['Pending', 'Confirmed', 'Active'] },
+            startDate: { lt: endDate },
+            endDate: { gt: startDate }
+        }
+    });
+
+    if (conflictingRental) {
+        return {
+            success: false,
+            error: "Das Fahrzeug ist im ausgewählten Zeitraum bereits gebucht."
+        };
+    }
+
     const year = new Date().getFullYear();
     const count = await prisma.rental.count();
     const contractNumber = `RNT-${year}-${(count + 1).toString().padStart(6, '0')}`;
@@ -235,7 +252,7 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
-    // 5. Send booking confirmation email to customer
+    // 5. Send booking confirmation email to customer & admin
     try {
         const { emailTemplates, sendEmail } = require('@/lib/notificationTemplates');
         const templateData = {
@@ -258,8 +275,24 @@ export async function createBooking(prevState: any, formData: FormData) {
         };
         await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
         console.log(`[createBooking] Confirmation email sent to ${customer.email}`);
+
+        // Send copy / notification to admin
+        await sendEmail('rentex@metechnik.at', {
+            subject: `Neue Reservierung erhalten - ${rental.contractNumber}`,
+            body: `Eine neue Buchung wurde empfangen.
+
+Vertragsnummer: ${rental.contractNumber}
+Kunde: ${customer.firstName} ${customer.lastName} (${customer.email})
+Fahrzeug: ${car.brand} ${car.model} (${car.plate})
+Mietdauer: ${rental.startDate.toLocaleDateString()} - ${rental.endDate.toLocaleDateString()}
+Gesamtbetrag: €${Number(rental.totalAmount).toFixed(2)}
+Zahlungsmethode: ${rental.paymentMethod}
+
+Bitte prüfen Sie die Details im Admin-Dashboard.`
+        });
+        console.log(`[createBooking] Admin notification email sent to rentex@metechnik.at`);
     } catch (mailError) {
-        console.error('[createBooking] Failed to send confirmation email:', mailError);
+        console.error('[createBooking] Failed to send email:', mailError);
     }
 
     if (paymentMethod === 'online') {
