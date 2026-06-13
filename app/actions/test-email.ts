@@ -1,12 +1,51 @@
 'use server';
 
-import { sendEmail } from '@/lib/notificationTemplates';
 import { createBooking } from './booking';
 import prisma from '@/lib/prisma';
+const nodemailer = require('nodemailer');
 
-export async function sendTestEmail(targetEmail: string) {
+interface MailTestResult {
+    success: boolean;
+    error?: string;
+    logs: string[];
+    response?: any;
+}
+
+function getDebugTransporter(logger: any) {
+    const host = process.env.SMTP_HOST || 'w01dc0ea.kasserver.com';
+    const port = parseInt(process.env.SMTP_PORT || '465', 10);
+    const user = process.env.SMTP_USER || 'rentex@metechnik.at';
+    const pass = process.env.SMTP_PASS || '01528797Mb##';
+
+    return nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: {
+            user,
+            pass,
+        },
+        debug: true,
+        logger: logger,
+    });
+}
+
+export async function sendTestEmail(targetEmail: string): Promise<MailTestResult> {
+    const logs: string[] = [];
+    const customLogger = {
+        info: (msg: any, ...args: any[]) => {
+            logs.push(`[INFO] ${msg} ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`);
+        },
+        warn: (msg: any, ...args: any[]) => {
+            logs.push(`[WARN] ${msg} ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`);
+        },
+        error: (msg: any, ...args: any[]) => {
+            logs.push(`[ERROR] ${msg} ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`);
+        },
+    };
+
     if (!targetEmail || !targetEmail.includes('@')) {
-        return { success: false, error: 'Ungültige E-Mail-Adresse' };
+        return { success: false, error: 'Ungültige E-Mail-Adresse', logs };
     }
 
     try {
@@ -23,11 +62,22 @@ Gesendet am: ${new Date().toLocaleString()}
 Mit freundlichen Grüßen,
 Ihr RentEx-Entwickler-Team`;
 
-        // 1. Send to user-entered email
-        const sentToUser = await sendEmail(targetEmail, { subject, body });
+        const transporter = getDebugTransporter(customLogger);
+        const from = process.env.EMAIL_FROM || 'rentex@metechnik.at';
 
-        // 2. Send to admin copy
-        const sentToAdmin = await sendEmail('rentex@metechnik.at', {
+        logs.push(`Attempting to send mail to user: ${targetEmail}`);
+        const infoUser = await transporter.sendMail({
+            from: `"RentEx" <${from}>`,
+            to: targetEmail,
+            subject: subject,
+            text: body,
+        });
+        logs.push(`User mail response received.`);
+
+        logs.push(`Attempting to send copy to admin: rentex@metechnik.at`);
+        const infoAdmin = await transporter.sendMail({
+            from: `"RentEx" <${from}>`,
+            to: 'rentex@metechnik.at',
             subject: `[Test Copy] ${subject} - ${targetEmail}`,
             body: `Dies ist eine Kopie des SMTP-Tests.
 
@@ -38,18 +88,20 @@ Inhalt:
 ------------------------------------------
 ${body}`
         });
+        logs.push(`Admin mail response received.`);
 
-        if (sentToUser && sentToAdmin) {
-            return { success: true };
-        } else {
-            return { 
-                success: false, 
-                error: `E-Mail-Versand fehlgeschlagen (Kunde: ${sentToUser ? 'OK' : 'Fehler'}, Admin: ${sentToAdmin ? 'OK' : 'Fehler'})` 
-            };
-        }
+        return { 
+            success: true, 
+            logs, 
+            response: { 
+                userResponse: infoUser.response, 
+                adminResponse: infoAdmin.response 
+            } 
+        };
     } catch (error: any) {
         console.error('[sendTestEmail] Error:', error);
-        return { success: false, error: error.message || 'Interner Serverfehler' };
+        logs.push(`[CRITICAL ERROR] ${error.message || error}`);
+        return { success: false, error: error.message || 'Interner Serverfehler', logs };
     }
 }
 
@@ -113,4 +165,5 @@ export async function runRealBookingTest(targetEmail: string) {
         return { success: false, error: err.message || 'Fehler bei der Test-Buchung' };
     }
 }
+
 

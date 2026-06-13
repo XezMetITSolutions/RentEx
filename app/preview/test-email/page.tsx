@@ -7,6 +7,8 @@ export default function TestEmailPage() {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const [mailLogs, setMailLogs] = useState<string[]>([]);
+    const [mailResponse, setMailResponse] = useState<any>(null);
 
     const [bookingEmail, setBookingEmail] = useState('');
     const [bookingStatus, setBookingStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
@@ -18,10 +20,14 @@ export default function TestEmailPage() {
 
         setStatus('sending');
         setErrorMessage('');
+        setMailLogs([]);
+        setMailResponse(null);
 
         const res = await sendTestEmail(email);
+        setMailLogs(res.logs || []);
         if (res.success) {
             setStatus('success');
+            setMailResponse(res.response);
         } else {
             setStatus('error');
             setErrorMessage(res.error || 'Fehler beim Senden');
@@ -59,7 +65,7 @@ export default function TestEmailPage() {
         }}>
             {/* CARD 1: Simple SMTP Test */}
             <div style={{
-                maxWidth: '450px',
+                maxWidth: '600px',
                 width: '100%',
                 backgroundColor: '#161616',
                 border: '1px solid #333',
@@ -143,11 +149,33 @@ export default function TestEmailPage() {
                         ❌ {errorMessage}
                     </div>
                 )}
+
+                {mailLogs.length > 0 && (
+                    <div style={{ marginTop: '25px' }}>
+                        <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#ff2d37' }}>SMTP Logausgabe:</h4>
+                        <div style={{
+                            backgroundColor: '#000',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            maxHeight: '250px',
+                            overflowY: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            border: '1px solid #222',
+                            color: '#00ff00'
+                        }}>
+                            {mailLogs.map((log, i) => (
+                                <div key={i} style={{ marginBottom: '4px' }}>{log}</div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* CARD 2: Real Booking Flow Simulation */}
             <div style={{
-                maxWidth: '450px',
+                maxWidth: '600px',
                 width: '100%',
                 backgroundColor: '#161616',
                 border: '1px solid #333',
@@ -213,7 +241,7 @@ export default function TestEmailPage() {
                         fontSize: '14px',
                         textAlign: 'center'
                     }}>
-                        ✓ Buchung erfolgreich erstellt! Weiterleitung zum Beleg folgt oder Mails wurden gesendet.
+                        ✓ Buchung erfolgreich erstellt! Weiterleitung zum Beleg folgt veya Mails wurden gesendet.
                     </div>
                 )}
 
