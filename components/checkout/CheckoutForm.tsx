@@ -95,10 +95,17 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             <input type="hidden" name="endDate" value={searchParams.endDate} />
             <input type="hidden" name="options" value={searchParams.options} />
             <input type="hidden" name="totalAmount" value={total} />
+            <input type="hidden" name="paymentMethod" value={paymentMethod} />
 
 
             {/* LEFT: Customer Form */}
             <div className="lg:col-span-2 space-y-8">
+
+                {state?.error && (
+                    <div className="p-4 bg-red-950/80 border border-red-500/30 rounded-2xl text-red-300 text-sm font-semibold">
+                        {state.error}
+                    </div>
+                )}
 
                 {/* Customer Type */}
                 <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
