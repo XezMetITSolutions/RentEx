@@ -77,7 +77,7 @@ export default function KmTransferPage() {
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                     <Zap className="w-6 h-6 text-yellow-500" />
-                    Kilometre-Guthaben & Transfer
+                    Kilometer-Guthaben & Transfer
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Freie Kilometer zwischen Kunden übertragen</p>
             </div>
@@ -105,7 +105,7 @@ export default function KmTransferPage() {
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-yellow-500 outline-none" />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Kilometre *</label>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Kilometer *</label>
                                 <input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
                                     placeholder="z.B. 500"
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-yellow-500 outline-none" />

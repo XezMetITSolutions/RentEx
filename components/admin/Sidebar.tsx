@@ -38,6 +38,7 @@ const menuGroups = [
             { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
             { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
             { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
+            { name: 'Aktivitäten', icon: FileText, href: '/admin/activity' },
         ]
     },
     {
@@ -69,6 +70,7 @@ const menuGroups = [
         title: 'Marketing & Analyse',
         items: [
             { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
+            { name: 'Preisanalyse', icon: Tag, href: '/admin/pricing' },
             { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
             { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
         ]
@@ -101,7 +103,7 @@ const rolePermissions: Record<string, string[]> = {
         'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 'Standorte', 
         'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
         'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In', 
-        'Strafzettel', 'Mitarbeiter'
+        'Strafzettel', 'Mitarbeiter', 'Preisanalyse', 'Aktivitäten'
     ],
     'MITARBEITER': [
         'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 

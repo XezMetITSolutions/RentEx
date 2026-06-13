@@ -22,10 +22,15 @@ export default async function PricingAnalysisPage() {
         include: { competitor: true }
     });
 
-    // 3. Process data for the view
+    // 3. Fetch competitor companies
+    const competitorCompanies = await prisma.competitorCompany.findMany({
+        orderBy: { name: 'asc' },
+    });
+
+    // 4. Process data for the view
     const data = cars.map(car => {
         const relevantCompetitors = competitorPrices.filter(cp =>
-            (cp.brand === car.brand && cp.model === car.model)
+            (cp.brand.toLowerCase() === car.brand.toLowerCase() && cp.model.toLowerCase() === car.model.toLowerCase())
         );
 
         // Get unique competitors (latest price for each company)
@@ -39,8 +44,8 @@ export default async function PricingAnalysisPage() {
         const competitors = Array.from(latestPrices.values()).map(cp => ({
             competitor: cp.competitor.name,
             dailyRate: Number(cp.dailyRate),
-            weeklyRate: 0, // Calculated in frontend
-            monthlyRate: 0, // Calculated in frontend
+            weeklyRate: Number(cp.weeklyRate || 0),
+            monthlyRate: Number(cp.monthlyRate || 0),
             lastUpdated: cp.recordedAt.toISOString()
         }));
 
@@ -60,7 +65,7 @@ export default async function PricingAnalysisPage() {
             id: car.id,
             brand: car.brand,
             model: car.model,
-            category: car.category || 'Reise',
+            category: car.category || 'Kleinwagen',
             ourPrice,
             marketAverage: Number(marketAverage.toFixed(2)),
             recommendation,
@@ -68,5 +73,12 @@ export default async function PricingAnalysisPage() {
         };
     });
 
-    return <PricingView data={data} />;
+    return (
+        <PricingView 
+            data={data} 
+            initialCompetitors={competitorCompanies} 
+            initialPrices={competitorPrices} 
+        />
+    );
 }
+
