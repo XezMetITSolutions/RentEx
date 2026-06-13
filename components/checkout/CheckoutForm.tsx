@@ -43,6 +43,17 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     const [agbAccepted, setAgbAccepted] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
 
+    // Form inputs state to preserve values on action failure
+    const [firstName, setFirstName] = useState(initialCustomer?.firstName || '');
+    const [lastName, setLastName] = useState(initialCustomer?.lastName || '');
+    const [email, setEmail] = useState(initialCustomer?.email || '');
+    const [phone, setPhone] = useState(initialCustomer?.phone || '+43 ');
+    const [dateOfBirth, setDateOfBirth] = useState(initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : '');
+    const [licenseNumber, setLicenseNumber] = useState(initialCustomer?.licenseNumber || '');
+    const [password, setPassword] = useState('');
+    const [company, setCompany] = useState(initialCustomer?.company || '');
+    const [taxId, setTaxId] = useState(initialCustomer?.taxId || '');
+
     // Address Autofill Logic
     const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -127,11 +138,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">Firmenname</label>
-                                <input required name="company" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
+                                <input required name="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">USt-IdNr.</label>
-                                <input name="taxId" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
+                                <input name="taxId" type="text" value={taxId} onChange={(e) => setTaxId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
                             </div>
                         </div>
                     )}
@@ -143,33 +154,33 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Vorname</label>
-                            <input required name="firstName" type="text" defaultValue={initialCustomer?.firstName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
+                            <input required name="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Nachname</label>
-                            <input required name="lastName" type="text" defaultValue={initialCustomer?.lastName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
+                            <input required name="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">E-Mail Adresse</label>
-                            <input required name="email" type="email" defaultValue={initialCustomer?.email || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
+                            <input required name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
+                            <input required name="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Geburtsdatum</label>
-                            <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none [&::-webkit-calendar-picker-indicator]:invert" />
+                            <input required name="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none [&::-webkit-calendar-picker-indicator]:invert" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Führerscheinnummer</label>
-                            <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
+                            <input required name="licenseNumber" type="text" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
                         </div>
                         {!initialCustomer && (
                             <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-white/5">
                                 <label className="text-sm font-medium text-red-400">Konto erstellen (optional)</label>
                                 <div className="relative">
-                                    <input name="password" type="password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
+                                    <input name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
                                 </div>
                                 <p className="text-[10px] text-gray-500 italic">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt, damit Sie Ihre Buchungen verwalten können.</p>
                             </div>
