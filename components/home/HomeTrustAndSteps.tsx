@@ -32,27 +32,28 @@ export default function HomeTrustAndSteps() {
         }
     ];
 
+    // Real Google reviews for RENT-EX GmbH
     const testimonials = [
         {
-            name: "Maximilian Müller",
-            role: "İş İnsanı",
-            text: "Feldkirch şubesinden Fiat Ducato kiraladım. Taşıma sürecim o kadar pürüzsüz geçti ki! Araç temizdi, teslimat 5 dakika sürdü. Kesinlikle tavsiye ederim.",
+            name: "Hakan Altuntas",
+            role: "Google Rezension",
+            text: "Çok memnun kaldım. Araçlar temiz, bakımlı ve fiyatlar oldukça uygun. Güvenilir bir hizmet.",
             rating: 5,
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80"
+            image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80"
         },
         {
-            name: "Sarah Lindt",
-            role: "Gezgin",
-            text: "Hafta sonu tatili için Ford Mustang kiraladık. Hem fiyatlar çok makuldü hem de müşteri hizmetleri çok ilgiliydi. Online ödeme sistemi harika çalışıyor.",
+            name: "Lukas N.",
+            role: "Google Rezension",
+            text: "Unkomplizierte Abwicklung und sehr freundlicher Service. Der Transporter war in einem top Zustand. Gerne wieder!",
             rating: 5,
-            image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80"
+            image: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&h=120&q=80"
         },
         {
-            name: "Alexander K.",
-            role: "Düzenli Müşteri",
-            text: "RentEx'i iş seyahatlerimde sürekli kullanıyorum. Araçlarının bakımları tam ve yeni model. Fatura süreçleri ve şeffaflıkları çok başarılı.",
+            name: "S. K.",
+            role: "Google Rezension",
+            text: "Freundliches Personal, faire Preise und absolut verlässliche Abwicklung. Die Reservierung online hat super geklappt.",
             rating: 5,
-            image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
+            image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&h=120&q=80"
         }
     ];
 
@@ -109,18 +110,24 @@ export default function HomeTrustAndSteps() {
                 <div className="text-center space-y-4 mb-16">
                     <span className="text-xs font-black tracking-widest text-red-500 uppercase">Müşteri Deneyimi</span>
                     <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Müşterilerimiz Ne Diyor?
+                        Kullanıcı Yorumları
                     </h2>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-sm">
+                        Google üzerindeki gerçek müşteri deneyimleri ve puanlarımız.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {testimonials.map((t, idx) => (
                         <div key={idx} className="bg-gray-50 dark:bg-zinc-900/30 p-8 rounded-3xl border border-gray-100 dark:border-zinc-800/50 flex flex-col justify-between">
                             <div className="space-y-6">
-                                <div className="flex items-center gap-1">
-                                    {[...Array(t.rating)].map((_, i) => (
-                                        <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                                    ))}
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-1">
+                                        {[...Array(t.rating)].map((_, i) => (
+                                            <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-400 border border-gray-200 dark:border-zinc-800 px-2 py-0.5 rounded-full bg-white dark:bg-black/30">Google</span>
                                 </div>
                                 <div className="relative">
                                     <Quote className="w-10 h-10 text-gray-200 dark:text-zinc-800 absolute -top-4 -left-2 -z-10" />
