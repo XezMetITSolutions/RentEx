@@ -51,7 +51,6 @@ const menuGroups = [
         title: 'Flotte',
         items: [
             { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
-            { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
             { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
             { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
         ]
@@ -95,16 +94,18 @@ interface SidebarProps {
 const rolePermissions: Record<string, string[]> = {
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 'Standorte', 
+        'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 'Standorte', 
         'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
-        'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In'
+        'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In', 
+        'Strafzettel', 'Mitarbeiter'
     ],
     'MITARBEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 
-        'Reservierungen', 'Kunden', 'Check-In', 'Rechnungen'
+        'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 
+        'Reservierungen', 'Kunden', 'Check-In', 'Rechnungen', 
+        'Strafzettel', 'Benachrichtigungen'
     ],
     'FAHRER': [
-        'Dashboard', 'Aufgaben', 'Fahrzeugflotte'
+        'Dashboard', 'Aufgaben', 'KM Transfer'
     ]
 };
 
