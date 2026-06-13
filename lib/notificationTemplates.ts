@@ -9,13 +9,13 @@ function fmt(date: Date, pattern: string): string {
     return format(toZonedTime(date, TZ), pattern, { locale: de });
 }
 
-const COMPANY_NAME    = process.env.COMPANY_NAME    || 'RentEx GmbH';
-const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Hauptstraße 1, 6800 Feldkirch, Österreich';
-const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 5522 123456';
+const COMPANY_NAME    = process.env.COMPANY_NAME    || 'Rent-Ex GmbH';
+const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Illstraße 75a, 6800 Feldkirch, Österreich';
+const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 660 9996800';
 const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'info@rent-ex.at';
 const COMPANY_WEB     = process.env.COMPANY_WEB     || 'www.rent-ex.at';
-const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.at';
-const DEFAULT_BRANCH  = process.env.DEFAULT_BRANCH  || 'Hauptstandort Feldkirch';
+const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
+const DEFAULT_BRANCH  = process.env.DEFAULT_BRANCH  || 'Rent-Ex Feldkirch';
 
 interface EmailTemplate {
     subject: string;
@@ -94,8 +94,9 @@ Ihr RentEx Team
                 <table width="100%" maxWidth="600px" align="center" cellpadding="0" cellspacing="0" border="0" style="background-color: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; max-width: 600px; margin: 0 auto;">
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="background-color: #09090b; padding: 25px; border-bottom: 3px solid #dc2626;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 4px;">RENT<span style="color: #dc2626;">EX</span></h1>
+                        <td align="center" style="background-color: #09090b; padding: 25px 25px 20px 25px; border-bottom: 3px solid #dc2626;">
+                            <img src="${APP_URL}/assets/logo.png" alt="Rent-Ex Logo" style="height: 45px; width: auto; display: block; border: 0; margin-bottom: 8px;">
+                            <span style="color: #ffffff; font-size: 14px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; display: block;">RENT<span style="color: #dc2626;">EX</span></span>
                         </td>
                     </tr>
                     
