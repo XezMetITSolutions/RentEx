@@ -235,6 +235,33 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
+    // 5. Send booking confirmation email to customer
+    try {
+        const { emailTemplates, sendEmail } = require('@/lib/notificationTemplates');
+        const templateData = {
+            contractNumber: rental.contractNumber,
+            customer: {
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email,
+            },
+            car: {
+                brand: car.brand,
+                model: car.model,
+                plate: car.plate,
+            },
+            rental: {
+                startDate: rental.startDate,
+                endDate: rental.endDate,
+                totalAmount: Number(rental.totalAmount),
+            },
+        };
+        await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
+        console.log(`[createBooking] Confirmation email sent to ${customer.email}`);
+    } catch (mailError) {
+        console.error('[createBooking] Failed to send confirmation email:', mailError);
+    }
+
     if (paymentMethod === 'online') {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.at';
         try {
