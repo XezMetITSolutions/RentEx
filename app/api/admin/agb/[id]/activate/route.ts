@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/notificationTemplates";
 import { getAdminSession } from "@/lib/adminAuth";
 
 // POST /api/admin/agb/[id]/activate — Activate version & notify all customers
@@ -9,12 +9,6 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
     if (!session) {
         return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
     }
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
-    }
-    const resend = new Resend(resendApiKey);
 
     const { id } = await params;
     try {
@@ -36,20 +30,19 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
         let notifiedCount = 0;
         for (const customer of customers) {
             try {
-                await resend.emails.send({
-                    from: process.env.EMAIL_FROM || "noreply@rentex.at",
-                    to: customer.email,
+                await sendEmail(customer.email, {
                     subject: `AGB Update – Version ${agb.version}`,
-                    html: `
-                        <h2>Sehr geehrte/r ${customer.firstName} ${customer.lastName},</h2>
-                        <p>wir möchten Sie darüber informieren, dass unsere Allgemeinen Geschäftsbedingungen (AGB) aktualisiert wurden.</p>
-                        <p><strong>Neue Version: ${agb.version}</strong></p>
-                        <p>
-                            Die aktualisierten AGB finden Sie unter:<br/>
-                            <a href="https://rentex.at/terms">https://rentex.at/terms</a>
-                        </p>
-                        <p>Mit freundlichen Grüßen,<br/>Ihr RentEx-Team</p>
-                    `,
+                    body: `Sehr geehrte/r ${customer.firstName} ${customer.lastName},
+
+wir möchten Sie darüber informieren, dass unsere Allgemeinen Geschäftsbedingungen (AGB) aktualisiert wurden.
+
+Neue Version: ${agb.version}
+
+Die aktualisierten AGB finden Sie unter:
+https://rent-ex.vercel.app/terms
+
+Mit freundlichen Grüßen,
+Ihr RentEx-Team`
                 });
                 notifiedCount++;
             } catch {

@@ -65,6 +65,41 @@ export async function performCheckIn(rentalId: number, data: {
         })) || [])
     ]);
 
+    // Fetch customer details to send checkout/handover email
+    try {
+        const fullRental = await prisma.rental.findUnique({
+            where: { id: rentalId },
+            include: { customer: true, car: true }
+        });
+
+        if (fullRental?.customer) {
+            const { sendEmail } = require('@/lib/notificationTemplates');
+            const subject = `Fahrzeug-Übergabeprotokoll (Mietbeginn) - ${fullRental.contractNumber || fullRental.id}`;
+            const body = `
+Sehr geehrte/r ${fullRental.customer.firstName} ${fullRental.customer.lastName},
+
+hiermit senden wir Ihnen das digitale Übergabeprotokoll für Ihren Mietvertrag ${fullRental.contractNumber || fullRental.id}.
+
+Fahrzeugübergabe Details:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fahrzeug: ${fullRental.car?.brand} ${fullRental.car?.model} (${fullRental.car?.plate})
+Kilometerstand bei Übergabe: ${data.mileage} km
+Tankfüllung: ${data.fuelLevel}%
+Bekannte Vorschäden: ${data.damageNotes || 'Keine registriert'}
+Datum/Uhrzeit: ${new Date().toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wir wünschen Ihnen eine gute und sichere Fahrt!
+
+Mit freundlichen Grüßen,
+Ihr RentEx-Team
+            `.trim();
+            await sendEmail(fullRental.customer.email, { subject, body });
+        }
+    } catch (mailError) {
+        console.error('[performCheckIn] Failed to send handover email:', mailError);
+    }
+
     revalidatePath(`/admin/reservations/${rentalId}`);
     revalidatePath('/admin/reservations');
     revalidatePath('/admin/fleet');

@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 import { emailTemplates, sendEmail } from "@/lib/notificationTemplates";
 import crypto from "crypto";
 
@@ -17,13 +16,6 @@ export async function POST(req: NextRequest) {
     if (!cronSecret || !providedSecret || !crypto.timingSafeEqual(Buffer.from(providedSecret), Buffer.from(cronSecret))) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
-    }
-    const resend = new Resend(resendApiKey);
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -108,7 +100,7 @@ export async function POST(req: NextRequest) {
             await prisma.discountCoupon.create({
                 data: {
                     code,
-                    description: `Geburtstags-Gutschein fÃ¼r ${customer.firstName} ${customer.lastName}`,
+                    description: `Geburtstags-Gutschein für ${customer.firstName} ${customer.lastName}`,
                     discountType: "PERCENTAGE",
                     discountValue: 10,
                     validFrom: today,
@@ -120,11 +112,20 @@ export async function POST(req: NextRequest) {
                     triggerType: "BIRTHDAY"
                 }
             });
-            await resend.emails.send({
-                from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
-                to: customer.email,
-                subject: `ðŸŽ‚ Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
-                html: `<p>Alles Gute zum Geburtstag! Ihr Code: <strong>${code}</strong></p>`
+            await sendEmail(customer.email, {
+                subject: `🎂 Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
+                body: `Hallo ${customer.firstName},
+
+wir wünschen Ihnen alles Gute zum Geburtstag!
+
+Als kleines Geschenk erhalten Sie einen 10% Rabattgutschein für Ihre nächste Anmietung bei RentEx.
+
+Ihr Gutscheincode: ${code}
+
+Der Gutschein ist ab heute 30 Tage lang gültig.
+
+Mit freundlichen Grüßen,
+Ihr RentEx-Team`
             });
             birthdayProcessed++;
         }
@@ -151,11 +152,16 @@ export async function POST(req: NextRequest) {
             const totalOwed = Number(rental.totalAmount) - Number(rental.depositPaid ?? 0);
             
             const sendM = async (level: 1 | 2 | 3) => {
-                await resend.emails.send({
-                    from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
-                    to: rental.customer.email,
+                await sendEmail(rental.customer.email, {
                     subject: `Mahnung ${level} - Rechnung ${rental.contractNumber ?? rental.id}`,
-                    html: `<p>Sehr geehrte/r ${rental.customer.firstName}, bitte zahlen Sie â‚¬ ${totalOwed.toFixed(2)}.</p>`
+                    body: `Sehr geehrte/r ${rental.customer.firstName} ${rental.customer.lastName},
+
+dies ist eine Zahlungserinnerung / Mahnung der Stufe ${level} für das Mietverhältnis mit der Vertragsnummer ${rental.contractNumber ?? rental.id}.
+
+Bitte überweisen Sie den ausstehenden Betrag in Höhe von €${totalOwed.toFixed(2)} zeitnah auf unser Konto.
+
+Mit freundlichen Grüßen,
+Ihr RentEx-Team`
                 });
                 await prisma.mahnungRecord.create({
                     data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }

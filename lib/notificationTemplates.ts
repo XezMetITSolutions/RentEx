@@ -20,6 +20,7 @@ const DEFAULT_BRANCH  = process.env.DEFAULT_BRANCH  || 'Hauptstandort Feldkirch'
 interface EmailTemplate {
     subject: string;
     body: string;
+    html?: string;
 }
 
 interface RentalData {
@@ -243,6 +244,7 @@ export async function sendEmail(to: string, template: EmailTemplate): Promise<bo
             to,
             subject: template.subject,
             text: template.body,
+            html: template.html,
         });
         return true;
     } catch (err) {
