@@ -17,40 +17,40 @@ export default function HomeTrustAndSteps() {
     const steps = [
         {
             icon: <Car className="w-8 h-8 text-red-500" />,
-            title: "1. Aracını Seç",
-            desc: "Geniş filomuzdan ihtiyacına en uygun binek araç veya panelvanı kolayca filtrele."
+            title: "1. Fahrzeug wählen",
+            desc: "Filtern Sie ganz einfach aus unserer großen Flotte den passenden Pkw oder Transporter heraus."
         },
         {
             icon: <Calendar className="w-8 h-8 text-red-500" />,
-            title: "2. Tarihleri Belirle",
-            desc: "Alış ve iade tarihlerini seç, ihtiyacın olan ek paket ve sigorta seçeneklerini ekle."
+            title: "2. Zeitraum festlegen",
+            desc: "Wählen Sie Abhol- und Rückgabedatum und fügen Sie die gewünschten Zusatzpakete und Versicherungen hinzu."
         },
         {
             icon: <Key className="w-8 h-8 text-red-500" />,
-            title: "3. Teslim Al",
-            desc: "Güvenli online ödemeni tamamla, aracını seçtiğin şubeden hızlıca teslim al."
+            title: "3. Fahrzeug abholen",
+            desc: "Schließen Sie Ihre sichere Online-Zahlung ab und holen Sie Ihr Fahrzeug schnell an der gewählten Station ab."
         }
     ];
 
     const testimonials = [
         {
             name: "Maximilian Müller",
-            role: "İş İnsanı",
-            text: "Feldkirch şubesinden Fiat Ducato kiraladım. Taşıma sürecim o kadar pürüzsüz geçti ki! Araç temizdi, teslimat 5 dakika sürdü. Kesinlikle tavsiye ederim.",
+            role: "Geschäftsmann",
+            text: "Ich habe einen Fiat Ducato an der Station Feldkirch gemietet. Mein Umzug verlief absolut reibungslos! Das Fahrzeug war sauber, die Übergabe dauerte nur 5 Minuten. Sehr zu empfehlen.",
             rating: 5,
             image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80"
         },
         {
             name: "Sarah Lindt",
-            role: "Gezgin",
-            text: "Hafta sonu tatili için Ford Mustang kiraladık. Hem fiyatlar çok makuldü hem de müşteri hizmetleri çok ilgiliydi. Online ödeme sistemi harika çalışıyor.",
+            role: "Reisende",
+            text: "Wir haben einen Ford Mustang für ein Wochenendausflug gemietet. Die Preise waren sehr fair und der Kundenservice super freundlich. Das Online-Zahlungssystem funktioniert tadellos.",
             rating: 5,
             image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80"
         },
         {
             name: "Alexander K.",
-            role: "Düzenli Müşteri",
-            text: "RentEx'i iş seyahatlerimde sürekli kullanıyorum. Araçlarının bakımları tam ve yeni model. Fatura süreçleri ve şeffaflıkları çok başarılı.",
+            role: "Stammkunde",
+            text: "Ich nutze Rent-Ex regelmäßig für meine Geschäftsreisen. Die Fahrzeuge sind hervorragend gewartet und moderne Modelle. Der Abrechnungsprozess und die Transparenz sind top.",
             rating: 5,
             image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
         }
@@ -58,20 +58,20 @@ export default function HomeTrustAndSteps() {
 
     const faqs = [
         {
-            q: "Minimum kiralama yaşı ve ehliyet gereksinimleri nelerdir?",
-            a: "Binek araçlar için minimum yaş 21'dir ve en az 1 yıllık geçerli bir ehliyete sahip olmanız gerekmektedir. Lüks araçlar veya büyük ticari araçlar için bu sınır 25 yaş ve en az 3 yıllık ehliyet olarak değişiklik gösterebilir."
+            q: "Was sind das Mindestalter und die Führerscheinanforderungen?",
+            a: "Das Mindestalter für Pkw beträgt 21 Jahre mit mindestens einem Jahr Führerscheinbesitz. Für Luxusfahrzeuge oder große Nutzfahrzeuge kann diese Grenze bei 25 Jahren und mindestens 3 Jahren Führerscheinbesitz liegen."
         },
         {
-            q: "Kiralama esnasında depozito alınıyor mu?",
-            a: "Evet, her kiralama işleminde araca göre değişen tutarlarda bir depozito (güvence bedeli) geçici olarak bloke edilir. Araç hasarsız olarak teslim edildiğinde bu tutar kartınıza anında iade edilir."
+            q: "Wird bei der Anmietung eine Kaution verlangt?",
+            a: "Ja, bei jeder Anmietung wird eine Kaution (Sicherheitsleistung) auf Ihrer Karte blockiert. Die Höhe hängt vom Fahrzeug ab. Nach schadensfreier Rückgabe des Fahrzeugs wird dieser Betrag sofort wieder freigegeben."
         },
         {
-            q: "Yakıt politikası nasıl işliyor?",
-            a: "RentEx standart olarak 'Dolu Al - Dolu Ver' politikasıyla çalışır. Aracı teslim alırken deposu doludur; sizden de teslim ederken deposunu doldurarak getirmeniz beklenir."
+            q: "Wie funktioniert die Kraftstoffregelung?",
+            a: "Rent-Ex arbeitet standardmäßig mit der Regelung 'Voll/Voll'. Sie erhalten das Fahrzeug vollgetankt und geben es ebenfalls vollgetankt wieder zurück."
         },
         {
-            q: "Rezervasyonumu iptal edebilir veya değiştirebilir miyim?",
-            a: "Evet, planlanan alış saatinden 24 saat öncesine kadar yapılan iptallerde herhangi bir ücret kesintisi olmadan %100 iade alabilirsiniz. Değişiklik talepleriniz için destek ekibimizle iletişime geçebilirsiniz."
+            q: "Kann ich meine Reservierung stornieren oder ändern?",
+            a: "Ja, bei einer Stornierung bis zu 24 Stunden vor der geplanten Abholung erhalten Sie eine 100%ige Rückerstattung ohne Abzüge. Für Änderungswünsche kontaktieren Sie bitte unseren Support."
         }
     ];
 
@@ -81,12 +81,12 @@ export default function HomeTrustAndSteps() {
             {/* 1. HOW IT WORKS SECTION */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center space-y-4 mb-16">
-                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Kolaylık</span>
+                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Einfachheit</span>
                     <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Nasıl Kiralayabilirim?
+                        Wie kann ich mieten?
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-sm">
-                        3 basit adımda dilediğiniz aracı rezerve edin, yola koyulun.
+                        In 3 einfachen Schritten Ihr Wunschfahrzeug reservieren und losfahren.
                     </p>
                 </div>
 
@@ -107,9 +107,9 @@ export default function HomeTrustAndSteps() {
             {/* 2. TESTIMONIALS SECTION */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center space-y-4 mb-16">
-                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Müşteri Deneyimi</span>
+                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Kundenbewertungen</span>
                     <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Müşterilerimiz Ne Diyor?
+                        Was sagen unsere Kunden?
                     </h2>
                 </div>
 
@@ -143,9 +143,9 @@ export default function HomeTrustAndSteps() {
             {/* 3. FAQ SECTION */}
             <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center space-y-4 mb-16">
-                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Destek</span>
+                    <span className="text-xs font-black tracking-widest text-red-500 uppercase">Support</span>
                     <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-                        Sıkça Sorulan Sorular
+                        Häufig gestellte Fragen
                     </h2>
                 </div>
 

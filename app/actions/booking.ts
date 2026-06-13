@@ -122,7 +122,13 @@ export async function createBooking(prevState: any, formData: FormData) {
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
-    const car = await prisma.car.findUnique({ where: { id: carId } });
+    const car = await prisma.car.findUnique({
+        where: { id: carId },
+        include: {
+            currentLocation: true,
+            homeLocation: true
+        }
+    });
     if (!car) throw new Error("Car not found");
 
     // Check for conflicting bookings
@@ -255,6 +261,10 @@ export async function createBooking(prevState: any, formData: FormData) {
     // 5. Send booking confirmation email to customer & admin
     try {
         const { emailTemplates, sendEmail } = require('@/lib/notificationTemplates');
+        const locationObj = car.currentLocation || car.homeLocation;
+        const pickupLoc = locationObj ? locationObj.name : undefined;
+        const pickupAddress = locationObj ? `${locationObj.address || ''}, ${locationObj.city || ''}`.trim() : undefined;
+
         const templateData = {
             contractNumber: rental.contractNumber,
             customer: {
@@ -266,11 +276,14 @@ export async function createBooking(prevState: any, formData: FormData) {
                 brand: car.brand,
                 model: car.model,
                 plate: car.plate,
+                color: car.color,
             },
             rental: {
                 startDate: rental.startDate,
                 endDate: rental.endDate,
                 totalAmount: Number(rental.totalAmount),
+                pickupLocation: pickupLoc,
+                pickupAddress: pickupAddress,
             },
         };
         await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));

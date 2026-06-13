@@ -34,11 +34,13 @@ interface RentalData {
         brand: string;
         model: string;
         plate: string;
+        color?: string;
     };
     rental: {
         startDate: Date;
         endDate: Date;
         pickupLocation?: string;
+        pickupAddress?: string;
         totalAmount: number;
     };
 }
@@ -53,17 +55,17 @@ export const emailTemplates = {
         const body = `
 Sehr geehrte/r ${data.customer.firstName} ${data.customer.lastName},
 
-vielen Dank für Ihre Buchung bei RentEx!
+vielen Dank für Ihre Buchung bei Rent-Ex!
 
 Ihre Buchungsdetails:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Vertragsnummer: ${data.contractNumber}
-Fahrzeug: ${data.car.brand} ${data.car.model}
+Fahrzeug: ${data.car.brand} ${data.car.model} (${data.car.color || ''})
 Kennzeichen: ${data.car.plate}
 
 Mietbeginn: ${startDateStr}
 Mietende: ${endDateStr}
-Abholort: ${pickupLoc}
+Abholort: ${pickupLoc} ${data.rental.pickupAddress ? `(${data.rental.pickupAddress})` : ''}
 
 Gesamtbetrag: €${data.rental.totalAmount.toFixed(2)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -71,12 +73,13 @@ Gesamtbetrag: €${data.rental.totalAmount.toFixed(2)}
 Wichtige Hinweise:
 • Bitte bringen Sie Ihren Führerschein und Personalausweis mit.
 • Die Fahrzeugübergabe erfolgt nach Vorlage aller Dokumente.
+• Tankregelung (Voll/Voll): Sie erhalten das Fahrzeug vollgetankt und geben es ebenfalls vollgetankt wieder zurück.
 • Unsere Allgemeinen Geschäftsbedingungen (AGB) finden Sie unter: ${APP_URL}/terms
 
 Bei Fragen erreichen Sie uns unter ${COMPANY_PHONE}.
 
 Mit freundlichen Grüßen
-Ihr RentEx Team
+Ihr Rent-Ex Team
         `.trim();
 
         const html = `
@@ -114,7 +117,7 @@ Ihr RentEx Team
 
                             <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${data.customer.firstName} ${data.customer.lastName},</h2>
                             <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
-                                vielen Dank für Ihre Buchung bei <strong>RentEx</strong>! Wir haben Ihr Fahrzeug für Sie reserviert. Nachfolgend finden Sie alle Details zu Ihrer Anmietung.
+                                vielen Dank für Ihre Buchung bei <strong>Rent-Ex</strong>! Wir haben Ihr Fahrzeug für Sie reserviert. Nachfolgend finden Sie alle Details zu Ihrer Anmietung.
                             </p>
 
                             <!-- Rental Details Card -->
@@ -123,6 +126,7 @@ Ihr RentEx Team
                                     <td style="padding: 20px;">
                                         <h3 style="color: #ffffff; font-size: 14px; font-weight: bold; text-transform: uppercase; margin-top: 0; margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid #3f3f46; padding-bottom: 6px;">Fahrzeugdaten</h3>
                                         <p style="margin: 0 0 6px 0; font-size: 15px; color: #f4f4f5;"><strong>Fahrzeug:</strong> ${data.car.brand} ${data.car.model}</p>
+                                        <p style="margin: 0 0 6px 0; font-size: 15px; color: #f4f4f5;"><strong>Farbe:</strong> ${data.car.color || '-'}</p>
                                         <p style="margin: 0; font-size: 15px; color: #f4f4f5;"><strong>Kennzeichen:</strong> ${data.car.plate}</p>
                                     </td>
                                 </tr>
@@ -135,14 +139,26 @@ Ihr RentEx Team
                                                     <span style="color: #a1a1aa; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">Abholung</span>
                                                     <strong style="color: #f4f4f5; font-size: 14px; display: block;">${startDateStr}</strong>
                                                     <span style="color: #a1a1aa; font-size: 12px; display: block; margin-top: 2px;">${pickupLoc}</span>
+                                                    ${data.rental.pickupAddress ? `<span style="color: #71717a; font-size: 11px; display: block; margin-top: 2px;">${data.rental.pickupAddress}</span>` : ''}
                                                 </td>
                                                 <td width="50%" style="vertical-align: top;">
                                                     <span style="color: #a1a1aa; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">Rückgabe</span>
                                                     <strong style="color: #f4f4f5; font-size: 14px; display: block;">${endDateStr}</strong>
                                                     <span style="color: #a1a1aa; font-size: 12px; display: block; margin-top: 2px;">${pickupLoc}</span>
+                                                    ${data.rental.pickupAddress ? `<span style="color: #71717a; font-size: 11px; display: block; margin-top: 2px;">${data.rental.pickupAddress}</span>` : ''}
                                                 </td>
                                             </tr>
                                         </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Fuel Policy Badge -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 15px; font-size: 14px; line-height: 1.5; color: #e4e4e7;">
+                                        <strong style="color: #eab308; display: block; margin-bottom: 4px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Tankregelung (Voll / Voll)</strong>
+                                        Sie erhalten das Fahrzeug vollgetankt und geben es bitte ebenfalls vollgetankt wieder zurück. Fehlender Kraftstoff wird andernfalls bei Rückgabe in Rechnung gestellt.
                                     </td>
                                 </tr>
                             </table>
