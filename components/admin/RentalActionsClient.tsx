@@ -75,7 +75,7 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                         type="number"
                         placeholder="KM-Stand"
                         className="w-24 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-green-500"
-                        defaultValue={rental.car.currentMileage}
+                        defaultValue={rental.returnMileage || rental.car.currentMileage}
                     />
                     <button
                         onClick={async () => {
