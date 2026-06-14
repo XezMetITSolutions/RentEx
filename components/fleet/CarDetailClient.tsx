@@ -95,17 +95,16 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
                                 <p className="text-gray-400 text-lg leading-relaxed">{car.description}</p>
                             </div>
 
-                            <div className="aspect-video bg-zinc-900/50 rounded-3xl border border-white/10 flex items-center justify-center relative overflow-hidden group">
+                            <div className="aspect-video bg-zinc-900/50 rounded-3xl border border-white/10 flex items-center justify-center relative overflow-hidden p-8 group">
                                 {/* Background Gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
-                                <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-red-500/5 rounded-full blur-3xl" />
+                                <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
 
                                 {car.imageUrl ? (
                                     <Image
                                         src={car.imageUrl}
                                         alt={`${car.brand} ${car.model}`}
                                         fill
-                                        className="object-cover hover:scale-105 transition-transform duration-700"
+                                        className="object-contain p-6 hover:scale-105 transition-transform duration-700"
                                     />
                                 ) : (
                                     <div className="text-zinc-700 font-mono text-xl z-0">
