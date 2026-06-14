@@ -1,9 +1,9 @@
 'use client';
 
 import { createMaintenance } from '@/app/actions';
-import { Wrench, Calendar, DollarSign, Save, FileText, Activity, Search, FileUp } from 'lucide-react';
+import { Wrench, Calendar, DollarSign, Save, FileText, Activity, Search, FileUp, ChevronDown, Car as CarIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import ImageUpload from '@/components/admin/ImageUpload';
 
 type Car = {
@@ -16,15 +16,43 @@ export default function MaintenanceForm({ cars }: { cars: Car[] }) {
     const [carSearch, setCarSearch] = useState('');
     const [selectedCarId, setSelectedCarId] = useState<number | string>('');
     const [invoiceUrl, setInvoiceUrl] = useState('');
+    const [isCarDropdownOpen, setIsCarDropdownOpen] = useState(false);
+    const carContainerRef = useRef<HTMLDivElement>(null);
+
+    const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
+
+    useEffect(() => {
+        if (selectedCar) {
+            setCarSearch(`${selectedCar.brand} ${selectedCar.model} [${selectedCar.plate}]`);
+        } else {
+            setCarSearch('');
+        }
+    }, [selectedCar, cars]);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (carContainerRef.current && !carContainerRef.current.contains(event.target as Node)) {
+                setIsCarDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const filteredCars = useMemo(() => {
         const search = carSearch.toLowerCase();
+        const selectedCarText = selectedCar ? `${selectedCar.brand} ${selectedCar.model} [${selectedCar.plate}]`.toLowerCase() : '';
+        if (!carSearch || search === selectedCarText) {
+            return cars;
+        }
         return cars.filter(car => 
             car.brand.toLowerCase().includes(search) || 
             car.model.toLowerCase().includes(search) || 
             car.plate.toLowerCase().includes(search)
         );
-    }, [cars, carSearch]);
+    }, [cars, carSearch, selectedCar]);
 
     return (
         <form action={async (formData) => { await createMaintenance(formData); }} className="space-y-6">
@@ -34,32 +62,69 @@ export default function MaintenanceForm({ cars }: { cars: Car[] }) {
                     Wartungsdetails
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2 space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fahrzeug auswählen *</label>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input 
-                                type="text"
-                                placeholder="Nach Kennzeichen, Marke oder Modell suchen..."
-                                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white mb-1"
-                                value={carSearch}
-                                onChange={(e) => setCarSearch(e.target.value)}
-                            />
+                    <div className="md:col-span-2 space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Fahrzeug auswählen *</label>
+                        <div ref={carContainerRef} className="relative">
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <CarIcon className="w-4 h-4" />
+                                </span>
+                                <input 
+                                    type="text"
+                                    placeholder="Nach Kennzeichen, Marke... suchen"
+                                    className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white font-medium"
+                                    value={carSearch}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setCarSearch(val);
+                                        if (!val) setSelectedCarId('');
+                                        setIsCarDropdownOpen(true);
+                                    }}
+                                    onFocus={() => setIsCarDropdownOpen(true)}
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                                    onClick={() => setIsCarDropdownOpen(prev => !prev)}
+                                >
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCarDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            </div>
+                            
+                            {isCarDropdownOpen && (
+                                <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-955 rounded-xl py-1 focus:outline-none">
+                                    {filteredCars.length === 0 ? (
+                                        <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 italic">
+                                            Keine Fahrzeuge gefunden
+                                        </div>
+                                    ) : (
+                                        filteredCars.map(car => (
+                                            <div
+                                                key={car.id}
+                                                onClick={() => {
+                                                    setSelectedCarId(car.id);
+                                                    setCarSearch(`${car.brand} ${car.model} [${car.plate}]`);
+                                                    setIsCarDropdownOpen(false);
+                                                }}
+                                                className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                                                    selectedCarId === car.id ? 'bg-blue-50/50 dark:bg-blue-950/30' : ''
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <span className="font-semibold text-gray-900 dark:text-white truncate">
+                                                        {car.brand} {car.model}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono shrink-0">
+                                                        {car.plate}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                            <input type="hidden" name="carId" value={selectedCarId} required />
                         </div>
-                        <select 
-                            name="carId" 
-                            required 
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
-                            value={selectedCarId}
-                            onChange={(e) => setSelectedCarId(e.target.value)}
-                        >
-                            <option value="">Bitte wählen...</option>
-                            {filteredCars.map(car => (
-                                <option key={car.id} value={car.id}>
-                                    {car.brand} {car.model} ({car.plate})
-                                </option>
-                            ))}
-                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Art der Wartung *</label>
