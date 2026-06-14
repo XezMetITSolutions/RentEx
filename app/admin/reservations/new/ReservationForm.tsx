@@ -39,6 +39,7 @@ type Option = {
     name: string;
     price: number;
     description: string | null;
+    carId?: number | null;
 };
 
 export default function ReservationForm({ cars, customers, locations, options }: { cars: any[], customers: Customer[], locations: Location[], options: Option[] }) {
