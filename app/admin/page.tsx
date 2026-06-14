@@ -1,12 +1,9 @@
-import { Users, Car, Wallet, ArrowUpRight, ArrowDownRight, CalendarClock, Activity, Plus, ChevronRight } from 'lucide-react';
-import { clsx } from 'clsx';
 import prisma from '@/lib/prisma';
-import { formatDistanceToNow, startOfMonth, format } from 'date-fns';
+import { startOfMonth, format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import TodayOverview from '@/components/admin/TodayOverview';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/adminAuth';
+import DashboardOverviewPanel from '@/components/admin/DashboardOverviewPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +50,7 @@ async function getStats(locationId?: number | null) {
             value: new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalRevenue),
             change: 'Gesamtumsatz',
             trend: 'neutral',
-            icon: Wallet,
+            icon: 'Wallet',
             color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/50',
         },
         {
@@ -61,7 +58,7 @@ async function getStats(locationId?: number | null) {
             value: activeRentalsCount.toString(),
             change: 'Derzeit im Einsatz',
             trend: 'neutral',
-            icon: Car,
+            icon: 'Car',
             color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50',
         },
         {
@@ -69,7 +66,7 @@ async function getStats(locationId?: number | null) {
             value: newCustomersCount.toString(),
             change: 'Diesen Monat',
             trend: 'up',
-            icon: Users,
+            icon: 'Users',
             color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/50',
         },
         {
@@ -77,7 +74,7 @@ async function getStats(locationId?: number | null) {
             value: pendingReservationsCount.toString(),
             change: 'Warten auf Bearbeitung',
             trend: 'down',
-            icon: CalendarClock,
+            icon: 'CalendarClock',
             color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50',
         },
     ];
@@ -98,7 +95,127 @@ async function getRecentRentals(locationId?: number | null) {
             customer: true
         }
     });
-    return rentals;
+    
+    return rentals.map(rental => ({
+        id: rental.id,
+        status: rental.status,
+        totalAmount: Number(rental.totalAmount),
+        car: {
+            brand: rental.car.brand,
+            model: rental.car.model,
+            plate: rental.car.plate,
+        },
+        customer: {
+            firstName: rental.customer.firstName,
+            lastName: rental.customer.lastName,
+        }
+    }));
+}
+
+async function getRevenueData(locationId?: number | null) {
+    const activeRentals = await prisma.rental.findMany({
+        where: {
+            status: { in: ['Active', 'Completed', 'Pending'] },
+            ...(locationId ? { pickupLocationId: locationId } : {})
+        },
+        select: {
+            startDate: true,
+            totalAmount: true
+        }
+    });
+
+    const monthlyRevenue: { [key: string]: number } = {};
+    
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const monthName = format(d, 'MMM', { locale: de });
+        monthlyRevenue[monthName] = 0;
+    }
+
+    activeRentals.forEach(r => {
+        const monthName = format(r.startDate, 'MMM', { locale: de });
+        if (monthlyRevenue[monthName] !== undefined) {
+            monthlyRevenue[monthName] += Number(r.totalAmount || 0);
+        }
+    });
+
+    return Object.entries(monthlyRevenue).map(([month, revenue]) => ({
+        month,
+        revenue
+    }));
+}
+
+async function getCategoryData(locationId?: number | null) {
+    const categoryRentals = await prisma.rental.findMany({
+        where: {
+            status: { in: ['Active', 'Completed', 'Pending'] },
+            ...(locationId ? { pickupLocationId: locationId } : {})
+        },
+        select: {
+            car: {
+                select: {
+                    category: true
+                }
+            }
+        }
+    });
+
+    const categoryCounts: { [key: string]: number } = {};
+    categoryRentals.forEach(r => {
+        const cat = r.car?.category || 'Sonstige';
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6B7280'];
+    
+    if (Object.keys(categoryCounts).length === 0) {
+        return [
+            { name: 'Kleinwagen', value: 0, color: '#3B82F6' },
+            { name: 'Mittelklasse', value: 0, color: '#10B981' },
+            { name: 'SUV', value: 0, color: '#F59E0B' }
+        ];
+    }
+
+    return Object.entries(categoryCounts).map(([name, value], index) => ({
+        name,
+        value,
+        color: colors[index % colors.length]
+    }));
+}
+
+async function getLocationData(locationId?: number | null) {
+    const locationRentals = await prisma.rental.findMany({
+        where: {
+            status: { in: ['Active', 'Completed', 'Pending'] },
+            ...(locationId ? { pickupLocationId: locationId } : {})
+        },
+        select: {
+            pickupLocation: {
+                select: {
+                    name: true
+                }
+            }
+        }
+    });
+
+    const locationCounts: { [key: string]: number } = {};
+    locationRentals.forEach(r => {
+        const locName = r.pickupLocation?.name || 'Unbekannt';
+        locationCounts[locName] = (locationCounts[locName] || 0) + 1;
+    });
+
+    if (Object.keys(locationCounts).length === 0) {
+        const locations = await prisma.location.findMany({ select: { name: true } });
+        locations.forEach(loc => {
+            locationCounts[loc.name] = 0;
+        });
+    }
+
+    return Object.entries(locationCounts).map(([location, rentals]) => ({
+        location,
+        rentals
+    }));
 }
 
 export default async function AdminDashboard() {
@@ -112,135 +229,25 @@ export default async function AdminDashboard() {
     const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
     const locId = isRestricted ? staff?.locationId : undefined;
 
-    const [stats, recentRentals] = await Promise.all([
+    const [stats, recentRentals, revenueData, categoryData, locationData] = await Promise.all([
         getStats(locId),
-        getRecentRentals(locId)
+        getRecentRentals(locId),
+        getRevenueData(locId),
+        getCategoryData(locId),
+        getLocationData(locId)
     ]);
 
+    const currentDateStr = format(new Date(), 'dd. MMMM yyyy', { locale: de });
+
     return (
-        <div className="max-w-[1400px] mx-auto space-y-8 pb-10 px-4 sm:px-6">
-            
-            {/* Header Area (Clean SaaS Style) */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-gray-800">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
-                        Willkommen zurück, {staff?.name?.split(' ')[0] || 'Admin'}
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Übersicht für <span className="font-medium text-gray-900 dark:text-gray-200">{staff?.location?.name || 'alle Standorte'}</span> am {format(new Date(), 'dd. MMMM yyyy', { locale: de })}.
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Link 
-                        href="/admin/reservations/new"
-                        className="flex items-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Neue Reservierung
-                    </Link>
-                </div>
-            </div>
-
-            {/* Stats Grid (Minimalist Cards) */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat) => (
-                    <div
-                        key={stat.name}
-                        className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:border-gray-300 dark:hover:border-gray-700"
-                    >
-                        <div className="flex items-center justify-between">
-                            <div className={clsx('rounded-lg p-2 border', stat.color)}>
-                                <stat.icon className="h-5 w-5" />
-                            </div>
-                            <span
-                                className={clsx(
-                                    'text-xs font-medium px-2 py-0.5 rounded-full',
-                                    stat.trend === 'up' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
-                                    stat.trend === 'down' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' : 
-                                    'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                                )}
-                            >
-                                {stat.trend === 'up' && '+ '}
-                                {stat.change}
-                            </span>
-                        </div>
-                        <div className="mt-4">
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.name}</p>
-                            <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1 tracking-tight">{stat.value}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="space-y-8">
-                {/* Primary Operations View (Check-ins/Outs) */}
-                <TodayOverview />
-
-                {/* Recent Rentals Table (Clean Design) */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-gray-400" />
-                            <h3 className="font-semibold text-gray-900 dark:text-white">Letzte Vermietungen</h3>
-                        </div>
-                        <Link href="/admin/reservations" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                            Alle anzeigen <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 uppercase tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-3 font-medium">Fahrzeug</th>
-                                    <th className="px-6 py-3 font-medium">Kunde</th>
-                                    <th className="px-6 py-3 font-medium">Status</th>
-                                    <th className="px-6 py-3 font-medium text-right">Betrag</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                                {recentRentals.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                                            Keine aktuellen Vermietungen vorhanden.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    recentRentals.map((rental) => (
-                                        <tr key={rental.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-gray-900 dark:text-white">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="text-xs text-gray-500 mt-0.5 font-mono">{rental.car.plate}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400 font-medium">
-                                                {rental.customer.firstName} {rental.customer.lastName}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span
-                                                    className={clsx(
-                                                        'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium border',
-                                                        rental.status === 'Active' && 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/50',
-                                                        rental.status === 'Completed' && 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700',
-                                                        rental.status === 'Pending' && 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50',
-                                                        rental.status === 'Cancelled' && 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50'
-                                                    )}
-                                                >
-                                                    {rental.status === 'Active' && 'Aktiv'}
-                                                    {rental.status === 'Completed' && 'Abgeschlossen'}
-                                                    {rental.status === 'Pending' && 'Ausstehend'}
-                                                    {rental.status === 'Cancelled' && 'Storniert'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white text-right">
-                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <DashboardOverviewPanel 
+            staff={staff}
+            stats={stats}
+            recentRentals={recentRentals}
+            revenueData={revenueData}
+            categoryData={categoryData}
+            locationData={locationData}
+            currentDateStr={currentDateStr}
+        />
     );
 }

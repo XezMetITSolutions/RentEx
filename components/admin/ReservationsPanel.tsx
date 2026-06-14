@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Search, ChevronRight, Activity, Calendar, List, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
 
 interface Customer {
@@ -38,9 +38,17 @@ interface ReservationsPanelProps {
 
 export default function ReservationsPanel({ initialRentals, initialView }: ReservationsPanelProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const statusParam = searchParams ? searchParams.get('status') : null;
     const [view, setView] = useState(initialView);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+    const [selectedStatus, setSelectedStatus] = useState<string>(statusParam || 'ALL');
+
+    useEffect(() => {
+        if (statusParam) {
+            setSelectedStatus(statusParam);
+        }
+    }, [statusParam]);
 
     // Calculate metrics
     const stats = useMemo(() => {
