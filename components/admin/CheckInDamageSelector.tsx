@@ -182,34 +182,38 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                {/* View Selector Tabs */}
-                <div className="flex border-b border-gray-100 dark:border-gray-800 overflow-x-auto hide-scrollbar">
-                    {Object.keys(CAR_VIEW_LABELS).map((side) => (
-                        <button
-                            key={side}
-                            type="button"
-                            onClick={() => setActiveView(side as any)}
-                            className={`flex-1 px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeView === side
-                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-b-2 border-blue-600'
-                                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+            <div className="bg-white dark:bg-gray-950 rounded-3xl border border-gray-150 dark:border-gray-800 shadow-sm overflow-hidden">
+                {/* Segmented View Selector Tabs */}
+                <div className="flex bg-gray-50 dark:bg-gray-900/50 p-2 border-b border-gray-100 dark:border-gray-800/80 gap-1.5 overflow-x-auto hide-scrollbar">
+                    {Object.keys(CAR_VIEW_LABELS).map((side) => {
+                        const isActive = activeView === side;
+                        return (
+                            <button
+                                key={side}
+                                type="button"
+                                onClick={() => setActiveView(side as any)}
+                                className={`flex-1 py-2.5 px-4 text-xs font-semibold rounded-2xl transition-all whitespace-nowrap ${
+                                    isActive
+                                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm border border-gray-100 dark:border-gray-700/50'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                                 }`}
-                        >
-                            {CAR_VIEW_LABELS[side as keyof typeof CAR_VIEW_LABELS]}
-                        </button>
-                    ))}
+                            >
+                                {CAR_VIEW_LABELS[side as keyof typeof CAR_VIEW_LABELS]}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Damage Canvas */}
-                <div className="p-4 flex justify-center items-center relative min-h-[300px] bg-gray-50 dark:bg-gray-900/50">
+                <div className="p-6 flex justify-center items-center relative min-h-[320px] bg-gray-50/50 dark:bg-gray-900/10">
                     <div
-                        className="relative cursor-crosshair group max-w-xl w-full"
+                        className="relative cursor-crosshair group max-w-xl w-full border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-inner"
                         onClick={(e) => handleImageClick(e, activeView)}
                     >
                         <img
                             src={viewImages[activeView]}
                             alt={activeView}
-                            className="w-full h-auto rounded-xl select-none"
+                            className="w-full h-auto select-none"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/assets/cars/skoda_superb.png'; // Fallback
                             }}
@@ -226,13 +230,13 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
                                     setViewingDamage(damage);
                                 }}
                             >
-                                <div className="w-full h-full bg-red-600 rounded-full border-2 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">
-                                    <AlertCircle className="w-4 h-4 text-white" />
+                                <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white dark:border-gray-950 shadow-md flex items-center justify-center">
+                                    <AlertCircle className="w-3.5 h-3.5 text-white" />
                                 </div>
                             </div>
                         ))}
 
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity bg-blue-500 rounded-xl" />
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-5 pointer-events-none transition-opacity bg-blue-500" />
                     </div>
                 </div>
             </div>
@@ -241,22 +245,22 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
             {damages.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {damages.map((d) => (
-                        <div key={d.id} className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div key={d.id} className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border border-gray-150 dark:border-gray-850 shadow-sm">
                             {d.photoUrl ? (
-                                <img src={d.photoUrl} className="w-12 h-12 rounded-xl object-cover" />
+                                <img src={d.photoUrl} className="w-12 h-12 rounded-xl object-cover border border-gray-100 dark:border-gray-800" />
                             ) : (
-                                <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center">
-                                    <Camera className="w-5 h-5 text-gray-300" />
+                                <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center border border-gray-100 dark:border-gray-800">
+                                    <Camera className="w-5 h-5 text-gray-300 dark:text-gray-650" />
                                 </div>
                             )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black text-gray-900 dark:text-white truncate">{d.reason.toUpperCase()}</p>
-                                <p className="text-[10px] text-gray-500 truncate">{d.location}</p>
+                                <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{d.reason.toUpperCase()}</p>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{d.location}</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => removeDamage(d.id)}
-                                className="p-2 text-gray-200 hover:text-red-500"
+                                className="p-2 text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -268,29 +272,32 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
             {/* Same Modals (Add/View) as before but generic labels */}
             {modalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" onClick={closeModal} />
-                    <div className="relative bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
-                        <div className="relative h-32 bg-blue-600 p-6 flex flex-col justify-end">
-                            <button type="button" onClick={closeModal} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white"><X className="w-4 h-4" /></button>
-                            <h2 className="text-xl font-black text-white">Schaden dokumentieren</h2>
+                    <div className="absolute inset-0 bg-gray-900/60 dark:bg-gray-950/80 backdrop-blur-sm" onClick={closeModal} />
+                    <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in duration-200">
+                        <div className="relative h-28 bg-gray-900 dark:bg-gray-950 p-6 flex flex-col justify-end">
+                            <button type="button" onClick={closeModal} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"><X className="w-4 h-4" /></button>
+                            <h2 className="text-lg font-semibold text-white tracking-tight">Schaden dokumentieren</h2>
 
-                            <div className="absolute bottom-4 right-6 w-12 h-12 bg-white/10 rounded-xl backdrop-blur-md flex items-center justify-center p-1 opacity-50">
+                            <div className="absolute bottom-4 right-6 w-12 h-12 bg-white/10 rounded-xl backdrop-blur-md flex items-center justify-center p-1 border border-white/10">
                                 <img src={viewImages[currentClick?.side || 'front']} className="w-full h-full object-contain rounded" />
                                 <div className="absolute w-1.5 h-1.5 bg-red-500 rounded-full border border-white" style={{ left: `${currentClick?.x}%`, top: `${currentClick?.y}%` }} />
                             </div>
                         </div>
 
-                        <div className="p-8 space-y-6">
+                        <div className="p-6 space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Problem</label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <label className="text-xs font-semibold uppercase text-gray-400 dark:text-gray-500 tracking-wider">Problem</label>
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                                     {['Kratzer', 'Delle', 'Riss', 'Steinschlag', 'Sonstiges'].map((r) => (
                                         <button
                                             key={r}
                                             type="button"
                                             onClick={() => setReason(r)}
-                                            className={`px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${reason === r ? 'bg-blue-600 border-blue-600 text-white' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 hover:border-blue-200'
-                                                }`}
+                                            className={`py-2 px-1 rounded-xl text-[10px] font-bold border transition-all ${
+                                                reason === r 
+                                                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+                                                    : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-200'
+                                            }`}
                                         >
                                             {r}
                                         </button>
@@ -298,27 +305,48 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Genaue Position</label>
+                                <label className="text-xs font-semibold uppercase text-gray-400 dark:text-gray-500 tracking-wider">Genaue Position</label>
                                 <input
-                                    type="text" value={location} onChange={(e) => setLocation(e.target.value)}
+                                    type="text" 
+                                    value={location} 
+                                    onChange={(e) => setLocation(e.target.value)}
                                     placeholder="z.B. Kotflügel vorne links"
-                                    className="w-full px-5 py-3 text-sm bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-800 outline-none focus:ring-4 focus:ring-blue-500/10"
+                                    className="w-full px-4 py-3 text-sm bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Foto</label>
+                                <label className="text-xs font-semibold uppercase text-gray-400 dark:text-gray-500 tracking-wider">Foto aufnehmen</label>
                                 <div
                                     onClick={() => !isUploading && fileInputRef.current?.click()}
-                                    className={`relative h-24 rounded-[1.5rem] border-2 border-dashed flex items-center justify-center cursor-pointer transition-all ${photoUrl ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 hover:border-blue-400'
-                                        }`}
+                                    className={`relative h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+                                        photoUrl 
+                                            ? 'border-green-500/50 bg-green-50/10 dark:bg-green-950/10' 
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 bg-gray-50/50 dark:bg-gray-800/20'
+                                    }`}
                                 >
-                                    {isUploading ? <Loader2 className="animate-spin" /> : photoUrl ? <img src={photoUrl} className="w-full h-full object-cover rounded-[1.5rem]" /> : <Camera className="text-gray-300" />}
+                                    {isUploading ? (
+                                        <Loader2 className="animate-spin text-blue-600" />
+                                    ) : photoUrl ? (
+                                        <img src={photoUrl} className="w-full h-full object-cover rounded-xl" />
+                                    ) : (
+                                        <>
+                                            <Camera className="text-gray-350 dark:text-gray-600 w-5 h-5 mb-1" />
+                                            <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider">Klicken zum Fotografieren</span>
+                                        </>
+                                    )}
                                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                                 </div>
                             </div>
                         </div>
-                        <div className="p-8 pt-0">
-                            <button type="button" onClick={handleAddDamage} disabled={!reason || !location || isUploading} className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all">SPEICHERN</button>
+                        <div className="p-6 pt-0">
+                            <button 
+                                type="button" 
+                                onClick={handleAddDamage} 
+                                disabled={!reason || !location || isUploading} 
+                                className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-30 transition-all shadow-sm"
+                            >
+                                SPEICHERN
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -326,22 +354,32 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
 
             {viewingDamage && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-gray-900/90 backdrop-blur-md" onClick={() => setViewingDamage(null)} />
-                    <div className="relative bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <button type="button" onClick={() => setViewingDamage(null)} className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-500 z-10"><X className="w-4 h-4" /></button>
-                        <div className="h-64 bg-gray-100 dark:bg-gray-800 relative flex items-center justify-center overflow-hidden">
-                            {viewingDamage.photoUrl ? <img src={viewingDamage.photoUrl} className="w-full h-full object-cover" /> : <Camera className="w-16 h-16 text-gray-200" />}
+                    <div className="absolute inset-0 bg-gray-900/75 dark:bg-gray-950/80 backdrop-blur-md" onClick={() => setViewingDamage(null)} />
+                    <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-gray-850 animate-in fade-in zoom-in duration-200">
+                        <button type="button" onClick={() => setViewingDamage(null)} className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white z-10 transition-colors"><X className="w-4 h-4" /></button>
+                        <div className="h-60 bg-gray-100 dark:bg-gray-800 relative flex items-center justify-center overflow-hidden">
+                            {viewingDamage.photoUrl ? (
+                                <img src={viewingDamage.photoUrl} className="w-full h-full object-cover" />
+                            ) : (
+                                <Camera className="w-12 h-12 text-gray-200 dark:text-gray-700" />
+                            )}
                         </div>
-                        <div className="p-8 space-y-4">
+                        <div className="p-6 space-y-4">
                             <div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{CAR_VIEW_LABELS[viewingDamage.side]}</span>
-                                <h3 className="text-3xl font-black text-gray-900 dark:text-white uppercase">{viewingDamage.reason}</h3>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">{CAR_VIEW_LABELS[viewingDamage.side]}</span>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase mt-0.5">{viewingDamage.reason}</h3>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                <label className="text-[10px] font-bold text-gray-400 block mb-1">POSITION</label>
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{viewingDamage.location}</p>
+                            <div className="bg-gray-50 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 block mb-1">POSITION</label>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{viewingDamage.location}</p>
                             </div>
-                            <button type="button" onClick={() => { removeDamage(viewingDamage.id); setViewingDamage(null); }} className="w-full py-4 text-red-600 bg-red-50 hover:bg-red-100 font-bold rounded-2xl transition-all">LÖSCHEN</button>
+                            <button 
+                                type="button" 
+                                onClick={() => { removeDamage(viewingDamage.id); setViewingDamage(null); }} 
+                                className="w-full py-3 text-red-650 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-950/20 dark:hover:bg-red-950/40 font-semibold rounded-xl transition-all"
+                            >
+                                LÖSCHEN
+                            </button>
                         </div>
                     </div>
                 </div>

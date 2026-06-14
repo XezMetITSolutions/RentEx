@@ -94,7 +94,7 @@ export default function SignaturePad({ onSave, onClear }: SignaturePadProps) {
 
     return (
         <div className="space-y-4">
-            <div className="relative aspect-[2/1] w-full bg-white border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden touch-none">
+            <div className="relative aspect-[2.5/1] w-full bg-white rounded-2xl overflow-hidden touch-none border border-gray-200 dark:border-gray-800 shadow-inner group">
                 <canvas
                     ref={canvasRef}
                     onMouseDown={startDrawing}
@@ -104,11 +104,17 @@ export default function SignaturePad({ onSave, onClear }: SignaturePadProps) {
                     onTouchStart={startDrawing}
                     onTouchMove={draw}
                     onTouchEnd={stopDrawing}
-                    className="absolute inset-0 w-full h-full cursor-crosshair"
+                    className="absolute inset-0 w-full h-full cursor-crosshair z-10"
                 />
-                {!hasSignature && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-300">
-                        <p className="text-sm">Hier unterschreiben</p>
+                {!hasSignature ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-gray-350 dark:text-gray-650 gap-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider">Unterschriftenfeld</span>
+                        <p className="text-[10px] text-gray-400">Hier mit dem Finger oder der Maus unterschreiben</p>
+                    </div>
+                ) : (
+                    <div className="absolute top-4 right-4 bg-green-500/10 text-green-600 dark:text-green-400 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 z-25">
+                        <Check className="w-3.5 h-3.5" />
+                        Signiert
                     </div>
                 )}
             </div>
@@ -116,7 +122,7 @@ export default function SignaturePad({ onSave, onClear }: SignaturePadProps) {
                 <button
                     type="button"
                     onClick={clear}
-                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 bg-gray-50 dark:bg-gray-900 border border-gray-200/50 dark:border-gray-800/80 rounded-xl transition-all"
                 >
                     <Eraser className="w-3.5 h-3.5" />
                     Löschen
