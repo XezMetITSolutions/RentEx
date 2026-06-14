@@ -73,6 +73,18 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
     const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
 
+    const filteredOptions = useMemo(() => {
+        return options.filter(opt => opt.carId === null || opt.carId === Number(selectedCarId));
+    }, [options, selectedCarId]);
+
+    // Keep selected options valid when car changes
+    useEffect(() => {
+        setSelectedOptions(prev => prev.filter(id => {
+            const opt = options.find(o => o.id === id);
+            return opt && (opt.carId === null || opt.carId === Number(selectedCarId));
+        }));
+    }, [selectedCarId, options]);
+
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
         if (startDateFromUrl) setStartDate(startDateFromUrl);
@@ -260,7 +272,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <input 
                                             type="text"
                                             placeholder="Nach Kennzeichen, Marke... suchen"
-                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm dark:text-white font-medium"
+                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white font-medium"
                                             value={carSearch}
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -339,7 +351,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <input 
                                             type="text"
                                             placeholder="Nach Vorname, Nachname... suchen"
-                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-955 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm dark:text-white font-medium"
+                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white font-medium"
                                             value={customerSearch}
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -414,7 +426,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         )}
 
                                         {isLicenseMissing && (
-                                            <div className="p-4 bg-amber-50 dark:bg-amber-955/20 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-start gap-3 shadow-sm">
+                                            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-start gap-3 shadow-sm">
                                                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                                 <div>
                                                     <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">Führerschein-Daten unvollständig!</h4>
@@ -590,7 +602,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             )}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Abholort</label>
-                                <select name="pickupLocationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-955 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white focus:border-blue-500 outline-none">
+                                <select name="pickupLocationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white focus:border-blue-500 outline-none">
                                     <option value="">Kein Ort ausgewählt</option>
                                     {locations.map(loc => (
                                         <option key={loc.id} value={loc.id}>{loc.name}</option>
@@ -599,7 +611,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rückgabeort</label>
-                                <select name="returnLocationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-955 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white focus:border-blue-500 outline-none">
+                                <select name="returnLocationId" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white focus:border-blue-500 outline-none">
                                     <option value="">Kein Ort ausgewählt</option>
                                     {locations.map(loc => (
                                         <option key={loc.id} value={loc.id}>{loc.name}</option>
@@ -630,7 +642,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                             name="depositPaid"
                                             type="number"
                                             step="0.01"
-                                            className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-955 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white font-mono font-bold focus:border-blue-500 outline-none ${selectedCustomer?.rentalsCount! >= 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
+                                            className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white font-mono font-bold focus:border-blue-500 outline-none ${selectedCustomer?.rentalsCount! >= 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
                                             value={depositPaid}
                                             onChange={(e) => setDepositPaid(e.target.value)}
                                         />
@@ -677,8 +689,8 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <Save className="w-4 h-4 text-blue-500" />
                                         Zusatzoptionen & Extras
                                     </h3>
-                                    <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 border border-gray-200/50 dark:border-gray-800/50 rounded-xl p-3 bg-gray-50/30 dark:bg-gray-955/20 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
-                                        {options.map(opt => (
+                                    <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 border border-gray-200/50 dark:border-gray-800/50 rounded-xl p-3 bg-gray-50/30 dark:bg-gray-900/20 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
+                                        {filteredOptions.map(opt => (
                                             <label key={opt.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${selectedOptions.includes(opt.id) ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-white dark:bg-gray-900 border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700'}`}>
                                                 <div className="flex items-center gap-3">
                                                     <input 
@@ -692,8 +704,8 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                                     />
                                                     <input type="hidden" name="options" value={opt.id} disabled={!selectedOptions.includes(opt.id)} />
                                                     <div>
-                                                        <p className="text-xs font-bold dark:text-white">{opt.name}</p>
-                                                        <p className="text-[10px] text-gray-500">{opt.description}</p>
+                                                        <p className="text-xs font-bold text-gray-900 dark:text-white">{opt.name}</p>
+                                                        <p className="text-[10px] text-gray-500 dark:text-gray-400">{opt.description}</p>
                                                     </div>
                                                 </div>
                                                 <span className="text-xs font-mono font-bold text-blue-600">€{opt.price}</span>
@@ -819,7 +831,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             )}
 
                             {selectedCustomer && isLicenseMissing && (
-                                <div className="p-3 bg-amber-50 dark:bg-amber-955/30 border border-amber-100 dark:border-amber-900/50 rounded-xl flex items-start gap-2.5">
+                                <div className="p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-900/50 rounded-xl flex items-start gap-2.5">
                                     <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                     <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-tight">
                                         <strong>Führerschein unvollständig:</strong> Bitte tragen Sie die Führerscheinnummer im Profil nach.
