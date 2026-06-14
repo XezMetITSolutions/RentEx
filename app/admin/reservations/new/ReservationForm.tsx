@@ -1,9 +1,9 @@
 'use client';
 
 import { createRental } from '@/app/actions';
-import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft, AlertTriangle, CreditCard, Banknote, Landmark } from 'lucide-react';
+import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft, AlertTriangle, CreditCard, Banknote, Landmark, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import CarCalendar from '@/components/admin/CarCalendar';
@@ -63,6 +63,11 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const [paymentMethod, setPaymentMethod] = useState('Cash');
     const [isConflict, setIsConflict] = useState(false);
 
+    const carContainerRef = useRef<HTMLDivElement>(null);
+    const customerContainerRef = useRef<HTMLDivElement>(null);
+    const [isCarDropdownOpen, setIsCarDropdownOpen] = useState(false);
+    const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+
     const todayStr = new Date().toISOString().split('T')[0];
 
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
@@ -77,6 +82,22 @@ export default function ReservationForm({ cars, customers, locations, options }:
     useEffect(() => {
         setLocalCustomers(customers);
     }, [customers]);
+
+    // Click outside popover handling
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (carContainerRef.current && !carContainerRef.current.contains(event.target as Node)) {
+                setIsCarDropdownOpen(false);
+            }
+            if (customerContainerRef.current && !customerContainerRef.current.contains(event.target as Node)) {
+                setIsCustomerDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Fetch calendar data when car changes
     useEffect(() => {
@@ -101,22 +122,47 @@ export default function ReservationForm({ cars, customers, locations, options }:
         }
     }, [selectedCarId]);
 
+    // Sync search inputs with selections
+    useEffect(() => {
+        if (selectedCar) {
+            setCarSearch(`${selectedCar.brand} ${selectedCar.model} [${selectedCar.plate}]`);
+        } else {
+            setCarSearch('');
+        }
+    }, [selectedCar, cars]);
+
+    useEffect(() => {
+        if (selectedCustomer) {
+            setCustomerSearch(`${selectedCustomer.firstName} ${selectedCustomer.lastName}`);
+        } else {
+            setCustomerSearch('');
+        }
+    }, [selectedCustomer, localCustomers]);
+
     const filteredCars = useMemo(() => {
         const search = carSearch.toLowerCase();
+        const selectedCarText = selectedCar ? `${selectedCar.brand} ${selectedCar.model} [${selectedCar.plate}]`.toLowerCase() : '';
+        if (!carSearch || search === selectedCarText) {
+            return cars;
+        }
         return cars.filter(c => 
             c.brand.toLowerCase().includes(search) || 
             c.model.toLowerCase().includes(search) || 
             c.plate.toLowerCase().includes(search)
         );
-    }, [cars, carSearch]);
+    }, [cars, carSearch, selectedCar]);
 
     const filteredCustomers = useMemo(() => {
         const search = customerSearch.toLowerCase();
+        const selectedCustomerText = selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`.toLowerCase() : '';
+        if (!customerSearch || search === selectedCustomerText) {
+            return localCustomers;
+        }
         return localCustomers.filter(c => 
             c.firstName.toLowerCase().includes(search) || 
             c.lastName.toLowerCase().includes(search)
         );
-    }, [localCustomers, customerSearch]);
+    }, [localCustomers, customerSearch, selectedCustomer]);
 
     // Check for conflicts
     useEffect(() => {
@@ -206,7 +252,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             {/* Vehicle */}
                             <div className="space-y-3">
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Fahrzeug auswählen *</label>
-                                <div className="space-y-2">
+                                <div ref={carContainerRef} className="relative">
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                                             <CarIcon className="w-4 h-4" />
@@ -214,25 +260,61 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <input 
                                             type="text"
                                             placeholder="Nach Kennzeichen, Marke... suchen"
-                                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200/60 dark:border-gray-800/60 rounded-xl bg-gray-50/50 dark:bg-gray-900/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm dark:text-white font-medium"
                                             value={carSearch}
-                                            onChange={(e) => setCarSearch(e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCarSearch(val);
+                                                if (!val) setSelectedCarId('');
+                                                setIsCarDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setIsCarDropdownOpen(true)}
                                         />
+                                        <button
+                                            type="button"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                                            onClick={() => setIsCarDropdownOpen(prev => !prev)}
+                                        >
+                                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCarDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </button>
                                     </div>
-                                    <select
-                                        name="carId"
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white transition-all shadow-sm"
-                                        value={selectedCarId}
-                                        onChange={(e) => setSelectedCarId(e.target.value)}
-                                    >
-                                        <option value="">Bitte wählen...</option>
-                                        {filteredCars.map(car => (
-                                            <option key={car.id} value={car.id}>
-                                                {car.brand} {car.model} [{car.plate}] - €{Number(car.dailyRate)}/Tag
-                                            </option>
-                                        ))}
-                                    </select>
+                                    
+                                    {isCarDropdownOpen && (
+                                        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-950 rounded-xl py-1 focus:outline-none">
+                                            {filteredCars.length === 0 ? (
+                                                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 italic">
+                                                    Keine Fahrzeuge gefunden
+                                                </div>
+                                            ) : (
+                                                filteredCars.map(car => (
+                                                    <div
+                                                        key={car.id}
+                                                        onClick={() => {
+                                                            setSelectedCarId(car.id);
+                                                            setCarSearch(`${car.brand} ${car.model} [${car.plate}]`);
+                                                            setIsCarDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                                                            selectedCarId === car.id ? 'bg-blue-50/50 dark:bg-blue-950/30' : ''
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <span className="font-semibold text-gray-900 dark:text-white truncate">
+                                                                {car.brand} {car.model}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono shrink-0">
+                                                                {car.plate}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                                                            €{Number(car.dailyRate).toFixed(2)}/Tag
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                    <input type="hidden" name="carId" value={selectedCarId} />
                                 </div>
                             </div>
 
@@ -249,7 +331,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         Neuer Kunde
                                     </button>
                                 </div>
-                                <div className="space-y-2">
+                                <div ref={customerContainerRef} className="relative">
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                                             <User className="w-4 h-4" />
@@ -257,25 +339,63 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <input 
                                             type="text"
                                             placeholder="Nach Vorname, Nachname... suchen"
-                                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200/60 dark:border-gray-800/60 rounded-xl bg-gray-50/50 dark:bg-gray-900/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                            className="w-full pl-9 pr-10 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-955 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm dark:text-white font-medium"
                                             value={customerSearch}
-                                            onChange={(e) => setCustomerSearch(e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCustomerSearch(val);
+                                                if (!val) setSelectedCustomerId('');
+                                                setIsCustomerDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setIsCustomerDropdownOpen(true)}
                                         />
+                                        <button
+                                            type="button"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                                            onClick={() => setIsCustomerDropdownOpen(prev => !prev)}
+                                        >
+                                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </button>
                                     </div>
-                                    <select
-                                        name="customerId"
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white transition-all shadow-sm"
-                                        value={selectedCustomerId}
-                                        onChange={(e) => setSelectedCustomerId(e.target.value)}
-                                    >
-                                        <option value="">Bitte wählen...</option>
-                                        {filteredCustomers.map(customer => (
-                                            <option key={customer.id} value={customer.id}>
-                                                {customer.firstName} {customer.lastName} {customer.country ? `(${customer.country})` : ''} — {customer.rentalsCount > 0 ? `${customer.rentalsCount} Mieten` : 'Neukunde'}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    
+                                    {isCustomerDropdownOpen && (
+                                        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-950 rounded-xl py-1 focus:outline-none">
+                                            {filteredCustomers.length === 0 ? (
+                                                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 italic">
+                                                    Keine Kunden gefunden
+                                                </div>
+                                            ) : (
+                                                filteredCustomers.map(customer => (
+                                                    <div
+                                                        key={customer.id}
+                                                        onClick={() => {
+                                                            setSelectedCustomerId(customer.id);
+                                                            setCustomerSearch(`${customer.firstName} ${customer.lastName}`);
+                                                            setIsCustomerDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                                                            selectedCustomerId === customer.id ? 'bg-blue-50/50 dark:bg-blue-950/30' : ''
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <span className="font-semibold text-gray-900 dark:text-white truncate">
+                                                                {customer.firstName} {customer.lastName}
+                                                            </span>
+                                                            {customer.country && (
+                                                                <span className="px-1.5 py-0.5 text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded shrink-0">
+                                                                    {customer.country}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                                                            {customer.rentalsCount > 0 ? `${customer.rentalsCount} Mieten` : 'Neukunde'}
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                    <input type="hidden" name="customerId" value={selectedCustomerId} />
                                 </div>
 
                                 {/* Verification Details & Alerts */}
