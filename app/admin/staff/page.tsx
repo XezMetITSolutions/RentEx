@@ -251,15 +251,15 @@ export default function StaffPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rolle *</label>
                                     <select value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as Role }))}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                        {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                                        {ROLES.map(r => <option key={r} value={r} className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">{r}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Standort</label>
                                     <select value={formData.locationId} onChange={e => setFormData(p => ({ ...p, locationId: e.target.value }))}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                        <option value="">Kein Standort</option>
-                                        {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                                        <option value="" className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">Kein Standort</option>
+                                        {locations.map(l => <option key={l.id} value={l.id} className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">{l.name}</option>)}
                                     </select>
                                 </div>
                                 <div>

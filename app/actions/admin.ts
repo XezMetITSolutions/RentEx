@@ -274,8 +274,22 @@ export async function createCoupon(formData: FormData) {
     redirect('/admin/marketing');
 }
 
+import { getAdminSession } from '@/lib/adminAuth';
+
+/** Get current mileage of a car */
+export async function getCarCurrentMileage(carId: number): Promise<number> {
+    const car = await prisma.car.findUnique({
+        where: { id: carId },
+        select: { currentMileage: true }
+    });
+    return car?.currentMileage || 0;
+}
+
 /** Fahrtenbuch-Eintrag anlegen (Finanzamt) */
 export async function createFahrtenbuchEntry(formData: FormData) {
+    const session = await getAdminSession();
+    if (!session) return { error: 'Nicht autorisiert.' };
+
     const carId = parseInt(formData.get('carId') as string);
     const datum = new Date(formData.get('datum') as string);
     const startKm = parseInt(formData.get('startKm') as string);
@@ -289,7 +303,7 @@ export async function createFahrtenbuchEntry(formData: FormData) {
         return { error: 'Ungültige Daten (Fahrzeug, Start-/End-Kilometer).' };
     }
 
-    await prisma.fahrtenbuchEntry.create({
+    const entry = await prisma.fahrtenbuchEntry.create({
         data: {
             carId,
             rentalId: rentalId && !Number.isNaN(rentalId) ? rentalId : undefined,
@@ -299,9 +313,130 @@ export async function createFahrtenbuchEntry(formData: FormData) {
             zweck: zweck === 'PRIVATFAHRT' ? 'PRIVATFAHRT' : 'DIENSTFAHRT',
             fahrtzweck,
         },
+        include: { car: true }
     });
+
+    // Create Audit Log
+    await prisma.activityLog.create({
+        data: {
+            userId: String(session.id),
+            userName: session.name,
+            action: 'CREATE',
+            entityType: 'FahrtenbuchEntry',
+            entityId: entry.id,
+            description: `Seyir defteri girişi oluşturuldu: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
+            metadata: JSON.stringify({ carId, startKm, endKm, zweck, fahrtzweck })
+        }
+    });
+
+    // Update car's current mileage if this is the highest mileage
+    const car = await prisma.car.findUnique({ where: { id: carId } });
+    if (car && endKm > (car.currentMileage || 0)) {
+        await prisma.car.update({
+            where: { id: carId },
+            data: { currentMileage: endKm }
+        });
+    }
+
     revalidatePath('/admin/fahrtenbuch');
-    redirect('/admin/fahrtenbuch');
+    return { success: true };
+}
+
+/** Fahrtenbuch-Eintrag aktualisieren */
+export async function updateFahrtenbuchEntry(id: number, formData: FormData) {
+    const session = await getAdminSession();
+    if (!session) return { error: 'Nicht autorisiert.' };
+
+    const carId = parseInt(formData.get('carId') as string);
+    const datum = new Date(formData.get('datum') as string);
+    const startKm = parseInt(formData.get('startKm') as string);
+    const endKm = parseInt(formData.get('endKm') as string);
+    const zweck = (formData.get('zweck') as string) || 'DIENSTFAHRT';
+    const fahrtzweck = (formData.get('fahrtzweck') as string)?.trim() || null;
+    const rentalIdStr = formData.get('rentalId') as string;
+    const rentalId = rentalIdStr ? parseInt(rentalIdStr, 10) : null;
+
+    if (!carId || isNaN(startKm) || isNaN(endKm) || endKm < startKm) {
+        return { error: 'Ungültige Daten (Fahrzeug, Start-/End-Kilometer).' };
+    }
+
+    const oldEntry = await prisma.fahrtenbuchEntry.findUnique({
+        where: { id },
+        include: { car: true }
+    });
+    if (!oldEntry) return { error: 'Eintrag nicht gefunden.' };
+
+    const entry = await prisma.fahrtenbuchEntry.update({
+        where: { id },
+        data: {
+            carId,
+            rentalId: rentalId && !Number.isNaN(rentalId) ? rentalId : null,
+            datum,
+            startKm,
+            endKm,
+            zweck: zweck === 'PRIVATFAHRT' ? 'PRIVATFAHRT' : 'DIENSTFAHRT',
+            fahrtzweck,
+        },
+        include: { car: true }
+    });
+
+    // Create Audit Log
+    await prisma.activityLog.create({
+        data: {
+            userId: String(session.id),
+            userName: session.name,
+            action: 'UPDATE',
+            entityType: 'FahrtenbuchEntry',
+            entityId: entry.id,
+            description: `Seyir defteri girişi güncellendi #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
+            metadata: JSON.stringify({
+                before: { startKm: oldEntry.startKm, endKm: oldEntry.endKm, zweck: oldEntry.zweck, fahrtzweck: oldEntry.fahrtzweck },
+                after: { startKm, endKm, zweck, fahrtzweck }
+            })
+        }
+    });
+
+    // Update car's current mileage if necessary
+    const car = await prisma.car.findUnique({ where: { id: carId } });
+    if (car && endKm > (car.currentMileage || 0)) {
+        await prisma.car.update({
+            where: { id: carId },
+            data: { currentMileage: endKm }
+        });
+    }
+
+    revalidatePath('/admin/fahrtenbuch');
+    return { success: true };
+}
+
+/** Fahrtenbuch-Eintrag löschen */
+export async function deleteFahrtenbuchEntry(id: number) {
+    const session = await getAdminSession();
+    if (!session) return { error: 'Nicht autorisiert.' };
+
+    const entry = await prisma.fahrtenbuchEntry.findUnique({
+        where: { id },
+        include: { car: true }
+    });
+    if (!entry) return { error: 'Eintrag nicht gefunden.' };
+
+    await prisma.fahrtenbuchEntry.delete({ where: { id } });
+
+    // Create Audit Log
+    await prisma.activityLog.create({
+        data: {
+            userId: String(session.id),
+            userName: session.name,
+            action: 'DELETE',
+            entityType: 'FahrtenbuchEntry',
+            entityId: id,
+            description: `Seyir defteri girişi silindi #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${entry.startKm} - ${entry.endKm} km`,
+            metadata: JSON.stringify(entry)
+        }
+    });
+
+    revalidatePath('/admin/fahrtenbuch');
+    return { success: true };
 }
 
 /** Nächste Rechnungsnummer (RE-JJJJ-NNNNN) */

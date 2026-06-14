@@ -57,6 +57,17 @@ export async function POST(
         metadata: JSON.stringify({ returnMileage, fuelLevelReturn, extraCharges }),
       },
     }),
+    prisma.fahrtenbuchEntry.create({
+      data: {
+        carId: rental.carId,
+        rentalId: rentalId,
+        datum: new Date(),
+        startKm: Number(rental.pickupMileage || 0),
+        endKm: returnMileage ?? Number(rental.pickupMileage || 0),
+        zweck: 'DIENSTFAHRT',
+        fahrtzweck: `Kunden-Miete (Mobile): Vertrag #${rental.contractNumber || rentalId}`,
+      }
+    }),
   ]);
 
   return NextResponse.json({ success: true });

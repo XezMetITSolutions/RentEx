@@ -63,6 +63,23 @@ export async function updateRentalStatus(id: number, status: string, returnMilea
             data: { status: 'Active', currentMileage: finalReturnMileage || undefined }
         });
 
+        // Also auto-generate FahrtenbuchEntry for the rental trip
+        try {
+            await prisma.fahrtenbuchEntry.create({
+                data: {
+                    carId: rental.carId,
+                    rentalId: rental.id,
+                    datum: new Date(),
+                    startKm: Number(rental.pickupMileage || 0),
+                    endKm: finalReturnMileage,
+                    zweck: 'DIENSTFAHRT',
+                    fahrtzweck: `Kunden-Miete: Vertrag #${rental.contractNumber || rental.id}`,
+                }
+            });
+        } catch (fbError) {
+            console.error('[updateRentalStatus] Failed to create Fahrtenbuch entry:', fbError);
+        }
+
         // Send return / completion confirmation email
         try {
             const { sendEmail } = require('@/lib/notificationTemplates');
