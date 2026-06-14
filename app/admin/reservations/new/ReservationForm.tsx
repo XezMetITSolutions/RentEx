@@ -557,7 +557,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <Save className="w-4 h-4 text-blue-500" />
                                         Zusatzoptionen & Extras
                                     </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 border border-gray-200/50 dark:border-gray-800/50 rounded-xl p-3 bg-gray-50/30 dark:bg-gray-955/20 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
                                         {options.map(opt => (
                                             <label key={opt.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${selectedOptions.includes(opt.id) ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-white dark:bg-gray-900 border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700'}`}>
                                                 <div className="flex items-center gap-3">
