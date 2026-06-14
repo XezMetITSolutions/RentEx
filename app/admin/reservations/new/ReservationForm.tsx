@@ -636,7 +636,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                 {/* Deposit */}
                                 <div className="space-y-4">
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Kaution (Security Deposit)
+                                        Kaution (Sicherheitsleistung)
                                     </label>
                                     <div className="relative">
                                         <input
@@ -650,7 +650,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</div>
                                     </div>
                                     <p className="text-[10px] text-gray-500 bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                                        {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (3+ Mieten): 250€ Kaution applies.' : 'Neukunde: Standard 750€ Kaution applies.'}
+                                        {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (3+ Mieten): 250 € Kaution fällt an.' : 'Neukunde: Standard 750 € Kaution fällt an.'}
                                     </p>
                                 </div>
 
