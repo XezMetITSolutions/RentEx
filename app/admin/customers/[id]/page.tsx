@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import { format, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { rentalStatusLabel } from '@/lib/statusLabels';
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -227,7 +228,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                                                         </span>
                                                     ) : (
                                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
-                                                            {rental.status}
+                                                            {rentalStatusLabel(rental.status)}
                                                         </span>
                                                     )}
                                                 </td>

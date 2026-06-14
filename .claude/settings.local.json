@@ -29,7 +29,8 @@
       "Bash(curl -s http://localhost:3000/api/admin/competitor-pricing/companies -H \"Content-Type: application/json\")",
       "Bash(curl -s http://localhost:3000/api/admin/competitor-pricing/companies)",
       "Bash(curl -s http://localhost:3000/sixt-demo)",
-      "Bash(curl -s http://localhost:3000/api/sixt?category=suv)"
+      "Bash(curl -s http://localhost:3000/api/sixt?category=suv)",
+      "Bash(grep -n '\"[a-z][a-z]\":\\\\s*{$' \"native-app/constants/translations.ts\")"
     ]
   }
 }

@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { clsx } from 'clsx';
 import CarCalendar from "@/components/admin/CarCalendar";
+import { carStatusLabel, rentalStatusLabel } from "@/lib/statusLabels";
 
 async function getCarData(id: number) {
     const carPromise = prisma.car.findUnique({
@@ -137,7 +138,7 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
                                     car.status === 'Maintenance' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800" :
                                         "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
                             )}>
-                                {car.status}
+                                {carStatusLabel(car.status)}
                             </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400 mt-1">
@@ -516,7 +517,7 @@ export default async function AdminCarDetailsPage({ params }: { params: Promise<
                                         <span>{formatDate(rental.startDate)} - {formatDate(rental.endDate)}</span>
                                         <span className={clsx(
                                             rental.status === 'Active' ? 'text-green-600 dark:text-green-400' : 'text-zinc-500 dark:text-zinc-400'
-                                        )}>{rental.status}</span>
+                                        )}>{rentalStatusLabel(rental.status)}</span>
                                     </div>
                                 </div>
                             ))}

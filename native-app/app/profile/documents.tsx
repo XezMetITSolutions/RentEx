@@ -148,7 +148,7 @@ export default function DocumentsScreen() {
         <View style={[styles.infoBox, { backgroundColor: `${colors.tint}15` }]}>
           <Ionicons name="information-circle" size={22} color={colors.tint} />
           <Text style={[styles.infoText, { color: colors.text }]}>
-            Geben Sie Ihre Dokumentnummern an ve fotoğraflarını yükleyin.
+            Geben Sie Ihre Dokumentnummern an und laden Sie die Fotos hoch.
           </Text>
         </View>
 
