@@ -218,11 +218,13 @@ export default async function FleetPage({
                                 </div>
                             ) : (
                                 <div className="grid md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
-                                    {cars.map((car) => (
-                                        <Link 
-                                            key={car.id} 
-                                            href={`/fleet/${car.id}`} 
-                                            className="group relative bg-white dark:bg-zinc-900/40 border border-gray-200 dark:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2 flex flex-col"
+                                    {cars.map((car) => {
+                                        const slug = `${car.brand}-${car.model}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                                        return (
+                                            <Link 
+                                                key={car.id} 
+                                                href={`/fleet/${car.id}-${slug}`} 
+                                                className="group relative bg-white dark:bg-zinc-900/40 border border-gray-200 dark:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2 flex flex-col"
                                         >
                                             {/* Badge */}
                                             <div className="absolute top-4 left-4 z-10">
@@ -290,7 +292,8 @@ export default async function FleetPage({
                                                 </div>
                                             </div>
                                         </Link>
-                                    ))}
+                                    );
+                                })}
                                 </div>
                             )}
                         </div>

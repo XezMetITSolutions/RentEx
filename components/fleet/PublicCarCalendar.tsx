@@ -115,20 +115,6 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
         <div className="bg-zinc-900/50 rounded-3xl border border-white/10 overflow-hidden">
             <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
                 <h2 className="font-semibold text-white">Verfügbarkeitskalender</h2>
-                <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
-                    <button
-                        onClick={() => setView(Views.MONTH)}
-                        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${view === Views.MONTH ? 'bg-red-500 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Monat
-                    </button>
-                    <button
-                        onClick={() => setView(Views.WEEK)}
-                        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${view === Views.WEEK ? 'bg-red-500 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Woche
-                    </button>
-                </div>
             </div>
 
             <div className="p-4" style={{ height: '500px' }}>

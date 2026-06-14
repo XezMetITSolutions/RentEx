@@ -32,56 +32,59 @@ export default async function CarFleetPreview() {
                 </div>
 
                 <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 snap-x snap-mandatory sm:snap-none hide-scrollbar">
-                    {featuredCars.map((car) => (
-                        <Link key={car.id} href={`/fleet/${car.id}`} className="block min-w-[85vw] sm:min-w-0 snap-center flex-shrink-0 bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
-                            {/* Image Area - Placeholder if no image */}
-                            <div className="h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center relative overflow-hidden p-6">
-                                {car.imageUrl ? (
-                                    <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-contain p-4" />
-                                ) : (
-                                    <div className="text-zinc-600 text-sm font-mono">Kein Bild verfügbar</div>
-                                )}
-                            </div>
-
-                            <div className="p-5 sm:p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <span className="text-xs font-semibold text-red-500 uppercase tracking-wider">
-                                            {car.category}
-                                        </span>
-                                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-1">{car.brand} {car.model}</h3>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="block text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
-                                        </span>
-                                        <span className="text-xs text-gray-500">/Tag</span>
-                                    </div>
+                    {featuredCars.map((car) => {
+                        const slug = `${car.brand}-${car.model}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                        return (
+                            <Link key={car.id} href={`/fleet/${car.id}-${slug}`} className="block min-w-[85vw] sm:min-w-0 snap-center flex-shrink-0 bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-300">
+                                {/* Image Area - Placeholder if no image */}
+                                <div className="h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center relative overflow-hidden p-6">
+                                    {car.imageUrl ? (
+                                        <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-contain p-4" />
+                                    ) : (
+                                        <div className="text-zinc-600 text-sm font-mono">Kein Bild verfügbar</div>
+                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2 sm:gap-4 border-t border-gray-200 dark:border-white/10 py-4 mb-4">
-                                    <div className="flex flex-col items-center gap-1 text-center">
-                                        <Fuel className="w-4 h-4 text-gray-500" />
-                                        <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.fuelType}</span>
+                                <div className="p-5 sm:p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span className="text-xs font-semibold text-red-500 uppercase tracking-wider">
+                                                {car.category}
+                                            </span>
+                                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-1">{car.brand} {car.model}</h3>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="block text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                                            </span>
+                                            <span className="text-xs text-gray-500">/Tag</span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
-                                        <Gauge className="w-4 h-4 text-gray-500" />
-                                        <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.transmission}</span>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
-                                        <Users className="w-4 h-4 text-gray-500" />
-                                        <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.seats} Pers.</span>
-                                    </div>
-                                </div>
 
-                                <div
-                                    className="block w-full text-center py-3 bg-gray-100 group-hover:bg-gray-200 dark:bg-white/5 dark:group-hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white font-medium transition-colors active:scale-95"
-                                >
-                                    Details ansehen
+                                    <div className="grid grid-cols-3 gap-2 sm:gap-4 border-t border-gray-200 dark:border-white/10 py-4 mb-4">
+                                        <div className="flex flex-col items-center gap-1 text-center">
+                                            <Fuel className="w-4 h-4 text-gray-500" />
+                                            <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.fuelType}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
+                                            <Gauge className="w-4 h-4 text-gray-500" />
+                                            <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.transmission}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1 text-center border-l border-gray-200 dark:border-white/10">
+                                            <Users className="w-4 h-4 text-gray-500" />
+                                            <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{car.seats} Pers.</span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className="block w-full text-center py-3 bg-gray-100 group-hover:bg-gray-200 dark:bg-white/5 dark:group-hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white font-medium transition-colors active:scale-95"
+                                    >
+                                        Details ansehen
+                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
         </div>
