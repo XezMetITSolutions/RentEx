@@ -26,7 +26,7 @@ export default function Hero() {
     };
 
     return (
-        <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white dark:bg-black">
+        <div className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white dark:bg-black">
             {/* Modern Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent opacity-40" />
@@ -48,18 +48,18 @@ export default function Hero() {
                             Premium Autovermietung
                         </div>
 
-                        <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
                             Verleihen Sie Ihrer <br className="hidden lg:block" />
                             Reise <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-red-500 to-orange-500 animate-gradient-x">Exzellenz</span>
                         </h1>
 
                         <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
                             Ein komfortables, sicheres und unvergessliches Fahrerlebnis mit den neuesten Fahrzeugmodellen.
-                            Mieten Sie jetzt das Fahrzeug, das Ihren Bedürfnissen entspricht.
+                            Mieten Sie jetzt das vehicle, das Ihren Bedürfnissen entspricht.
                         </p>
 
                         {/* Modernized Stats */}
-                        <div className="flex items-center justify-center lg:justify-start gap-4 sm:gap-8 mb-12">
+                        <div className="hidden sm:flex items-center justify-center lg:justify-start gap-4 sm:gap-8 mb-12">
                             <div className="group relative p-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-gray-100 dark:border-white/10 backdrop-blur-md hover:border-red-500/30 transition-all duration-300 hover:-translate-y-1">
                                 <p className="text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">20+</p>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">Premium Fahrzeuge</p>

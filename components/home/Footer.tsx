@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Car, Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -30,14 +30,21 @@ export default function Footer() {
                             Sie sind an der richtigen Adresse für sicheres, schnelles und komfortables Fahren.
                         </p>
                         <div className="flex gap-4">
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
-                                <Twitter className="w-5 h-5" />
+                            <a 
+                                href="https://www.facebook.com/people/Rent_ex/100076092493354/" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-blue-600 hover:text-white transition-all"
+                            >
+                                <Facebook className="w-5 h-5" />
                             </a>
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
+                            <a 
+                                href="https://www.instagram.com/rent_ex/" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-pink-600 hover:text-white transition-all"
+                            >
                                 <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
-                                <Linkedin className="w-5 h-5" />
                             </a>
                         </div>
                     </div>
@@ -112,18 +119,33 @@ export default function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                                <a 
+                                    href="https://maps.google.com/?q=Illstra%C3%9Fe+75a,+6800+Feldkirch,+Austria" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-gray-600 dark:text-gray-400 text-sm hover:text-red-500 transition-colors"
+                                >
                                     Illstraße 75a<br />
                                     6800 Feldkirch
-                                </span>
+                                </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-red-500 shrink-0" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">0660 9996800</span>
+                                <a 
+                                    href="tel:+436609996800" 
+                                    className="text-gray-600 dark:text-gray-400 text-sm hover:text-red-500 transition-colors"
+                                >
+                                    0660 9996800
+                                </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-red-500 shrink-0" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">info@rent-ex.at</span>
+                                <a 
+                                    href="mailto:info@rent-ex.at" 
+                                    className="text-gray-600 dark:text-gray-400 text-sm hover:text-red-500 transition-colors"
+                                >
+                                    info@rent-ex.at
+                                </a>
                             </li>
                         </ul>
                     </div>

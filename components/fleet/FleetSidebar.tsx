@@ -40,9 +40,30 @@ export default function FleetSidebar({ categories, brands, activeFilters }: Flee
         setSearchTerm('');
     };
 
+    const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+
     return (
         <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="sticky top-24 space-y-6">
+            {/* Mobile Toggle Button */}
+            <div className="lg:hidden mb-6">
+                <button
+                    onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+                    className="w-full flex items-center justify-between px-6 py-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-2xl font-bold text-gray-900 dark:text-white shadow-sm hover:border-red-500/30 transition-all cursor-pointer"
+                >
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-red-500" />
+                        <span>Filter & Suche</span>
+                        {(activeFilters.type || activeFilters.category || activeFilters.brand || activeFilters.transmission || activeFilters.fuelType) && (
+                            <span className="ml-2 px-2.5 py-0.5 text-xs font-black bg-red-500 text-white rounded-full">
+                                Aktiv
+                            </span>
+                        )}
+                    </div>
+                    {isMobileExpanded ? <X className="w-4 h-4" /> : <ChevronRight className="w-4 h-4 rotate-90" />}
+                </button>
+            </div>
+
+            <div className={`${isMobileExpanded ? 'block' : 'hidden'} lg:block sticky top-24 space-y-6`}>
                 {/* Search */}
                 <div className="relative group">
                     <div className="flex items-center justify-between mb-2 px-1">
