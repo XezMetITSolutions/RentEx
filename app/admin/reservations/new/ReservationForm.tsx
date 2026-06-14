@@ -660,11 +660,10 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                         <CreditCard className="w-4 h-4 text-emerald-500" />
                                         Zahlungsart
                                     </h3>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         {[
                                             { id: 'Cash', name: 'Bar', icon: Banknote },
-                                            { id: 'Card', name: 'Karte', icon: CreditCard },
-                                            { id: 'Transfer', name: 'Überweisung', icon: Landmark }
+                                            { id: 'Card', name: 'Karte', icon: CreditCard }
                                         ].map(method => (
                                             <button
                                                 key={method.id}
