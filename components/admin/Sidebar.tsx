@@ -122,8 +122,21 @@ const getInitials = (name: string) => {
 export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff, isPinned, onPinToggle }: SidebarProps) {
     const pathname = usePathname();
     const [isHovered, setIsHovered] = useState(false);
+    const [isHoverDisabled, setIsHoverDisabled] = useState(false);
 
-    const isExpanded = isPinned || isHovered;
+    const isExpanded = isPinned || (isHovered && !isHoverDisabled);
+
+    const handlePinClick = () => {
+        if (isPinned) {
+            setIsHoverDisabled(true);
+        }
+        onPinToggle();
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+        setIsHoverDisabled(false);
+    };
 
     const getBadge = (item: any) => {
         if (item.badgeKey === 'live') return 'Live';
@@ -140,11 +153,11 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
     return (
         <aside
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseLeave={handleMouseLeave}
             className={clsx(
                 "fixed inset-y-0 left-0 z-50 bg-slate-900 dark:bg-gray-950 text-white transition-all duration-300 ease-in-out lg:static lg:inset-0 shadow-xl flex flex-col border-r border-slate-800 dark:border-gray-800 shrink-0",
                 isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-                isExpanded ? "w-64" : "lg:w-20"
+                isExpanded ? "w-64" : "w-64 lg:w-20"
             )}
         >
             {/* Logo Area */}
@@ -158,7 +171,7 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                 <div className="flex items-center gap-1">
                     {/* Pin button on desktop */}
                     <button
-                        onClick={onPinToggle}
+                        onClick={handlePinClick}
                         className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
                         title={isPinned ? "Menü einklappen" : "Menü anheften"}
                     >
