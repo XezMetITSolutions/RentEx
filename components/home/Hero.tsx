@@ -130,7 +130,7 @@ export default function Hero() {
                                                     <MapPin className="h-5 w-5 text-red-500 group-focus-within:text-red-600 transition-colors" />
                                                 </div>
                                                 <div className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white font-medium flex items-center shadow-sm text-sm">
-                                                    Hauptniederlassung Feldkirch
+                                                    Rent-Ex Feldkirch
                                                 </div>
                                             </div>
                                         </div>
@@ -141,7 +141,7 @@ export default function Hero() {
                                                     <MapPin className="h-5 w-5 text-red-500 group-focus-within:text-red-600 transition-colors" />
                                                 </div>
                                                 <div className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white font-medium flex items-center shadow-sm text-sm">
-                                                    Hauptniederlassung Feldkirch
+                                                    Rent-Ex Feldkirch
                                                 </div>
                                             </div>
                                         </div>

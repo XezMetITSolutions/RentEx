@@ -364,7 +364,7 @@ export default function BookingDetailScreen() {
               <View style={[styles.instructionBox, { backgroundColor: colors.background }]}>
                 <Text style={[styles.instructionStep, { color: colors.text }]}>1. Zum Standort fahren</Text>
                 <Text style={[styles.instructionText, { color: colors.tabIconDefault }]}>
-                  {booking.pickupLocation?.address ? `${booking.pickupLocation.address}, ${booking.pickupLocation.city}` : 'Hauptniederlassung Feldkirch'}
+                  {booking.pickupLocation?.address ? `${booking.pickupLocation.address}, ${booking.pickupLocation.city}` : 'Rent-Ex Feldkirch'}
                 </Text>
                 
                 {booking.pickupLocation?.address && (
