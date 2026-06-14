@@ -3,13 +3,14 @@ export const dynamic = 'force-dynamic';
 
 import CustomerForm from '@/components/admin/CustomerForm';
 import CustomerActions from './CustomerActions';
+import CustomerNotes from '@/components/admin/CustomerNotes';
 import { notFound } from 'next/navigation';
 import { 
     ChevronLeft, Mail, Phone, MapPin, Globe, 
     Calendar, TrendingUp, History, Shield, 
     Clock, CreditCard, Ban, CheckCircle2,
     FileText, User, Star, ExternalLink,
-    AlertCircle, ChevronRight
+    AlertCircle, ChevronRight, Plus
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, differenceInDays } from 'date-fns';
@@ -60,6 +61,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         tier = 'Stammkunde';
         tierColor = 'text-blue-700 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/50';
     }
+    
+    const isLicenseExpired = customer.licenseExpiryDate ? new Date(customer.licenseExpiryDate) < new Date() : false;
+    const isLicenseMissing = !customer.licenseNumber;
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-8 pb-24 px-4 sm:px-6">
@@ -103,13 +107,36 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     </div>
                 </div>
                 
-                <CustomerActions customer={{
-                    id: customer.id,
-                    email: customer.email,
-                    isBlacklisted: customer.isBlacklisted,
-                    blacklistReason: customer.blacklistReason
-                }} />
+                <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                        href={`/admin/reservations/new?customerId=${customer.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-blue-500/10"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Neue Reservierung
+                    </Link>
+                    <CustomerActions customer={{
+                        id: customer.id,
+                        email: customer.email,
+                        isBlacklisted: customer.isBlacklisted,
+                        blacklistReason: customer.blacklistReason
+                    }} />
+                </div>
             </div>
+
+            {/* Warning Banners */}
+            {(isLicenseExpired || isLicenseMissing) && (
+                <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/20 rounded-xl p-4 flex items-start gap-3 text-amber-800 dark:text-amber-400">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-500" />
+                    <div>
+                        <h4 className="font-bold text-sm">Führerscheinprüfung erforderlich</h4>
+                        <p className="text-xs mt-1 font-medium">
+                            {isLicenseExpired && "Achtung: Der Führerschein dieses Kunden ist abgelaufen! Reservierungen können blockiert sein."}
+                            {isLicenseMissing && !isLicenseExpired && "Achtung: Die Führerscheindaten dieses Kunden sind unvollständig!"}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -248,22 +275,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                 <div className="space-y-6">
                     
                     {/* CRM Side Notes */}
-                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-gray-400" />
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Interne Notizen</h3>
-                        </div>
-                        <div className="p-5">
-                            <textarea 
-                                className="w-full h-32 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
-                                placeholder="Notizen zum Kunden hinterlassen..."
-                                defaultValue={customer.notes || ''}
-                            />
-                            <button className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-                                Speichern
-                            </button>
-                        </div>
-                    </div>
+                    <CustomerNotes customerId={customer.id} initialNotes={customer.notes || ''} />
 
                     {/* Verifications Checklist */}
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">

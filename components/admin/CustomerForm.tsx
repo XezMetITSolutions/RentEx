@@ -265,6 +265,7 @@ export default function CustomerForm({ customer, countries = [], onSuccess, onCa
                                 defaultValue={customer?.licensePhotoUrl}
                                 uploadUrl="/api/admin/customers/upload"
                                 accept="image/*,.pdf"
+                                hideUrlInput={true}
                             />
 
                             <ImageUpload 
@@ -273,6 +274,7 @@ export default function CustomerForm({ customer, countries = [], onSuccess, onCa
                                 defaultValue={customer?.idPhotoUrl}
                                 uploadUrl="/api/admin/customers/upload"
                                 accept="image/*,.pdf"
+                                hideUrlInput={true}
                             />
                         </div>
                     </div>

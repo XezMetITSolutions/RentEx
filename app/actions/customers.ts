@@ -68,3 +68,29 @@ export async function updateCustomer(id: number, formData: FormData) {
         return { success: false, error: 'Fehler beim Aktualisieren des Kunden' };
     }
 }
+
+export async function updateCustomerNotes(id: number, notes: string) {
+    const session = await getAdminSession();
+    if (!session) return { success: false, error: 'Unauthorized' };
+
+    try {
+        const customer = await prisma.customer.update({
+            where: { id },
+            data: { notes },
+        });
+        await auditLog({
+            userId: session.id,
+            userName: session.name,
+            action: 'UPDATE',
+            entityType: 'Customer',
+            entityId: id,
+            description: `Updated notes for customer ${customer.firstName} ${customer.lastName}`
+        });
+
+        revalidatePath(`/admin/customers/${id}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating customer notes:', error);
+        return { success: false, error: 'Fehler beim Aktualisieren der Notizen' };
+    }
+}

@@ -46,11 +46,12 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const searchParams = useSearchParams();
     const router = useRouter();
     const carIdFromUrl = searchParams.get('carId');
+    const customerIdFromUrl = searchParams.get('customerId');
     const startDateFromUrl = searchParams.get('startDate');
     const endDateFromUrl = searchParams.get('endDate');
 
     const [selectedCarId, setSelectedCarId] = useState<number | string>(carIdFromUrl || '');
-    const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>('');
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | string>(customerIdFromUrl || '');
     const [carSearch, setCarSearch] = useState('');
     const [customerSearch, setCustomerSearch] = useState('');
     const [startDate, setStartDate] = useState(startDateFromUrl || '');
@@ -88,9 +89,19 @@ export default function ReservationForm({ cars, customers, locations, options }:
 
     useEffect(() => {
         if (carIdFromUrl) setSelectedCarId(carIdFromUrl);
+        if (customerIdFromUrl) setSelectedCustomerId(customerIdFromUrl);
         if (startDateFromUrl) setStartDate(startDateFromUrl);
         if (endDateFromUrl) setEndDate(endDateFromUrl);
-    }, [carIdFromUrl, startDateFromUrl, endDateFromUrl]);
+    }, [carIdFromUrl, customerIdFromUrl, startDateFromUrl, endDateFromUrl]);
+
+    useEffect(() => {
+        if (selectedCustomerId && localCustomers.length > 0) {
+            const cust = localCustomers.find(c => c.id === Number(selectedCustomerId));
+            if (cust) {
+                setCustomerSearch(`${cust.firstName} ${cust.lastName}`);
+            }
+        }
+    }, [selectedCustomerId, localCustomers]);
 
     useEffect(() => {
         setLocalCustomers(customers);
