@@ -28,7 +28,14 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Adresse</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">Illstraße 75a, 6800 Feldkirch, Österreich</p>
+                                        <a 
+                                            href="https://www.google.com/maps/search/?api=1&query=Illstraße+75a,+6800+Feldkirch,+Österreich" 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-gray-900 dark:text-white font-medium hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                        >
+                                            Illstraße 75a, 6800 Feldkirch, Österreich
+                                        </a>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -37,7 +44,12 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Telefon</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">0660 9996800</p>
+                                        <a 
+                                            href="tel:06609996800" 
+                                            className="text-gray-900 dark:text-white font-medium hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                        >
+                                            0660 9996800
+                                        </a>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -46,7 +58,12 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">E-Mail</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">info@rent-ex.at</p>
+                                        <a 
+                                            href="mailto:info@rent-ex.at" 
+                                            className="text-gray-900 dark:text-white font-medium hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                        >
+                                            info@rent-ex.at
+                                        </a>
                                     </div>
                                 </div>
                             </div>
