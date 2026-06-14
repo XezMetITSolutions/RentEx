@@ -150,7 +150,7 @@ export default function ReservationsPanel({ initialRentals, initialView }: Reser
 
             {view === 'calendar' ? (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm p-6">
-                    <ReservationCalendar />
+                    <ReservationCalendar rentals={initialRentals} />
                 </div>
             ) : (
                 <>

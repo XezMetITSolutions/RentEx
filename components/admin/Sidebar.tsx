@@ -98,9 +98,9 @@ interface SidebarProps {
 const rolePermissions: Record<string, string[]> = {
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 'Standorte', 
+        'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 
         'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
-        'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In', 
+        'Berichte', 'Benachrichtigungen', 'KM Transfer', 
         'Strafzettel', 'Mitarbeiter', 'Preisanalyse'
     ],
     'MITARBEITER': [

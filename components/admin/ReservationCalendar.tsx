@@ -4,7 +4,8 @@ import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const locales = {
     'de': de,
@@ -24,39 +25,36 @@ interface CalendarEvent {
     start: Date;
     end: Date;
     resource?: {
-        carId: number;
-        customerId: number;
         status: string;
     };
 }
 
-// Mock events - In production, fetch from API
-const mockEvents: CalendarEvent[] = [
-    {
-        id: 1,
-        title: 'BMW 320i - Max Müller',
-        start: new Date(2026, 0, 18),
-        end: new Date(2026, 0, 25),
-        resource: { carId: 1, customerId: 1, status: 'Active' }
-    },
-    {
-        id: 2,
-        title: 'Mercedes C200 - Anna Schmidt',
-        start: new Date(2026, 0, 22),
-        end: new Date(2026, 0, 25),
-        resource: { carId: 2, customerId: 2, status: 'Pending' }
-    },
-    {
-        id: 3,
-        title: 'Renault Clio - Thomas Weber',
-        start: new Date(2026, 0, 10),
-        end: new Date(2026, 0, 15),
-        resource: { carId: 3, customerId: 3, status: 'Completed' }
-    },
-];
+interface ReservationCalendarRental {
+    id: number;
+    startDate: string | Date;
+    endDate: string | Date;
+    status: string;
+    car: { brand: string; model: string };
+    customer: { firstName: string; lastName: string };
+}
 
-export default function ReservationCalendar() {
-    const [events] = useState<CalendarEvent[]>(mockEvents);
+interface ReservationCalendarProps {
+    rentals: ReservationCalendarRental[];
+}
+
+export default function ReservationCalendar({ rentals }: ReservationCalendarProps) {
+    const router = useRouter();
+    const events = useMemo<CalendarEvent[]>(
+        () =>
+            rentals.map((r) => ({
+                id: r.id,
+                title: `${r.car.brand} ${r.car.model} – ${r.customer.firstName} ${r.customer.lastName}`,
+                start: new Date(r.startDate),
+                end: new Date(r.endDate),
+                resource: { status: r.status },
+            })),
+        [rentals]
+    );
     const [view, setView] = useState<'month' | 'week' | 'day'>('month');
 
     const eventStyleGetter = (event: CalendarEvent) => {
@@ -68,6 +66,8 @@ export default function ReservationCalendar() {
             backgroundColor = '#F59E0B';
         } else if (event.resource?.status === 'Active') {
             backgroundColor = '#10B981';
+        } else if (event.resource?.status === 'Cancelled') {
+            backgroundColor = '#EF4444';
         }
 
         return {
@@ -122,6 +122,7 @@ export default function ReservationCalendar() {
                     view={view}
                     onView={(newView) => setView(newView as 'month' | 'week' | 'day')}
                     eventPropGetter={eventStyleGetter}
+                    onSelectEvent={(event) => router.push(`/admin/reservations/${event.id}`)}
                     culture="de"
                     messages={{
                         next: 'Weiter',
@@ -153,6 +154,10 @@ export default function ReservationCalendar() {
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-gray-500"></div>
                     <span className="text-gray-600">Abgeschlossen</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-red-500"></div>
+                    <span className="text-gray-600">Storniert</span>
                 </div>
             </div>
 

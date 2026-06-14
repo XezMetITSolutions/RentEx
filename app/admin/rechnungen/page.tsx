@@ -34,17 +34,41 @@ async function getData() {
     }
 }
 
-export default async function RechnungenPage() {
+export default async function RechnungenPage(props: {
+    searchParams?: Promise<{ error?: string; message?: string }>;
+}) {
+    const searchParams = await props.searchParams;
+    const error = searchParams?.error;
+    const errorMessage = searchParams?.message;
+
     const { rentalsWithoutInvoice, invoices } = await getData();
     const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.total || 0), 0) || 0;
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-8 pb-24 px-4 sm:px-6">
+            {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 rounded-xl text-red-800 dark:text-red-300 flex items-start gap-3 text-sm">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+                    <div>
+                        <h4 className="font-semibold">Fehler beim Erstellen der Rechnung</h4>
+                        <p className="mt-1 opacity-90">
+                            {error === 'sevdesk_failed'
+                                ? `SevDesk-Verbindung fehlgeschlagen: ${errorMessage || 'Unbekannter Fehler'}`
+                                : error === 'notfound'
+                                ? 'Mietvertrag nicht gefunden.'
+                                : error === 'duplicate'
+                                ? 'Es existiert bereits eine Rechnung für diesen Mietvertrag.'
+                                : 'Ungültige Anfrage.'}
+                        </p>
+                    </div>
+                </div>
+            )}
             
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Rechnungen</h1>
+
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Zentrale Verwaltung aller Belege und Registrierkassen-Transaktionen.
                     </p>
@@ -71,9 +95,10 @@ export default async function RechnungenPage() {
                     <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-2 tracking-tight">
                         €{totalRevenue.toLocaleString('de-AT', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-sm text-green-600 font-medium mt-1 flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> +12.5% ggü. Vormonat
+                    <p className="text-sm text-gray-500 mt-1">
+                        Durchschnittl. Belegwert: €{((invoices?.length || 0) > 0 ? (totalRevenue / invoices.length) : 0).toLocaleString('de-AT', { maximumFractionDigits: 2 })}
                     </p>
+
                 </div>
 
                 <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">

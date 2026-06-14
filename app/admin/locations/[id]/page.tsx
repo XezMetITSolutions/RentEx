@@ -46,10 +46,25 @@ async function getLocation(id: string) {
     return location;
 }
 
+import { getAdminSession } from '@/lib/adminAuth';
+import { redirect } from 'next/navigation';
+
 export default async function LocationDetailPage(props: {
     params: Promise<{ id: string }>;
 }) {
+    const session = await getAdminSession();
+    if (!session) {
+        redirect('/admin/login');
+        return null;
+    }
+
+    if (session.role !== 'ADMINISTRATOR') {
+        redirect('/admin');
+        return null;
+    }
+
     const params = await props.params;
+
     const location = await getLocation(params.id);
 
     if (!location) {

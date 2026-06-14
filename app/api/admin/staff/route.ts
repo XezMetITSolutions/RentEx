@@ -26,11 +26,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     const session = await getAdminSession();
     if (!session) return apiUnauthorized();
-    
-    // Only ADMINISTRATOR can create staff
-    if (session.role !== 'ADMINISTRATOR') {
-        return apiError("Nur Super-Admins können Mitarbeiter erstellen", 403);
-    }
 
     try {
         const body = await req.json();
@@ -40,7 +35,19 @@ export async function POST(req: NextRequest) {
             return apiValidation("Fehlende Pflichtfelder");
         }
 
+        // Role authorization check
+        if (session.role !== 'ADMINISTRATOR') {
+            if (session.role === 'FILIALLEITER') {
+                if (role !== 'MITARBEITER' && role !== 'FAHRER') {
+                    return apiError("Filialleiter können nur Mitarbeiter und Fahrer erstellen", 403);
+                }
+            } else {
+                return apiError("Nicht autorisiert", 403);
+            }
+        }
+
         const passwordHash = hashPassword(password);
+        const finalLocationId = session.role === 'FILIALLEITER' ? session.locationId : (locationId ? parseInt(locationId) : null);
 
         const staff = await prisma.staff.create({
             data: {
@@ -48,7 +55,7 @@ export async function POST(req: NextRequest) {
                 email,
                 role,
                 passwordHash,
-                locationId: locationId ? parseInt(locationId) : null,
+                locationId: finalLocationId,
             },
         });
 
