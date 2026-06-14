@@ -56,15 +56,33 @@ export async function getAdminSession() {
     return staff;
 }
 
-export async function setAdminSession(staffId: number) {
-    const c = await cookies();
-    c.set(ADMIN_COOKIE_NAME, sign(String(staffId)), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: AUTH_CONFIG.ADMIN_SESSION_TTL,
-        path: '/',
-    });
+const COOKIE_OPTS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+};
+
+/**
+ * Set the admin session cookie.
+ * - If `res` (NextResponse) is provided, sets cookie on the response object directly
+ *   (reliable in API Routes / Route Handlers).
+ * - Otherwise uses next/headers cookies() API (used in Server Actions).
+ */
+export async function setAdminSession(staffId: number, res?: import('next/server').NextResponse) {
+    const value = sign(String(staffId));
+    if (res) {
+        res.cookies.set(ADMIN_COOKIE_NAME, value, {
+            ...COOKIE_OPTS,
+            maxAge: AUTH_CONFIG.ADMIN_SESSION_TTL,
+        });
+    } else {
+        const c = await cookies();
+        c.set(ADMIN_COOKIE_NAME, value, {
+            ...COOKIE_OPTS,
+            maxAge: AUTH_CONFIG.ADMIN_SESSION_TTL,
+        });
+    }
 }
 
 export async function clearAdminSession() {
@@ -77,15 +95,20 @@ export async function clearAdminSession() {
 // 2FA pending session — set after password ✔ but before TOTP code ✔
 // ─────────────────────────────────────────────
 
-export async function setAdmin2FAPending(staffId: number) {
-    const c = await cookies();
-    c.set(ADMIN_2FA_PENDING_COOKIE, sign(String(staffId)), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: ADMIN_2FA_PENDING_TTL,
-        path: '/',
-    });
+export async function setAdmin2FAPending(staffId: number, res?: import('next/server').NextResponse) {
+    const value = sign(String(staffId));
+    if (res) {
+        res.cookies.set(ADMIN_2FA_PENDING_COOKIE, value, {
+            ...COOKIE_OPTS,
+            maxAge: ADMIN_2FA_PENDING_TTL,
+        });
+    } else {
+        const c = await cookies();
+        c.set(ADMIN_2FA_PENDING_COOKIE, value, {
+            ...COOKIE_OPTS,
+            maxAge: ADMIN_2FA_PENDING_TTL,
+        });
+    }
 }
 
 export async function getAdmin2FAPendingStaffId(): Promise<number | null> {

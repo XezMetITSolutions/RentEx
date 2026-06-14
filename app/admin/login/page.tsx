@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Key, Mail, AlertCircle, Loader2 } from "lucide-react";
-import { adminLogin } from "@/app/actions/auth";
 
 export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false);
@@ -13,17 +12,33 @@ export default function AdminLoginPage() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        
+
         const formData = new FormData(e.currentTarget);
-        const result = await adminLogin(formData);
-        if (result?.error) {
-            setError(result.error);
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+        try {
+            const res = await fetch("/api/admin/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                setError(data.error || "Anmeldung fehlgeschlagen.");
+                setLoading(false);
+                return;
+            }
+
+            // Hard navigation ensures cookies are sent with the next request
+            window.location.href = data.redirect || "/admin";
+        } catch {
+            setError("Verbindungsfehler. Bitte versuchen Sie es erneut.");
             setLoading(false);
         }
-        // If login is successful, redirect is handled by the server action
-        // No catch block needed here as Next.js handles redirects via throw
     }
-
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-[#0a0a0a]">
