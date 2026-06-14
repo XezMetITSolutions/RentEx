@@ -16,10 +16,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RentEx - Autovermietung Verwaltungssystem",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://rent-ex.vercel.app"),
+  title: {
+    default: "RentEx - Autovermietung Verwaltungssystem",
+    template: "%s | RentEx"
+  },
   description: "Professionelles Verwaltungssystem für Autovermietungen",
   icons: {
     icon: "/assets/logo.png",
+  },
+  openGraph: {
+    title: "RentEx - Autovermietung Verwaltungssystem",
+    description: "Professionelles Verwaltungssystem für Autovermietungen",
+    url: "/",
+    siteName: "RentEx",
+    locale: "de_AT",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RentEx - Autovermietung Verwaltungssystem",
+    description: "Professionelles Verwaltungssystem für Autovermietungen",
+  },
+  alternates: {
+    canonical: "/",
   },
 };
 

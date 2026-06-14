@@ -1,6 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { CheckCircle2 } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Über uns",
+  description: "Erfahren Sie mehr über RentEx GmbH, Ihre vertrauenswürdige Autovermietung in Feldkirch. Vision, Qualität und exzellenter Service.",
+};
 
 export default function AboutPage() {
     return (

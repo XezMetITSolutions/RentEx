@@ -1,5 +1,11 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Allgemeine Geschäftsbedingungen (AGB)",
+  description: "Die allgemeinen Mietbedingungen und rechtlichen Grundlagen für Autovermietungen der RentEx GmbH.",
+};
 
 export default function TermsPage() {
     return (

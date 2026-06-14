@@ -1,5 +1,11 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "DSGVO Auskunft",
+  description: "Informationen und Anträge bezüglich der DSGVO-Datenschutzrechte für Kunden der RentEx GmbH.",
+};
 
 export default function DSGVOPage() {
     return (

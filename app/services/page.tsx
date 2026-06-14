@@ -1,6 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { Car, Plane, Clock, ShieldCheck, Briefcase, UserCheck } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Unsere Dienstleistungen",
+  description: "Von Kurzzeitmiete über Langzeitmiete bis hin zu Flughafentransfer und Firmenwagen-Lösungen. Entdecken Sie die RentEx Services.",
+};
 
 export default function ServicesPage() {
     const services = [

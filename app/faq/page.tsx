@@ -1,6 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { Plus, Minus } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Häufig gestellte Fragen (FAQ)",
+  description: "Antworten auf die wichtigsten Fragen zur Autovermietung bei RentEx: Kaution, Dokumente, Tankregelung und Auslandsfahrten.",
+};
 
 export default function FAQPage() {
     return (

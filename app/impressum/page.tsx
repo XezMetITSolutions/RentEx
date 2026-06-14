@@ -1,5 +1,11 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Impressum",
+  description: "Gesetzliche Anbieterkennzeichnung und rechtliche Informationen der RentEx GmbH in Feldkirch.",
+};
 
 export default function ImpressumPage() {
     return (

@@ -1,6 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Datenschutzerklärung",
+  description: "Informationen zum Schutz Ihrer persönlichen Daten bei der Nutzung der RentEx-Website und unserer Vermietungsdienste.",
+};
 
 export default function PrivacyPage() {
     return (

@@ -5,6 +5,12 @@ import Link from "next/link";
 import { Fuel, Gauge, Users, Car, Truck, ChevronRight } from "lucide-react";
 import prisma from "@/lib/prisma";
 import FleetSidebar from "@/components/fleet/FleetSidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Premium Fahrzeugflotte",
+  description: "Entdecken Sie unsere große Auswahl an erstklassigen Mietwagen. PKW, Kombis, Vans und Transporter in Feldkirch online mieten.",
+};
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
 

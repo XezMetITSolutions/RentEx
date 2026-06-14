@@ -1,6 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Kontaktieren Sie uns",
+  description: "Haben Sie Fragen oder möchten Sie ein Auto mieten? Kontaktieren Sie RentEx telefonisch, per E-Mail oder über unser Kontaktformular.",
+};
 
 export default function ContactPage() {
     return (

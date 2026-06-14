@@ -1,5 +1,11 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Cookie-Richtlinie",
+  description: "Erfahren Sie, wie und warum RentEx Cookies auf der Webseite nutzt, um Ihre Nutzererfahrung zu verbessern.",
+};
 
 export default function CookiesPage() {
     return (
