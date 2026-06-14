@@ -49,6 +49,8 @@ interface DashboardOverviewPanelProps {
     categoryData: any[];
     locationData: any[];
     currentDateStr: string;
+    todayEvents: any[];
+    maintenanceAlerts: any[];
 }
 
 const ICON_MAP: { [key: string]: React.ComponentType<any> } = {
@@ -66,6 +68,8 @@ export default function DashboardOverviewPanel({
     categoryData,
     locationData,
     currentDateStr,
+    todayEvents,
+    maintenanceAlerts,
 }: DashboardOverviewPanelProps) {
     const router = useRouter();
 
@@ -146,7 +150,7 @@ export default function DashboardOverviewPanel({
 
             <div className="space-y-8">
                 {/* Primary Operations View (Check-ins/Outs) */}
-                <TodayOverview />
+                <TodayOverview todayEvents={todayEvents} maintenanceAlerts={maintenanceAlerts} />
 
                 {/* Dashboard Charts (integrated beautifully) */}
                 <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">

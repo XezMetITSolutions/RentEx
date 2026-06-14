@@ -3,11 +3,34 @@ import { format, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
 import Link from 'next/link';
-import { getTodayEvents, getMaintenanceAlerts } from '@/app/actions/admin';
 
-export default async function TodayOverview() {
-    const todayEvents = await getTodayEvents();
-    const maintenanceAlerts = await getMaintenanceAlerts();
+interface TodayEvent {
+    id: number;
+    type: 'pickup' | 'return' | 'maintenance';
+    time: string;
+    car: string;
+    customer: string;
+    location?: string;
+    status: 'upcoming';
+}
+
+interface MaintenanceAlert {
+    id: number;
+    car: string;
+    plate: string;
+    type: 'oil' | 'tire' | 'inspection' | 'vignette';
+    dueDate: Date;
+    urgency: 'critical' | 'warning' | 'info';
+    lastService?: Date;
+    currentMileage?: number;
+}
+
+interface TodayOverviewProps {
+    todayEvents: TodayEvent[];
+    maintenanceAlerts: MaintenanceAlert[];
+}
+
+export default function TodayOverview({ todayEvents, maintenanceAlerts }: TodayOverviewProps) {
 
     const getEventIcon = (type: string) => {
         switch (type) {

@@ -4,6 +4,7 @@ import { de } from 'date-fns/locale';
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/adminAuth';
 import DashboardOverviewPanel from '@/components/admin/DashboardOverviewPanel';
+import { getTodayEvents, getMaintenanceAlerts } from '@/app/actions/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -229,12 +230,14 @@ export default async function AdminDashboard() {
     const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
     const locId = isRestricted ? staff?.locationId : undefined;
 
-    const [stats, recentRentals, revenueData, categoryData, locationData] = await Promise.all([
+    const [stats, recentRentals, revenueData, categoryData, locationData, todayEvents, maintenanceAlerts] = await Promise.all([
         getStats(locId),
         getRecentRentals(locId),
         getRevenueData(locId),
         getCategoryData(locId),
-        getLocationData(locId)
+        getLocationData(locId),
+        getTodayEvents(),
+        getMaintenanceAlerts()
     ]);
 
     const currentDateStr = format(new Date(), 'dd. MMMM yyyy', { locale: de });
@@ -248,6 +251,8 @@ export default async function AdminDashboard() {
             categoryData={categoryData}
             locationData={locationData}
             currentDateStr={currentDateStr}
+            todayEvents={todayEvents}
+            maintenanceAlerts={maintenanceAlerts}
         />
     );
 }

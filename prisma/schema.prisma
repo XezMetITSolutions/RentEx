@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,120 +8,88 @@ datasource db {
 }
 
 model Car {
-  id            Int           @id @default(autoincrement())
-  
-  // Basic Information
-  brand         String
-  model         String
-  plate         String        @unique
-  year          Int
-  color         String
-  
-  // Technical Specifications
-  fuelType      String        // Benzin, Diesel, Elektro, Hybrid, Plug-in Hybrid
-  transmission  String?       // Automatik, Manuell
-  category      String?       // Kleinwagen, Mittelklasse, SUV, Limousine, Kombi, Van, Sportwagen, Cabrio
-  doors         Int?          // Number of doors
-  seats         Int?          // Number of seats
-  engineSize    String?       // e.g., "2.0L", "1.6L"
-  horsePower    Int?          // PS
-  fuelConsumption String?     // L/100km or kWh/100km
-  co2Emission   String?       // g/km
-  
-  // Status & Identification
-  status        String        // Active, Maintenance, Rented, Reserved, Inactive
-  vin           String?       @unique // Vehicle Identification Number (17 chars)
-  chassisNumber String?
-  
-  // Pricing
-  dailyRate         Decimal
-  weeklyRate        Decimal?
-  monthlyRate       Decimal?
-  longTermRate      Decimal?
-  minDaysForLongTerm Int?
-  depositAmount     Decimal?
-  
-  // Promotional Pricing
-  promoPrice        Decimal?
-  promoStartDate    DateTime?
-  promoEndDate      DateTime?
-  
-  // Insurance & Documents
-  insuranceCompany  String?
+  id                    Int                 @id @default(autoincrement())
+  brand                 String
+  model                 String
+  plate                 String              @unique
+  year                  Int
+  color                 String
+  fuelType              String
+  transmission          String?
+  category              String?
+  doors                 Int?
+  seats                 Int?
+  engineSize            String?
+  horsePower            Int?
+  fuelConsumption       String?
+  co2Emission           String?
+  status                String
+  vin                   String?             @unique
+  chassisNumber         String?
+  dailyRate             Decimal
+  weeklyRate            Decimal?
+  monthlyRate           Decimal?
+  longTermRate          Decimal?
+  minDaysForLongTerm    Int?
+  depositAmount         Decimal?
+  promoPrice            Decimal?
+  promoStartDate        DateTime?
+  promoEndDate          DateTime?
+  insuranceCompany      String?
   insurancePolicyNumber String?
-  insuranceValidUntil DateTime?
-  registrationDate  DateTime?
-  nextInspection    DateTime?    // TÜV/HU
-  
-  // Mileage & Usage
-  currentMileage    Int?         // in km
-  purchaseMileage   Int?
-  maxMileagePerDay  Int?         // km limit per rental day
-  
-  // Content & Media
-  imageUrl          String?
-  images            String?      // JSON array of image URLs
-  description       String?
-  features          String?      // Comma separated: GPS, Klimaanlage, Sitzheizung, etc.
-  
-  // Equipment & Features (Boolean flags for common features)
-  hasAirConditioning Boolean @default(false)
-  hasGPS            Boolean @default(false)
-  hasHeatedSeats    Boolean @default(false)
-  hasParkingSensors Boolean @default(false)
-  hasBackupCamera   Boolean @default(false)
-  hasCruiseControl  Boolean @default(false)
-  hasBluetoothAudio Boolean @default(false)
-  hasUSBPorts       Boolean @default(false)
-  hasChildSeatAnchors Boolean @default(false)
-  hasSkiRack        Boolean @default(false)
-  hasTowHitch       Boolean @default(false)
-  
-  // Maintenance & Services
-  vignetteValidUntil DateTime?
-  vignetteType      String?      // Jahresvignette, 2-Monatsvignette, etc.
-  lastOilChange     DateTime?
-  nextOilChange     DateTime?
-  lastTireChange    DateTime?
-  tireType          String?      // Sommerreifen, Winterreifen, Allwetter
-  nextServiceDate   DateTime?
-  lastServiceDate   DateTime?
-  nextServiceKm     Int?
-  
-  // Location & Availability
-  locationId        Int?
-  currentLocation   Location?    @relation("CarLocation", fields: [locationId], references: [id])
-  homeLocationId    Int?
-  homeLocation      Location?    @relation("CarHomeLocation", fields: [homeLocationId], references: [id])
-  
-  // Financial
-  purchasePrice     Decimal?
-  purchaseDate      DateTime?
-  currentValue      Decimal?
-  
-  // Internal Management
-  internalNotes     String?
-  damageHistory     String?      // JSON or text log
-  checkInTemplate   String?      // Reference to a folder in Check-in/
-  isActive          Boolean @default(true)
-  
-  // GPS / Tracking
-  latitude          Float?
-  longitude         Float?
-
-  // Timestamps
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  rentals       Rental[]
-  maintenanceRecords MaintenanceRecord[]
-  damageRecords DamageRecord[]
-  tasks         Task[]
-  fahrtenbuchEntries FahrtenbuchEntry[]
-  options       Option[]
-  cartSessions  CartSession[]
-  strafzettels  StrafzettelRecord[]
+  insuranceValidUntil   DateTime?
+  registrationDate      DateTime?
+  nextInspection        DateTime?
+  currentMileage        Int?
+  purchaseMileage       Int?
+  maxMileagePerDay      Int?
+  imageUrl              String?
+  images                String?
+  description           String?
+  features              String?
+  hasAirConditioning    Boolean             @default(false)
+  hasGPS                Boolean             @default(false)
+  hasHeatedSeats        Boolean             @default(false)
+  hasParkingSensors     Boolean             @default(false)
+  hasBackupCamera       Boolean             @default(false)
+  hasCruiseControl      Boolean             @default(false)
+  hasBluetoothAudio     Boolean             @default(false)
+  hasUSBPorts           Boolean             @default(false)
+  hasChildSeatAnchors   Boolean             @default(false)
+  hasSkiRack            Boolean             @default(false)
+  hasTowHitch           Boolean             @default(false)
+  vignetteValidUntil    DateTime?
+  vignetteType          String?
+  lastOilChange         DateTime?
+  nextOilChange         DateTime?
+  lastTireChange        DateTime?
+  tireType              String?
+  nextServiceDate       DateTime?
+  lastServiceDate       DateTime?
+  locationId            Int?
+  homeLocationId        Int?
+  purchasePrice         Decimal?
+  purchaseDate          DateTime?
+  currentValue          Decimal?
+  internalNotes         String?
+  damageHistory         String?
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  latitude              Float?
+  longitude             Float?
+  checkInTemplate       String?
+  nextServiceKm         Int?
+  homeLocation          Location?           @relation("CarHomeLocation", fields: [homeLocationId], references: [id])
+  currentLocation       Location?           @relation("CarLocation", fields: [locationId], references: [id])
+  cartSessions          CartSession[]
+  damageRecords         DamageRecord[]
+  fahrtenbuchEntries    FahrtenbuchEntry[]
+  maintenanceRecords    MaintenanceRecord[]
+  options               Option[]
+  rentals               Rental[]
+  strafzettels          StrafzettelRecord[]
+  tasks                 Task[]
 
   @@index([status])
   @@index([locationId])
@@ -140,92 +105,72 @@ model CarCategory {
 }
 
 model Location {
-  id          Int      @id @default(autoincrement())
-  name        String
-  code        String?  @unique
-  address     String?
-  city        String?
-  country     String?  @default("Österreich")
-  phone       String?
-  email       String?
-  
-  // Coordinates
-  latitude    Float?
-  longitude   Float?
-  
-  // Operations
-  openingTime String?
-  closingTime String?
-  isOpenSundays Boolean @default(false)
-  
-  status      String   @default("active")
-  
-  cars        Car[]    @relation("CarLocation")
-  homeCars    Car[]    @relation("CarHomeLocation")
-  
-  pickups     Rental[] @relation("PickupLocation")
-  returns     Rental[] @relation("ReturnLocation")
-  staff       Staff[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  code          String?  @unique
+  address       String?
+  city          String?
+  country       String?  @default("Österreich")
+  phone         String?
+  email         String?
+  latitude      Float?
+  longitude     Float?
+  openingTime   String?
+  closingTime   String?
+  isOpenSundays Boolean  @default(false)
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  homeCars      Car[]    @relation("CarHomeLocation")
+  cars          Car[]    @relation("CarLocation")
+  pickups       Rental[] @relation("PickupLocation")
+  returns       Rental[] @relation("ReturnLocation")
+  staff         Staff[]
 }
 
 model DamageRecord {
-  id            Int      @id @default(autoincrement())
-  carId         Int
-  rentalId      Int?
-  
-  type          String   // Scratch, Dent, Broken Glass, Missing Part, etc.
-  description   String?
-  severity      String?  // Low, Medium, High
-  
-  photoUrl      String?
-  locationOnCar String?  // front-left, rear-bumper, roof, etc.
-  xPosition     Float?   // X coordinate on the visual blueprint (0-100%)
-  yPosition     Float?   // Y coordinate on the visual blueprint (0-100%)
-  
-  reportedDate  DateTime @default(now())
-  status        String   @default("open") // open, repaired, ignored
-  repairCost    Decimal?
-  
-  // Europäischer Unfallbericht (ÖAMTC)
-  accidentDate     DateTime?
-  accidentTime     String?
-  accidentPlace    String?
-  accidentCountry  String?   @default("Österreich")
-  injuries         Boolean?  @default(false)
-  otherPartyDriverName   String?
+  id                     Int       @id @default(autoincrement())
+  carId                  Int
+  rentalId               Int?
+  type                   String
+  description            String?
+  severity               String?
+  photoUrl               String?
+  locationOnCar          String?
+  xPosition              Float?
+  yPosition              Float?
+  reportedDate           DateTime  @default(now())
+  status                 String    @default("open")
+  repairCost             Decimal?
+  accidentCountry        String?   @default("Österreich")
+  accidentDate           DateTime?
+  accidentPlace          String?
+  accidentTime           String?
+  circumstances          String?
+  injuries               Boolean?  @default(false)
   otherPartyAddress      String?
+  otherPartyDamage       String?
+  otherPartyDriverName   String?
+  otherPartyInsurance    String?
   otherPartyPhone        String?
+  otherPartyPolicyNumber String?
   otherPartyRegistration String?
   otherPartyVehicle      String?
-  otherPartyInsurance    String?
-  otherPartyPolicyNumber String?
-  otherPartyDamage       String?
-  witnessName    String?
-  witnessAddress String?
-  witnessPhone   String?
-  circumstances  String?
-  sketchNotes    String?
-  reportedByCustomerId Int?
-  reportedByCustomer   Customer? @relation(fields: [reportedByCustomerId], references: [id])
-  
-  // New: Vehicle 1 Driver (if different from customer)
-  driverName       String?
-  driverAddress    String?
-  driverLicense    String?
-
-  // New: Vehicle Info
-  vin              String?
-
-  // New: Uploads (multi-photo handling)
-  photos           String?  // JSON array or comma separated
-  sketchUrl        String?
-  accidentReportUrl String?
-
-  car           Car      @relation(fields: [carId], references: [id])
-  rental        Rental?  @relation(fields: [rentalId], references: [id])
+  reportedByCustomerId   Int?
+  sketchNotes            String?
+  witnessAddress         String?
+  witnessName            String?
+  witnessPhone           String?
+  accidentReportUrl      String?
+  driverAddress          String?
+  driverLicense          String?
+  driverName             String?
+  photos                 String?
+  sketchUrl              String?
+  vin                    String?
+  car                    Car       @relation(fields: [carId], references: [id])
+  rental                 Rental?   @relation(fields: [rentalId], references: [id])
+  reportedByCustomer     Customer? @relation(fields: [reportedByCustomerId], references: [id])
 
   @@index([carId])
   @@index([rentalId])
@@ -234,62 +179,52 @@ model DamageRecord {
 
 /// Finanzamt: Fahrtenbuch pro Fahrzeug (Dienst-/Privatfahrten)
 model FahrtenbuchEntry {
-  id          Int       @id @default(autoincrement())
-  carId       Int
-  rentalId    Int?
-  datum       DateTime
-  startKm     Int
-  endKm       Int
-  zweck       String    // DIENSTFAHRT | PRIVATFAHRT
-  fahrtzweck  String?
-  createdAt   DateTime  @default(now())
-  car         Car       @relation(fields: [carId], references: [id])
-  rental      Rental?   @relation(fields: [rentalId], references: [id])
+  id         Int      @id @default(autoincrement())
+  carId      Int
+  rentalId   Int?
+  datum      DateTime
+  startKm    Int
+  endKm      Int
+  zweck      String
+  fahrtzweck String?
+  createdAt  DateTime @default(now())
+  car        Car      @relation(fields: [carId], references: [id])
+  rental     Rental?  @relation(fields: [rentalId], references: [id])
+
   @@index([carId, datum])
 }
 
 model DiscountCoupon {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
-  description String?
-  
-  discountType String   // PERCENTAGE, FIXED_AMOUNT
-  discountValue Decimal
-  
-  validFrom   DateTime?
-  validUntil  DateTime?
-  
+  id             Int       @id @default(autoincrement())
+  code           String    @unique
+  description    String?
+  discountType   String
+  discountValue  Decimal
+  validFrom      DateTime?
+  validUntil     DateTime?
   minOrderAmount Decimal?
-  usageLimit     Int?    // Max total usages
-  usedCount      Int     @default(0)
-  
-  isActive    Boolean   @default(true)
-  
-  // Personal / auto-generated coupons
-  customerId   Int?     // If set, coupon is for this customer only
-  isPersonal   Boolean  @default(false)
-  triggerType  String?  // BIRTHDAY | REFERRAL | MANUAL
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  usageLimit     Int?
+  usedCount      Int       @default(0)
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  customerId     Int?
+  isPersonal     Boolean   @default(false)
+  triggerType    String?
 }
 
 model Task {
-  id            Int      @id @default(autoincrement())
-  title         String
-  description   String?
-
-  priority      String   @default("medium") // low, medium, high, urgent
-  status        String   @default("todo")    // todo, in_progress, done
-
-  dueDate       DateTime?
-  assignedTo    String?  // Username or User ID string
-
-  relatedCarId  Int?
-  car           Car?     @relation(fields: [relatedCarId], references: [id])
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  priority     String    @default("medium")
+  status       String    @default("todo")
+  dueDate      DateTime?
+  assignedTo   String?
+  relatedCarId Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  car          Car?      @relation(fields: [relatedCarId], references: [id])
 
   @@index([status])
   @@index([assignedTo])
@@ -301,202 +236,151 @@ model OptionGroup {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
-  options     Option[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  options     Option[]
 }
 
 model Option {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   name        String
   description String?
-  price       Decimal 
-  type        String?  // 'package', 'insurance', 'extra', 'driver'
-  
-  // New: Car Category tagging for easier selection
-  carCategory String?  // e.g. 'Kleinwagen', 'SUV', 'Bus'
-  
-  // Pricing Rules
-  isPerDay    Boolean  @default(false)
-  maxPrice    Decimal? // Cap on total cost
-  maxDays     Int?     // Charge only for first X days
-  
-  // Constraints
-  isMandatory Boolean  @default(false)
-  maxQuantity Int      @default(1)
-  
-  status      String   @default("active")
+  price       Decimal
+  type        String?
+  isPerDay    Boolean        @default(false)
+  maxPrice    Decimal?
+  maxDays     Int?
+  isMandatory Boolean        @default(false)
+  maxQuantity Int            @default(1)
+  status      String         @default("active")
   imageUrl    String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  carCategory String?
   groupId     Int?
-  group       OptionGroup? @relation(fields: [groupId], references: [id])
   carId       Int?
-  car         Car?         @relation(fields: [carId], references: [id], onDelete: Cascade)
+  car         Car?           @relation(fields: [carId], references: [id], onDelete: Cascade)
+  group       OptionGroup?   @relation(fields: [groupId], references: [id])
   rentals     RentalOption[]
 }
 
-
 model Customer {
-  id            Int           @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  email         String        @unique
-  phone         String?
-  address       String?
-  city          String?
-  postalCode    String?
-  country       String?       @default("Österreich")
-  
-  // Identification
-  idType        String?       // Personalausweis, Reisepass, Führerschein
-  idNumber      String?
-  idPhotoUrl    String?       // Photo of ID card
-  licenseNumber String?       // Führerscheinnummer
-  licenseIssueDate DateTime?
-  licenseExpiryDate DateTime?
-  licensePhotoUrl String?      // Photo of Driver License
-  
-  // Additional Info
-  dateOfBirth   DateTime?
-  nationality   String?
-  company       String?       // For business customers
-  taxId         String?       // For business customers
-  
-  // Customer Status
-  isBlacklisted Boolean @default(false)
-  blacklistReason String?
-  customerType  String?       // Private, Business, VIP
-  notes         String?
-  isActive      Boolean @default(true)
-
-  // Referral System
-  referralCode          String?   @unique
-  referredById          Int?      // ID of the customer who referred this customer
-
-  // ID Austria / GDPR (DSGVO)
-  idAustriaVerified     Boolean?  @default(false)
-  idAustriaVerifiedAt   DateTime?
+  id                    Int             @id @default(autoincrement())
+  firstName             String
+  lastName              String
+  email                 String          @unique
+  phone                 String?
+  address               String?
+  city                  String?
+  postalCode            String?
+  country               String?         @default("Österreich")
+  idType                String?
+  idNumber              String?
+  licenseNumber         String?
+  licenseIssueDate      DateTime?
+  licenseExpiryDate     DateTime?
+  dateOfBirth           DateTime?
+  nationality           String?
+  company               String?
+  taxId                 String?
+  isBlacklisted         Boolean         @default(false)
+  blacklistReason       String?
+  customerType          String?
+  notes                 String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  passwordHash          String?
+  agbAcceptedAt         DateTime?
+  agbAcceptedVersion    String?
   gdprConsentDate       DateTime?
   gdprConsentVersion    String?
   gdprDeleteRequestedAt DateTime?
-  isEuResident          Boolean?  @default(true)
-  nonEuApprovedAt       DateTime? // Admin approval for non-EU customers
+  idAustriaVerified     Boolean?        @default(false)
+  idAustriaVerifiedAt   DateTime?
+  isEuResident          Boolean?        @default(true)
+  nonEuApprovedAt       DateTime?
   nonEuApprovedBy       String?
-
-  // AGB Acceptance
-  agbAcceptedVersion    String?
-  agbAcceptedAt         DateTime?
-
-  // Auth (optional – for login/register)
-  passwordHash  String?       // scrypt hash for dashboard login
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  rentals       Rental[]
-  damageReports DamageRecord[]
-  kmBalance         KmBalance?
-  kmTransfersFrom   KmTransfer[]    @relation("KmTransferFrom")
-  kmTransfersTo     KmTransfer[]    @relation("KmTransferTo")
-  referralsSent     ReferralBonus[] @relation("ReferralFrom")
-  referralReceived  ReferralBonus[] @relation("ReferralTo")
-  pushTokens        PushToken[]
+  referralCode          String?         @unique
+  referredById          Int?
+  idPhotoUrl            String?
+  licensePhotoUrl       String?
+  isActive              Boolean         @default(true)
+  damageReports         DamageRecord[]
+  kmBalance             KmBalance?
+  kmTransfersFrom       KmTransfer[]    @relation("KmTransferFrom")
+  kmTransfersTo         KmTransfer[]    @relation("KmTransferTo")
+  pushTokens            PushToken[]
+  referralReceived      ReferralBonus[] @relation("ReferralTo")
+  referralsSent         ReferralBonus[] @relation("ReferralFrom")
+  rentals               Rental[]
 
   @@index([referredById])
   @@index([isBlacklisted])
 }
 
 model Rental {
-  id            Int           @id @default(autoincrement())
-  carId         Int
-  customerId    Int
-  
-  // Rental Period
-  startDate     DateTime
-  endDate       DateTime
-  actualReturnDate DateTime?
-  
-  // Pickup & Return
-  pickupLocationId  Int?
-  pickupLocation    Location?    @relation("PickupLocation", fields: [pickupLocationId], references: [id])
-  returnLocationId  Int?
-  returnLocation    Location?    @relation("ReturnLocation", fields: [returnLocationId], references: [id])
-  pickupMileage  Int?
-  returnMileage  Int?
-  
-  // Pricing
-  dailyRate     Decimal
-  totalDays     Int
-  totalAmount   Decimal
-  depositPaid   Decimal?
-  depositReturned Decimal?
-  
-  // Additional Charges
-  extraCharges  Decimal?      @default(0)
-  extraChargesNote String?
-  discountAmount Decimal?     @default(0)
-  discountReason String?
-  
-  // Insurance & Extras
-  insuranceType String?       // Vollkasko, Teilkasko, Basis
-  insuranceCost Decimal?
-  hasGPS        Boolean       @default(false)
-  hasChildSeat  Boolean       @default(false)
-  hasSkiRack    Boolean       @default(false)
-  extrasCost    Decimal?      @default(0)
-  
-  // Fuel Policy
-  fuelLevelPickup String?     // Full, 3/4, 1/2, 1/4, Empty
-  fuelLevelReturn String?
-  fuelCharge      Decimal?    @default(0)
-  
-  // Payment
-  paymentStatus String        // Pending, Partial, Paid, Refunded
-  paymentMethod String?       // Cash, Card, Transfer, Online
-  
-  // Status & Notes
-  status        String        // Active, Completed, Pending, Cancelled
-  contractNumber String?      @unique
-  driverName    String?       // Zusatzfahrer Name
-  driverLicense String?       // Zusatzfahrer Führerschein
-  notes         String?
-  damageReport  String?
-  
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  stripeSessionId String?      @unique
-  signature      String?
-  mileagePhoto   String?
-  fuelPhoto      String?
-  checkInAt      DateTime?
-
-  // Checkout photo/video evidence (JSON array of URLs)
-  checkoutPhotos      String?   // JSON: [front, rear, left, right, tacho, fuel]
+  id                  Int                 @id @default(autoincrement())
+  carId               Int
+  customerId          Int
+  startDate           DateTime
+  endDate             DateTime
+  actualReturnDate    DateTime?
+  pickupLocationId    Int?
+  returnLocationId    Int?
+  pickupMileage       Int?
+  returnMileage       Int?
+  dailyRate           Decimal
+  totalDays           Int
+  totalAmount         Decimal
+  depositPaid         Decimal?
+  depositReturned     Decimal?
+  extraCharges        Decimal?            @default(0)
+  extraChargesNote    String?
+  discountAmount      Decimal?            @default(0)
+  discountReason      String?
+  insuranceType       String?
+  insuranceCost       Decimal?
+  hasGPS              Boolean             @default(false)
+  hasChildSeat        Boolean             @default(false)
+  hasSkiRack          Boolean             @default(false)
+  extrasCost          Decimal?            @default(0)
+  fuelLevelPickup     String?
+  fuelLevelReturn     String?
+  fuelCharge          Decimal?            @default(0)
+  paymentStatus       String
+  paymentMethod       String?
+  status              String
+  contractNumber      String?             @unique
+  notes               String?
+  damageReport        String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  stripeSessionId     String?             @unique
+  checkInAt           DateTime?
+  signature           String?
+  fuelPhoto           String?
+  mileagePhoto        String?
   checkoutCompletedAt DateTime?
-  returnPhotos        String?   // JSON array of return photo URLs
-
-  // Overdue / Mahnung tracking
-  isOverdue       Boolean  @default(false)
-  mahnung1SentAt  DateTime?
-  mahnung2SentAt  DateTime?
-  mahnung3SentAt  DateTime?
-  
-  // KM Package / Included KM
-  includedKm    Int?          @default(0)
-  
-  car           Car           @relation(fields: [carId], references: [id])
-  customer      Customer      @relation(fields: [customerId], references: [id])
-  payments      Payment[]
-  damageRecords DamageRecord[]
-  invoices      Invoice[]
-  fahrtenbuchEntries FahrtenbuchEntry[]
-  strafzettels  StrafzettelRecord[]
-  mahnungen     MahnungRecord[]
-  options       RentalOption[]
+  checkoutPhotos      String?
+  isOverdue           Boolean             @default(false)
+  mahnung1SentAt      DateTime?
+  mahnung2SentAt      DateTime?
+  mahnung3SentAt      DateTime?
+  returnPhotos        String?
+  includedKm          Int?                @default(0)
+  driverLicense       String?
+  driverName          String?
+  damageRecords       DamageRecord[]
+  fahrtenbuchEntries  FahrtenbuchEntry[]
+  invoices            Invoice?
+  mahnungen           MahnungRecord[]
+  payments            Payment[]
+  car                 Car                 @relation(fields: [carId], references: [id])
+  customer            Customer            @relation(fields: [customerId], references: [id])
+  pickupLocation      Location?           @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  returnLocation      Location?           @relation("ReturnLocation", fields: [returnLocationId], references: [id])
+  options             RentalOption[]
+  strafzettels        StrafzettelRecord[]
 
   @@index([carId])
   @@index([customerId])
@@ -508,47 +392,34 @@ model Rental {
 
 /// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)
 model Invoice {
-  id                 Int      @id @default(autoincrement())
-  rentalId           Int      @unique
-  invoiceNumber      String   @unique // fortlaufende Belegnummer (z.B. RE-2026-00001)
-  issuedAt           DateTime @default(now())
-  
-  // Beträge (zum Belegzeitpunkt)
-  subtotal           Decimal  // Netto
-  taxRate            Decimal  @default(20)   // USt % (Österreich z.B. 20)
-  taxAmount          Decimal  // USt-Betrag
-  total              Decimal  // Brutto
-  
-  status             String   @default("ISSUED") // DRAFT | ISSUED
-  pdfPath            String?  // optional: gespeichertes PDF
-
-  // Country / VAT region for multi-country invoicing
-  customerCountry    String?  // AT | DE | CH | etc.
-  vatRegion          String?  // AT | DE | EU | NON-EU
-  
-  // Registrierkassa / BMF-Anbindung (später)
-  registrierkassaExportedAt DateTime?  // wann an RKSV/BMF übermittelt
-  registrierkassaBelegId    String?   // Beleg-ID von der Kasse
-  
-  createdAt          DateTime @default(now())
-  
-  rental             Rental   @relation(fields: [rentalId], references: [id])
+  id                        Int       @id @default(autoincrement())
+  rentalId                  Int       @unique
+  invoiceNumber             String    @unique
+  issuedAt                  DateTime  @default(now())
+  subtotal                  Decimal
+  taxRate                   Decimal   @default(20)
+  taxAmount                 Decimal
+  total                     Decimal
+  status                    String    @default("ISSUED")
+  pdfPath                   String?
+  registrierkassaExportedAt DateTime?
+  registrierkassaBelegId    String?
+  createdAt                 DateTime  @default(now())
+  customerCountry           String?
+  vatRegion                 String?
+  rental                    Rental    @relation(fields: [rentalId], references: [id])
 }
 
 model Payment {
-  id            Int           @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   rentalId      Int
-
   amount        Decimal
-  paymentMethod String        // Cash, Card, Transfer, Online
-  paymentDate   DateTime      @default(now())
-
+  paymentMethod String
+  paymentDate   DateTime @default(now())
   transactionId String?
   notes         String?
-
-  createdAt     DateTime      @default(now())
-
-  rental        Rental        @relation(fields: [rentalId], references: [id])
+  createdAt     DateTime @default(now())
+  rental        Rental   @relation(fields: [rentalId], references: [id])
 
   @@index([rentalId])
   @@index([paymentDate])
@@ -556,69 +427,55 @@ model Payment {
 }
 
 model MaintenanceRecord {
-  id            Int           @id @default(autoincrement())
-  carId         Int
-
-  maintenanceType String      // Oil Change, Tire Change, Inspection, Repair, Service
-  description   String
-  cost          Decimal?
-  mileage       Int?
-
-  performedBy   String?       // Workshop name or technician
-  performedDate DateTime
-  nextDueDate   DateTime?
-  nextDueMileage Int?
-
-  invoiceNumber String?
-  invoiceUrl    String?
-  notes         String?
-
-  createdAt     DateTime      @default(now())
-
-  car           Car           @relation(fields: [carId], references: [id])
+  id              Int       @id @default(autoincrement())
+  carId           Int
+  maintenanceType String
+  description     String
+  cost            Decimal?
+  mileage         Int?
+  performedBy     String?
+  performedDate   DateTime
+  nextDueDate     DateTime?
+  nextDueMileage  Int?
+  invoiceNumber   String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  invoiceUrl      String?
+  car             Car       @relation(fields: [carId], references: [id])
 
   @@index([carId])
   @@index([nextDueDate])
 }
 
 model Notification {
-  id            Int           @id @default(autoincrement())
-
-  type          String        // Email, SMS, Push, System
-  recipient     String        // Email or phone number
-  subject       String?
-  message       String
-
-  status        String        // Pending, Sent, Failed
-  sentAt        DateTime?
-  errorMessage  String?
-
-  // Related entities
-  relatedType   String?       // Rental, Car, Customer, Payment
-  relatedId     Int?
-
-  createdAt     DateTime      @default(now())
+  id           Int       @id @default(autoincrement())
+  type         String
+  recipient    String
+  subject      String?
+  message      String
+  status       String
+  sentAt       DateTime?
+  errorMessage String?
+  relatedType  String?
+  relatedId    Int?
+  createdAt    DateTime  @default(now())
 
   @@index([status, createdAt])
   @@index([relatedType, relatedId])
 }
 
 model ActivityLog {
-  id            Int           @id @default(autoincrement())
-
-  userId        String?       // User who performed the action
-  userName      String?
-  action        String        // Created, Updated, Deleted, Viewed, etc.
-  entityType    String        // Car, Rental, Customer, etc.
-  entityId      Int?
-
-  description   String        // Human-readable description
-  metadata      String?       // JSON with additional details
-
-  ipAddress     String?
-  userAgent     String?
-
-  createdAt     DateTime      @default(now())
+  id          Int      @id @default(autoincrement())
+  userId      String?
+  userName    String?
+  action      String
+  entityType  String
+  entityId    Int?
+  description String
+  metadata    String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
 
   @@index([entityType, entityId])
   @@index([userId])
@@ -626,135 +483,110 @@ model ActivityLog {
 }
 
 model SystemSettings {
-  id            Int           @id @default(autoincrement())
-  key           String        @unique
-  value         String
-  description   String?
-  category      String?       // General, Email, SMS, Payment, etc.
-  
-  updatedAt     DateTime      @updatedAt
-  updatedBy     String?
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String?
+  category    String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
 }
 
-
-// ─────────────────────────────────────────────
-// STAFF / ROLE MANAGEMENT
-// ─────────────────────────────────────────────
 model Staff {
-  id                   Int       @id @default(autoincrement())
+  id                   Int         @id @default(autoincrement())
   name                 String
-  email                String    @unique
-  role                 String    // SUPERADMIN | MANAGER | AGENT | DRIVER
+  email                String      @unique
+  role                 String
   locationId           Int?
-  location             Location? @relation(fields: [locationId], references: [id])
-  isActive             Boolean   @default(true)
+  isActive             Boolean     @default(true)
   passwordHash         String
   lastLoginAt          DateTime?
-  // 2FA (TOTP)
-  twoFactorEnabled     Boolean   @default(false)
-  twoFactorSecret      String?   // base32-encoded TOTP secret
-  twoFactorBackupCodes String?   // JSON array of hashed one-time backup codes
-  twoFactorVerifiedAt  DateTime? // when the user last completed 2FA setup
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  twoFactorBackupCodes String?
+  twoFactorEnabled     Boolean     @default(false)
+  twoFactorSecret      String?
+  twoFactorVerifiedAt  DateTime?
   pushTokens           PushToken[]
+  location             Location?   @relation(fields: [locationId], references: [id])
 }
 
-// ─────────────────────────────────────────────
-// PUSH NOTIFICATION TOKENS (Expo)
-// ─────────────────────────────────────────────
 model PushToken {
   id         Int       @id @default(autoincrement())
-  token      String    @unique          // ExponentPushToken[xxxxx]
-  platform   String                     // ios | android | web
+  token      String    @unique
+  platform   String
   customerId Int?
   staffId    Int?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  staff      Staff?    @relation(fields: [staffId], references: [id], onDelete: Cascade)
   createdAt  DateTime  @default(now())
   lastSeenAt DateTime  @updatedAt
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  staff      Staff?    @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
   @@index([staffId])
 }
 
-// ─────────────────────────────────────────────
-// CART SESSION (15-min lock)
-// ─────────────────────────────────────────────
 model CartSession {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   carId      Int
-  sessionKey String   @unique  // browser fingerprint / cookie
+  sessionKey String    @unique
   expiresAt  DateTime
   startDate  DateTime?
   endDate    DateTime?
-  options    String?  // JSON array of selected option IDs
+  options    String?
   guestEmail String?
   customerId Int?
-  createdAt  DateTime @default(now())
-  car        Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  car        Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
 
   @@index([expiresAt])
   @@index([carId])
 }
 
-// ─────────────────────────────────────────────
-// KILOMETRE BALANCE & TRANSFER
-// ─────────────────────────────────────────────
 model KmBalance {
   id         Int      @id @default(autoincrement())
   customerId Int      @unique
-  balance    Int      @default(0)  // free km available
-  customer   Customer @relation(fields: [customerId], references: [id])
+  balance    Int      @default(0)
   updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id])
 }
 
 model KmTransfer {
   id        Int      @id @default(autoincrement())
   fromId    Int
   toId      Int
-  amount    Int      // km amount transferred
+  amount    Int
   note      String?
   createdAt DateTime @default(now())
   from      Customer @relation("KmTransferFrom", fields: [fromId], references: [id])
   to        Customer @relation("KmTransferTo", fields: [toId], references: [id])
 }
 
-// ─────────────────────────────────────────────
-// REFERRAL / TAVSIYE SISTEMI
-// ─────────────────────────────────────────────
 model ReferralBonus {
   id               Int      @id @default(autoincrement())
-  referrerId       Int      // Customer who referred
-  referredId       Int      // Customer who was referred
-  bonusType        String   // KM | DISCOUNT | CASH
+  referrerId       Int
+  referredId       Int
+  bonusType        String
   bonusValue       Decimal
-  status           String   @default("PENDING") // PENDING | EARNED | REDEEMED
-  referralRentalId Int?     // First rental that triggered the bonus
+  status           String   @default("PENDING")
+  referralRentalId Int?
   createdAt        DateTime @default(now())
-  referrer         Customer @relation("ReferralFrom", fields: [referrerId], references: [id])
   referred         Customer @relation("ReferralTo", fields: [referredId], references: [id])
+  referrer         Customer @relation("ReferralFrom", fields: [referrerId], references: [id])
 }
 
-// ─────────────────────────────────────────────
-// AGB VERSIONING
-// ─────────────────────────────────────────────
 model AgbVersion {
-  id          Int      @id @default(autoincrement())
-  version     String   @unique  // e.g. "2.0", "2.1"
+  id          Int       @id @default(autoincrement())
+  version     String    @unique
   content     String
-  publishedAt DateTime @default(now())
-  notifiedAt  DateTime?  // When customers were e-mailed
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  publishedAt DateTime  @default(now())
+  notifiedAt  DateTime?
+  isActive    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 }
 
-// ─────────────────────────────────────────────
-// STRAFZETTEL (Radar/Parking fines)
-// ─────────────────────────────────────────────
 model StrafzettelRecord {
-  id                    Int      @id @default(autoincrement())
+  id                    Int       @id @default(autoincrement())
   carId                 Int
   rentalId              Int?
   plate                 String
@@ -762,53 +594,47 @@ model StrafzettelRecord {
   issuedTime            String?
   incidentLocation      String?
   amount                Decimal?
-  authority             String?   // Behörde (Polizei, Gemeinde, etc.)
+  authority             String?
   referenceNumber       String?
-  status                String   @default("OPEN") // OPEN | FORWARDED | PAID | DISPUTED
+  status                String    @default("OPEN")
   forwardedToCustomerAt DateTime?
   paidAt                DateTime?
-  paidBy                String?   // CUSTOMER | COMPANY
+  paidBy                String?
   notes                 String?
   documentUrl           String?
-  createdAt             DateTime @default(now())
-  car                   Car      @relation(fields: [carId], references: [id])
-  rental                Rental?  @relation(fields: [rentalId], references: [id])
+  createdAt             DateTime  @default(now())
+  car                   Car       @relation(fields: [carId], references: [id])
+  rental                Rental?   @relation(fields: [rentalId], references: [id])
 
   @@index([carId])
   @@index([rentalId])
   @@index([status])
 }
 
-// ─────────────────────────────────────────────
-// AMTLICHE ANFRAGEN (Official authority requests)
-// ─────────────────────────────────────────────
 model AmtlicheAnfrage {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   carId        Int?
   rentalId     Int?
-  authority    String   // Polizei, Finanzamt, Innenministerium, etc.
+  authority    String
   requestDate  DateTime
   incidentDate DateTime?
   description  String
   responseNote String?
   respondedAt  DateTime?
-  status       String   @default("PENDING") // PENDING | RESPONDED | ARCHIVED
+  status       String    @default("PENDING")
   documentUrl  String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 }
 
-// ─────────────────────────────────────────────
-// MAHNUNG RECORDS (Payment reminders)
-// ─────────────────────────────────────────────
 model MahnungRecord {
-  id        Int      @id @default(autoincrement())
-  rentalId  Int
-  level     Int      // 1 = Erste Mahnung, 2 = Zweite, 3 = Letzte / Inkasso
-  sentAt    DateTime @default(now())
-  amount    Decimal
-  dueDate   DateTime
-  notes     String?
-  rental    Rental   @relation(fields: [rentalId], references: [id])
+  id       Int      @id @default(autoincrement())
+  rentalId Int
+  level    Int
+  sentAt   DateTime @default(now())
+  amount   Decimal
+  dueDate  DateTime
+  notes    String?
+  rental   Rental   @relation(fields: [rentalId], references: [id])
 
   @@index([rentalId])
 }
@@ -818,45 +644,40 @@ model RentalOption {
   rentalId  Int
   optionId  Int
   createdAt DateTime @default(now())
-  rental    Rental   @relation(fields: [rentalId], references: [id])
   option    Option   @relation(fields: [optionId], references: [id])
+  rental    Rental   @relation(fields: [rentalId], references: [id])
 
   @@index([rentalId])
   @@index([optionId])
 }
 
-// ─────────────────────────────────────────────
-// COMPETITOR PRICE MONITORING
-// ─────────────────────────────────────────────
 model CompetitorCompany {
-  id              Int                      @id @default(autoincrement())
-  name            String                   @unique
-  website         String?
-  logo            String?
-  notes           String?
-  isActive        Boolean                  @default(true)
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  website          String?
+  logo             String?
+  notes            String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   competitorPrices CompetitorPrice[]
 }
 
 model CompetitorPrice {
-  id                 Int                  @id @default(autoincrement())
-  competitorId       Int
-  brand              String
-  model              String
-  dailyRate          Decimal
-  weeklyRate         Decimal?
-  monthlyRate        Decimal?
-  notes              String?
-  recordedAt         DateTime             @default(now())
-  competitor         CompetitorCompany    @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  id           Int               @id @default(autoincrement())
+  dailyRate    Decimal
+  brand        String
+  competitorId Int
+  model        String
+  monthlyRate  Decimal?
+  notes        String?
+  recordedAt   DateTime          @default(now())
+  weeklyRate   Decimal?
+  competitor   CompetitorCompany @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
   @@unique([competitorId, brand, model, recordedAt])
 }
-// ─────────────────────────────────────────────
-// COUNTRIES (Global country list)
-// ─────────────────────────────────────────────
+
 model Country {
   id        Int     @id @default(autoincrement())
   iso       String  @db.Char(2)
