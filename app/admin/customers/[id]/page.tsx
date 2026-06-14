@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
-import CustomerForm from '@/components/admin/CustomerForm';
+import CustomerProfileView from '@/components/admin/CustomerProfileView';
 import CustomerActions from './CustomerActions';
 import CustomerNotes from '@/components/admin/CustomerNotes';
 import { notFound } from 'next/navigation';
@@ -13,7 +13,7 @@ import {
     AlertCircle, ChevronRight, Plus
 } from 'lucide-react';
 import Link from 'next/link';
-import { format, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { rentalStatusLabel } from '@/lib/statusLabels';
 
@@ -28,6 +28,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                 include: { car: true },
                 orderBy: { createdAt: 'desc' }
             },
+            kmBalance: true,
             _count: {
                 select: { rentals: true }
             }
@@ -125,6 +126,18 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             </div>
 
             {/* Warning Banners */}
+            {customer.isBlacklisted && (
+                <div className="bg-red-50 dark:bg-red-950/15 border-2 border-red-500/30 rounded-xl p-5 flex items-start gap-4 text-red-800 dark:text-red-400 animate-pulse">
+                    <Ban className="w-6 h-6 shrink-0 mt-0.5 text-red-650 dark:text-red-500" />
+                    <div>
+                        <h4 className="font-black text-sm uppercase tracking-wider">Mitarbeiter-Warnung: Kunde gesperrt (Blacklisted)</h4>
+                        <p className="text-xs mt-1 font-medium">
+                            Dieser Kunde ist für alle Neureservierungen und Fahrzeugübergaben blockiert. Grund: <span className="font-bold">{customer.blacklistReason || 'Kein Grund angegeben.'}</span>
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {(isLicenseExpired || isLicenseMissing) && (
                 <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/20 rounded-xl p-4 flex items-start gap-3 text-amber-800 dark:text-amber-400">
                     <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-500" />
@@ -186,18 +199,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                         </div>
                     </div>
 
-                    {/* Customer Edit Form Section */}
-                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-                        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <User className="w-5 h-5 text-gray-400" />
-                                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Stammdaten</h2>
-                            </div>
-                        </div>
-                        <div className="p-6">
-                            <CustomerForm customer={serializedCustomer} countries={serializedCountries} />
-                        </div>
-                    </div>
+                    {/* Customer Info Dashboard */}
+                    <CustomerProfileView customer={serializedCustomer} countries={serializedCountries} />
 
                     {/* Rental History Section */}
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
