@@ -179,7 +179,7 @@ export async function getMaintenanceAlerts() {
     });
 }
 
-/** Tüm araçları "Rent-Ex Feldkirch" standortuna atar (locationId + homeLocationId). Plakalar değiştirilmez. */
+/** Weist alle Fahrzeuge dem Standort "Rent-Ex Feldkirch" zu (locationId + homeLocationId). Kennzeichen werden nicht geändert. */
 export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message: string; count?: number }> {
     const feldkirch = await prisma.location.findFirst({
         where: {
@@ -324,7 +324,7 @@ export async function createFahrtenbuchEntry(formData: FormData) {
             action: 'CREATE',
             entityType: 'FahrtenbuchEntry',
             entityId: entry.id,
-            description: `Seyir defteri girişi oluşturuldu: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
+            description: `Fahrtenbuch-Eintrag erstellt: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
             metadata: JSON.stringify({ carId, startKm, endKm, zweck, fahrtzweck })
         }
     });
@@ -388,7 +388,7 @@ export async function updateFahrtenbuchEntry(id: number, formData: FormData) {
             action: 'UPDATE',
             entityType: 'FahrtenbuchEntry',
             entityId: entry.id,
-            description: `Seyir defteri girişi güncellendi #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
+            description: `Fahrtenbuch-Eintrag aktualisiert #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${startKm} - ${endKm} km`,
             metadata: JSON.stringify({
                 before: { startKm: oldEntry.startKm, endKm: oldEntry.endKm, zweck: oldEntry.zweck, fahrtzweck: oldEntry.fahrtzweck },
                 after: { startKm, endKm, zweck, fahrtzweck }
@@ -430,7 +430,7 @@ export async function deleteFahrtenbuchEntry(id: number) {
             action: 'DELETE',
             entityType: 'FahrtenbuchEntry',
             entityId: id,
-            description: `Seyir defteri girişi silindi #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${entry.startKm} - ${entry.endKm} km`,
+            description: `Fahrtenbuch-Eintrag gelöscht #${id}: ${entry.car.brand} ${entry.car.model} (${entry.car.plate}), ${entry.startKm} - ${entry.endKm} km`,
             metadata: JSON.stringify(entry)
         }
     });

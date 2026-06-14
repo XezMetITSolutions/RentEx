@@ -34,21 +34,21 @@ interface CalendarEvent {
 const mockEvents: CalendarEvent[] = [
     {
         id: 1,
-        title: 'BMW 320i - Ahmet Yılmaz',
+        title: 'BMW 320i - Max Müller',
         start: new Date(2026, 0, 18),
         end: new Date(2026, 0, 25),
         resource: { carId: 1, customerId: 1, status: 'Active' }
     },
     {
         id: 2,
-        title: 'Mercedes C200 - Ayşe Demir',
+        title: 'Mercedes C200 - Anna Schmidt',
         start: new Date(2026, 0, 22),
         end: new Date(2026, 0, 25),
         resource: { carId: 2, customerId: 2, status: 'Pending' }
     },
     {
         id: 3,
-        title: 'Renault Clio - Mehmet Kaya',
+        title: 'Renault Clio - Thomas Weber',
         start: new Date(2026, 0, 10),
         end: new Date(2026, 0, 15),
         resource: { carId: 3, customerId: 3, status: 'Completed' }

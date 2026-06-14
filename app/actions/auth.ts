@@ -289,7 +289,7 @@ export async function register(formData: FormData) {
         redirect(`/register?error=${encodeURIComponent('Passwort mindestens 6 Zeichen.')}`);
     }
 
-    // Sahte / şüpheli isim kontrolü
+    // Falsche / verdächtige Namensprüfung
     const nameCheck = validateName(firstName, lastName);
     if (nameCheck.riskScore >= 60) {
         redirect(`/register?error=${encodeURIComponent(`Ungültiger Name: ${nameCheck.reasons.join(', ')}`)}`);

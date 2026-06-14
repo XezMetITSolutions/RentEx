@@ -52,7 +52,7 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
             const result = await updateSystemSetting(key, value);
             if (result.success) {
                 setSettings(prev => ({ ...prev, [key]: value }));
-                // Opsiyonel: Başarı mesajı göster
+                // Optional: Erfolgsmeldung anzeigen
             } else {
                 toast.error('Fehler beim Speichern');
             }
