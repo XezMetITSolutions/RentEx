@@ -10,7 +10,7 @@ import { startOfDay, endOfDay, differenceInDays, addDays } from 'date-fns';
 
 export async function getActivityLogs() {
     const logs = await prisma.activityLog.findMany({
-        take: 20,
+        take: 100,
         orderBy: { createdAt: 'desc' }
     });
 
@@ -21,7 +21,9 @@ export async function getActivityLogs() {
         entityType: log.entityType,
         description: log.description,
         createdAt: log.createdAt,
-        ipAddress: log.ipAddress ?? undefined
+        ipAddress: log.ipAddress ?? undefined,
+        metadata: log.metadata ?? undefined,
+        userAgent: log.userAgent ?? undefined
     }));
 }
 
