@@ -195,6 +195,28 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
 
                 </div>
             </div>
+
+            {/* Sticky Mobile Book Bar */}
+            <div className="lg:hidden fixed bottom-[72px] left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-md border-t border-white/10 px-6 py-4 flex items-center justify-between shadow-2xl safe-bottom transition-all duration-300">
+                <div>
+                    <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider mb-0.5">Tagespreis</span>
+                    <span className="text-xl font-bold text-white">
+                        {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
+                        <span className="text-xs text-gray-500 font-normal"> / Tag</span>
+                    </span>
+                </div>
+                <button
+                    onClick={() => {
+                        const widget = document.getElementById('booking-widget');
+                        if (widget) {
+                            widget.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 active:scale-95 transition-all text-xs uppercase tracking-wider"
+                >
+                    Jetzt Buchen
+                </button>
+            </div>
         </main>
     );
 }

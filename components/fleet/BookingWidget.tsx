@@ -158,6 +158,26 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                     )}
                 </div>
 
+                {/* Deposit & Mileage Info */}
+                <div className="grid grid-cols-2 gap-4 py-4 mb-6 border-y border-white/10 text-xs">
+                    <div>
+                        <span className="text-gray-500 block uppercase font-bold tracking-wider mb-1">Kaution</span>
+                        <span className="text-gray-300 font-bold text-sm">
+                            {car.depositAmount 
+                                ? new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.depositAmount))
+                                : "Keine Kaution"}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-gray-500 block uppercase font-bold tracking-wider mb-1">Kilometer</span>
+                        <span className="text-gray-300 font-bold text-sm">
+                            {car.maxMileagePerDay 
+                                ? `${car.maxMileagePerDay} km / Tag`
+                                : "Unbegrenzt"}
+                        </span>
+                    </div>
+                </div>
+
                 {/* Date Selection */}
                 <div className="space-y-4 mb-6">
                     <div className="bg-black/40 rounded-xl p-3 border border-white/5">
