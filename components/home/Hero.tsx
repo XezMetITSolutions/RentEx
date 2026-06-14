@@ -148,11 +148,11 @@ export default function Hero() {
                                     </div>
 
                                     {/* Dates */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Abholung</label>
                                             <div className="relative group">
-                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
                                                 <input
                                                     type="date"
                                                     value={pickupDate}
@@ -164,20 +164,20 @@ export default function Hero() {
                                                             setReturnDate(newVal);
                                                         }
                                                     }}
-                                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
+                                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-10 pr-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Rückgabe</label>
                                             <div className="relative group">
-                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
                                                 <input
                                                     type="date"
                                                     value={returnDate}
                                                     min={pickupDate || todayStr}
                                                     onChange={(e) => setReturnDate(e.target.value)}
-                                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
+                                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl py-4 pl-10 pr-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none font-medium dark:[color-scheme:dark]"
                                                 />
                                             </div>
                                         </div>
