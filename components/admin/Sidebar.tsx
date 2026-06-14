@@ -69,7 +69,6 @@ const menuGroups = [
         title: 'Marketing & Analyse',
         items: [
             { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
-            { name: 'Preisanalyse', icon: Tag, href: '/admin/pricing' },
             { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
             { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
         ]
