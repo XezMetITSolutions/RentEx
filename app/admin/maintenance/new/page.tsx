@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 async function getCars() {
     return await prisma.car.findMany({
         orderBy: { brand: 'asc' },
-        select: { id: true, brand: true, model: true, plate: true }
+        select: { id: true, brand: true, model: true, plate: true, currentMileage: true }
     });
 }
 

@@ -10,6 +10,7 @@ interface ImageUploadProps {
     onUploadSuccess?: (url: string) => void;
     uploadUrl?: string;
     accept?: string;
+    hideUrlInput?: boolean;
 }
 
 export default function ImageUpload({ 
@@ -18,7 +19,8 @@ export default function ImageUpload({
     label = 'Fahrzeugfoto', 
     onUploadSuccess,
     uploadUrl = '/api/admin/cars/upload',
-    accept = 'image/*'
+    accept = 'image/*',
+    hideUrlInput = false
 }: ImageUploadProps) {
     const [imageUrl, setImageUrl] = useState(defaultValue);
     const [isUploading, setIsUploading] = useState(false);
@@ -60,6 +62,7 @@ export default function ImageUpload({
 
     const removeImage = () => {
         setImageUrl('');
+        if (onUploadSuccess) onUploadSuccess('');
     };
 
     const isPdf = imageUrl?.toLowerCase().endsWith('.pdf');
@@ -120,21 +123,26 @@ export default function ImageUpload({
                 </div>
 
                 {/* Manual URL Input as fallback */}
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <ImageIcon className="w-4 h-4" />
+                {!hideUrlInput && (
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <ImageIcon className="w-4 h-4" />
+                            </div>
+                            <input
+                                type="text"
+                                name={name}
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                placeholder="Oder URL hier einfügen..."
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            />
                         </div>
-                        <input
-                            type="text"
-                            name={name}
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="Oder URL hier einfügen..."
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
-                        />
                     </div>
-                </div>
+                )}
+
+                {/* Hidden field when URL input is hidden to ensure form submits value */}
+                {hideUrlInput && <input type="hidden" name={name} value={imageUrl} />}
 
                 {error && (
                     <p className="text-xs text-red-500 font-medium">{error}</p>
