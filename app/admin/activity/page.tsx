@@ -1,7 +1,21 @@
 import ActivityLogPanel from '@/components/admin/ActivityLogPanel';
 import { getActivityLogs } from '@/app/actions/admin';
+import { getAdminSession } from '@/lib/adminAuth';
+import { redirect } from 'next/navigation';
 
 export default async function ActivityPage() {
+    const staff = await getAdminSession();
+
+    if (!staff) {
+        redirect('/admin/login');
+        return null;
+    }
+
+    if (staff.role !== 'ADMINISTRATOR') {
+        redirect('/admin');
+        return null;
+    }
+
     const logs = await getActivityLogs();
 
     return (

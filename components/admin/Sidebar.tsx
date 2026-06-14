@@ -101,7 +101,7 @@ const rolePermissions: Record<string, string[]> = {
         'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 'Standorte', 
         'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
         'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In', 
-        'Strafzettel', 'Mitarbeiter', 'Preisanalyse', 'Aktivitäten'
+        'Strafzettel', 'Mitarbeiter', 'Preisanalyse'
     ],
     'MITARBEITER': [
         'Dashboard', 'Fahrzeugflotte', 'Aufgaben', 
