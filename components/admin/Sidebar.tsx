@@ -36,7 +36,6 @@ const menuGroups = [
         title: 'Hauptmenü',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-            { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
             { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
             { name: 'Aktivitäten', icon: FileText, href: '/admin/activity' },
         ]
