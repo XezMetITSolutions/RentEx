@@ -6,6 +6,13 @@
       "sourceType": "github",
       "skillPath": "SKILL.md",
       "computedHash": "05dda32d4ed08648749be9aaf134e135f58e5610864c1f19491c3cdb07523f2e"
+    },
+    "ui-ux-pro-max-skill": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "skill.json",
+      "computedHash": "0f666fca6e6aef71a2a5efcde2719a86d2673238fc6f272a8c3d827f8d666def"
     }
   }
 }
+

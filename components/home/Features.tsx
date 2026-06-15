@@ -56,82 +56,82 @@ const categories = [
 
 export default function Features() {
     return (
-        <section className="py-24 bg-gray-50 dark:bg-black/50 relative overflow-hidden">
+        <section className="py-24 bg-gray-50 dark:bg-black relative overflow-hidden transition-colors duration-500">
             {/* Background decoration */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-500/5 rounded-full blur-[120px]" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[120px]" />
+                <div className="absolute top-0 left-1/4 w-[450px] h-[450px] bg-red-500/5 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 right-1/4 w-[450px] h-[450px] bg-orange-500/5 rounded-full blur-[120px]" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Section Header */}
-                <div className="text-center mb-16">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-semibold tracking-wider uppercase mb-4">
+                <div className="text-center mb-20">
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs sm:text-sm font-semibold tracking-wider uppercase mb-4">
                         Unsere Fahrzeugklassen
                     </span>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
                         Das Richtige für jeden Bedarf
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
-                        Ob Transporter, Alltagsfahrzeug oder Business Class – wir haben die perfekte Lösung für Sie.
+                    <p className="text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
+                        Ob Transporter, Alltagsfahrzeug oder Business Class – wir haben die perfekte Lösung für Ihre Mobilität.
                     </p>
                 </div>
 
                 {/* Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {categories.map((cat, index) => (
                         <div
                             key={index}
-                            className={`group relative rounded-2xl overflow-hidden bg-gradient-to-br ${cat.gradient} border border-white/10 shadow-2xl ${cat.glowColor} hover:shadow-2xl transition-all duration-500 hover:-translate-y-2`}
+                            className={`group relative rounded-[2rem] overflow-hidden bg-gradient-to-br ${cat.gradient} border border-white/10 dark:border-white/5 shadow-2xl ${cat.glowColor} hover:shadow-2xl transition-all duration-500 hover:-translate-y-2`}
                         >
                             {/* Top gradient accent line */}
                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${cat.accent}`} />
 
                             {/* Noise texture overlay */}
-                            <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
+                            <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
 
                             {/* Glow blob */}
-                            <div className={`absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br ${cat.accent} rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-700`} />
+                            <div className={`absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-br ${cat.accent} rounded-full blur-3xl opacity-0 group-hover:opacity-15 transition-opacity duration-700`} />
 
-                            <div className="relative p-7 sm:p-8 flex flex-col h-full">
+                            <div className="relative p-8 sm:p-10 flex flex-col h-full z-10">
                                 {/* Icon + badge row */}
-                                <div className="flex items-center justify-between mb-6">
-                                    <div className={`w-14 h-14 rounded-xl ${cat.iconBg} border flex items-center justify-center`}>
-                                        <cat.icon className={`w-7 h-7 ${cat.iconColor}`} />
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className={`w-16 h-16 rounded-2xl ${cat.iconBg} border flex items-center justify-center`}>
+                                        <cat.icon className={`w-8 h-8 ${cat.iconColor}`} />
                                     </div>
-                                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${cat.badgeColor} tracking-wide`}>
+                                    <span className={`text-xs font-bold px-4 py-1.5 rounded-full ${cat.badgeColor} tracking-wide`}>
                                         {cat.subtitle}
                                     </span>
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="text-2xl font-bold text-white mb-3">
+                                <h3 className="text-2xl font-extrabold text-white mb-4">
                                     {cat.title}
                                 </h3>
 
                                 {/* Description */}
-                                <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                                <p className="text-zinc-400 text-sm leading-relaxed mb-8 font-medium">
                                     {cat.description}
                                 </p>
 
                                 {/* Feature bullets */}
-                                <ul className="space-y-2 mb-8">
+                                <ul className="space-y-3.5 mb-10">
                                     {cat.features.map((f, i) => (
-                                        <li key={i} className="flex items-center gap-2.5 text-sm text-gray-300">
-                                            <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${cat.accent} flex-shrink-0`} />
+                                        <li key={i} className="flex items-center gap-3 text-sm text-zinc-300 font-medium">
+                                            <span className={`w-2 h-2 rounded-full bg-gradient-to-r ${cat.accent} flex-shrink-0`} />
                                             {f}
                                         </li>
                                     ))}
                                 </ul>
 
                                 {/* CTA */}
-                                <div className="mt-auto">
+                                <div className="mt-auto pt-4 border-t border-white/5">
                                     <Link
                                         href={`/fleet?category=${cat.slug}`}
-                                        className={`group/link flex items-center gap-2 font-semibold text-sm ${cat.linkColor} transition-colors`}
+                                        className={`group/link flex items-center gap-2 font-bold text-sm ${cat.linkColor} transition-colors`}
                                     >
                                         Fahrzeuge ansehen
-                                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1.5 transition-transform" />
                                     </Link>
                                 </div>
                             </div>
