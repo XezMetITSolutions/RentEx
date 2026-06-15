@@ -19,15 +19,15 @@ export default async function Home() {
       <Navbar />
 
       <main className="pt-28 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Main 3-Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start my-12">
             
-            {/* Column 1: Left Side Search Box (3 cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl shadow-xl">
-                <h3 className="text-base font-black uppercase tracking-wider text-white mb-6 flex items-center gap-2">
+            {/* Column 1: Left Side Search Box (2 cols) */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-[#141414] border border-white/5 p-5 rounded-3xl shadow-xl">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white mb-5 flex items-center gap-2">
                   <span className="p-2 bg-red-600/10 rounded-lg text-red-500">
                     <Search className="w-4 h-4" />
                   </span>
@@ -99,22 +99,22 @@ export default async function Home() {
               </div>
 
               {/* Assistance contact box */}
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl shadow-xl flex items-start gap-4">
-                <div className="p-3 bg-red-600/10 rounded-2xl text-red-500">
-                  <Phone className="w-5 h-5" />
+              <div className="bg-[#141414] border border-white/5 p-5 rounded-3xl shadow-xl flex items-start gap-3">
+                <div className="p-2.5 bg-red-600/10 rounded-xl text-red-500 shrink-0">
+                  <Phone className="w-4 h-4" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-xs text-zinc-500 uppercase tracking-wider">Benötigen Sie Hilfe?</h4>
                   <p className="text-[11px] text-zinc-400 mt-1">Unser Support-Team ist 24/7 telefonisch erreichbar.</p>
-                  <a href="tel:+493012345678" className="block text-sm font-black text-white mt-2 hover:text-red-500 transition-colors">
-                    +49 30 123 456 78
+                  <a href="tel:+436609996800" className="block text-sm font-black text-white mt-2 hover:text-red-500 transition-colors">
+                    +43 660 9996800
                   </a>
                 </div>
               </div>
             </div>
 
-            {/* Column 2: Center Content (6 cols) */}
-            <div className="lg:col-span-6 space-y-8">
+            {/* Column 2: Center Content (8 cols) */}
+            <div className="lg:col-span-8 space-y-8">
               
               {/* Header Texts */}
               <div className="space-y-3">
@@ -132,53 +132,53 @@ export default async function Home() {
 
             </div>
 
-            {/* Column 3: Right Side Features list (3 cols) */}
-            <div className="lg:col-span-3 space-y-4">
+            {/* Column 3: Right Side Features list (2 cols) */}
+            <div className="lg:col-span-2 space-y-4">
               
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl hover:border-red-500/20 transition-all duration-300 group">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
-                    <ShieldCheck className="w-5 h-5" />
+              <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl hover:border-red-500/20 transition-all duration-300 group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-black text-xs text-white uppercase tracking-wider">Versicherte Fahrzeuge</h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Vollkasko- & Insassenschutz inklusive für sorgenfreies Reisen.</p>
+                    <h4 className="font-black text-[10px] text-white uppercase tracking-wider">Versicherte Fahrzeuge</h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Vollkasko- & Insassenschutz inklusive für sorgenfreies Reisen.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl hover:border-red-500/20 transition-all duration-300 group">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
-                    <Clock className="w-5 h-5" />
+              <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl hover:border-red-500/20 transition-all duration-300 group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 shrink-0">
+                    <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-black text-xs text-white uppercase tracking-wider">24/7 Live Support</h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Wir sind jederzeit für Sie da – Tag und Nacht bei allen Anliegen.</p>
+                    <h4 className="font-black text-[10px] text-white uppercase tracking-wider">24/7 Live Support</h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Wir sind jederzeit für Sie da – Tag und Nacht bei allen Anliegen.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl hover:border-red-500/20 transition-all duration-300 group">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
-                    <CheckCircle className="w-5 h-5" />
+              <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl hover:border-red-500/20 transition-all duration-300 group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 shrink-0">
+                    <CheckCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-black text-xs text-white uppercase tracking-wider">Schnelle Buchung</h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Mieten Sie Ihr Wunschfahrzeug unkompliziert in wenigen Klicks.</p>
+                    <h4 className="font-black text-[10px] text-white uppercase tracking-wider">Schnelle Buchung</h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Mieten Sie Ihr Wunschfahrzeug unkompliziert in wenigen Klicks.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#141414] border border-white/5 p-6 rounded-3xl hover:border-red-500/20 transition-all duration-300 group">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
-                    <Star className="w-5 h-5" />
+              <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl hover:border-red-500/20 transition-all duration-300 group">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-red-600/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 shrink-0">
+                    <Star className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-black text-xs text-white uppercase tracking-wider">Faire Preise</h4>
-                    <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Transparente Tarife ohne versteckte Kosten oder böse Überraschungen.</p>
+                    <h4 className="font-black text-[10px] text-white uppercase tracking-wider">Faire Preise</h4>
+                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Transparente Tarife ohne versteckte Kosten oder böse Überraschungen.</p>
                   </div>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default async function Home() {
           <div className="border-t border-white/5 pt-12 mt-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               <div className="space-y-1 bg-[#141414] p-6 rounded-2xl border border-white/5">
-                <span className="block text-2xl font-black text-white">500+</span>
+                <span className="block text-2xl font-black text-white">20+</span>
                 <span className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Fahrzeuge</span>
               </div>
               <div className="space-y-1 bg-[#141414] p-6 rounded-2xl border border-white/5">

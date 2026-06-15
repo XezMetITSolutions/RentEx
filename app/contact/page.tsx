@@ -37,7 +37,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Telefon</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">0660 9996800</p>
+                                        <p className="text-gray-900 dark:text-white font-medium">+43 660 9996800</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">

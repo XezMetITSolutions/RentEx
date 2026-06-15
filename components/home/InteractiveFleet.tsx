@@ -86,66 +86,66 @@ export default function InteractiveFleet({ initialCars }: InteractiveFleetProps)
 
       {/* Grid of Cars */}
       {displayedCars.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {displayedCars.map((car) => (
             <div
               key={car.id}
-              className="bg-[#1C1C1C] border border-white/5 rounded-3xl overflow-hidden group hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/5"
+              className="bg-[#1C1C1C] border border-white/5 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/5"
             >
               {/* Image Box */}
-              <div className="h-44 bg-black/40 flex items-center justify-center relative overflow-hidden p-6 border-b border-white/5">
+              <div className="h-32 bg-black/40 flex items-center justify-center relative overflow-hidden p-4 border-b border-white/5">
                 {car.imageUrl ? (
                   <Image
                     src={car.imageUrl}
                     alt={`${car.brand} ${car.model}`}
                     fill
-                    className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain p-3 group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <div className="text-zinc-650 text-xs font-mono">Kein Bild verfügbar</div>
                 )}
                 {/* Wishlist button */}
-                <button className="absolute top-4 right-4 p-2 rounded-full bg-black/50 border border-white/5 text-zinc-400 hover:text-red-500 transition-colors">
-                  <Heart className="w-4 h-4" />
+                <button className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 border border-white/5 text-zinc-400 hover:text-red-500 transition-colors">
+                  <Heart className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Specs Box */}
-              <div className="p-6">
-                <div className="mb-4">
-                  <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+              <div className="p-4">
+                <div className="mb-3">
+                  <span className="text-[9px] font-bold text-red-500 uppercase tracking-widest">
                     {car.category}
                   </span>
-                  <h3 className="text-lg font-black text-white uppercase mt-1 group-hover:text-red-500 transition-colors duration-300">
+                  <h3 className="text-sm font-black text-white uppercase mt-0.5 group-hover:text-red-500 transition-colors duration-300 leading-tight">
                     {car.brand} {car.model}
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 border-y border-white/5 py-4 mb-4 text-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <Fuel className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{car.fuelType}</span>
+                <div className="grid grid-cols-3 gap-1 border-y border-white/5 py-3 mb-3 text-center">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Fuel className="w-3 h-3 text-zinc-500" />
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.fuelType}</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1 border-l border-white/5">
-                    <Gauge className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{car.transmission}</span>
+                  <div className="flex flex-col items-center gap-0.5 border-l border-white/5">
+                    <Gauge className="w-3 h-3 text-zinc-500" />
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.transmission}</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1 border-l border-white/5">
-                    <Users className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{car.seats} Sitze</span>
+                  <div className="flex flex-col items-center gap-0.5 border-l border-white/5">
+                    <Users className="w-3 h-3 text-zinc-500" />
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.seats} Sitze</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-black/20 p-3.5 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-xl border border-white/5">
                   <div>
-                    <span className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Tagespreis</span>
-                    <span className="text-xl font-black text-white">
+                    <span className="block text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Tagespreis</span>
+                    <span className="text-base font-black text-white">
                       {new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(Number(car.dailyRate))}
                     </span>
                   </div>
                   <Link
                     href={`/fleet/${car.id}`}
-                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-300 active:scale-[0.97]"
+                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all duration-300 active:scale-[0.97] whitespace-nowrap"
                   >
                     Jetzt Buchen
                   </Link>
