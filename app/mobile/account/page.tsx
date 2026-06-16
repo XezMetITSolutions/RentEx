@@ -65,6 +65,7 @@ export default async function MobileAccount() {
                 <span className="text-[14px] font-medium text-[#E53935]">Abmelden</span>
               </div>
             </Link>
+          </div>
           </>
         )}
       </div>

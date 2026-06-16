@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MoreHorizontal, MapPin, Calendar, Clock, ChevronDown, Check, X, Info, User } from "lucide-react";
-import { checkMobileCarAvailability } from "../actions";
+import { checkMobileCarAvailability } from "../../actions";
 
 export default function MobileCheckoutClient({ car, customer, locations }: { car: any, customer: any, locations: any[] }) {
   const router = useRouter();
