@@ -80,6 +80,12 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
         <input type="hidden" name="totalAmount" value={totalAmount} />
         <input type="hidden" name="paymentMethod" value={method} />
 
+        {state?.error && (
+            <div className="mx-5 mt-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm">
+                {state.error}
+            </div>
+        )}
+
         <div className="px-5 mt-6 space-y-6">
           {/* Customer Type */}
           <div className="space-y-3">

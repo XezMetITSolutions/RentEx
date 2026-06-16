@@ -92,6 +92,12 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
 
     return (
         <form action={formAction} className="grid lg:grid-cols-3 gap-12">
+            
+            {state?.error && (
+                <div className="lg:col-span-3 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 font-medium">
+                    {state.error}
+                </div>
+            )}
 
             {/* Hidden Fields for Server Action */}
             <input type="hidden" name="carId" value={car.id} />
