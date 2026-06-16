@@ -167,7 +167,6 @@ export default function ProfileScreen() {
         icon="document-text-outline"
         label={t('profile.documents')}
         onPress={() => router.push('/profile/documents')}
-        value="Führerschein, Ausweis"
       />
 
       <Text style={[styles.sectionTitle, { color: colors.tabIconDefault }]}>EINSTELLUNGEN</Text>

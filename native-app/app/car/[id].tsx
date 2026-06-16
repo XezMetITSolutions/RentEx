@@ -99,7 +99,7 @@ export default function CarDetailScreen() {
             </View>
             <View style={styles.ratingBig}>
               <Ionicons name="star" size={16} color="#FFD700" />
-              <Text style={styles.ratingText}>4.9</Text>
+              <Text style={styles.ratingText}>{car.rating ? car.rating : 'Neu'}</Text>
             </View>
           </View>
 

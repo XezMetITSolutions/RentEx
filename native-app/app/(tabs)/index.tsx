@@ -45,8 +45,12 @@ export default function HomeScreen() {
   const [category, setCategory] = useState<string>('Alle');
   const [error, setError] = useState<string | null>(null);
 
-  const [startDate, setStartDate] = useState<string>('Sa., 22. Apr.');
-  const [endDate, setEndDate] = useState<string>('So., 23. Apr.');
+  const [startDate, setStartDate] = useState<string>(() => new Date().toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
+  const [endDate, setEndDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.';
+  });
   const [seats, setSeats] = useState<number>(1);
   const [isSearchModalVisible, setSearchModalVisible] = useState(false);
 
@@ -223,7 +227,16 @@ export default function HomeScreen() {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickChips}>
             <TouchableOpacity 
-               onPress={() => { setStartDate('Sa. 22'); setEndDate('So. 23'); }}
+               onPress={() => {
+                 const d = new Date();
+                 const diff = 6 - d.getDay(); // 6 is Saturday
+                 const nextSat = new Date(d);
+                 nextSat.setDate(d.getDate() + (diff >= 0 ? diff : 6));
+                 const nextSun = new Date(nextSat);
+                 nextSun.setDate(nextSat.getDate() + 1);
+                 setStartDate(nextSat.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
+                 setEndDate(nextSun.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
+               }}
                style={[styles.chip, { borderColor: colors.border }]}
             >
               <Text style={[styles.chipText, { color: colors.textMuted }]}>{t('home.weekend')}</Text>

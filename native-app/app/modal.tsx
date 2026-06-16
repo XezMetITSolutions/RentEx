@@ -7,35 +7,7 @@ import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: '1',
-    icon: 'checkmark-circle' as const,
-    color: '#22c55e',
-    title: 'Buchung bestätigt',
-    body: 'Ihre Buchung #1042 wurde bestätigt.',
-    time: 'vor 2 Std.',
-    unread: true,
-  },
-  {
-    id: '2',
-    icon: 'time' as const,
-    color: '#f59e0b',
-    title: 'Erinnerung: Abholung morgen',
-    body: 'Denken Sie an Ihren Führerschein.',
-    time: 'vor 5 Std.',
-    unread: true,
-  },
-  {
-    id: '3',
-    icon: 'pricetag' as const,
-    color: '#3b82f6',
-    title: 'Neues Angebot',
-    body: '-15% auf Premium-SUVs diese Woche.',
-    time: 'gestern',
-    unread: false,
-  },
-];
+const NOTIFICATIONS: any[] = [];
 
 export default function NotificationsModal() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -51,7 +23,7 @@ export default function NotificationsModal() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {MOCK_NOTIFICATIONS.map((n) => (
+        {NOTIFICATIONS.map((n) => (
           <TouchableOpacity
             key={n.id}
             style={[
@@ -76,7 +48,7 @@ export default function NotificationsModal() {
           </TouchableOpacity>
         ))}
 
-        {MOCK_NOTIFICATIONS.length === 0 && (
+        {NOTIFICATIONS.length === 0 && (
           <View style={styles.empty}>
             <Ionicons name="notifications-off-outline" size={48} color={colors.tabIconDefault} />
             <Text style={{ marginTop: 12, color: colors.tabIconDefault }}>

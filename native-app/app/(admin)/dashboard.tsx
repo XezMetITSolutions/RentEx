@@ -82,7 +82,7 @@ export default function AdminDashboardScreen() {
       <View style={styles.greetingBlock}>
         <Text style={[styles.greetingKicker, { color: colors.textFaint }]}>SCHICHT · {new Date().toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: 'short' })}</Text>
         <Text style={[styles.greetingName, { color: colors.text }]}>
-          {staff?.locationName || 'Station Wien Hbf.'}
+          {staff?.locationName || 'Zentrale'}
         </Text>
         <Text style={[styles.greetingSub, { color: colors.textMuted }]}>
           {data?.rentals.todayPickups || 0} Übergaben · {data?.rentals.todayReturns || 0} Rücknahmen heute
@@ -166,7 +166,7 @@ export default function AdminDashboardScreen() {
           € {Math.round(data?.revenue.month || 0).toLocaleString('de-AT')}
         </Text>
         <Text style={[styles.revenueDesc, { color: colors.background, opacity: 0.65 }]}>
-          Station Wien Hbf. · Aktueller Monat
+          {staff?.locationName || 'Zentrale'} · Aktueller Monat
         </Text>
       </View>
 
