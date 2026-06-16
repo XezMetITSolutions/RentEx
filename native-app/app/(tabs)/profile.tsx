@@ -133,7 +133,29 @@ export default function ProfileScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ padding: 20 }}
     >
-      <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
+      {!user ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100, backgroundColor: 'transparent' }}>
+          <Ionicons name="person-circle-outline" size={100} color={colors.tabIconDefault} />
+          <Text style={{ fontSize: 22, fontWeight: 'bold', marginTop: 20 }}>Willkommen bei RentEx</Text>
+          <Text style={{ fontSize: 14, color: colors.tabIconDefault, textAlign: 'center', marginTop: 10, marginBottom: 30 }}>
+            Bitte logge dich ein oder registriere dich, um deine Profilinformationen zu sehen und Fahrzeuge zu buchen.
+          </Text>
+          <TouchableOpacity
+            style={[styles.loginBtn, { backgroundColor: colors.tint, width: '100%', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 10 }]}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Einloggen</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[{ width: '100%', padding: 16, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: colors.tint }]}
+            onPress={() => router.push('/(auth)/register')}
+          >
+            <Text style={{ color: colors.tint, fontSize: 16, fontWeight: 'bold' }}>Registrieren</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
         <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
           <Text style={styles.avatarText}>
             {user ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() : '?'}
@@ -234,6 +256,7 @@ export default function ProfileScreen() {
         onPress={handleLogout}
         danger
       />
+      </>}
     </ScrollView>
   );
 }

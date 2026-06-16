@@ -21,7 +21,7 @@ import { useAuth } from '@/lib/auth';
 const { width } = Dimensions.get('window');
 
 export default function CarDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, startDate, endDate } = useLocalSearchParams<{ id: string, startDate?: string, endDate?: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -152,7 +152,10 @@ export default function CarDetailScreen() {
             if (!role) {
               router.push('/(auth)/login');
             } else if (role === 'customer') {
-              router.push(`/booking/new?carId=${car.id}`);
+              router.push({
+                pathname: '/booking/new',
+                params: { carId: car.id, startDate, endDate }
+              });
             } else {
               // Staff or unknown role
             }

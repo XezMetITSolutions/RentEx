@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 
 import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -19,7 +20,7 @@ import type { Car, Location } from '@/lib/types';
 import { addDays, daysBetween, formatCurrency, formatDate, toIsoDate } from '@/lib/format';
 
 export default function NewBookingScreen() {
-  const { carId } = useLocalSearchParams<{ carId: string }>();
+  const { carId, startDate: qStart, endDate: qEnd } = useLocalSearchParams<{ carId: string, startDate?: string, endDate?: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -33,9 +34,11 @@ export default function NewBookingScreen() {
   const [bookingId, setBookingId] = useState<number | null>(null);
   const [agbAccepted, setAgbAccepted] = useState(false);
 
+  const { user } = useAuth();
+  
   const today = useMemo(() => new Date(), []);
-  const [startDate, setStartDate] = useState<Date>(today);
-  const [endDate, setEndDate] = useState<Date>(addDays(today, 3));
+  const [startDate, setStartDate] = useState<Date>(qStart ? new Date(qStart) : today);
+  const [endDate, setEndDate] = useState<Date>(qEnd ? new Date(qEnd) : addDays(today, 3));
   const [pickupLocation, setPickupLocation] = useState('');
   const [returnLocation, setReturnLocation] = useState('');
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
@@ -97,6 +100,16 @@ export default function NewBookingScreen() {
         returnLocation: returnLocation || pickupLocation,
       });
       setBookingId(booking.id);
+      
+      try {
+        const checkout = await api.startCheckout(booking.id);
+        if (checkout && checkout.url) {
+          await WebBrowser.openBrowserAsync(checkout.url);
+        }
+      } catch (err) {
+        console.error("Checkout error:", err);
+      }
+
       setStep('SUCCESS');
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Buchung fehlgeschlagen.';
@@ -267,6 +280,17 @@ export default function NewBookingScreen() {
         {step === 'REVIEW' && (
           <View style={{ backgroundColor: 'transparent' }}>
             <Text style={styles.stepTitle}>Prüfen & Bestätigen</Text>
+            
+            <Text style={styles.sectionTitle}>Deine Daten</Text>
+            <View style={[styles.infoBox, { backgroundColor: colors.card, marginBottom: 20 }]}>
+              <Ionicons name="person-circle-outline" size={32} color={colors.tint} />
+              <View style={{ flex: 1, marginLeft: 10, backgroundColor: 'transparent' }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16, color: colors.text }}>{user?.firstName} {user?.lastName}</Text>
+                <Text style={{ color: colors.tabIconDefault, fontSize: 13, marginTop: 2 }}>{user?.email}</Text>
+                {user?.phone && <Text style={{ color: colors.tabIconDefault, fontSize: 13, marginTop: 1 }}>{user?.phone}</Text>}
+              </View>
+            </View>
+
             <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
               <View style={styles.summaryRow}>
                 <Text style={{ color: colors.tabIconDefault }}>Miete ({days} Tage)</Text>
@@ -346,7 +370,7 @@ export default function NewBookingScreen() {
               disabled={submitting || !agbAccepted}
               style={[styles.confirmBtn, { flex: 2, backgroundColor: colors.tint, opacity: (submitting || !agbAccepted) ? 0.5 : 1 }]}
             >
-              {submitting ? <ActivityIndicator color="#fff" /> : <><Text style={styles.confirmBtnText}>JETZT BUCHEN · {formatCurrency(total)}</Text><Ionicons name="flash" size={18} color="#fff" /></>}
+              {submitting ? <ActivityIndicator color="#fff" /> : <><Text style={styles.confirmBtnText}>KOSTENPFLICHTIG BUCHEN</Text></>}
             </TouchableOpacity>
           </View>
         )}

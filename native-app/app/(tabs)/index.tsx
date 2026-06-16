@@ -45,11 +45,11 @@ export default function HomeScreen() {
   const [category, setCategory] = useState<string>('Alle');
   const [error, setError] = useState<string | null>(null);
 
-  const [startDate, setStartDate] = useState<string>(() => new Date().toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
-  const [endDate, setEndDate] = useState<string>(() => {
+  const [startDate, setStartDate] = useState<Date>(() => new Date());
+  const [endDate, setEndDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.';
+    return d;
   });
   const [seats, setSeats] = useState<number>(1);
   const [isSearchModalVisible, setSearchModalVisible] = useState(false);
@@ -60,6 +60,8 @@ export default function HomeScreen() {
       const data = await api.listCars({
         category: category === 'Alle' ? undefined : category,
         search: search.trim() || undefined,
+        from: startDate.toISOString().slice(0, 10),
+        to: endDate.toISOString().slice(0, 10),
       });
       setCars(data);
     } catch (err) {
@@ -68,7 +70,7 @@ export default function HomeScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [category, search]);
+  }, [category, search, startDate, endDate]);
 
   useEffect(() => {
     load();
@@ -116,7 +118,7 @@ export default function HomeScreen() {
     <TouchableOpacity
       key={car.id}
       style={[styles.carCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => router.push(`/car/${car.id}`)}
+      onPress={() => router.push({ pathname: '/car/[id]', params: { id: car.id, startDate: startDate.toISOString(), endDate: endDate.toISOString() } })}
     >
       <View style={styles.carImageContainer}>
         {car.imageUrl ? (
@@ -200,7 +202,7 @@ export default function HomeScreen() {
               <Ionicons name="calendar-outline" size={18} color={colors.tint} />
               <View style={{ marginLeft: 10 }}>
                 <Text style={[styles.searchLabel, { color: colors.textFaint }]}>{t('home.period')}</Text>
-                <Text style={[styles.searchValue, { color: colors.text }]}>{startDate.split(',')[0]} – {endDate.split(',')[0]}</Text>
+                <Text style={[styles.searchValue, { color: colors.text }]}>{startDate.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' })} – {endDate.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' })}</Text>
               </View>
             </TouchableOpacity>
             
@@ -234,8 +236,8 @@ export default function HomeScreen() {
                  nextSat.setDate(d.getDate() + (diff >= 0 ? diff : 6));
                  const nextSun = new Date(nextSat);
                  nextSun.setDate(nextSat.getDate() + 1);
-                 setStartDate(nextSat.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
-                 setEndDate(nextSun.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) + '.');
+                 setStartDate(nextSat);
+                 setEndDate(nextSun);
                }}
                style={[styles.chip, { borderColor: colors.border }]}
             >
@@ -371,12 +373,12 @@ export default function HomeScreen() {
               <View style={styles.dateSelectionRow}>
                 <View style={[styles.dateBox, { backgroundColor: colorScheme === 'dark' ? '#222' : '#F2F2F2' }]}>
                   <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>ABHOLUNG</Text>
-                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{startDate}</Text>
+                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{startDate.toLocaleDateString('de-AT')}</Text>
                 </View>
                 <Ionicons name="arrow-forward" size={16} color={colors.textFaint} style={{ marginHorizontal: 10 }} />
                 <View style={[styles.dateBox, { backgroundColor: colorScheme === 'dark' ? '#222' : '#F2F2F2' }]}>
                   <Text style={[styles.dateBoxLabel, { color: colors.textFaint }]}>RÜCKGABE</Text>
-                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{endDate}</Text>
+                  <Text style={[styles.dateBoxValue, { color: colors.text }]}>{endDate.toLocaleDateString('de-AT')}</Text>
                 </View>
               </View>
 
