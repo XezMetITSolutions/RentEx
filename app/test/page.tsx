@@ -1,5 +1,5 @@
-import { createBooking } from "@/app/actions/booking";
 import prisma from "@/lib/prisma";
+import TestClient from "./TestClient";
 
 export default async function TestPage() {
     const car = await prisma.car.findFirst();
@@ -32,32 +32,12 @@ export default async function TestPage() {
                 <p className="text-sm mb-1">{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</p>
             </div>
 
-            <form action={async (formData) => {
-                "use server";
-                await createBooking(null, formData);
-            }}>
-                <input type="hidden" name="carId" value={car.id} />
-                <input type="hidden" name="startDate" value={startDate.toISOString()} />
-                <input type="hidden" name="endDate" value={endDate.toISOString()} />
-                
-                <input type="hidden" name="firstName" value="Test" />
-                <input type="hidden" name="lastName" value="User" />
-                <input type="hidden" name="email" value={randomEmail} />
-                <input type="hidden" name="phone" value="+43 123 456789" />
-                <input type="hidden" name="address" value="Musterstraße 1" />
-                <input type="hidden" name="city" value="Wien" />
-                <input type="hidden" name="postalCode" value="1010" />
-                <input type="hidden" name="country" value="Österreich" />
-                <input type="hidden" name="customerType" value="Private" />
-                <input type="hidden" name="paymentMethod" value="online" />
-                
-                {/* Randomize license number just in case */}
-                <input type="hidden" name="licenseNumber" value={`A${Math.floor(Math.random() * 10000000)}`} />
-
-                <button type="submit" className="bg-[#E53935] px-8 py-4 rounded-xl font-bold text-lg hover:bg-red-700 shadow-lg shadow-red-600/20 active:scale-95 transition-all">
-                    Stripe Testini Başlat
-                </button>
-            </form>
+            <TestClient 
+                car={car} 
+                startDate={startDate.toISOString()} 
+                endDate={endDate.toISOString()} 
+                randomEmail={randomEmail} 
+            />
         </div>
     );
 }
