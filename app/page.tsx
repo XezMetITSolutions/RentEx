@@ -1,52 +1,16 @@
 import Navbar from "@/components/home/Navbar";
+import { getFeaturedCars } from "@/app/actions";
 import { Calendar, Car, MapPin, Search, Phone, ShieldCheck, Clock, CheckCircle, Heart, Settings, Fuel, Users, Wind, ChevronDown, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function Home() {
+export default async function Home() {
+  const featuredCars = await getFeaturedCars();
+
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
-
-  const vehicles = [
-    {
-      name: "VW Golf Kombi",
-      transmission: "Automatik",
-      fuel: "Diesel",
-      seats: "5 Sitze",
-      ac: "Klimaanlage",
-      price: "32,50",
-      img: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"
-    },
-    {
-      name: "Mercedes Vito",
-      transmission: "Automatik",
-      fuel: "Diesel",
-      seats: "9 Sitze",
-      ac: "Klimaanlage",
-      price: "59,90",
-      img: "https://images.unsplash.com/photo-1605556278854-18cbb3a9925e?auto=format&fit=crop&w=800"
-    },
-    {
-      name: "Ford Transit",
-      transmission: "Manuell",
-      fuel: "Diesel",
-      seats: "3 Sitze",
-      ac: "Klimaanlage",
-      price: "65,00",
-      img: "https://images.unsplash.com/photo-1583267746897-b8448557b708?auto=format&fit=crop&w=800"
-    },
-    {
-      name: "BMW 3 Series",
-      transmission: "Automatik",
-      fuel: "Benzin",
-      seats: "5 Sitze",
-      ac: "Klimaanlage",
-      price: "45,00",
-      img: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=800"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-red-500/30 font-sans overflow-x-hidden">
@@ -183,30 +147,30 @@ export default function Home() {
 
             {/* Vehicle Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {vehicles.map((car, idx) => (
+              {featuredCars.map((car: any, idx: number) => (
                 <div key={idx} className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors group relative flex flex-col">
                   <button className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors z-10">
                     <Heart className="w-5 h-5" />
                   </button>
                   
                   <div className="relative h-32 w-full mb-4">
-                    <Image src={car.img} alt={car.name} fill className="object-cover rounded-xl" />
+                    <Image src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"} alt={`${car.brand} ${car.model}`} fill className="object-cover rounded-xl" />
                   </div>
                   
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-white text-base truncate">{car.name}</h4>
-                    <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-zinc-400">{car.transmission}</span>
+                    <h4 className="font-bold text-white text-base truncate">{car.brand} {car.model}</h4>
+                    <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-zinc-400">{car.transmission || "Automatik"}</span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] text-zinc-400 mb-6 flex-1">
-                    <div className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> {car.fuel}</div>
-                    <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {car.seats}</div>
-                    <div className="flex items-center gap-1.5 col-span-2"><Wind className="w-3.5 h-3.5" /> {car.ac}</div>
+                    <div className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> {car.fuelType || "Diesel"}</div>
+                    <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {car.seats || 5} Sitze</div>
+                    <div className="flex items-center gap-1.5 col-span-2"><Wind className="w-3.5 h-3.5" /> {car.hasAirConditioning ? "Klimaanlage" : "Keine Klima"}</div>
                   </div>
                   
                   <div className="flex items-center justify-between mt-auto">
                     <div>
-                      <span className="text-lg font-bold text-white">€{car.price}</span>
+                      <span className="text-lg font-bold text-white">€{Number(car.dailyRate).toFixed(2).replace('.', ',')}</span>
                       <span className="text-[10px] text-zinc-500"> / Tag</span>
                     </div>
                     <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
