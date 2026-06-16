@@ -104,7 +104,7 @@ export default function InteractiveFleet({ initialCars, categories }: Interactiv
 
       {/* Vehicle Grid */}
       {displayedCars.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-4 mt-4">
           {displayedCars.map((car) => (
             <div key={car.id} className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors group relative flex flex-col">
               <button className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors z-10">

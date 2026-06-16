@@ -23,10 +23,10 @@ export default async function Home() {
       <Navbar />
 
       <main className="pt-28 pb-16 max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-6 items-start mt-4">
+        <div className="flex flex-col xl:flex-row gap-6 items-start mt-4">
           
           {/* Left Sidebar (Fahrzeugsuche) */}
-          <aside className="w-full lg:w-[320px] shrink-0 space-y-4">
+          <aside className="w-full xl:w-[320px] shrink-0 space-y-4">
             <div className="bg-[#0f0f0f] border border-white/5 p-5 rounded-[1.5rem] shadow-xl">
               <h3 className="text-lg font-bold text-white mb-6">Fahrzeugsuche</h3>
 
@@ -138,7 +138,7 @@ export default async function Home() {
           </section>
 
           {/* Right Sidebar (Advantages) */}
-          <aside className="w-full lg:w-[280px] shrink-0 space-y-4">
+          <aside className="w-full xl:w-[280px] shrink-0 space-y-4">
             
             <div className="bg-[#0f0f0f] border border-white/5 p-5 rounded-2xl flex items-center gap-4 group hover:border-red-500/30 transition-colors">
               <div className="text-red-500">
@@ -185,7 +185,7 @@ export default async function Home() {
 
         {/* Bottom Trust Badges */}
         <div className="mt-16 bg-[#0f0f0f] border border-white/5 rounded-2xl p-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
             <div className="flex items-center gap-4 px-4">
               <Car className="w-8 h-8 text-red-500 shrink-0" />
               <div>
