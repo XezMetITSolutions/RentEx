@@ -236,7 +236,8 @@ export async function createBooking(prevState: any, formData: FormData) {
     });
 
     if (paymentMethod === 'online') {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.at';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://rent-ex.at');
+        let sessionUrl = null;
         try {
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card', 'sepa_debit', 'sofort', 'giropay', 'paypal', 'klarna'] as any,
@@ -267,11 +268,14 @@ export async function createBooking(prevState: any, formData: FormData) {
                 data: { stripeSessionId: session.id }
             });
 
-            if (session.url) {
-                redirect(session.url);
-            }
-        } catch (error) {
+            sessionUrl = session.url;
+        } catch (error: any) {
             console.error("Stripe Session Error:", error);
+            return { success: false, error: "Ödeme altyapısında bir hata oluştu. Lütfen daha sonra tekrar deneyin." };
+        }
+
+        if (sessionUrl) {
+            redirect(sessionUrl);
         }
     }
 
