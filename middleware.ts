@@ -114,9 +114,27 @@ export function middleware(request: NextRequest) {
         }
     }
 
+    // --- MOBILE REDIRECT ---
+    const userAgent = request.headers.get('user-agent') || '';
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
+    if (
+        isMobile && 
+        !pathname.startsWith('/mobile') && 
+        !pathname.startsWith('/api') &&
+        !pathname.startsWith('/admin') &&
+        !pathname.startsWith('/dashboard')
+    ) {
+        let targetPath = '/mobile';
+        if (pathname === '/') targetPath = '/mobile';
+        else if (pathname.startsWith('/fleet')) targetPath = `/mobile${pathname}`;
+        
+        return NextResponse.redirect(new URL(targetPath, request.url));
+    }
+
     return response;
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/admin/:path*', '/api/:path*'],
+    matcher: ['/((?!_next/static|_next/image|assets|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
