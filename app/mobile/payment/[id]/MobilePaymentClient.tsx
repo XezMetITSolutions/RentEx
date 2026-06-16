@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle2, Lock, Loader2, User, Building2 } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
@@ -9,6 +9,53 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
   const [method, setMethod] = useState<'arrival' | 'online'>('online');
   const [customerType, setCustomerType] = useState<'Private' | 'Business'>(customer?.customerType || 'Private');
   const [state, formAction, isPending] = useActionState(createBooking, null);
+
+  // Address Autofill Logic
+  const [addressQuery, setAddressQuery] = useState(customer?.address || '');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [postalCode, setPostalCode] = useState(customer?.postalCode || '');
+  const [city, setCity] = useState(customer?.city || '');
+  const suggestionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+              setShowSuggestions(false);
+          }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchSuggestions = async (query: string) => {
+      setAddressQuery(query);
+      if (query.length < 3) {
+          setSuggestions([]);
+          return;
+      }
+      try {
+          const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501`);
+          if (!res.ok) {
+              setSuggestions([]);
+              return;
+          }
+          const data = await res.json();
+          setSuggestions(data.features || []);
+          setShowSuggestions(true);
+      } catch (err) {
+          console.error(err);
+      }
+  };
+
+  const handleSelectSuggestion = (feature: any) => {
+      const { name, housenumber, postcode, city: cityName, street } = feature.properties;
+      const fullAddress = housenumber ? `${street || name} ${housenumber}` : (street || name);
+      setAddressQuery(fullAddress);
+      setPostalCode(postcode || '');
+      setCity(cityName || '');
+      setShowSuggestions(false);
+  };
 
   const start = new Date(searchParams.startDate);
   const end = new Date(searchParams.endDate);
@@ -90,18 +137,45 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
           {/* Address Data */}
           <div className="space-y-4">
             <h2 className="text-[16px] font-bold text-white">Adresse</h2>
-            <div>
+            <div className="relative" ref={suggestionRef}>
               <label className="text-[12px] font-medium text-[#A3A3A3] ml-1">Straße & Hausnummer</label>
-              <input required name="address" defaultValue={customer?.address || ''} type="text" className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" placeholder="Musterstraße 1" />
+              <input 
+                required 
+                name="address" 
+                value={addressQuery}
+                onChange={(e) => fetchSuggestions(e.target.value)}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                type="text" 
+                className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" 
+                placeholder="Musterstraße 1" 
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-2 bg-[#1C1C1C] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
+                      {suggestions.map((f, i) => (
+                          <button
+                              key={i}
+                              type="button"
+                              onClick={() => handleSelectSuggestion(f)}
+                              className="w-full text-left px-4 py-3 text-sm text-[#A3A3A3] hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 last:border-0"
+                          >
+                              <span className="font-medium text-white">{f.properties.name} {f.properties.housenumber}</span>
+                              <span className="block text-xs mt-0.5">
+                                  {f.properties.postcode} {f.properties.city}, {f.properties.country}
+                              </span>
+                          </button>
+                      ))}
+                  </div>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="text-[12px] font-medium text-[#A3A3A3] ml-1">PLZ</label>
-                <input required name="postalCode" defaultValue={customer?.postalCode || ''} type="text" className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" placeholder="1010" />
+                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" placeholder="1010" />
               </div>
               <div className="col-span-2">
                 <label className="text-[12px] font-medium text-[#A3A3A3] ml-1">Stadt</label>
-                <input required name="city" defaultValue={customer?.city || ''} type="text" className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" placeholder="Wien" />
+                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-white outline-none focus:border-[#E53935] mt-1" placeholder="Wien" />
               </div>
             </div>
           </div>
@@ -128,7 +202,7 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
         </div>
 
         {/* Sticky Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#141414] border-t border-white/10 z-30">
+        <div className="fixed bottom-16 left-0 right-0 max-w-md mx-auto bg-[#141414] border-t border-white/10 z-30">
           <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
             <div>
               <span className="text-[12px] text-[#A3A3A3] block">Gesamtbetrag</span>
