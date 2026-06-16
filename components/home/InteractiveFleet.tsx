@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fuel, Gauge, Users, Heart } from "lucide-react";
+import { Fuel, Users, Wind, Heart, ChevronDown } from "lucide-react";
 
 interface CarType {
   id: number;
@@ -15,160 +15,141 @@ interface CarType {
   transmission: string | null;
   seats: number | null;
   category: string | null;
+  hasAirConditioning?: boolean;
+}
+
+interface CategoryType {
+  id: number;
+  name: string;
+  sortOrder: number;
 }
 
 interface InteractiveFleetProps {
   initialCars: CarType[];
+  categories: CategoryType[];
 }
 
-export default function InteractiveFleet({ initialCars }: InteractiveFleetProps) {
+export default function InteractiveFleet({ initialCars, categories }: InteractiveFleetProps) {
   const [activeTab, setActiveTab] = useState<string>("Alle");
   const [sortBy, setSortBy] = useState<string>("Beliebteste");
 
-  // Map user categories to database categories
+  // Filter logic
   const filterCars = () => {
     let filtered = initialCars;
-    if (activeTab === "PKW") {
-      filtered = initialCars.filter((car) => car.category?.toLowerCase() === "pkw");
-    } else if (activeTab === "Transporter") {
-      filtered = initialCars.filter((car) => car.category?.toLowerCase() === "kastenwagen" || car.category?.toLowerCase() === "transporter");
-    } else if (activeTab === "Kleinbusse") {
-      filtered = initialCars.filter((car) => car.category?.toLowerCase() === "kleinbus");
-    } else if (activeTab === "LKW") {
-      filtered = initialCars.filter((car) => car.category?.toLowerCase() === "lkw");
+    
+    // Filter by category
+    if (activeTab !== "Alle") {
+      filtered = initialCars.filter(
+        (car) => car.category?.toLowerCase() === activeTab.toLowerCase()
+      );
     }
 
-    if (sortBy === "Preis: aufsteigend") {
+    // Sort logic
+    if (sortBy === "Preis (Aufsteigend)") {
       return [...filtered].sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
-    } else if (sortBy === "Preis: absteigend") {
+    } else if (sortBy === "Preis (Absteigend)") {
       return [...filtered].sort((a, b) => Number(b.dailyRate) - Number(a.dailyRate));
     }
+    
     return filtered;
   };
 
   const displayedCars = filterCars();
 
   return (
-    <div className="space-y-6">
-      {/* Category Tabs & Sort Filter row */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2">
-          {["Alle", "PKW", "Transporter", "Kleinbusse", "LKW"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
-                activeTab === tab
-                  ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
-                  : "bg-[#1C1C1C] text-zinc-400 hover:text-white border border-white/5"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+    <>
+      {/* Category Filters */}
+      <div className="flex flex-wrap items-center gap-3 mt-10">
+        <button
+          onClick={() => setActiveTab("Alle")}
+          className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            activeTab === "Alle" 
+              ? "bg-red-600 text-white shadow-lg shadow-red-600/30" 
+              : "bg-[#1a1a1a] text-zinc-300 hover:text-white border border-white/5 hover:border-white/10"
+          }`}
+        >
+          Alle
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveTab(cat.name)}
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              activeTab === cat.name
+                ? "bg-red-600 text-white shadow-lg shadow-red-600/30"
+                : "bg-[#1a1a1a] text-zinc-300 hover:text-white border border-white/5 hover:border-white/10"
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
 
-        {/* Sort Select */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sortieren nach</span>
-          <select
+      {/* Sorting */}
+      <div className="flex justify-end items-center gap-3 mt-8">
+        <span className="text-xs text-zinc-400">Sortieren nach</span>
+        <div className="relative">
+          <select 
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#1C1C1C] border border-white/5 text-white text-xs font-extrabold uppercase tracking-wider px-3 py-2 rounded-xl outline-none cursor-pointer focus:border-red-500"
+            className="bg-[#0f0f0f] border border-white/10 rounded-lg py-2 pl-4 pr-10 text-white outline-none focus:border-red-500 text-sm appearance-none cursor-pointer"
           >
             <option>Beliebteste</option>
-            <option>Preis: aufsteigend</option>
-            <option>Preis: absteigend</option>
+            <option>Preis (Aufsteigend)</option>
+            <option>Preis (Absteigend)</option>
           </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
         </div>
       </div>
 
-      {/* Grid of Cars */}
+      {/* Vehicle Grid */}
       {displayedCars.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           {displayedCars.map((car) => (
-            <div
-              key={car.id}
-              className="bg-[#1C1C1C] border border-white/5 rounded-2xl overflow-hidden group hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/5"
-            >
-              {/* Image Box */}
-              <div className="h-32 bg-black/40 flex items-center justify-center relative overflow-hidden p-4 border-b border-white/5">
-                {car.imageUrl ? (
-                  <Image
-                    src={car.imageUrl}
-                    alt={`${car.brand} ${car.model}`}
-                    fill
-                    className="object-contain p-3 group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="text-zinc-650 text-xs font-mono">Kein Bild verfügbar</div>
-                )}
-                {/* Wishlist button */}
-                <button className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 border border-white/5 text-zinc-400 hover:text-red-500 transition-colors">
-                  <Heart className="w-3.5 h-3.5" />
-                </button>
+            <div key={car.id} className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors group relative flex flex-col">
+              <button className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors z-10">
+                <Heart className="w-5 h-5" />
+              </button>
+              
+              <div className="relative h-32 w-full mb-4">
+                <Image src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"} alt={`${car.brand} ${car.model}`} fill className="object-cover rounded-xl" />
               </div>
-
-              {/* Specs Box */}
-              <div className="p-4">
-                <div className="mb-3">
-                  <span className="text-[9px] font-bold text-red-500 uppercase tracking-widest">
-                    {car.category}
-                  </span>
-                  <h3 className="text-sm font-black text-white uppercase mt-0.5 group-hover:text-red-500 transition-colors duration-300 leading-tight">
-                    {car.brand} {car.model}
-                  </h3>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-bold text-white text-base truncate">{car.brand} {car.model}</h4>
+                <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-zinc-400">{car.transmission || "Automatik"}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] text-zinc-400 mb-6 flex-1">
+                <div className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> {car.fuelType || "Diesel"}</div>
+                <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {car.seats || 5} Sitze</div>
+                <div className="flex items-center gap-1.5 col-span-2"><Wind className="w-3.5 h-3.5" /> {car.hasAirConditioning ? "Klimaanlage" : "Keine Klima"}</div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-auto">
+                <div>
+                  <span className="text-lg font-bold text-white">€{Number(car.dailyRate).toFixed(2).replace('.', ',')}</span>
+                  <span className="text-[10px] text-zinc-500"> / Tag</span>
                 </div>
-
-                <div className="grid grid-cols-3 gap-1 border-y border-white/5 py-3 mb-3 text-center">
-                  <div className="flex flex-col items-center gap-0.5">
-                    <Fuel className="w-3 h-3 text-zinc-500" />
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.fuelType}</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5 border-l border-white/5">
-                    <Gauge className="w-3 h-3 text-zinc-500" />
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.transmission}</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5 border-l border-white/5">
-                    <Users className="w-3 h-3 text-zinc-500" />
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{car.seats} Sitze</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-xl border border-white/5">
-                  <div>
-                    <span className="block text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Tagespreis</span>
-                    <span className="text-base font-black text-white">
-                      {new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(Number(car.dailyRate))}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/fleet/${car.id}`}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all duration-300 active:scale-[0.97] whitespace-nowrap"
-                  >
-                    Jetzt Buchen
-                  </Link>
-                </div>
+                <Link href={`/fleet/${car.id}`} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
+                  Jetzt Buchen
+                </Link>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="py-20 text-center bg-[#1C1C1C] rounded-3xl border-2 border-dashed border-white/5">
+        <div className="py-20 text-center bg-[#0f0f0f] border border-white/5 rounded-2xl mt-4">
           <p className="text-zinc-500 font-bold uppercase tracking-wider text-sm">Keine Fahrzeuge in dieser Kategorie gefunden</p>
         </div>
       )}
 
-      {/* Show more button */}
-      <div className="text-center pt-4">
-        <Link
-          href="/fleet"
-          className="inline-flex items-center justify-center px-6 py-3 bg-[#1C1C1C] hover:bg-zinc-800 border border-white/5 hover:border-white/10 text-white font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-[0.98]"
-        >
-          Mehr Fahrzeuge anzeigen
+      {/* Load More Button */}
+      <div className="flex justify-center mt-6">
+        <Link href="/fleet" className="flex items-center gap-2 px-6 py-2.5 bg-[#0f0f0f] border border-white/10 hover:border-white/20 text-zinc-300 text-sm rounded-xl transition-all">
+          Mehr Fahrzeuge anzeigen <ChevronDown className="w-4 h-4" />
         </Link>
       </div>
-    </div>
+    </>
   );
 }

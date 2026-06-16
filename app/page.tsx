@@ -1,11 +1,17 @@
 import Navbar from "@/components/home/Navbar";
-import { getFeaturedCars } from "@/app/actions";
+import InteractiveFleet from "@/components/home/InteractiveFleet";
+import HowItWorks from "@/components/home/HowItWorks";
+import FaqAccordion from "@/components/home/FaqAccordion";
+import NewsletterCta from "@/components/home/NewsletterCta";
+import Footer from "@/components/home/Footer";
+import { getFeaturedCars, getCarCategories } from "@/app/actions";
 import { Calendar, Car, MapPin, Search, Phone, ShieldCheck, Clock, CheckCircle, Heart, Settings, Fuel, Users, Wind, ChevronDown, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default async function Home() {
   const featuredCars = await getFeaturedCars();
+  const categories = await getCarCategories();
 
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrow = new Date();
@@ -108,85 +114,11 @@ export default async function Home() {
                 </h1>
                 <p className="text-zinc-400 text-lg">Premium Fahrzeuge. Top Service. Beste Preise.</p>
                 
-                {/* Category Filters */}
-                <div className="flex flex-wrap items-center gap-3 mt-10">
-                  <button className="px-6 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold shadow-lg shadow-red-600/30">Alle</button>
-                  <button className="px-6 py-2 rounded-lg bg-[#1a1a1a] text-zinc-300 hover:text-white text-sm font-medium border border-white/5 hover:border-white/10 transition-colors">PKW</button>
-                  <button className="px-6 py-2 rounded-lg bg-[#1a1a1a] text-zinc-300 hover:text-white text-sm font-medium border border-white/5 hover:border-white/10 transition-colors">Transporter</button>
-                  <button className="px-6 py-2 rounded-lg bg-[#1a1a1a] text-zinc-300 hover:text-white text-sm font-medium border border-white/5 hover:border-white/10 transition-colors">Kleinbusse</button>
-                  <button className="px-6 py-2 rounded-lg bg-[#1a1a1a] text-zinc-300 hover:text-white text-sm font-medium border border-white/5 hover:border-white/10 transition-colors">LKW</button>
-                </div>
+                {/* Interactive Fleet Component */}
+                <InteractiveFleet initialCars={featuredCars} categories={categories} />
               </div>
 
               {/* Dark BMW Image */}
-              <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 w-[55%] h-[120%] pointer-events-none hidden md:block">
-                <div className="relative w-full h-full">
-                  <Image 
-                    src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=1200" 
-                    alt="Premium BMW" 
-                    fill 
-                    className="object-cover object-center rounded-l-[100px] mask-image-[linear-gradient(to_left,black,transparent)] opacity-90 mix-blend-lighten"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-transparent" />
-                </div>
-              </div>
-            </div>
-
-            {/* Sorting */}
-            <div className="flex justify-end items-center gap-3">
-              <span className="text-xs text-zinc-400">Sortieren nach</span>
-              <div className="relative">
-                <select className="bg-[#0f0f0f] border border-white/10 rounded-lg py-2 pl-4 pr-10 text-white outline-none focus:border-red-500 text-sm appearance-none cursor-pointer">
-                  <option>Beliebteste</option>
-                  <option>Preis (Aufsteigend)</option>
-                  <option>Preis (Absteigend)</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Vehicle Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredCars.map((car: any, idx: number) => (
-                <div key={idx} className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors group relative flex flex-col">
-                  <button className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors z-10">
-                    <Heart className="w-5 h-5" />
-                  </button>
-                  
-                  <div className="relative h-32 w-full mb-4">
-                    <Image src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"} alt={`${car.brand} ${car.model}`} fill className="object-cover rounded-xl" />
-                  </div>
-                  
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-white text-base truncate">{car.brand} {car.model}</h4>
-                    <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-zinc-400">{car.transmission || "Automatik"}</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] text-zinc-400 mb-6 flex-1">
-                    <div className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> {car.fuelType || "Diesel"}</div>
-                    <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {car.seats || 5} Sitze</div>
-                    <div className="flex items-center gap-1.5 col-span-2"><Wind className="w-3.5 h-3.5" /> {car.hasAirConditioning ? "Klimaanlage" : "Keine Klima"}</div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-auto">
-                    <div>
-                      <span className="text-lg font-bold text-white">€{Number(car.dailyRate).toFixed(2).replace('.', ',')}</span>
-                      <span className="text-[10px] text-zinc-500"> / Tag</span>
-                    </div>
-                    <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
-                      Jetzt Buchen
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Load More Button */}
-            <div className="flex justify-center mt-2">
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-[#0f0f0f] border border-white/10 hover:border-white/20 text-zinc-300 text-sm rounded-xl transition-all">
-                Mehr Fahrzeuge anzeigen <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
 
           </section>
 
@@ -242,15 +174,15 @@ export default async function Home() {
             <div className="flex items-center gap-4 px-4">
               <Car className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-white">Über 500+ Fahrzeuge</h4>
+                <h4 className="text-base font-bold text-white">20+ Fahrzeuge</h4>
                 <p className="text-[11px] text-zinc-500">Für jeden Bedarf das Richtige</p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">
               <MapPin className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-white">Österreichweit</h4>
-                <p className="text-[11px] text-zinc-500">An 150+ Standorten</p>
+                <h4 className="text-base font-bold text-white">Im ganzen Ländle</h4>
+                <p className="text-[11px] text-zinc-500">Für Sie in Vorarlberg</p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">
@@ -270,7 +202,12 @@ export default async function Home() {
           </div>
         </div>
 
+        <HowItWorks />
       </main>
+
+      <FaqAccordion />
+      <NewsletterCta />
+      <Footer />
     </div>
   );
 }
