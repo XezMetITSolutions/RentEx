@@ -28,7 +28,6 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
   const [rueckgabedatum, setRueckgabedatum] = useState(toParam || defaultEndISO);
   const [rueckgabezeit, setRueckgabezeit] = useState("10:00");
   
-  const [alter, setAlter] = useState("30+");
   
   const [promoCode, setPromoCode] = useState("");
   const [promoState, setPromoState] = useState<"idle" | "valid" | "invalid">("idle");
@@ -58,9 +57,8 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
   const days = calculatedDays;
   const basePrice = Number(car.dailyRate);
   const totalBase = days * basePrice;
-  const youngDriverFee = alter === "21-24" ? 15 * days : 0;
   const discount = promoState === "valid" ? -50 : 0;
-  const total = totalBase + youngDriverFee + discount;
+  const total = totalBase + discount;
 
   const handleApplyPromo = () => {
     if (promoCode.toUpperCase() === "RENTEX50") setPromoState("valid");
@@ -227,19 +225,6 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
           </div>
         )}
 
-        {/* Alter des Fahrers */}
-        <div className="space-y-2">
-          <label className="text-[12px] font-medium text-[#A3A3A3] ml-1">Alter des Fahrers</label>
-          <div className="relative">
-            <select value={alter} onChange={(e) => setAlter(e.target.value)} className="w-full bg-[#1C1C1C] border border-white/5 rounded-[1rem] py-4 pl-4 pr-10 text-[14px] text-white outline-none focus:border-[#E53935] appearance-none">
-              <option value="21-24">21–24 Jahre</option>
-              <option value="25-29">25–29 Jahre</option>
-              <option value="30+">30+ Jahre</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A3A3A3] pointer-events-none" />
-          </div>
-          {alter === "21-24" && <div className="text-[10px] text-[#A3A3A3] ml-1 flex items-center gap-1"><Info className="w-3 h-3"/> Jungfahrer-Gebühr wird angewendet</div>}
-        </div>
 
         {/* Aktionscode */}
         <div className="space-y-2">
@@ -265,7 +250,7 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
       </div>
 
       {/* Sticky Bottom Section */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#141414] border-t border-white/10 z-30 flex flex-col">
+      <div className="fixed bottom-16 left-0 right-0 max-w-md mx-auto bg-[#141414] border-t border-white/10 z-30 flex flex-col">
         
         {/* Live Price Summary (Collapsible) */}
         <div className="px-5 border-b border-white/5">
@@ -287,12 +272,6 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
                 <span>Versicherung</span>
                 <span className="text-white">Inklusive</span>
               </div>
-              {youngDriverFee > 0 && (
-                <div className="flex items-center justify-between text-[#A3A3A3]">
-                  <span>Jungfahrer-Gebühr</span>
-                  <span className="text-white">€{youngDriverFee.toFixed(2)}</span>
-                </div>
-              )}
               {discount < 0 && (
                 <div className="flex items-center justify-between text-green-500">
                   <span>Rabatt (Code)</span>
