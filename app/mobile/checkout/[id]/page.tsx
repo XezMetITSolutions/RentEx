@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import MobileCheckoutClient from "./MobileCheckoutClient";
+import { getCurrentCustomer } from "@/lib/dashboardAuth";
 
 export default async function MobileCheckoutDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -10,5 +11,8 @@ export default async function MobileCheckoutDetails({ params }: { params: Promis
   const car = await prisma.car.findUnique({ where: { id: carId } });
   if (!car) return notFound();
 
-  return <MobileCheckoutClient car={car} />;
+  const customer = await getCurrentCustomer();
+  const locations = await prisma.location.findMany({ orderBy: { name: 'asc' } });
+
+  return <MobileCheckoutClient car={car} customer={customer} locations={locations} />;
 }

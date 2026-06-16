@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Car, CalendarClock, Phone, User } from "lucide-react";
 
-export default function BottomNav() {
+export default function BottomNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
 
   const tabs = [
     { name: "Start", href: "/mobile", icon: Home },
     { name: "Fuhrpark", href: "/mobile/fleet", icon: Car },
-    { name: "Buchungen", href: "/mobile/bookings", icon: CalendarClock },
+    ...(isLoggedIn ? [{ name: "Buchungen", href: "/mobile/bookings", icon: CalendarClock }] : []),
     { name: "Kontakt", href: "/mobile/contact", icon: Phone },
     { name: "Konto", href: "/mobile/account", icon: User },
   ];
