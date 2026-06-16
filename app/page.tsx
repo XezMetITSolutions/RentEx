@@ -114,11 +114,25 @@ export default async function Home() {
                 </h1>
                 <p className="text-zinc-400 text-lg">Premium Fahrzeuge. Top Service. Beste Preise.</p>
                 
-                {/* Interactive Fleet Component */}
-                <InteractiveFleet initialCars={featuredCars} categories={categories} />
               </div>
 
               {/* Dark BMW Image */}
+              <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 w-[55%] h-[120%] pointer-events-none hidden md:block">
+                <div className="relative w-full h-full">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=1200" 
+                    alt="Premium BMW" 
+                    fill 
+                    className="object-cover object-center rounded-l-[100px] mask-image-[linear-gradient(to_left,black,transparent)] opacity-90 mix-blend-lighten"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-transparent" />
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Fleet Component */}
+            <div className="mt-8">
+              <InteractiveFleet initialCars={featuredCars} categories={categories} />
             </div>
 
           </section>
