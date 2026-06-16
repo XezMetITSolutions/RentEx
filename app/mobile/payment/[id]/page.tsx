@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import Link from "next/link";
 import { ChevronLeft, CreditCard, Lock, CheckCircle2 } from "lucide-react";
 
-export default function MobilePayment({ params }: { params: { id: string } }) {
+export default function MobilePayment({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [method, setMethod] = useState("Kreditkarte");
 
   // In a real app we'd fetch the price based on id and dates, using hardcoded for design demo
@@ -15,7 +16,7 @@ export default function MobilePayment({ params }: { params: { id: string } }) {
       
       {/* Header */}
       <header className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-white/5 bg-[#141414] sticky top-0 z-20">
-        <Link href={`/mobile/checkout/${params.id}`} className="w-10 h-10 flex items-center justify-center bg-[#1C1C1C] border border-white/5 rounded-xl text-white">
+        <Link href={`/mobile/checkout/${resolvedParams.id}`} className="w-10 h-10 flex items-center justify-center bg-[#1C1C1C] border border-white/5 rounded-xl text-white">
           <ChevronLeft className="w-6 h-6" />
         </Link>
         <h1 className="text-[16px] font-bold">Zahlung</h1>

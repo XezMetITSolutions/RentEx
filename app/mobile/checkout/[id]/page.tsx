@@ -2,8 +2,9 @@ import Link from "next/link";
 import { ChevronLeft, MapPin, Calendar, User, Tag } from "lucide-react";
 import prisma from "@/lib/prisma";
 
-export default async function MobileCheckoutDetails({ params }: { params: { id: string } }) {
-  const carId = parseInt(params.id, 10);
+export default async function MobileCheckoutDetails({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const carId = parseInt(resolvedParams.id, 10);
   const car = await prisma.car.findUnique({ where: { id: carId } });
 
   return (

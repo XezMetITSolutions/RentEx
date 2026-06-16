@@ -35,30 +35,31 @@ export default async function MobileHome() {
 
       {/* Search Bar */}
       <div className="px-5 mt-6">
-        <div className="relative flex items-center">
+        <form action="/mobile/fleet" method="GET" className="relative flex items-center">
           <input 
             type="text" 
+            name="q"
             placeholder="Fahrzeug suchen..." 
             className="w-full bg-[#1C1C1C] border border-white/5 rounded-2xl py-4 pl-4 pr-12 text-[16px] text-white placeholder-[#A3A3A3] outline-none focus:border-[#E53935]"
           />
-          <div className="absolute right-3 p-2 bg-[#E53935] rounded-xl text-white">
+          <button type="submit" className="absolute right-3 p-2 bg-[#E53935] rounded-xl text-white">
             <Search className="w-5 h-5" />
-          </div>
-        </div>
+          </button>
+        </form>
       </div>
 
-      {/* Filter Chips (Horizontal Scroll) */}
-      <div className="mt-6 px-5 flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#1C1C1C] border border-white/5 rounded-full whitespace-nowrap text-sm text-white">
+      {/* Filter Chips (Grid) */}
+      <div className="mt-6 px-5 grid grid-cols-2 gap-3">
+        <button className="flex justify-center items-center gap-2 px-4 py-3 bg-[#1C1C1C] border border-white/5 rounded-2xl text-sm text-white">
           <MapPin className="w-4 h-4 text-[#A3A3A3]" /> Standort
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#1C1C1C] border border-white/5 rounded-full whitespace-nowrap text-sm text-white">
-          <Calendar className="w-4 h-4 text-[#A3A3A3]" /> Abholdatum
+        <button className="flex justify-center items-center gap-2 px-4 py-3 bg-[#1C1C1C] border border-white/5 rounded-2xl text-sm text-white">
+          <Calendar className="w-4 h-4 text-[#A3A3A3]" /> Datum
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#1C1C1C] border border-white/5 rounded-full whitespace-nowrap text-sm text-white">
-          <Calendar className="w-4 h-4 text-[#A3A3A3]" /> Rückgabedatum
+        <button className="flex justify-center items-center gap-2 px-4 py-3 bg-[#1C1C1C] border border-white/5 rounded-2xl text-sm text-white">
+          <Calendar className="w-4 h-4 text-[#A3A3A3]" /> Rückgabe
         </button>
-        <Link href="/mobile/filter" className="flex items-center gap-2 px-4 py-2 bg-[#1C1C1C] border border-white/5 rounded-full whitespace-nowrap text-sm text-white hover:bg-[#E53935]/10 hover:border-[#E53935] transition-colors">
+        <Link href="/mobile/filter" className="flex justify-center items-center gap-2 px-4 py-3 bg-[#1C1C1C] border border-white/5 rounded-2xl text-sm text-white hover:bg-[#E53935]/10 hover:border-[#E53935] transition-colors">
           Filter
         </Link>
       </div>

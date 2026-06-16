@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, Heart, Fuel, Gauge, Users, Wind, ShieldCheck, Info } from "lucide-react";
 import prisma from "@/lib/prisma";
 
-export default async function MobileVehicleDetails({ params }: { params: { id: string } }) {
-  const carId = parseInt(params.id, 10);
+export default async function MobileVehicleDetails({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const carId = parseInt(resolvedParams.id, 10);
   if (isNaN(carId)) return notFound();
 
   const car = await prisma.car.findUnique({
