@@ -72,3 +72,8 @@ body {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #334155;
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
