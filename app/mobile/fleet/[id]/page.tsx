@@ -96,22 +96,30 @@ export default async function MobileVehicleDetails({ params }: { params: Promise
           <ShieldCheck className="w-5 h-5 text-[#E53935]" /> Mietbedingungen
         </h3>
         <div className="bg-[#1C1C1C] border border-white/5 rounded-2xl p-1">
-          <div className="flex items-center justify-between p-4 border-b border-white/5">
-            <span className="text-[#A3A3A3] text-sm">Kilometerbegrenzung</span>
-            <span className="text-white text-sm font-medium">{car.maxMileagePerDay ? `${car.maxMileagePerDay} km / Tag` : "250 km / Tag"}</span>
-          </div>
-          <div className="flex items-center justify-between p-4 border-b border-white/5">
-            <span className="text-[#A3A3A3] text-sm">Zusätzliche km</span>
-            <span className="text-white text-sm font-medium">€0,30 / km</span>
-          </div>
-          <div className="flex items-center justify-between p-4 border-b border-white/5">
-            <span className="text-[#A3A3A3] text-sm">Tankregelung</span>
-            <span className="text-white text-sm font-medium">Voll zu Voll</span>
-          </div>
-          <div className="flex items-center justify-between p-4">
-            <span className="text-[#A3A3A3] text-sm">Versicherung</span>
-            <span className="text-[#E53935] text-sm font-bold bg-[#E53935]/10 px-2 py-1 rounded-md">Inklusive</span>
-          </div>
+          {car.maxMileagePerDay !== null && (
+            <div className="flex items-center justify-between p-4 border-b border-white/5">
+              <span className="text-[#A3A3A3] text-sm">Kilometerbegrenzung</span>
+              <span className="text-white text-sm font-medium">{car.maxMileagePerDay} km / Tag</span>
+            </div>
+          )}
+          {car.extraKmCost !== null && (
+            <div className="flex items-center justify-between p-4 border-b border-white/5">
+              <span className="text-[#A3A3A3] text-sm">Zusätzliche km</span>
+              <span className="text-white text-sm font-medium">€{Number(car.extraKmCost).toFixed(2).replace('.', ',')} / km</span>
+            </div>
+          )}
+          {car.fuelPolicy && (
+            <div className="flex items-center justify-between p-4 border-b border-white/5">
+              <span className="text-[#A3A3A3] text-sm">Tankregelung</span>
+              <span className="text-white text-sm font-medium">{car.fuelPolicy}</span>
+            </div>
+          )}
+          {car.includedInsurance && (
+            <div className="flex items-center justify-between p-4">
+              <span className="text-[#A3A3A3] text-sm">Versicherung</span>
+              <span className="text-[#E53935] text-sm font-bold bg-[#E53935]/10 px-2 py-1 rounded-md">{car.includedInsurance}</span>
+            </div>
+          )}
         </div>
       </div>
 

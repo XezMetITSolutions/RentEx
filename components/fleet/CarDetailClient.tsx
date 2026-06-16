@@ -9,6 +9,7 @@ import {
     Briefcase,
     CheckCircle2,
     Zap,
+    ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -180,6 +181,42 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+
+                        {/* Mietbedingungen */}
+                        <div className="mt-12">
+                            <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-red-500" />
+                                Mietbedingungen
+                            </h2>
+                            <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-6">
+                                <div className="divide-y divide-white/5">
+                                    {car.maxMileagePerDay !== null && (
+                                        <div className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
+                                            <span className="text-gray-400">Kilometerbegrenzung</span>
+                                            <span className="text-white font-medium">{car.maxMileagePerDay} km / Tag</span>
+                                        </div>
+                                    )}
+                                    {car.extraKmCost !== null && (
+                                        <div className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
+                                            <span className="text-gray-400">Zusätzliche km</span>
+                                            <span className="text-white font-medium">€{Number(car.extraKmCost).toFixed(2).replace('.', ',')} / km</span>
+                                        </div>
+                                    )}
+                                    {car.fuelPolicy && (
+                                        <div className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
+                                            <span className="text-gray-400">Tankregelung</span>
+                                            <span className="text-white font-medium">{car.fuelPolicy}</span>
+                                        </div>
+                                    )}
+                                    {car.includedInsurance && (
+                                        <div className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
+                                            <span className="text-gray-400">Versicherung</span>
+                                            <span className="text-red-400 font-medium bg-red-500/10 px-3 py-1 rounded-full text-sm">{car.includedInsurance}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                     </div>

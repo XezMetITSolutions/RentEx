@@ -60,7 +60,13 @@ model Car {
   currentMileage    Int?         // in km
   purchaseMileage   Int?
   maxMileagePerDay  Int?         // km limit per rental day
+  extraKmCost       Decimal?     // cost per extra km
+
+  // Rental Conditions
+  fuelPolicy        String?      // e.g. "Voll zu Voll"
+  includedInsurance String?      // e.g. "Inklusive", "Basis"
   
+
   // Content & Media
   imageUrl          String?
   images            String?      // JSON array of image URLs
