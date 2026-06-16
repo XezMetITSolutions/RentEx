@@ -119,6 +119,7 @@ export default async function Home() {
               </div>
 
               {/* Dark BMW Image */}
+            </div>
 
           </section>
 
