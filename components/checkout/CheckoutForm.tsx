@@ -69,6 +69,10 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
         }
         try {
             const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501&priority_distance=1000`);
+            if (!res.ok) {
+                setSuggestions([]);
+                return;
+            }
             const data = await res.json();
             setSuggestions(data.features || []);
             setShowSuggestions(true);
@@ -302,7 +306,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-400">Abholung</p>
-                                    <p className="text-sm font-medium text-white">{start.toLocaleDateString()}</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-white">{start.toLocaleDateString()}</p>
                                     <p className="text-xs text-gray-500">10:00 Uhr</p>
                                 </div>
                             </div>
@@ -310,7 +314,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-400">Rückgabe</p>
-                                    <p className="text-sm font-medium text-white">{end.toLocaleDateString()}</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-white">{end.toLocaleDateString()}</p>
                                     <p className="text-xs text-gray-500">10:00 Uhr</p>
                                 </div>
                             </div>
