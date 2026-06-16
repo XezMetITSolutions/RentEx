@@ -310,7 +310,7 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
         <div className="p-4">
           <button 
             disabled={!isFormValid}
-            onClick={() => router.push(`/mobile/payment/${car.id}`)}
+            onClick={() => router.push(`/mobile/payment/${car.id}?startDate=${abholdatum}&endDate=${rueckgabedatum}`)}
             className={`flex items-center justify-center w-full py-4 font-bold text-[16px] rounded-[1rem] transition-colors ${
               isFormValid 
                 ? "bg-[#E53935] hover:bg-red-700 text-white shadow-lg shadow-[#E53935]/30" 

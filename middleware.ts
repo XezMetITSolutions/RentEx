@@ -123,7 +123,9 @@ export function middleware(request: NextRequest) {
         !pathname.startsWith('/mobile') && 
         !pathname.startsWith('/api') &&
         !pathname.startsWith('/admin') &&
-        !pathname.startsWith('/dashboard')
+        !pathname.startsWith('/dashboard') &&
+        !pathname.startsWith('/login') &&
+        !pathname.startsWith('/register')
     ) {
         let targetPath = '/mobile';
         if (pathname === '/') targetPath = '/mobile';
