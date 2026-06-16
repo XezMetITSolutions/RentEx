@@ -240,7 +240,7 @@ export async function createBooking(prevState: any, formData: FormData) {
         let sessionUrl = null;
         try {
             const session = await stripe.checkout.sessions.create({
-                payment_method_types: ['card', 'sepa_debit', 'sofort', 'giropay', 'paypal', 'klarna'] as any,
+                payment_method_types: ['card'] as any,
                 line_items: [
                     {
                         price_data: {
@@ -271,7 +271,7 @@ export async function createBooking(prevState: any, formData: FormData) {
             sessionUrl = session.url;
         } catch (error: any) {
             console.error("Stripe Session Error:", error);
-            return { success: false, error: "Ödeme altyapısında bir hata oluştu. Lütfen daha sonra tekrar deneyin." };
+            return { success: false, error: `Stripe Fehler: ${error.message || 'Unbekannter Fehler'}` };
         }
 
         if (sessionUrl) {
