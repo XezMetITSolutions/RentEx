@@ -5,20 +5,24 @@ import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
-    question: "Wie hoch ist die Kaution?",
-    answer: "Die Höhe der Kaution hängt vom Fahrzeugtyp ab. Für Standardfahrzeuge beträgt sie in der Regel 500€, für Luxusfahrzeuge bis zu 1.500€. Die Kaution wird auf Ihrer Kreditkarte blockiert und nach schadenfreier Rückgabe sofort freigegeben."
+    question: "Darf ich mit dem Mietwagen ins Ausland fahren?",
+    answer: "Ja, Fahrten ins Ausland sind jedoch ausschließlich mit unserer vorherigen Genehmigung zulässig. Bitte informieren Sie uns spätestens bei Mietbeginn über Ihre Reisepläne. Beachten Sie, dass bei Fahrten in bestimmte Länder (z.B. Italien, Polen, Balkanstaaten, Türkei) eine vereinbarte Haftungsreduzierung bei Diebstahl und Einbruch entfällt."
   },
   {
-    question: "Gibt es ein Mindestalter für die Anmietung?",
-    answer: "Ja, das Mindestalter für Standardfahrzeuge beträgt 21 Jahre (mit mindestens 1 Jahr Führerscheinbesitz). Für Premium- und Luxusfahrzeuge liegt das Mindestalter bei 25 Jahren."
+    question: "Wie ist die Tankregelung bei der Rückgabe?",
+    answer: "Sie übernehmen das Fahrzeug mit vollem Kraftstofftank bzw. voller Batterieladung und können es ebenso voll zurückgeben. Falls wir für Sie nachtanken oder nachladen müssen, verrechnen wir die tatsächlichen Kosten zuzüglich einer pauschalen Aufwandsentschädigung von 18,00 €."
   },
   {
-    question: "Gibt es eine Kilometerbegrenzung?",
-    answer: "Standardmäßig sind 250 Freikilometer pro Tag inklusive. Sie können bei der Buchung gegen einen Aufpreis auch unbegrenzte Kilometer oder zusätzliche Kilometerpakete auswählen."
+    question: "Gibt es Voraussetzungen für den Fahrer (Alter/Führerschein)?",
+    answer: "Das Fahrzeug darf nur von Personen gelenkt werden, die uneingeschränkt fahrtüchtig und seit mindestens zwei Jahren im ununterbrochenen Besitz einer gültigen Lenkerberechtigung (Führerschein) sind."
   },
   {
-    question: "Welche Zahlungsmethoden werden akzeptiert?",
-    answer: "Wir akzeptieren alle gängigen Kreditkarten (Visa, MasterCard, American Express) sowie Debitkarten. Bei Firmenkunden ist nach vorheriger Prüfung auch eine Zahlung auf Rechnung möglich."
+    question: "Was kostet es, wenn ich zusätzliche Kilometer fahre?",
+    answer: "Sofern nicht anders vereinbart, werden zusätzliche Kilometer (Mehrkilometer) je nach gemietetem Fahrzeug mit 0,33 € bis 0,45 € pro gefahrenem Kilometer verrechnet."
+  },
+  {
+    question: "Wie verhalte ich mich bei einem Unfall oder Schaden?",
+    answer: "Bei jedem Unfall oder Schaden (auch bei reinen Sachschäden oder ohne Beteiligung Dritter) müssen Sie unverzüglich uns benachrichtigen und zwingend die Polizei zur Unfallaufnahme hinzuziehen. Ein Schuldeingeständnis darf vor Ort nicht abgegeben werden."
   }
 ];
 
