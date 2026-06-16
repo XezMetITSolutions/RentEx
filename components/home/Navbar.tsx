@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Bell } from "lucide-react";
 import { useState } from "react";
 import ThemeToggle from "../ThemeToggle";
 
@@ -10,79 +10,75 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 dark:bg-black/45 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/5 transition-all duration-300">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="relative w-28 h-12 overflow-hidden transition-all duration-300">
+                    <Link href="/" className="flex items-center gap-2 group shrink-0">
+                        <div className="relative w-32 h-14 overflow-hidden transition-all duration-300 flex items-center">
+                            {/* Assuming the logo is an image. If not, text fallback */}
                             <Image
                                 src="/assets/logo.png"
                                 alt="Rent-Ex Logo"
                                 fill
-                                className="object-contain dark:brightness-110"
+                                className="object-contain"
                                 priority
                             />
                         </div>
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link
-                            href="/"
-                            className="text-xs tracking-wider uppercase font-extrabold text-gray-700 dark:text-zinc-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        >
-                            Startseite
+                    <div className="hidden lg:flex items-center gap-8 ml-8">
+                        <Link href="/" className="text-sm font-medium text-white border-b-2 border-red-500 pb-1">
+                            Home
                         </Link>
-                        <Link
-                            href="/fleet"
-                            className="text-xs tracking-wider uppercase font-extrabold text-gray-700 dark:text-zinc-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        >
-                            Fahrzeugflotte
+                        <Link href="/fleet" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                            Fahrzeuge
                         </Link>
-                        <Link
-                            href="/about"
-                            className="text-xs tracking-wider uppercase font-extrabold text-gray-700 dark:text-zinc-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        >
+                        <Link href="/fleet" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                            Flotte
+                        </Link>
+                        <Link href="/dashboard" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                            Buchungen
+                        </Link>
+                        <Link href="/about" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
                             Über uns
                         </Link>
-                        <Link
-                            href="/contact"
-                            className="text-xs tracking-wider uppercase font-extrabold text-gray-700 dark:text-zinc-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        >
+                        <Link href="/contact" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
                             Kontakt
                         </Link>
                     </div>
 
                     {/* Actions */}
-                    <div className="hidden md:flex items-center gap-6">
-                        <a href="tel:+436609996800" className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                            <Phone className="w-4 h-4 text-red-500" />
+                    <div className="hidden lg:flex items-center gap-6 ml-auto">
+                        <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors">
+                            <Phone className="w-4 h-4 text-zinc-400" />
                             <span>+43 660 9996800</span>
                         </a>
 
-                        <ThemeToggle />
+                        <div className="flex items-center gap-3 border-l border-white/10 pl-6">
+                            <ThemeToggle />
+                            
+                            <button className="relative p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/5">
+                                <Bell className="w-5 h-5" />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#050505]"></span>
+                            </button>
+                        </div>
 
                         <Link
-                            href="/login"
-                            className="text-xs tracking-wider uppercase font-extrabold text-gray-950 dark:text-white hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                            href="/fleet"
+                            className="px-6 py-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-all"
                         >
-                            Anmelden
-                        </Link>
-                        <Link
-                            href="/register"
-                            className="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs tracking-wider uppercase font-extrabold transition-all hover:shadow-lg hover:shadow-red-600/20 active:scale-[0.97]"
-                        >
-                            Registrieren
+                            Jetzt Buchen →
                         </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="flex md:hidden items-center gap-4">
+                    <div className="flex lg:hidden items-center gap-4">
                         <ThemeToggle />
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="p-2 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="p-2 text-zinc-400 hover:text-white transition-colors"
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
@@ -92,50 +88,20 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden bg-white/95 dark:bg-black/90 backdrop-blur-2xl border-b border-gray-200/50 dark:border-white/5">
+                <div className="lg:hidden bg-[#0a0a0a] border-b border-white/5">
                     <div className="px-4 pt-2 pb-6 space-y-1">
-                        <Link
-                            href="/"
-                            onClick={() => setIsOpen(false)}
-                            className="block px-3 py-4 text-sm font-bold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg border-l-2 border-transparent hover:border-red-500 transition-all"
-                        >
-                            Startseite
-                        </Link>
-                        <Link
-                            href="/fleet"
-                            onClick={() => setIsOpen(false)}
-                            className="block px-3 py-4 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg border-l-2 border-transparent hover:border-red-500 transition-all"
-                        >
-                            Fahrzeugflotte
-                        </Link>
-                        <Link
-                            href="/about"
-                            onClick={() => setIsOpen(false)}
-                            className="block px-3 py-4 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg border-l-2 border-transparent hover:border-red-500 transition-all"
-                        >
-                            Über uns
-                        </Link>
-                        <Link
-                            href="/contact"
-                            onClick={() => setIsOpen(false)}
-                            className="block px-3 py-4 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg border-l-2 border-transparent hover:border-red-500 transition-all"
-                        >
-                            Kontakt
-                        </Link>
-                        <div className="pt-4 mt-4 border-t border-gray-200/50 dark:border-white/5 grid grid-cols-2 gap-4">
-                            <Link
-                                href="/login"
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-bold uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
-                            >
-                                Anmelden
-                            </Link>
-                            <Link
-                                href="/register"
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-all"
-                            >
-                                Registrieren
+                        <Link href="/" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-white hover:bg-white/5 rounded-lg">Home</Link>
+                        <Link href="/fleet" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Fahrzeuge</Link>
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Buchungen</Link>
+                        <Link href="/about" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Über uns</Link>
+                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Kontakt</Link>
+                        
+                        <div className="pt-4 mt-4 border-t border-white/5 flex flex-col gap-4 px-3">
+                            <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-bold text-zinc-300">
+                                <Phone className="w-4 h-4 text-red-500" /> +43 660 9996800
+                            </a>
+                            <Link href="/fleet" onClick={() => setIsOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-md bg-red-600 text-white text-sm font-bold">
+                                Jetzt Buchen →
                             </Link>
                         </div>
                     </div>

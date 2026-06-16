@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'placehold.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
       // Cloudflare R2 domains
       {
         protocol: 'https',
