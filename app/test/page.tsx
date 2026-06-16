@@ -32,7 +32,10 @@ export default async function TestPage() {
                 <p className="text-sm mb-1">{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</p>
             </div>
 
-            <form action={createBooking}>
+            <form action={async (formData) => {
+                "use server";
+                await createBooking(null, formData);
+            }}>
                 <input type="hidden" name="carId" value={car.id} />
                 <input type="hidden" name="startDate" value={startDate.toISOString()} />
                 <input type="hidden" name="endDate" value={endDate.toISOString()} />
