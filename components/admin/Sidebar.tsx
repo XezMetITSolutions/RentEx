@@ -35,7 +35,6 @@ const menuGroups = [
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
             { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
-            { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
         ]
     },
     {
@@ -44,7 +43,6 @@ const menuGroups = [
             { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
             { name: 'Kunden', icon: Users, href: '/admin/customers' },
             { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
-            { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
         ]
     },
     {
@@ -53,31 +51,22 @@ const menuGroups = [
             { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
             { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
             { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
-            { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
-        ]
-    },
-    {
-        title: 'Finanzen & Doc',
-        items: [
-            { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
-            { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
             { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
         ]
     },
     {
-        title: 'Marketing & Analyse',
+        title: 'Finanzen & Analyse',
         items: [
-            { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
-            { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
+            { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
+            { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
             { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
+            { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
         ]
     },
     {
         title: 'System',
         items: [
             { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
-            { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
-            { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
             { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
         ]
     }
@@ -96,9 +85,9 @@ const rolePermissions: Record<string, string[]> = {
     'SUPERADMIN': ['all'],
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 'Standorte', 
+        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 
         'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
-        'Berichte', 'Benachrichtigungen', 'KM Transfer', 'Check-In'
+        'Berichte', 'Check-In', 'Finanzen', 'Strafzettel'
     ],
     'MITARBEITER': [
         'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 

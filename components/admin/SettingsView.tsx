@@ -139,6 +139,39 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
                     })}
 
                     <a
+                        href="/admin/locations"
+                        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Globe className="h-5 w-5 text-gray-400" />
+                            Standorte
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </a>
+
+                    <a
+                        href="/admin/options"
+                        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Zap className="h-5 w-5 text-gray-400" />
+                            Zusatzoptionen
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </a>
+
+                    <a
+                        href="/admin/agb"
+                        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-gray-400" />
+                            AGB Versionen
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </a>
+
+                    <a
                         href="/admin/settings/pdf-mapping"
                         className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
                     >
