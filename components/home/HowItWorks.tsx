@@ -20,11 +20,11 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 relative z-10">
+    <section className="py-24 relative z-10 transition-colors">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
           <span className="inline-block text-[10px] font-black px-3 py-1 bg-red-500/10 text-red-500 rounded-full uppercase tracking-widest border border-red-500/20">So einfach geht's</span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-gray-900 dark:text-white">
             In 3 Schritten zum Ziel
           </h2>
         </div>
@@ -35,11 +35,11 @@ export default function HowItWorks() {
 
           {steps.map((step, idx) => (
             <div key={idx} className="relative z-10 flex flex-col items-center text-center group">
-              <div className="w-20 h-20 rounded-2xl bg-[#0f0f0f] border border-white/5 flex items-center justify-center mb-6 group-hover:border-red-500/50 group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] transition-all duration-500">
+              <div className="w-20 h-20 rounded-2xl bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 flex items-center justify-center mb-6 group-hover:border-red-500/50 group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] transition-all duration-500 shadow-sm dark:shadow-none">
                 {step.icon}
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-              <p className="text-zinc-400 text-sm max-w-[280px] leading-relaxed">{step.description}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{step.title}</h3>
+              <p className="text-gray-500 dark:text-zinc-400 text-sm max-w-[280px] leading-relaxed">{step.description}</p>
             </div>
           ))}
         </div>

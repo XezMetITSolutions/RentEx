@@ -10,7 +10,7 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#050505]/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
@@ -29,39 +29,39 @@ export default function Navbar() {
 
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex items-center gap-8 ml-8">
-                        <Link href="/" className="text-sm font-medium text-white border-b-2 border-red-500 pb-1">
+                        <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white border-b-2 border-red-500 pb-1">
                             Home
                         </Link>
-                        <Link href="/fleet" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                        <Link href="/fleet" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Fahrzeuge
                         </Link>
-                        <Link href="/fleet" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                        <Link href="/fleet" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Flotte
                         </Link>
-                        <Link href="/dashboard" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                        <Link href="/dashboard" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Buchungen
                         </Link>
-                        <Link href="/about" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                        <Link href="/about" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Über uns
                         </Link>
-                        <Link href="/contact" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                        <Link href="/contact" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Kontakt
                         </Link>
                     </div>
 
                     {/* Actions */}
                     <div className="hidden lg:flex items-center gap-6 ml-auto">
-                        <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors">
-                            <Phone className="w-4 h-4 text-zinc-400" />
+                        <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                            <Phone className="w-4 h-4 text-gray-400 dark:text-zinc-400" />
                             <span>+43 660 9996800</span>
                         </a>
 
-                        <div className="flex items-center gap-3 border-l border-white/10 pl-6">
+                        <div className="flex items-center gap-3 border-l border-gray-200 dark:border-white/10 pl-6">
                             <ThemeToggle />
                             
-                            <button className="relative p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/5">
+                            <button className="relative p-2 text-gray-400 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-white/5">
                                 <Bell className="w-5 h-5" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#050505]"></span>
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#050505]"></span>
                             </button>
                         </div>
 
@@ -78,7 +78,7 @@ export default function Navbar() {
                         <ThemeToggle />
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="p-2 text-zinc-400 hover:text-white transition-colors"
+                            className="p-2 text-gray-400 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
@@ -88,16 +88,16 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="lg:hidden bg-[#0a0a0a] border-b border-white/5">
+                <div className="lg:hidden bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-white/5">
                     <div className="px-4 pt-2 pb-6 space-y-1">
-                        <Link href="/" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-white hover:bg-white/5 rounded-lg">Home</Link>
-                        <Link href="/fleet" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Fahrzeuge</Link>
-                        <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Buchungen</Link>
-                        <Link href="/about" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Über uns</Link>
-                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-zinc-300 hover:bg-white/5 rounded-lg">Kontakt</Link>
+                        <Link href="/" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Home</Link>
+                        <Link href="/fleet" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Fahrzeuge</Link>
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Buchungen</Link>
+                        <Link href="/about" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Über uns</Link>
+                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Kontakt</Link>
                         
-                        <div className="pt-4 mt-4 border-t border-white/5 flex flex-col gap-4 px-3">
-                            <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-bold text-zinc-300">
+                        <div className="pt-4 mt-4 border-t border-gray-200 dark:border-white/5 flex flex-col gap-4 px-3">
+                            <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-zinc-300">
                                 <Phone className="w-4 h-4 text-red-500" /> +43 660 9996800
                             </a>
                             <Link href="/fleet" onClick={() => setIsOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-md bg-red-600 text-white text-sm font-bold">
