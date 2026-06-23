@@ -34,7 +34,7 @@ const menuGroups = [
         title: 'Hauptmenü',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-            { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
+            { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
         ]
     },
     {
@@ -49,7 +49,6 @@ const menuGroups = [
         title: 'Flotte',
         items: [
             { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
-            { name: 'GPS Tracking', icon: MapPin, href: '/admin/tracking', badgeKey: 'live' },
             { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
             { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
         ]

@@ -130,7 +130,21 @@ export default async function AdminDashboard() {
                         Übersicht für <span className="font-medium text-gray-900 dark:text-gray-200">{staff?.location?.name || 'alle Standorte'}</span> am {format(new Date(), 'dd. MMMM yyyy', { locale: de })}.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+                    <Link 
+                        href="/admin/check-in-setup"
+                        className="flex items-center gap-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+                    >
+                        <Car className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        Fahrzeugrückgabe
+                    </Link>
+                    <Link 
+                        href="/admin/rechnungen"
+                        className="flex items-center gap-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+                    >
+                        <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        Schnelle Rechnung
+                    </Link>
                     <Link 
                         href="/admin/reservations/new"
                         className="flex items-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
