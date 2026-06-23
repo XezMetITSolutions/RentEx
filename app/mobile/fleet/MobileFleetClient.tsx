@@ -37,17 +37,17 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
   const displayedCars = filterCars();
 
   return (
-    <div className="flex flex-col min-h-screen text-white pb-24 bg-[#0A0A0A]">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-24 transition-colors">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-white/5 bg-[#141414] sticky top-0 z-20">
-        <Link href="/mobile" className="w-10 h-10 flex items-center justify-center bg-[#1C1C1C] border border-white/5 rounded-xl text-white">
+      <header className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#141414] sticky top-0 z-20 transition-colors">
+        <Link href="/mobile" className="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl text-gray-900 dark:text-white transition-colors">
           <ChevronLeft className="w-6 h-6" />
         </Link>
         <h1 className="text-[16px] font-bold">Fuhrpark</h1>
         <button 
           onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
-          className="w-10 h-10 flex items-center justify-center bg-[#1C1C1C] border border-white/5 rounded-xl text-white"
+          className="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl text-gray-900 dark:text-white transition-colors"
         >
           {viewMode === "list" ? <LayoutGrid className="w-5 h-5" /> : <LayoutList className="w-5 h-5" />}
         </button>
@@ -61,9 +61,9 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Im Fuhrpark suchen..." 
-            className="w-full bg-[#1C1C1C] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-[14px] text-white placeholder-[#A3A3A3] outline-none focus:border-[#E53935]"
+            className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-[14px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#A3A3A3] outline-none focus:border-[#E53935] transition-colors"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A3A3A3]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#A3A3A3]" />
         </div>
       </div>
 
@@ -74,19 +74,19 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
           className={`px-4 py-2 rounded-full whitespace-nowrap text-[12px] font-medium transition-colors border ${
             activeTab === "Alle" 
               ? "bg-[#E53935] border-[#E53935] text-white" 
-              : "bg-[#1C1C1C] border-white/5 text-[#A3A3A3]"
+              : "bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5 text-gray-500 dark:text-[#A3A3A3]"
           }`}
         >
           Alle
         </button>
-        {categories.map((cat) => (
+        {categories.filter(cat => initialCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.name)}
             className={`px-4 py-2 rounded-full whitespace-nowrap text-[12px] font-medium transition-colors border ${
               activeTab === cat.name 
                 ? "bg-[#E53935] border-[#E53935] text-white" 
-                : "bg-[#1C1C1C] border-white/5 text-[#A3A3A3]"
+                : "bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5 text-gray-500 dark:text-[#A3A3A3]"
             }`}
           >
             {cat.name}
@@ -99,7 +99,7 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
         <select 
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="bg-transparent text-[#A3A3A3] text-[12px] font-medium outline-none appearance-none cursor-pointer"
+          className="bg-transparent text-gray-500 dark:text-[#A3A3A3] text-[12px] font-medium outline-none appearance-none cursor-pointer"
         >
           <option value="Preis aufsteigend">Preis aufsteigend</option>
           <option value="Preis absteigend">Preis absteigend</option>
@@ -114,7 +114,7 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
 
       {/* Result Count Caption */}
       <div className="px-5 mt-4">
-        <span className="text-[12px] text-[#A3A3A3]">{displayedCars.length} Fahrzeuge verfügbar</span>
+        <span className="text-[12px] text-gray-500 dark:text-[#A3A3A3]">{displayedCars.length} Fahrzeuge verfügbar</span>
       </div>
 
       {/* Vehicle List */}
@@ -125,12 +125,12 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
               <Link 
                 key={car.id}
                 href={`/mobile/fleet/${car.id}`}
-                className={`relative flex bg-[#1C1C1C] rounded-[1.2rem] border border-white/5 p-3 hover:border-white/10 transition-colors ${
+                className={`relative flex bg-white dark:bg-[#1C1C1C] rounded-[1.2rem] border border-gray-200 dark:border-white/5 p-3 hover:border-gray-300 dark:hover:border-white/10 transition-colors ${
                   viewMode === "grid" ? "flex-col" : "items-center gap-4"
                 }`}
               >
                 {/* Image & Badges */}
-                <div className={`relative bg-black/20 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
+                <div className={`relative bg-gray-100 dark:bg-black/20 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
                   viewMode === "grid" ? "w-full h-24 mb-3" : "w-28 h-20"
                 }`}>
                   <Image 
@@ -140,11 +140,11 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
                     className="object-cover"
                   />
                   {/* Status Badge */}
-                  <div className="absolute top-2 left-2 bg-green-500/20 border border-green-500/30 text-green-500 text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase">
+                  <div className="absolute top-2 left-2 bg-green-500/10 dark:bg-green-500/20 border border-green-500/30 text-green-600 dark:text-green-500 text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase">
                     Verfügbar
                   </div>
                   {/* Favorite Icon */}
-                  <button className="absolute top-2 right-2 p-1 bg-black/40 backdrop-blur-sm rounded-full text-[#A3A3A3]">
+                  <button className="absolute top-2 right-2 p-1 bg-white/80 dark:bg-black/40 backdrop-blur-sm rounded-full text-gray-400 dark:text-[#A3A3A3]">
                     <Heart className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -152,10 +152,10 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
                 {/* Content */}
                 <div className={`flex-1 min-w-0 flex flex-col justify-between ${viewMode === "grid" ? "h-full" : ""}`}>
                   <div>
-                    <h2 className="text-[14px] font-bold text-white truncate">{car.brand} {car.model}</h2>
+                    <h2 className="text-[14px] font-bold text-gray-900 dark:text-white truncate">{car.brand} {car.model}</h2>
                     
                     {/* Spec Row */}
-                    <div className="flex items-center gap-1.5 mt-1 text-[#A3A3A3] text-[10px]">
+                    <div className="flex items-center gap-1.5 mt-1 text-gray-500 dark:text-[#A3A3A3] text-[10px]">
                       <Fuel className="w-3 h-3" /> <span>{car.fuelType}</span>
                       <span className="mx-0.5">·</span>
                       <Gauge className="w-3 h-3" /> <span>{car.transmission}</span>
@@ -174,10 +174,10 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
                       <span className="text-[16px] font-bold text-[#E53935]">
                         {new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(Number(car.dailyRate))}
                       </span>
-                      <span className="text-[10px] text-[#A3A3A3]"> / Tag</span>
+                      <span className="text-[10px] text-gray-500 dark:text-[#A3A3A3]"> / Tag</span>
                     </div>
                     {viewMode === "list" && (
-                      <ChevronRight className="w-4 h-4 text-[#A3A3A3]" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-[#A3A3A3]" />
                     )}
                   </div>
                 </div>
@@ -186,14 +186,14 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
           </div>
         ) : (
           <div className="py-16 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-[#1C1C1C] rounded-full flex items-center justify-center mb-4 border border-white/5">
-              <AlertCircle className="w-8 h-8 text-[#A3A3A3]" />
+            <div className="w-16 h-16 bg-white dark:bg-[#1C1C1C] rounded-full flex items-center justify-center mb-4 border border-gray-200 dark:border-white/5 transition-colors">
+              <AlertCircle className="w-8 h-8 text-gray-400 dark:text-[#A3A3A3]" />
             </div>
-            <h3 className="text-white font-bold text-[16px] mb-1">Keine Fahrzeuge gefunden</h3>
-            <p className="text-[#A3A3A3] text-[12px] mb-6">Passen Sie Ihre Filter an</p>
+            <h3 className="text-gray-900 dark:text-white font-bold text-[16px] mb-1">Keine Fahrzeuge gefunden</h3>
+            <p className="text-gray-500 dark:text-[#A3A3A3] text-[12px] mb-6">Passen Sie Ihre Filter an</p>
             <button 
               onClick={() => { setActiveTab("Alle"); setSearchQuery(""); }}
-              className="px-6 py-2.5 bg-[#1C1C1C] border border-white/10 hover:border-white/20 text-white font-medium text-sm rounded-xl transition-colors"
+              className="px-6 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 text-gray-900 dark:text-white font-medium text-sm rounded-xl transition-colors"
             >
               Filter zurücksetzen
             </button>

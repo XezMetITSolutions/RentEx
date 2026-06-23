@@ -4,8 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
 const DEFAULT_CAR_CATEGORIES = [
-    'Kleinwagen', 'Mittelklasse', 'Limousine', 'SUV', 'Van',
-    'Sportwagen', 'Cabrio', 'Kombi', 'Bus', 'Kastenwagen',
+    'PKW', 'Kastenwagen', 'Bus', 'SUV', 'Elektro'
 ];
 
 export async function getCarCategories() {

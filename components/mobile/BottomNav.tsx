@@ -16,7 +16,7 @@ export default function BottomNav({ isLoggedIn = false }: { isLoggedIn?: boolean
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#141414] border-t border-white/10 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#141414] border-t border-gray-200 dark:border-white/10 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-colors">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href !== "/mobile" && pathname?.startsWith(tab.href));
@@ -27,7 +27,7 @@ export default function BottomNav({ isLoggedIn = false }: { isLoggedIn?: boolean
               key={tab.name} 
               href={tab.href}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 ${
-                isActive ? "text-[#E53935]" : "text-[#A3A3A3] hover:text-white"
+                isActive ? "text-[#E53935]" : "text-gray-500 dark:text-[#A3A3A3] hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <Icon className="w-6 h-6 stroke-[1.5]" />
