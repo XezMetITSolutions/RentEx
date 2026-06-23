@@ -93,6 +93,7 @@ interface SidebarProps {
 }
 
 const rolePermissions: Record<string, string[]> = {
+    'SUPERADMIN': ['all'],
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
         'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 'Standorte', 

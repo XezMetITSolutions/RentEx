@@ -35,9 +35,6 @@ export default function Navbar() {
                         <Link href="/fleet" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Fahrzeuge
                         </Link>
-                        <Link href="/fleet" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                            Flotte
-                        </Link>
                         <Link href="/dashboard" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Buchungen
                         </Link>
