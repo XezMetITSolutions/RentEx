@@ -4,21 +4,43 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
 const DEFAULT_CAR_CATEGORIES = [
-    'PKW', 'Kastenwagen', 'Bus', 'SUV', 'Elektro'
+    'Kleinwagen', 'Mittelklasse', 'Limousine', 'SUV', 'Van', 'Sportwagen', 'Cabrio', 'Kombi', 'Bus', 'Kastenwagen'
 ];
 
 export async function getCarCategories() {
-    const list = await prisma.carCategory.findMany({
+    let list = await prisma.carCategory.findMany({
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
-    if (list.length === 0) {
-        await prisma.carCategory.createMany({
-            data: DEFAULT_CAR_CATEGORIES.map((name, i) => ({ name, sortOrder: i })),
+
+    // Sync categories table with defaults and actual car categories in the database
+    const activeCars = await prisma.car.findMany({
+        where: { status: 'Active', isActive: true },
+        select: { category: true }
+    });
+    const activeCarCats = Array.from(new Set(activeCars.map(c => c.category).filter(Boolean))) as string[];
+    const allNeededNames = Array.from(new Set([...DEFAULT_CAR_CATEGORIES, ...activeCarCats]));
+
+    const existingNames = new Set(list.map(c => c.name.toLowerCase()));
+    const missingNames = allNeededNames.filter(name => !existingNames.has(name.toLowerCase()));
+
+    if (missingNames.length > 0) {
+        const maxOrderResult = await prisma.carCategory.aggregate({
+            _max: { sortOrder: true }
         });
-        return prisma.carCategory.findMany({
+        const startOrder = (maxOrderResult._max.sortOrder ?? -1) + 1;
+
+        await prisma.carCategory.createMany({
+            data: missingNames.map((name, i) => ({
+                name,
+                sortOrder: startOrder + i
+            }))
+        });
+
+        list = await prisma.carCategory.findMany({
             orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         });
     }
+
     return list;
 }
 

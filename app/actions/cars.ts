@@ -140,7 +140,7 @@ export async function getFeaturedCars() {
         return group[randomIndex];
     });
 
-    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate)).slice(0, 4);
+    return uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
 }
 
 export async function createCar(formData: FormData) {
