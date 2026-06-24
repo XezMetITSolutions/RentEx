@@ -70,7 +70,7 @@ export default function InteractiveFleet({ initialCars, categories }: Interactiv
         >
           Alle
         </button>
-        {categories.filter(cat => initialCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.name)}
