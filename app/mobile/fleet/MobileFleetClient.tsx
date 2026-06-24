@@ -79,7 +79,7 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
         >
           Alle
         </button>
-        {categories.map((cat) => (
+        {categories.filter(cat => initialCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.name)}
