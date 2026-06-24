@@ -71,9 +71,9 @@ export default async function Home() {
                   <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 ml-1">Fahrzeugtyp</label>
                   <div className="relative">
                     <select className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-colors text-sm appearance-none cursor-pointer">
-                      <option>Alle Fahrzeugtypen</option>
+                      <option className="text-black dark:text-black">Alle Fahrzeugtypen</option>
                       {categories.filter(cat => featuredCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
-                        <option key={cat.id}>{cat.name}</option>
+                        <option key={cat.id} className="text-black dark:text-black">{cat.name}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
