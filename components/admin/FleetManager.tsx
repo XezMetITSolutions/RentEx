@@ -32,7 +32,7 @@ interface Car {
     vin: string | null;
 }
 
-export function FleetManager({ initialCars }: { initialCars: Car[] }) {
+export function FleetManager({ initialCars, globalCategories = [] }: { initialCars: Car[], globalCategories?: {id: number, name: string}[] }) {
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -51,7 +51,15 @@ export function FleetManager({ initialCars }: { initialCars: Car[] }) {
 
     // Extract unique values for filters
     const brands = useMemo(() => Array.from(new Set(initialCars.map(c => c.brand))).sort(), [initialCars]);
-    const categories = useMemo(() => Array.from(new Set(initialCars.map(c => c.category).filter(Boolean))).sort(), [initialCars]);
+    
+    // Use global categories if available, otherwise fallback to existing car categories
+    const categories = useMemo(() => {
+        if (globalCategories && globalCategories.length > 0) {
+            return globalCategories.map(c => c.name);
+        }
+        return Array.from(new Set(initialCars.map(c => c.category).filter(Boolean))).sort();
+    }, [initialCars, globalCategories]);
+    
     const fuelTypes = useMemo(() => Array.from(new Set(initialCars.map(c => c.fuelType))).sort(), [initialCars]);
     const locations = useMemo(() => {
         const locs = new Set<string>();
