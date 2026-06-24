@@ -160,11 +160,12 @@ export default async function FleetPage({
             fuelType: fuelParam
         });
 
-        const allCategories = await prisma.car.findMany({
-            where: { isActive: true, status: 'Active' },
-            select: { category: true },
-            distinct: ['category']
+        const allCategoriesRaw = await prisma.carCategory.findMany({
+            orderBy: { sortOrder: 'asc' },
+            select: { name: true }
         });
+        
+        const allCategories = allCategoriesRaw.map(c => ({ category: c.name }));
 
         const brands = await prisma.car.findMany({
             where: { isActive: true, status: 'Active' },
