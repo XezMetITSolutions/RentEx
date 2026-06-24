@@ -94,9 +94,9 @@ export default function InteractiveFleet({ initialCars, categories }: Interactiv
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/10 rounded-lg py-2 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 text-sm appearance-none cursor-pointer"
           >
-            <option>Beliebteste</option>
-            <option>Preis (Aufsteigend)</option>
-            <option>Preis (Absteigend)</option>
+            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Beliebteste</option>
+            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Preis (Aufsteigend)</option>
+            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Preis (Absteigend)</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
         </div>

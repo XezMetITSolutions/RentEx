@@ -101,10 +101,10 @@ export default function MobileFleetClient({ initialCars, categories, initialSear
           onChange={(e) => setSortBy(e.target.value)}
           className="bg-transparent text-gray-500 dark:text-[#A3A3A3] text-[12px] font-medium outline-none appearance-none cursor-pointer"
         >
-          <option value="Preis aufsteigend">Preis aufsteigend</option>
-          <option value="Preis absteigend">Preis absteigend</option>
-          <option value="Beliebtheit">Beliebtheit</option>
-          <option value="Neueste">Neueste</option>
+          <option className="bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-white" value="Preis aufsteigend">Preis aufsteigend</option>
+          <option className="bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-white" value="Preis absteigend">Preis absteigend</option>
+          <option className="bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-white" value="Beliebtheit">Beliebtheit</option>
+          <option className="bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-white" value="Neueste">Neueste</option>
         </select>
         
         <Link href="/mobile/filter" className="flex items-center gap-2 text-[#E53935] text-[12px] font-medium">
