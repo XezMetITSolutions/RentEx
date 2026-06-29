@@ -134,25 +134,25 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
     return (
         <div className="sticky top-24 space-y-6">
             {/* Price Card */}
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl">
-                <div className="flex justify-between items-end mb-6 border-b border-white/10 pb-6">
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl shadow-black/5">
+                <div className="flex justify-between items-end mb-6 border-b border-gray-200 dark:border-white/10 pb-6">
                     <div>
-                        <p className="text-gray-400 text-sm">Gesamtpreis</p>
-                        <p className="text-4xl font-bold text-white">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Gesamtpreis</p>
+                        <p className="text-4xl font-bold text-gray-900 dark:text-white">
                             {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">für {totalDays} Tage</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">für {totalDays} Tage</p>
                     </div>
                 </div>
 
                 {/* Availability Status */}
                 <div className="mb-6 flex justify-end">
                     {isAvailable ? (
-                        <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs font-semibold">
+                        <span className="text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded text-xs font-semibold">
                             Verfügbar
                         </span>
                     ) : (
-                        <span className="text-red-400 bg-red-400/10 px-2 py-1 rounded text-xs font-semibold">
+                        <span className="text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-1 rounded text-xs font-semibold">
                             Nicht verfügbar
                         </span>
                     )}
@@ -160,8 +160,8 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
 
                 {/* Date Selection */}
                 <div className="space-y-4 mb-6">
-                    <div className="bg-black/40 rounded-xl p-3 border border-white/5">
-                        <label className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-2">
+                    <div className="bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-200 dark:border-white/5">
+                        <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-2">
                             <Calendar className="w-3 h-3" /> Abholung
                         </label>
                         <input
@@ -176,11 +176,11 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                                     setEndDate(newStart);
                                 }
                             }}
-                            className="w-full bg-transparent text-white border-none focus:ring-0 p-0 mt-1 [&::-webkit-calendar-picker-indicator]:invert"
+                            className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 mt-1 dark:[&::-webkit-calendar-picker-indicator]:invert"
                         />
                     </div>
-                    <div className="bg-black/40 rounded-xl p-3 border border-white/5">
-                        <label className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-2">
+                    <div className="bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-200 dark:border-white/5">
+                        <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-2">
                             <Calendar className="w-3 h-3" /> Rückgabe
                         </label>
                         <input
@@ -188,7 +188,7 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                             value={endDate}
                             min={startDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full bg-transparent text-white border-none focus:ring-0 p-0 mt-1 [&::-webkit-calendar-picker-indicator]:invert"
+                            className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 mt-1 dark:[&::-webkit-calendar-picker-indicator]:invert"
                         />
                     </div>
                 </div>
@@ -198,7 +198,7 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
                     disabled={!isAvailable}
                     className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] ${isAvailable
                         ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
-                        : "bg-zinc-700 text-zinc-500 cursor-not-allowed shadow-none"
+                        : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 dark:text-zinc-500 cursor-not-allowed shadow-none"
                         }`}
                 >
                     {isAvailable ? "Jetzt Reservieren" : "Zeitraum belegt"}
@@ -209,31 +209,31 @@ export default function BookingWidget({ car, options, initialStartDate, initialE
             </div>
 
             {/* Extras Selection */}
-            <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Zusatzpakete</h3>
+            <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-none">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Zusatzpakete</h3>
                 <div className="space-y-3">
                     {options.map((option) => {
                         const Icon = getOptionIcon(option.type);
                         return (
-                            <label key={option.id} className="flex items-start gap-3 p-3 rounded-xl border border-white/5 hover:bg-white/5 cursor-pointer transition-colors group select-none">
+                            <label key={option.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-150 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group select-none">
                                 <input
                                     type="checkbox"
-                                    className="mt-1 rounded border-gray-600 bg-zinc-800 text-red-600 focus:ring-red-600"
+                                    className="mt-1 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 text-red-600 focus:ring-red-600"
                                     checked={selectedOptions.includes(option.id)}
                                     onChange={() => handleOptionToggle(option.id)}
                                 />
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="font-medium text-white flex items-center gap-2">
+                                        <span className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                                             <Icon className="w-4 h-4 text-gray-500" />
                                             {option.name}
                                         </span>
-                                        <span className="text-sm font-semibold text-gray-300">
+                                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                             +{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(option.price))}
-                                            {option.isPerDay && <span className="text-[10px] text-zinc-500 ml-1">/Tag</span>}
+                                            {option.isPerDay && <span className="text-[10px] text-gray-500 ml-1">/Tag</span>}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
+                                    <p className="text-xs text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-400 transition-colors">
                                         {option.description}
                                     </p>
                                 </div>
