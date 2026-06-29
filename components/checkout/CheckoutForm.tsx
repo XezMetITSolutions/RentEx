@@ -109,6 +109,27 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     const [city, setCity] = useState(initialCustomer?.city || '');
     const suggestionRef = useRef<HTMLDivElement>(null);
 
+    const [emailExists, setEmailExists] = useState(false);
+    const [emailValue, setEmailValue] = useState(initialCustomer?.email || '');
+
+    const checkEmail = async (email: string) => {
+        if (!email || email.indexOf('@') === -1) {
+            setEmailExists(false);
+            return;
+        }
+        if (initialCustomer && initialCustomer.email === email) {
+            setEmailExists(false);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email.trim())}`);
+            const data = await res.json();
+            setEmailExists(data.exists);
+        } catch (e) {
+            console.error("Failed to check email", e);
+        }
+    };
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
@@ -214,7 +235,31 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">E-Mail Adresse</label>
-                            <input required name="email" type="email" defaultValue={initialCustomer?.email || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
+                            <input
+                                required
+                                name="email"
+                                type="email"
+                                value={emailValue}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEmailValue(val);
+                                    checkEmail(val);
+                                }}
+                                onBlur={(e) => checkEmail(e.target.value)}
+                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
+                                placeholder="max@beispiel.com"
+                            />
+                            {emailExists && (
+                                <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center justify-between animate-in fade-in duration-300">
+                                    <span>⚠️ Ein Konto mit dieser E-Mail existiert bereits.</span>
+                                    <a
+                                        href={`/login?redirect=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}&email=${encodeURIComponent(emailValue)}`}
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all text-[10px]"
+                                    >
+                                        Jetzt anmelden
+                                    </a>
+                                </div>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefonnummer</label>
