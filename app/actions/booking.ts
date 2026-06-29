@@ -12,6 +12,7 @@ import { calculateChargeableDays } from "@/lib/bookingUtils";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
+import { sendEmail, emailTemplates } from "@/lib/notificationTemplates";
 
 
 function parseDateOfBirth(dateStr: string): Date | null {
@@ -349,6 +350,31 @@ export async function createBooking(prevState: any, formData: FormData) {
 
         if (sessionUrl) {
             redirect(sessionUrl);
+        }
+    } else {
+        // Send booking confirmation email for Pay-on-Arrival
+        try {
+            const templateData = {
+                contractNumber,
+                customer: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email,
+                },
+                car: {
+                    brand: car.brand,
+                    model: car.model,
+                    plate: car.plate,
+                },
+                rental: {
+                    startDate,
+                    endDate,
+                    totalAmount,
+                },
+            };
+            await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
+        } catch (emailError) {
+            console.error("Failed to send pay-on-arrival booking confirmation email:", emailError);
         }
     }
 
