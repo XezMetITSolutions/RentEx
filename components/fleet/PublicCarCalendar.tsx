@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
     format, 
     addMonths, 
@@ -30,11 +30,37 @@ interface PublicCarCalendarProps {
 export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart, selectedEnd }: PublicCarCalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+    const [isSelecting, setIsSelecting] = useState(false);
+    const [dragStart, setDragStart] = useState<Date | null>(null);
 
     const nextMonth = addMonths(currentMonth, 1);
 
     const start = selectedStart ? new Date(selectedStart) : null;
     const end = selectedEnd ? new Date(selectedEnd) : null;
+
+    // Reset selection dragging if user releases mouse anywhere on the window
+    useEffect(() => {
+        const handleMouseUp = () => {
+            if (isSelecting) {
+                setIsSelecting(false);
+                if (dragStart && hoveredDate && onDateSelect) {
+                    // Check booking conflicts
+                    const hasConflict = bookedIntervals.some(interval => {
+                        const s = new Date(interval.start);
+                        s.setHours(0,0,0,0);
+                        const e = new Date(interval.end);
+                        e.setHours(0,0,0,0);
+                        return s > dragStart && s < hoveredDate;
+                    });
+                    if (!hasConflict && !isBefore(hoveredDate, dragStart) && !isSameDay(hoveredDate, dragStart)) {
+                        onDateSelect(dragStart, hoveredDate);
+                    }
+                }
+            }
+        };
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => window.removeEventListener('mouseup', handleMouseUp);
+    }, [isSelecting, dragStart, hoveredDate, onDateSelect]);
 
     // Parse rentals and check if a specific day is booked
     const bookedIntervals = useMemo(() => {
@@ -46,7 +72,6 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
 
     const isDayBooked = (date: Date) => {
         return bookedIntervals.some(interval => {
-            // Set hours to 0 to compare dates accurately
             const d = new Date(date);
             d.setHours(0,0,0,0);
             const s = new Date(interval.start);
@@ -57,35 +82,97 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
         });
     };
 
+    const handleDateMouseDown = (date: Date) => {
+        if (isDayBooked(date) || (isPast(date) && !isToday(date))) return;
+        setIsSelecting(true);
+        setDragStart(date);
+        setHoveredDate(date);
+        if (onDateSelect) {
+            onDateSelect(date, addDays(date, 1));
+        }
+    };
+
+    const handleDateMouseEnter = (date: Date) => {
+        if (!isSelecting || !dragStart) return;
+        if (isDayBooked(date) || (isPast(date) && !isToday(date))) return;
+        
+        // Prevent selecting backwards
+        if (isBefore(date, dragStart)) return;
+
+        // Check if there is any booking conflict in between dragStart and hovered date
+        const hasConflict = bookedIntervals.some(interval => {
+            const s = new Date(interval.start);
+            s.setHours(0,0,0,0);
+            return s > dragStart && s < date;
+        });
+
+        if (!hasConflict) {
+            setHoveredDate(date);
+        }
+    };
+
     const handleDateClick = (date: Date) => {
-        if (isDayBooked(date) || isPast(date) && !isToday(date)) return;
+        // Fallback for simple clicks without dragging
+        if (isDayBooked(date) || (isPast(date) && !isToday(date))) return;
 
         if (!start || (start && end)) {
-            // First click or resetting selection
-            if (onDateSelect) {
-                // Default to a 1 day selection initially
-                onDateSelect(date, addDays(date, 1));
-            }
+            if (onDateSelect) onDateSelect(date, addDays(date, 1));
         } else {
-            // Second click
             if (isBefore(date, start)) {
-                // If clicked date is before start, set as new start
                 if (onDateSelect) onDateSelect(date, addDays(date, 1));
             } else {
-                // Check if any booked dates are within the chosen interval
                 const hasBookingConflict = bookedIntervals.some(interval => {
                     const s = new Date(interval.start);
                     s.setHours(0,0,0,0);
-                    const e = new Date(interval.end);
-                    e.setHours(0,0,0,0);
                     return s > start && s < date;
                 });
 
                 if (hasBookingConflict) {
-                    // Reset selection to new start if there is a conflict
                     if (onDateSelect) onDateSelect(date, addDays(date, 1));
                 } else {
                     if (onDateSelect) onDateSelect(start, date);
+                }
+            }
+        }
+    };
+
+    // Touch event helpers
+    const handleTouchStart = (e: React.TouchEvent, date: Date) => {
+        if (isDayBooked(date) || (isPast(date) && !isToday(date))) return;
+        setDragStart(date);
+        setHoveredDate(date);
+        setIsSelecting(true);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isSelecting || !dragStart) return;
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!element) return;
+        
+        const dayStr = element.getAttribute('data-day');
+        if (dayStr) {
+            const date = new Date(dayStr);
+            if (isDayBooked(date) || (isPast(date) && !isToday(date)) || isBefore(date, dragStart)) return;
+
+            const hasConflict = bookedIntervals.some(interval => {
+                const s = new Date(interval.start);
+                s.setHours(0,0,0,0);
+                return s > dragStart && s < date;
+            });
+
+            if (!hasConflict) {
+                setHoveredDate(date);
+            }
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (isSelecting) {
+            setIsSelecting(false);
+            if (dragStart && hoveredDate && onDateSelect) {
+                if (!isBefore(hoveredDate, dragStart)) {
+                    onDateSelect(dragStart, hoveredDate);
                 }
             }
         }
@@ -127,16 +214,18 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
                         const isSelectedEnd = end ? isSameDay(day, end) : false;
                         
                         let isInSelectionRange = false;
-                        if (start) {
+                        if (isSelecting && dragStart) {
+                            if (hoveredDate && !isBefore(day, dragStart) && !isBefore(hoveredDate, day)) {
+                                isInSelectionRange = true;
+                            }
+                        } else if (start) {
                             if (end) {
                                 isInSelectionRange = isWithinInterval(day, { start, end });
-                            } else if (hoveredDate && !isBefore(hoveredDate, start)) {
-                                isInSelectionRange = isWithinInterval(day, { start, end: hoveredDate });
                             }
                         }
 
                         // Determine styles
-                        let btnClass = "relative w-full aspect-square rounded-xl text-xs font-semibold flex items-center justify-center transition-all ";
+                        let btnClass = "relative w-full aspect-square rounded-xl text-xs font-semibold flex items-center justify-center transition-all select-none ";
                         
                         if (!isCurrentMonth) {
                             btnClass += "text-gray-300 dark:text-zinc-700 pointer-events-none opacity-40 ";
@@ -145,9 +234,9 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
                             if (isBooked) {
                                 btnClass += "border border-red-500/20 text-red-500/80 ";
                             }
-                        } else if (isSelectedStart) {
+                        } else if (isSelectedStart || (isSelecting && dragStart && isSameDay(day, dragStart))) {
                             btnClass += "bg-red-600 text-white shadow-md shadow-red-500/30 scale-105 z-10 ";
-                        } else if (isSelectedEnd) {
+                        } else if (isSelectedEnd || (isSelecting && hoveredDate && isSameDay(day, hoveredDate))) {
                             btnClass += "bg-red-600 text-white shadow-md shadow-red-500/30 scale-105 z-10 ";
                         } else if (isInSelectionRange) {
                             btnClass += "bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 ";
@@ -161,10 +250,14 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
                             <button
                                 key={day.toString()}
                                 type="button"
+                                data-day={day.toISOString()}
                                 disabled={isDisabled || !isCurrentMonth}
+                                onMouseDown={() => handleDateMouseDown(day)}
+                                onMouseEnter={() => handleDateMouseEnter(day)}
                                 onClick={() => handleDateClick(day)}
-                                onMouseEnter={() => !isDisabled && setHoveredDate(day)}
-                                onMouseLeave={() => setHoveredDate(null)}
+                                onTouchStart={(e) => handleTouchStart(e, day)}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
                                 className={btnClass}
                             >
                                 <span>{format(day, 'd')}</span>
@@ -226,7 +319,7 @@ export default function PublicCarCalendar({ rentals, onDateSelect, selectedStart
                 </div>
                 <div className="ml-auto flex items-center gap-1 text-gray-400 italic font-medium">
                     <Info className="w-3.5 h-3.5" />
-                    <span>Start- und Enddatum anklicken</span>
+                    <span>Ziehen oder Klicken zum Auswählen</span>
                 </div>
             </div>
         </div>
