@@ -48,13 +48,22 @@ const COUNTRIES = [
     "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
 ];
 
-export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
-    const pickupTime = searchParams.pickupTime || "10:00";
-    const returnTime = searchParams.returnTime || "10:00";
-    const days = calculateChargeableDays(searchParams.startDate, pickupTime, searchParams.endDate, returnTime);
+const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2).toString().padStart(2, '0');
+    const minute = (i % 2 === 0 ? '00' : '30');
+    return `${hour}:${minute}`;
+});
 
-    const isPickupOutside = isOutsideOpeningHours(searchParams.startDate, pickupTime);
-    const isReturnOutside = isOutsideOpeningHours(searchParams.endDate, returnTime);
+export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
+    const [startDate, setStartDate] = useState(searchParams.startDate);
+    const [endDate, setEndDate] = useState(searchParams.endDate);
+    const [pickupTime, setPickupTime] = useState(searchParams.pickupTime || "10:00");
+    const [returnTime, setReturnTime] = useState(searchParams.returnTime || "10:00");
+
+    const days = calculateChargeableDays(startDate, pickupTime, endDate, returnTime);
+
+    const isPickupOutside = isOutsideOpeningHours(startDate, pickupTime);
+    const isReturnOutside = isOutsideOpeningHours(endDate, returnTime);
     const needsSelfCheckin = isPickupOutside || isReturnOutside;
 
     const selectedOptionIds = searchParams.options ? searchParams.options.split(',').map(Number) : [];
@@ -134,8 +143,8 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
 
             {/* Hidden Fields for Server Action */}
             <input type="hidden" name="carId" value={car.id} />
-            <input type="hidden" name="startDate" value={searchParams.startDate} />
-            <input type="hidden" name="endDate" value={searchParams.endDate} />
+            <input type="hidden" name="startDate" value={startDate} />
+            <input type="hidden" name="endDate" value={endDate} />
             <input type="hidden" name="options" value={searchParams.options} />
             <input type="hidden" name="totalAmount" value={total} />
             <input type="hidden" name="pickupTime" value={pickupTime} />
@@ -332,25 +341,65 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
 
                         {/* Dates */}
                         <div className="space-y-4 mb-6 pb-6 border-b border-gray-200 dark:border-white/10">
-                            <div className="flex items-start gap-3">
-                                <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Abholung</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{new Date(searchParams.startDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">{pickupTime} Uhr</p>
+                            {/* Abholung Date & Time */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-red-500" /> Abholzeitpunkt
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        min={new Date().toISOString().split('T')[0]}
+                                        onChange={(e) => {
+                                            const newStart = e.target.value;
+                                            setStartDate(newStart);
+                                            if (endDate < newStart) {
+                                                setEndDate(newStart);
+                                            }
+                                        }}
+                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert"
+                                    />
+                                    <select
+                                        value={pickupTime}
+                                        onChange={(e) => setPickupTime(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none appearance-none cursor-pointer"
+                                    >
+                                        {timeOptions.map(t => (
+                                            <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3">
-                                <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Rückgabe</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{new Date(searchParams.endDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">{returnTime} Uhr</p>
+
+                            {/* Rückgabe Date & Time */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-red-500" /> Rückgabezeitpunkt
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        min={startDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert"
+                                    />
+                                    <select
+                                        value={returnTime}
+                                        onChange={(e) => setReturnTime(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none appearance-none cursor-pointer"
+                                    >
+                                        {timeOptions.map(t => (
+                                            <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-4" /> {/* Spacer */}
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Dauer: <span className="text-gray-900 dark:text-white font-medium">{days} Tage</span></p>
+
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 pt-1">
+                                <span>Berechnete Dauer:</span>
+                                <span className="text-gray-900 dark:text-white font-bold text-xs bg-red-500/10 px-2 py-0.5 rounded-lg">{days} Tage</span>
                             </div>
                             {needsSelfCheckin && (
                                 <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-[11px] leading-relaxed">
