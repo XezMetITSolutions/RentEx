@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MoreHorizontal, MapPin, Calendar, Clock, ChevronDown, Check, X, Info, User } from "lucide-react";
 import { checkMobileCarAvailability } from "../../actions";
 import { calculateChargeableDays } from "@/lib/bookingUtils";
+import CustomDatePicker from "@/components/ui/CustomDatePicker";
 
 
 export default function MobileCheckoutClient({ car, customer, locations, options = [] }: { car: any, customer: any, locations: any[], options?: any[] }) {
@@ -196,10 +197,7 @@ export default function MobileCheckoutClient({ car, customer, locations, options
         <div className="grid grid-cols-[2fr_1fr] gap-3">
           <div className="space-y-2">
             <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Abholdatum</label>
-            <div className="relative">
-              <input type="date" min={todayISO} value={abholdatum} onChange={(e) => setAbholdatum(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 pl-10 pr-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] dark:[color-scheme:dark] transition-colors" />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
-            </div>
+            <CustomDatePicker value={abholdatum} onChange={setAbholdatum} min={todayISO} />
           </div>
           <div className="space-y-2">
             <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Zeit</label>
@@ -214,10 +212,7 @@ export default function MobileCheckoutClient({ car, customer, locations, options
         <div className="grid grid-cols-[2fr_1fr] gap-3">
           <div className="space-y-2">
             <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Rückgabedatum</label>
-            <div className="relative">
-              <input type="date" min={abholdatum} value={rueckgabedatum} onChange={(e) => setRueckgabedatum(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 pl-10 pr-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] dark:[color-scheme:dark] transition-colors" />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
-            </div>
+            <CustomDatePicker value={rueckgabedatum} onChange={setRueckgabedatum} min={abholdatum} />
             {!isValidDate && <span className="text-[#E53935] text-[10px] ml-1">Muss gültig sein</span>}
           </div>
           <div className="space-y-2">

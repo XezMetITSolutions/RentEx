@@ -6,6 +6,7 @@ import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2
 import { createBooking } from "@/app/actions/booking";
 import { useEffect, useRef } from "react";
 import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import CustomDatePicker from "@/components/ui/CustomDatePicker";
 
 type Props = {
     car: any;
@@ -521,18 +522,16 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                     <Calendar className="w-3.5 h-3.5 text-red-500" /> Abholzeitpunkt
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <input
-                                        type="date"
+                                    <CustomDatePicker
                                         value={startDate}
                                         min={new Date().toISOString().split('T')[0]}
-                                        onChange={(e) => {
-                                            const newStart = e.target.value;
+                                        onChange={(newStart) => {
                                             setStartDate(newStart);
                                             if (endDate < newStart) {
                                                 setEndDate(newStart);
                                             }
                                         }}
-                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert"
+                                        inputClassName="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-xs text-gray-950 dark:text-white outline-none cursor-pointer flex items-center justify-between select-none"
                                     />
                                     <select
                                         value={pickupTime}
@@ -552,12 +551,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                     <Calendar className="w-3.5 h-3.5 text-red-500" /> Rückgabezeitpunkt
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <input
-                                        type="date"
+                                    <CustomDatePicker
                                         value={endDate}
                                         min={startDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert"
+                                        onChange={(newEnd) => setEndDate(newEnd)}
+                                        inputClassName="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-xs text-gray-950 dark:text-white outline-none cursor-pointer flex items-center justify-between select-none"
                                     />
                                     <select
                                         value={returnTime}
