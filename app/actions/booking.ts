@@ -8,6 +8,7 @@ import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
 import fs from 'fs';
 import path from 'path';
+import { calculateChargeableDays } from "@/lib/bookingUtils";
 
 
 export async function createBooking(prevState: any, formData: FormData) {
@@ -17,8 +18,13 @@ export async function createBooking(prevState: any, formData: FormData) {
 
     // 1. Extract Data
     const carId = parseInt(formData.get('carId') as string);
-    const startDate = new Date(formData.get('startDate') as string);
-    const endDate = new Date(formData.get('endDate') as string);
+    const startDateStr = formData.get('startDate') as string;
+    const endDateStr = formData.get('endDate') as string;
+    const pickupTimeStr = formData.get('pickupTime') as string || '10:00';
+    const returnTimeStr = formData.get('returnTime') as string || '10:00';
+
+    const startDate = new Date(`${startDateStr}T${pickupTimeStr}:00`);
+    const endDate = new Date(`${endDateStr}T${returnTimeStr}:00`);
     const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
     const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
 
@@ -149,8 +155,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     }
 
     // 3. Create Rental
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    const days = calculateChargeableDays(startDateStr, pickupTimeStr, endDateStr, returnTimeStr);
 
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) throw new Error("Car not found");

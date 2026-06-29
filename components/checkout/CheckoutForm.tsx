@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2, User } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
 import { useEffect, useRef } from "react";
+import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
 
 type Props = {
     car: any;
@@ -13,16 +14,20 @@ type Props = {
     searchParams: {
         startDate: string;
         endDate: string;
+        pickupTime: string;
+        returnTime: string;
         options: string;
     };
 };
 
 export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
-    // Basic calculation logic again to show summary (could be shared utility)
-    const start = new Date(searchParams.startDate);
-    const end = new Date(searchParams.endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    const pickupTime = searchParams.pickupTime || "10:00";
+    const returnTime = searchParams.returnTime || "10:00";
+    const days = calculateChargeableDays(searchParams.startDate, pickupTime, searchParams.endDate, returnTime);
+
+    const isPickupOutside = isOutsideOpeningHours(searchParams.startDate, pickupTime);
+    const isReturnOutside = isOutsideOpeningHours(searchParams.endDate, returnTime);
+    const needsSelfCheckin = isPickupOutside || isReturnOutside;
 
     const selectedOptionIds = searchParams.options ? searchParams.options.split(',').map(Number) : [];
     const selectedOptions = options.filter(o => selectedOptionIds.includes(o.id));
@@ -105,6 +110,8 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             <input type="hidden" name="endDate" value={searchParams.endDate} />
             <input type="hidden" name="options" value={searchParams.options} />
             <input type="hidden" name="totalAmount" value={total} />
+            <input type="hidden" name="pickupTime" value={pickupTime} />
+            <input type="hidden" name="returnTime" value={returnTime} />
 
 
             {/* LEFT: Customer Form */}
@@ -329,22 +336,27 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">Abholung</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{start.toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">10:00 Uhr</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{new Date(searchParams.startDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">{pickupTime} Uhr</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">Rückgabe</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{end.toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">10:00 Uhr</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{new Date(searchParams.endDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">{returnTime} Uhr</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <div className="w-4" /> {/* Spacer */}
                                 <p className="text-xs text-gray-500 dark:text-gray-400">Dauer: <span className="text-gray-900 dark:text-white font-medium">{days} Tage</span></p>
                             </div>
+                            {needsSelfCheckin && (
+                                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-[11px] leading-relaxed">
+                                    🔑 <strong>Self-Check-in/Out aktiv:</strong> Abholung/Rückgabe erfolgt schlüssellos außerhalb der Öffnungszeiten.
+                                </div>
+                            )}
                         </div>
 
                         {/* Price Breakdown */}

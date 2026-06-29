@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Users, Zap, Baby, Calendar } from "lucide-react";
+import { ShieldCheck, Users, Zap, Baby, Calendar, Clock } from "lucide-react";
+import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
 
 type Option = {
     id: number;
@@ -20,10 +21,20 @@ type BookingWidgetProps = {
     endDate: string;
     setStartDate: (date: string) => void;
     setEndDate: (date: string) => void;
+    pickupTime: string;
+    returnTime: string;
+    setPickupTime: (time: string) => void;
+    setReturnTime: (time: string) => void;
 };
 
 
-export default function BookingWidget({ car, options, startDate, endDate, setStartDate, setEndDate }: BookingWidgetProps) {
+const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2).toString().padStart(2, '0');
+    const minute = (i % 2 === 0 ? '00' : '30');
+    return `${hour}:${minute}`;
+});
+
+export default function BookingWidget({ car, options, startDate, endDate, setStartDate, setEndDate, pickupTime, returnTime, setPickupTime, setReturnTime }: BookingWidgetProps) {
     const router = useRouter();
     const [isPending, setIsPending] = useState(false);
 
@@ -32,6 +43,10 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [totalDays, setTotalDays] = useState<number>(1);
     const [isAvailable, setIsAvailable] = useState<boolean>(true);
+
+    const isPickupOutside = isOutsideOpeningHours(startDate, pickupTime);
+    const isReturnOutside = isOutsideOpeningHours(endDate, returnTime);
+    const needsSelfCheckin = isPickupOutside || isReturnOutside;
 
     // Check availability
     useEffect(() => {
@@ -59,11 +74,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
 
     // Calculate Price
     useEffect(() => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const validDays = days > 0 ? days : 1;
+        const validDays = calculateChargeableDays(startDate, pickupTime, endDate, returnTime);
         setTotalDays(validDays);
 
         let total = validDays * Number(car.dailyRate);
@@ -81,7 +92,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
         });
 
         setTotalPrice(total);
-    }, [startDate, endDate, selectedOptions, car.dailyRate, options]);
+    }, [startDate, endDate, pickupTime, returnTime, selectedOptions, car.dailyRate, options]);
 
 
     const handleOptionToggle = (id: number) => {
@@ -106,6 +117,8 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
         params.set('carId', car.id.toString());
         params.set('startDate', startDate);
         params.set('endDate', endDate);
+        params.set('pickupTime', pickupTime);
+        params.set('returnTime', returnTime);
         if (selectedOptions.length > 0) {
             params.set('options', selectedOptions.join(','));
         }
@@ -142,40 +155,80 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                     )}
                 </div>
 
-                {/* Date Selection */}
+                {/* Date & Time Selection */}
                 <div className="space-y-4 mb-6">
                     <div className="bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-200 dark:border-white/5">
                         <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-2">
-                            <Calendar className="w-3 h-3" /> Abholung
+                            <Calendar className="w-3 h-3 text-red-500" /> Abholung
                         </label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            min={new Date().toISOString().split('T')[0]}
-                            onChange={(e) => {
-                                const newStart = e.target.value;
-                                setStartDate(newStart);
-                                // If end date is now before start date, update it
-                                if (endDate < newStart) {
-                                    setEndDate(newStart);
-                                }
-                            }}
-                            className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 mt-1 dark:[&::-webkit-calendar-picker-indicator]:invert"
-                        />
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                            <input
+                                type="date"
+                                value={startDate}
+                                min={new Date().toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                    const newStart = e.target.value;
+                                    setStartDate(newStart);
+                                    if (endDate < newStart) {
+                                        setEndDate(newStart);
+                                    }
+                                }}
+                                className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 text-sm dark:[&::-webkit-calendar-picker-indicator]:invert"
+                            />
+                            <div className="flex items-center gap-1.5 border-l border-gray-200 dark:border-white/10 pl-2">
+                                <Clock className="w-3.5 h-3.5 text-gray-405 shrink-0" />
+                                <select
+                                    value={pickupTime}
+                                    onChange={(e) => setPickupTime(e.target.value)}
+                                    className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 text-sm outline-none appearance-none cursor-pointer"
+                                >
+                                    {timeOptions.map(t => (
+                                        <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div className="bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-200 dark:border-white/5">
                         <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-2">
-                            <Calendar className="w-3 h-3" /> Rückgabe
+                            <Calendar className="w-3 h-3 text-red-500" /> Rückgabe
                         </label>
-                        <input
-                            type="date"
-                            value={endDate}
-                            min={startDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 mt-1 dark:[&::-webkit-calendar-picker-indicator]:invert"
-                        />
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                            <input
+                                type="date"
+                                value={endDate}
+                                min={startDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 text-sm dark:[&::-webkit-calendar-picker-indicator]:invert"
+                            />
+                            <div className="flex items-center gap-1.5 border-l border-gray-200 dark:border-white/10 pl-2">
+                                <Clock className="w-3.5 h-3.5 text-gray-405 shrink-0" />
+                                <select
+                                    value={returnTime}
+                                    onChange={(e) => setReturnTime(e.target.value)}
+                                    className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 text-sm outline-none appearance-none cursor-pointer"
+                                >
+                                    {timeOptions.map(t => (
+                                        <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Self Check-in Notice */}
+                {needsSelfCheckin && (
+                    <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs flex items-start gap-2.5 animate-in fade-in duration-300">
+                        <span className="text-base leading-none">🔑</span>
+                        <div>
+                            <p className="font-bold mb-0.5">Self-Check-in/Check-out aktiv</p>
+                            <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                                Die von Ihnen gewählte Abhol- oder Rückgabezeit liegt außerhalb unserer regulären Öffnungszeiten. Sie erhalten alle Details zur schlüssellosen Fahrzeugübergabe vor Mietbeginn.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <button
                     onClick={handleBooking}

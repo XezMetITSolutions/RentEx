@@ -43,6 +43,8 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
 
     const [startDate, setStartDate] = useState(formatDate(today));
     const [endDate, setEndDate] = useState(formatDate(tomorrow));
+    const [pickupTime, setPickupTime] = useState("10:00");
+    const [returnTime, setReturnTime] = useState("10:00");
 
     const handleDateSelect = (start: Date, end: Date) => {
         const now = new Date();
@@ -232,6 +234,10 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
                             endDate={endDate}
                             setStartDate={setStartDate}
                             setEndDate={setEndDate}
+                            pickupTime={pickupTime}
+                            returnTime={returnTime}
+                            setPickupTime={setPickupTime}
+                            setReturnTime={setReturnTime}
                         />
                     </div>
 

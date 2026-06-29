@@ -77,6 +77,8 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
                     searchParams={{
                         startDate: startDate as string,
                         endDate: endDate as string,
+                        pickupTime: (resolvedParams.pickupTime as string) || '10:00',
+                        returnTime: (resolvedParams.returnTime as string) || '10:00',
                         options: (resolvedParams.options as string) || ''
                     }}
                 />
