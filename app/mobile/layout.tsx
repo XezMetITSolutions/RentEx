@@ -18,9 +18,9 @@ export default async function MobileLayout({
   const isLoggedIn = !!customer;
 
   return (
-    <div className="bg-black min-h-screen font-sans selection:bg-[#E53935]/30">
+    <div className="bg-gray-100 dark:bg-black min-h-screen font-sans selection:bg-[#E53935]/30 transition-colors">
       {/* Mobile App Container constraint for desktop viewing */}
-      <div className="max-w-md mx-auto bg-[#0A0A0A] min-h-screen relative shadow-2xl border-x border-white/5 pb-16">
+      <div className="max-w-md mx-auto bg-white dark:bg-[#0A0A0A] text-gray-900 dark:text-white min-h-screen relative shadow-2xl border-x border-gray-250 dark:border-white/5 pb-16 transition-colors animate-in fade-in duration-200">
         {children}
         <BottomNav isLoggedIn={isLoggedIn} />
       </div>

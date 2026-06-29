@@ -203,7 +203,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     };
 
     const isExpired = isExpiryStringExpired(licenseExpiryDate);
-    const showLicenseInput = !licenseNumber || !licenseExpiryDate || isExpired;
+    const showLicenseInput = !licenseNumber || isExpired;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

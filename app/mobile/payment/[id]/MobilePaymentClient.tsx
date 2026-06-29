@@ -110,7 +110,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
   };
 
   const isExpired = isExpiryStringExpired(licenseExpiryDate);
-  const showLicenseInput = !licenseNumber || !licenseExpiryDate || isExpired;
+  const showLicenseInput = !licenseNumber || isExpired;
 
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
