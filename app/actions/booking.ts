@@ -68,6 +68,8 @@ export async function createBooking(prevState: any, formData: FormData) {
     const parsedDob = parseDateOfBirth(dateOfBirth);
     const licenseNumber = formData.get('licenseNumber') as string;
     const licenseCountry = formData.get('licenseCountry') as string || null;
+    const licenseExpiryDateStr = formData.get('licenseExpiryDate') as string;
+    const parsedLicenseExpiry = parseDateOfBirth(licenseExpiryDateStr);
 
     // Handle License Photo File Upload to Cloudflare R2
     async function saveLicenseFile(file: any) {
@@ -128,6 +130,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                 dateOfBirth: parsedDob,
                 licenseNumber,
                 licenseCountry,
+                licenseExpiryDate: parsedLicenseExpiry,
                 licensePhotoUrl,
                 passwordHash: password && password.length >= 6 ? hashPassword(password) : undefined
             }
@@ -174,7 +177,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                 dateOfBirth: parsedDob || undefined,
                 licenseNumber: licenseNumber || undefined,
                 licenseCountry: licenseCountry || undefined,
-                licensePhotoUrl: licensePhotoUrl || undefined
+                licensePhotoUrl: licensePhotoUrl || undefined,
+                licenseExpiryDate: parsedLicenseExpiry || undefined
             }
         });
 

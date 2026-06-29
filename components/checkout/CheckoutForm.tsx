@@ -120,6 +120,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     const [licenseNumber, setLicenseNumber] = useState(initialCustomer?.licenseNumber || '');
     const [licenseCountry, setLicenseCountry] = useState(initialCustomer?.licenseCountry || 'Österreich');
     const [licensePhotoUrl, setLicensePhotoUrl] = useState(initialCustomer?.licensePhotoUrl || '');
+    const [licenseExpiryDate, setLicenseExpiryDate] = useState(initialCustomer?.licenseExpiryDate ? formatDateOfBirth(initialCustomer.licenseExpiryDate) : '');
     const [selectedCountry, setSelectedCountry] = useState(initialCustomer?.country || 'Österreich');
     const [company, setCompany] = useState(initialCustomer?.company || '');
     const [taxId, setTaxId] = useState(initialCustomer?.taxId || '');
@@ -174,6 +175,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 setLicenseNumber(cust.licenseNumber || '');
                 setLicenseCountry(cust.licenseCountry || 'Österreich');
                 setLicensePhotoUrl(cust.licensePhotoUrl || '');
+                setLicenseExpiryDate(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
                 setIsLoggedIn(true);
                 setShowLoginModal(false);
                 setEmailExists(false);
@@ -186,6 +188,21 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             setIsLoggingIn(false);
         }
     };
+    const isExpiryStringExpired = (dateStr: string) => {
+        if (!dateStr) return false;
+        const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
+        const parts = normalized.split('/');
+        if (parts.length !== 3) return false;
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+        if (year < 100) year += 2000;
+        const d = new Date(year, month, day);
+        return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
+    };
+
+    const isExpired = isExpiryStringExpired(licenseExpiryDate);
+    const showLicenseInput = !licenseNumber || !licenseExpiryDate || isExpired;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -338,9 +355,14 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 title="Bitte im Format TT/MM/JJJJ eingeben (z.B. 15/08/1990)"
                             />
                         </div>
-                        {/* Driver's License Info - Only visible if not already supplied by logged-in user */}
-                        {!licenseNumber ? (
+                        {/* Driver's License Info - Only visible if not already supplied by logged-in user or if expired */}
+                        {showLicenseInput ? (
                             <>
+                                {licenseNumber && isExpired && (
+                                    <div className="md:col-span-2 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs animate-in fade-in duration-300">
+                                        ⚠️ Ihr hinterlegter Führerschein ({licenseNumber}) ist am {licenseExpiryDate} abgelaufen. Bitte tragen Sie die neuen Daten ein und laden Sie das neue Dokument hoch.
+                                    </div>
+                                )}
                                 <div className="space-y-2 animate-in fade-in duration-300">
                                     <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>
                                     <input required name="licenseNumber" type="text" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
@@ -353,9 +375,13 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                         ))}
                                     </select>
                                 </div>
-                                <div className="space-y-2 md:col-span-2 animate-in fade-in duration-300">
+                                <div className="space-y-2 animate-in fade-in duration-300">
+                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ablaufdatum *</label>
+                                    <input required name="licenseExpiryDate" type="text" value={licenseExpiryDate} onChange={e => setLicenseExpiryDate(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="TT/MM/JJJJ" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" title="Bitte im Format TT/MM/JJJJ eingeben (z.B. 15/08/2030)" />
+                                </div>
+                                <div className="space-y-2 animate-in fade-in duration-300">
                                     <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Foto hochladen (Vorderseite) *</label>
-                                    <input required={!licensePhotoUrl} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
+                                    <input required={!licensePhotoUrl || isExpired} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
                                 </div>
                             </>
                         ) : (
@@ -364,7 +390,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <div>
                                     <p className="font-bold">Führerscheindaten verifiziert</p>
                                     <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                                        Führerscheinnummer {licenseNumber} ({licenseCountry}) ist bereits in Ihrem Profil hinterlegt.
+                                        Führerscheinnummer {licenseNumber} ({licenseCountry}) läuft am {licenseExpiryDate} ab und ist bereits in Ihrem Profil hinterlegt.
                                     </p>
                                 </div>
                             </div>

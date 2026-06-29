@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
                 dateOfBirth: customer.dateOfBirth,
                 licenseNumber: customer.licenseNumber,
                 licenseCountry: customer.licenseCountry,
-                licensePhotoUrl: customer.licensePhotoUrl
+                licensePhotoUrl: customer.licensePhotoUrl,
+                licenseExpiryDate: customer.licenseExpiryDate
             }
         });
     } catch (e) {
