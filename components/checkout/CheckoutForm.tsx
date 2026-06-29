@@ -20,6 +20,34 @@ type Props = {
     };
 };
 
+const COUNTRIES = [
+    "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
+    "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
+    "Bangladesch", "Barbados", "Belgien", "Belize", "Benin", "Bhutan", "Bolivien", "Bosnien und Herzegowina",
+    "Botswana", "Brasilien", "Brunei Darussalam", "Bulgarien", "Burkina Faso", "Burundi", "Chile", "China",
+    "Costa Rica", "Dänemark", "Deutschland", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
+    "Elfenbeinküste", "El Salvador", "Eritrea", "Estland", "Eswatini", "Fidschi", "Finnland", "Frankreich",
+    "Gabun", "Gambia", "Georgien", "Ghana", "Grenada", "Griechenland", "Guatemala", "Guinea", "Guinea-Bissau",
+    "Guyana", "Haiti", "Honduras", "Indien", "Indonesien", "Irak", "Iran", "Irland", "Island", "Israel",
+    "Italien", "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
+    "Kasachstan", "Katar", "Kenia", "Kirgisistan", "Kiribati", "Kolumbien", "Komoren", "Kongo (Demokratische Republik)",
+    "Kongo (Republik)", "Nordkorea", "Südkorea", "Kosovo", "Kroatien", "Kuba", "Kuwait", "Laos", "Lesotho",
+    "Lettland", "Libanon", "Liberia", "Libyen", "Liechtenstein", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
+    "Malaysia", "Malediven", "Mali", "Malta", "Marokko", "Marshallinseln", "Mauretanien", "Mauritius", "Mexiko",
+    "Mikronesien", "Moldau", "Monaco", "Mongolei", "Montenegro", "Mosambik", "Myanmar", "Namibia", "Nauru",
+    "Nepal", "Neuseeland", "Nicaragua", "Niederlande", "Niger", "Nigeria", "Nordmazedonien", "Norwegen", "Oman",
+    "Osttimor (Timor-Leste)", "Pakistan", "Palau", "Palästina", "Panama", "Papua-Neuguinea", "Paraguay", "Peru",
+    "Philippinen", "Polen", "Portugal", "Ruanda", "Rumänien", "Russland", "Salomonen", "Sambia", "Samoa",
+    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Schweiz", "Senegal", "Serbien",
+    "Seychellen", "Sierra Leone", "Simbabwe", "Singapur", "Slowakei", "Slowenien", "Somalia", "Spanien",
+    "Sri Lanka", "St. Kitts und Nevis", "St. Lucia", "St. Vincent und die Grenadinen", "Südafrika", "Sudan",
+    "Südsudan", "Suriname", "Syrien", "Tadschikistan", "Tansania", "Thailand", "Togo", "Tonga", "Trinidad und Tobago",
+    "Tschad", "Tschechien", "Tunesien", "Türkei", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "Ungarn",
+    "Uruguay", "Usbekistan", "Vanuatu", "Vatikanstadt", "Venezuela", "Vereinigte Arabische Emirate",
+    "Vereinigtes Königreich (Großbritannien)", "Vereinigte Staaten (USA)", "Vietnam", "Weißrussland (Belarus)",
+    "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
+];
+
 export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
     const pickupTime = searchParams.pickupTime || "10:00";
     const returnTime = searchParams.returnTime || "10:00";
@@ -178,9 +206,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ausstellungsland *</label>
                             <select required name="licenseCountry" defaultValue={initialCustomer?.licenseCountry || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
-                                {[
-                                    "Österreich", "Deutschland", "Schweiz", "Italien", "Kroatien", "Slowenien", "Ungarn", "Slowakei", "Tschechien", "Polen", "Frankreich", "Niederlande", "Belgien", "Spanien", "Portugal"
-                                ].map(c => (
+                                {COUNTRIES.map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
@@ -252,33 +278,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Land</label>
                             <select name="country" defaultValue={initialCustomer?.country || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
-                                {[
-                                    "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
-                                    "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
-                                    "Bangladesch", "Barbados", "Belgien", "Belize", "Benin", "Bhutan", "Bolivien", "Bosnien und Herzegowina",
-                                    "Botswana", "Brasilien", "Brunei Darussalam", "Bulgarien", "Burkina Faso", "Burundi", "Chile", "China",
-                                    "Costa Rica", "Dänemark", "Deutschland", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
-                                    "Elfenbeinküste", "El Salvador", "Eritrea", "Estland", "Eswatini", "Fidschi", "Finnland", "Frankreich",
-                                    "Gabun", "Gambia", "Georgien", "Ghana", "Grenada", "Griechenland", "Guatemala", "Guinea", "Guinea-Bissau",
-                                    "Guyana", "Haiti", "Honduras", "Indien", "Indonesien", "Irak", "Iran", "Irland", "Island", "Israel",
-                                    "Italien", "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
-                                    "Kasachstan", "Katar", "Kenia", "Kirgisistan", "Kiribati", "Kolumbien", "Komoren", "Kongo (Demokratische Republik)",
-                                    "Kongo (Republik)", "Nordkorea", "Südkorea", "Kosovo", "Kroatien", "Kuba", "Kuwait", "Laos", "Lesotho",
-                                    "Lettland", "Libanon", "Liberia", "Libyen", "Liechtenstein", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
-                                    "Malaysia", "Malediven", "Mali", "Malta", "Marokko", "Marshallinseln", "Mauretanien", "Mauritius", "Mexiko",
-                                    "Mikronesien", "Moldau", "Monaco", "Mongolei", "Montenegro", "Mosambik", "Myanmar", "Namibia", "Nauru",
-                                    "Nepal", "Neuseeland", "Nicaragua", "Niederlande", "Niger", "Nigeria", "Nordmazedonien", "Norwegen", "Oman",
-                                    "Osttimor (Timor-Leste)", "Pakistan", "Palau", "Palästina", "Panama", "Papua-Neuguinea", "Paraguay", "Peru",
-                                    "Philippinen", "Polen", "Portugal", "Ruanda", "Rumänien", "Russland", "Salomonen", "Sambia", "Samoa",
-                                    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Schweiz", "Senegal", "Serbien",
-                                    "Seychellen", "Sierra Leone", "Simbabwe", "Singapur", "Slowakei", "Slowenien", "Somalia", "Spanien",
-                                    "Sri Lanka", "St. Kitts und Nevis", "St. Lucia", "St. Vincent und die Grenadinen", "Südafrika", "Sudan",
-                                    "Südsudan", "Suriname", "Syrien", "Tadschikistan", "Tansania", "Thailand", "Togo", "Tonga", "Trinidad und Tobago",
-                                    "Tschad", "Tschechien", "Tunesien", "Türkei", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "Ungarn",
-                                    "Uruguay", "Usbekistan", "Vanuatu", "Vatikanstadt", "Venezuela", "Vereinigte Arabische Emirate",
-                                    "Vereinigtes Königreich (Großbritannien)", "Vereinigte Staaten (USA)", "Vietnam", "Weißrussland (Belarus)",
-                                    "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
-                                ].map(c => (
+                                {COUNTRIES.map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
