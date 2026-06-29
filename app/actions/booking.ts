@@ -9,6 +9,9 @@ import { auditLog } from "@/lib/audit";
 import fs from 'fs';
 import path from 'path';
 import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import crypto from "crypto";
 
 
 export async function createBooking(prevState: any, formData: FormData) {
@@ -42,22 +45,29 @@ export async function createBooking(prevState: any, formData: FormData) {
     const licenseNumber = formData.get('licenseNumber') as string;
     const licenseCountry = formData.get('licenseCountry') as string || null;
 
-    // Handle License Photo File Upload
+    // Handle License Photo File Upload to Cloudflare R2
     async function saveLicenseFile(file: any) {
         if (!file || !(file instanceof File) || file.size === 0) return null;
         try {
             const buffer = Buffer.from(await file.arrayBuffer());
-            const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'licenses');
-            
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            
-            fs.writeFileSync(path.join(uploadDir, fileName), buffer);
-            return `/uploads/licenses/${fileName}`;
+            const fileExtension = path.extname(file.name) || '.jpg';
+            const fileName = `${Date.now()}-${crypto.randomUUID()}${fileExtension}`;
+            const key = `customer-docs/licenses/${fileName}`;
+
+            await r2.send(new PutObjectCommand({
+                Bucket: R2_BUCKET_NAME,
+                Key: key,
+                Body: buffer,
+                ContentType: file.type || 'image/jpeg',
+            }));
+
+            const publicUrl = R2_PUBLIC_URL
+                ? `${R2_PUBLIC_URL}/${key}`
+                : `https://${R2_BUCKET_NAME}.r2.dev/${key}`;
+
+            return publicUrl;
         } catch (error) {
-            console.error('License upload error:', error);
+            console.error('License upload to R2 error:', error);
             return null;
         }
     }
