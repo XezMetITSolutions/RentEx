@@ -25,6 +25,7 @@ type BookingWidgetProps = {
 
 export default function BookingWidget({ car, options, startDate, endDate, setStartDate, setEndDate }: BookingWidgetProps) {
     const router = useRouter();
+    const [isPending, setIsPending] = useState(false);
 
     const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
 
@@ -100,6 +101,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
     };
 
     const handleBooking = () => {
+        setIsPending(true);
         const params = new URLSearchParams();
         params.set('carId', car.id.toString());
         params.set('startDate', startDate);
@@ -108,7 +110,9 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
             params.set('options', selectedOptions.join(','));
         }
 
-        router.push(`/checkout?${params.toString()}`);
+        setTimeout(() => {
+            router.push(`/checkout?${params.toString()}`);
+        }, 750);
     };
 
     return (
@@ -175,13 +179,22 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
 
                 <button
                     onClick={handleBooking}
-                    disabled={!isAvailable}
-                    className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] ${isAvailable
+                    disabled={!isAvailable || isPending}
+                    className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${isAvailable
                         ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
                         : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 dark:text-zinc-500 cursor-not-allowed shadow-none"
-                        }`}
+                        } ${isPending ? "opacity-90 cursor-wait" : ""}`}
                 >
-                    {isAvailable ? "Jetzt Reservieren" : "Zeitraum belegt"}
+                    {isPending ? (
+                        <>
+                            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Wird vorbereitet...
+                        </>
+                    ) : isAvailable ? (
+                        "Jetzt Reservieren"
+                    ) : (
+                        "Zeitraum belegt"
+                    )}
                 </button>
                 <p className="text-center text-xs text-gray-500 mt-3">
                     Keine Kreditkarte für Reservierung erforderlich
