@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
-import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
+import { emailTemplates, sendEmail, COMPANY_EMAIL } from '@/lib/notificationTemplates';
 import { notifyCustomer } from '@/lib/pushNotifications';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -68,6 +68,11 @@ export async function POST(req: Request) {
                     },
                 };
                 await sendEmail(rental.customer.email, emailTemplates.paymentConfirmation(templateData));
+                // Send a copy to the company email address
+                await sendEmail(COMPANY_EMAIL, {
+                    ...emailTemplates.paymentConfirmation(templateData),
+                    subject: `[ZAHLUNG ERHALTEN] ${templateData.contractNumber} - ${templateData.customer.firstName} ${templateData.customer.lastName}`
+                });
 
                 // Push notification (best effort — never blocks)
                 notifyCustomer(rental.customer.id, {

@@ -12,7 +12,7 @@ import { calculateChargeableDays } from "@/lib/bookingUtils";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
-import { sendEmail, emailTemplates } from "@/lib/notificationTemplates";
+import { sendEmail, emailTemplates, COMPANY_EMAIL } from "@/lib/notificationTemplates";
 
 
 function parseDateOfBirth(dateStr: string): Date | null {
@@ -373,6 +373,11 @@ export async function createBooking(prevState: any, formData: FormData) {
                 },
             };
             await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
+            // Send a copy to the company email address
+            await sendEmail(COMPANY_EMAIL, {
+                ...emailTemplates.bookingConfirmation(templateData),
+                subject: `[NEUE RESERVIERUNG] ${templateData.contractNumber} - ${templateData.customer.firstName} ${templateData.customer.lastName}`
+            });
         } catch (emailError) {
             console.error("Failed to send pay-on-arrival booking confirmation email:", emailError);
         }
