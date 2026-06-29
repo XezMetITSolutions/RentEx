@@ -54,6 +54,16 @@ const timeOptions = Array.from({ length: 48 }, (_, i) => {
     return `${hour}:${minute}`;
 });
 
+const formatDateOfBirth = (dateVal: any) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear().toString().slice(-2);
+    return `${day}/${month}/${year}`;
+};
+
 export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
     const [startDate, setStartDate] = useState(searchParams.startDate);
     const [endDate, setEndDate] = useState(searchParams.endDate);
@@ -205,8 +215,17 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Geburtsdatum</label>
-                            <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Geburtsdatum *</label>
+                            <input
+                                required
+                                name="dateOfBirth"
+                                type="text"
+                                defaultValue={initialCustomer?.dateOfBirth ? formatDateOfBirth(initialCustomer.dateOfBirth) : ''}
+                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
+                                placeholder="TT/MM/JJ (z.B. 15/08/90)"
+                                pattern="[0-9]{2}/[0-9]{2}/[0-9]{2}"
+                                title="Bitte im Format TT/MM/JJ eingeben (z.B. 15/08/90)"
+                            />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>

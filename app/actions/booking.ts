@@ -14,6 +14,29 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 
 
+function parseDateOfBirth(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
+    const parts = normalized.split('/');
+    if (parts.length !== 3) return null;
+    
+    let day = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10) - 1;
+    let year = parseInt(parts[2], 10);
+    
+    if (year < 100) {
+        const currentYearShort = new Date().getFullYear() % 100;
+        if (year > currentYearShort + 5) {
+            year += 1900;
+        } else {
+            year += 2000;
+        }
+    }
+    
+    const d = new Date(year, month, day);
+    return isNaN(d.getTime()) ? null : d;
+}
+
 export async function createBooking(prevState: any, formData: FormData) {
     const adminSession = await getAdminSession();
     const customerSession = await getSession();
@@ -42,6 +65,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const country = formData.get('country') as string;
     const paymentMethod = formData.get('paymentMethod') as string;
     const dateOfBirth = formData.get('dateOfBirth') as string;
+    const parsedDob = parseDateOfBirth(dateOfBirth);
     const licenseNumber = formData.get('licenseNumber') as string;
     const licenseCountry = formData.get('licenseCountry') as string || null;
 
@@ -101,7 +125,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                 customerType,
                 company,
                 taxId,
-                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+                dateOfBirth: parsedDob,
                 licenseNumber,
                 licenseCountry,
                 licensePhotoUrl,
@@ -147,7 +171,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                 customerType,
                 company,
                 taxId,
-                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+                dateOfBirth: parsedDob || undefined,
                 licenseNumber: licenseNumber || undefined,
                 licenseCountry: licenseCountry || undefined,
                 licensePhotoUrl: licensePhotoUrl || undefined
