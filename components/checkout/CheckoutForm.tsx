@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Image from "next/image";
-import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2, User } from "lucide-react";
+import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2, User, X } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
 import { useEffect, useRef } from "react";
 import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
@@ -60,7 +60,7 @@ const formatDateOfBirth = (dateVal: any) => {
     if (isNaN(d.getTime())) return '';
     const day = d.getDate().toString().padStart(2, '0');
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const year = d.getFullYear().toString().slice(-2);
+    const year = d.getFullYear().toString();
     return `${day}/${month}/${year}`;
 };
 
@@ -112,6 +112,23 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     const [emailExists, setEmailExists] = useState(false);
     const [emailValue, setEmailValue] = useState(initialCustomer?.email || '');
 
+    const [isLoggedIn, setIsLoggedIn] = useState(!!initialCustomer);
+    const [firstName, setFirstName] = useState(initialCustomer?.firstName || '');
+    const [lastName, setLastName] = useState(initialCustomer?.lastName || '');
+    const [phone, setPhone] = useState(initialCustomer?.phone || '+43 ');
+    const [dateOfBirth, setDateOfBirth] = useState(initialCustomer?.dateOfBirth ? formatDateOfBirth(initialCustomer.dateOfBirth) : '');
+    const [licenseNumber, setLicenseNumber] = useState(initialCustomer?.licenseNumber || '');
+    const [licenseCountry, setLicenseCountry] = useState(initialCustomer?.licenseCountry || 'Österreich');
+    const [licensePhotoUrl, setLicensePhotoUrl] = useState(initialCustomer?.licensePhotoUrl || '');
+    const [selectedCountry, setSelectedCountry] = useState(initialCustomer?.country || 'Österreich');
+    const [company, setCompany] = useState(initialCustomer?.company || '');
+    const [taxId, setTaxId] = useState(initialCustomer?.taxId || '');
+
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginPassword, setLoginPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
     const checkEmail = async (email: string) => {
         if (!email || email.indexOf('@') === -1) {
             setEmailExists(false);
@@ -127,6 +144,46 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             setEmailExists(data.exists);
         } catch (e) {
             console.error("Failed to check email", e);
+        }
+    };
+
+    const handleModalLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoggingIn(true);
+        setLoginError('');
+        try {
+            const res = await fetch('/api/auth/checkout-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailValue, password: loginPassword })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const cust = data.customer;
+                setFirstName(cust.firstName || '');
+                setLastName(cust.lastName || '');
+                setPhone(cust.phone || '');
+                setAddressQuery(cust.address || '');
+                setCity(cust.city || '');
+                setPostalCode(cust.postalCode || '');
+                setSelectedCountry(cust.country || 'Österreich');
+                setCustomerType(cust.customerType || 'Private');
+                setCompany(cust.company || '');
+                setTaxId(cust.taxId || '');
+                setDateOfBirth(cust.dateOfBirth ? formatDateOfBirth(cust.dateOfBirth) : '');
+                setLicenseNumber(cust.licenseNumber || '');
+                setLicenseCountry(cust.licenseCountry || 'Österreich');
+                setLicensePhotoUrl(cust.licensePhotoUrl || '');
+                setIsLoggedIn(true);
+                setShowLoginModal(false);
+                setEmailExists(false);
+            } else {
+                setLoginError(data.error || 'Login fehlgeschlagen.');
+            }
+        } catch (err) {
+            setLoginError('Serverfehler beim Anmelden.');
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -170,6 +227,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     };
 
     return (
+        <>
         <form action={formAction} encType="multipart/form-data" className="grid lg:grid-cols-3 gap-12">
             
             {state?.error && (
@@ -211,11 +269,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-150 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Firmenname</label>
-                                <input required name="company" type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
+                                <input required name="company" type="text" value={company} onChange={e => setCompany(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">USt-IdNr.</label>
-                                <input name="taxId" type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
+                                <input name="taxId" type="text" value={taxId} onChange={e => setTaxId(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
                             </div>
                         </div>
                     )}
@@ -227,11 +285,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Vorname</label>
-                            <input required name="firstName" type="text" defaultValue={initialCustomer?.firstName || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Max" />
+                            <input required name="firstName" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Max" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Nachname</label>
-                            <input required name="lastName" type="text" defaultValue={initialCustomer?.lastName || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
+                            <input required name="lastName" type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">E-Mail Adresse</label>
@@ -252,18 +310,19 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             {emailExists && (
                                 <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center justify-between animate-in fade-in duration-300">
                                     <span>⚠️ Ein Konto mit dieser E-Mail existiert bereits.</span>
-                                    <a
-                                        href={`/login?redirect=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}&email=${encodeURIComponent(emailValue)}`}
+                                    <button
+                                        type="button"
+                                        onClick={() => { setLoginError(''); setShowLoginModal(true); }}
                                         className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all text-[10px]"
                                     >
                                         Jetzt anmelden
-                                    </a>
+                                    </button>
                                 </div>
                             )}
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
+                            <input required name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Geburtsdatum *</label>
@@ -271,32 +330,45 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 required
                                 name="dateOfBirth"
                                 type="text"
-                                defaultValue={initialCustomer?.dateOfBirth ? formatDateOfBirth(initialCustomer.dateOfBirth) : ''}
+                                value={dateOfBirth}
+                                onChange={e => setDateOfBirth(e.target.value)}
                                 className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
-                                placeholder="TT/MM/JJ (z.B. 15/08/90)"
-                                pattern="[0-9]{2}/[0-9]{2}/[0-9]{2}"
-                                title="Bitte im Format TT/MM/JJ eingeben (z.B. 15/08/90)"
+                                placeholder="TT/MM/JJJJ (z.B. 15/08/1990)"
+                                pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                                title="Bitte im Format TT/MM/JJJJ eingeben (z.B. 15/08/1990)"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>
-                            <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ausstellungsland *</label>
-                            <select required name="licenseCountry" defaultValue={initialCustomer?.licenseCountry || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
-                                {COUNTRIES.map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Foto hochladen (Vorderseite) *</label>
-                            <input required={!initialCustomer?.licensePhotoUrl} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
-                            {initialCustomer?.licensePhotoUrl && (
-                                <p className="text-xs text-green-600 dark:text-green-400 mt-1">✓ Bereits ein Führerscheinfoto hinterlegt.</p>
-                            )}
-                        </div>
+                        {/* Driver's License Info - Only visible if not already supplied by logged-in user */}
+                        {!licenseNumber ? (
+                            <>
+                                <div className="space-y-2 animate-in fade-in duration-300">
+                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>
+                                    <input required name="licenseNumber" type="text" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
+                                </div>
+                                <div className="space-y-2 animate-in fade-in duration-300">
+                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ausstellungsland *</label>
+                                    <select required name="licenseCountry" value={licenseCountry} onChange={e => setLicenseCountry(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
+                                        {COUNTRIES.map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2 md:col-span-2 animate-in fade-in duration-300">
+                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Foto hochladen (Vorderseite) *</label>
+                                    <input required={!licensePhotoUrl} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="md:col-span-2 p-4 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 rounded-2xl text-xs flex items-center gap-3 animate-in fade-in duration-300">
+                                <span className="text-lg">✓</span>
+                                <div>
+                                    <p className="font-bold">Führerscheindaten verifiziert</p>
+                                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                                        Führerscheinnummer {licenseNumber} ({licenseCountry}) ist bereits in Ihrem Profil hinterlegt.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         {!initialCustomer && (
                             <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-gray-150 dark:border-white/5">
                                 <label className="text-sm font-medium text-red-500">Konto erstellen (optional)</label>
@@ -356,7 +428,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Land</label>
-                            <select name="country" defaultValue={initialCustomer?.country || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
+                            <select name="country" value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
                                 {COUNTRIES.map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
@@ -573,6 +645,51 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 </div>
             </div>
         </form>
+        {showLoginModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                    <button
+                        type="button"
+                        onClick={() => setShowLoginModal(false)}
+                        className="absolute top-6 right-6 p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                    
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Anmelden</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Geben Sie das Passwort für <strong>{emailValue}</strong> ein, um fortzufahren.</p>
+                    
+                    {loginError && (
+                        <div className="mb-4 p-3.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs animate-shake">
+                            ⚠️ {loginError}
+                        </div>
+                    )}
+                    
+                    <form onSubmit={handleModalLogin} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Passwort</label>
+                            <input
+                                required
+                                type="password"
+                                value={loginPassword}
+                                onChange={e => setLoginPassword(e.target.value)}
+                                placeholder="••••••"
+                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
+                            />
+                        </div>
+                        
+                        <button
+                            type="submit"
+                            disabled={isLoggingIn}
+                            className="w-full py-3.5 mt-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20"
+                        >
+                            {isLoggingIn ? 'Wird angemeldet...' : 'Anmelden & Daten laden'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        )}
+        </>
     );
 }
 
