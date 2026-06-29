@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MoreHorizontal, MapPin, Calendar, Clock, ChevronDown, Check, X, Info, User } from "lucide-react";
 import { checkMobileCarAvailability } from "../../actions";
+import { calculateChargeableDays } from "@/lib/bookingUtils";
 
-export default function MobileCheckoutClient({ car, customer, locations }: { car: any, customer: any, locations: any[] }) {
+
+export default function MobileCheckoutClient({ car, customer, locations, options = [] }: { car: any, customer: any, locations: any[], options?: any[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -28,6 +30,7 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
   const [rueckgabedatum, setRueckgabedatum] = useState(toParam || defaultEndISO);
   const [rueckgabezeit, setRueckgabezeit] = useState("10:00");
   
+  const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
   
   const [promoCode, setPromoCode] = useState("");
   const [promoState, setPromoState] = useState<"idle" | "valid" | "invalid">("idle");
@@ -51,14 +54,23 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
     }
   }, [abholdatum, rueckgabedatum, car.id, isValidDate]);
 
-  // Pricing math
-  const msDiff = endDateObj.getTime() - startDateObj.getTime();
-  const calculatedDays = Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
-  const days = calculatedDays;
+  // Pricing math using actual options and calculateChargeableDays
+  const days = calculateChargeableDays(abholdatum, abholzeit, rueckgabedatum, rueckgabezeit);
   const basePrice = Number(car.dailyRate);
   const totalBase = days * basePrice;
+  
+  const selectedOptions = options.filter(o => selectedOptionIds.includes(o.id));
+  let extrasCost = 0;
+  selectedOptions.forEach(opt => {
+    if (opt.isPerDay) {
+      extrasCost += (Number(opt.price) || 0) * days;
+    } else {
+      extrasCost += (Number(opt.price) || 0);
+    }
+  });
+
   const discount = promoState === "valid" ? -50 : 0;
-  const total = totalBase + discount;
+  const total = totalBase + extrasCost + discount;
 
   const handleApplyPromo = () => {
     if (promoCode.toUpperCase() === "RENTEX50") setPromoState("valid");
@@ -225,6 +237,49 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
           </div>
         )}
 
+        {/* Zusatzleistungen (Options) */}
+        {options.length > 0 && (
+          <div className="space-y-3">
+            <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Zusatzleistungen</label>
+            <div className="space-y-2">
+              {options.map((opt) => {
+                const isSelected = selectedOptionIds.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedOptionIds(selectedOptionIds.filter(id => id !== opt.id));
+                      } else {
+                        setSelectedOptionIds([...selectedOptionIds, opt.id]);
+                      }
+                    }}
+                    className={`flex items-center justify-between w-full p-4 rounded-xl border text-left transition-colors ${
+                      isSelected 
+                        ? 'bg-[#E53935]/10 border-[#E53935]' 
+                        : 'bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5'
+                    }`}
+                  >
+                    <div>
+                      <span className={`text-[14px] font-medium block ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-[#A3A3A3]'}`}>
+                        {opt.name}
+                      </span>
+                      <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                        {opt.isPerDay ? `€${Number(opt.price).toFixed(2)} / Tag` : `€${Number(opt.price).toFixed(2)} einmalig`}
+                      </span>
+                    </div>
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      isSelected ? 'border-[#E53935] bg-[#E53935]' : 'border-gray-300 dark:border-[#A3A3A3]'
+                    }`}>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white animate-in zoom-in-50" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Aktionscode */}
         <div className="space-y-2">
@@ -268,16 +323,23 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
                 <span>{days} Tage × €{basePrice.toFixed(2)}</span>
                 <span className="text-gray-900 dark:text-white">€{totalBase.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between text-gray-500 dark:text-[#A3A3A3]">
-                <span>Versicherung</span>
-                <span className="text-gray-900 dark:text-white">Inklusive</span>
-              </div>
+              
+              {selectedOptions.map(opt => (
+                <div key={opt.id} className="flex items-center justify-between text-gray-500 dark:text-[#A3A3A3]">
+                  <span>{opt.name} {opt.isPerDay && `(${days}x)`}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    €{(opt.isPerDay ? (Number(opt.price) * days) : Number(opt.price)).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+
               {discount < 0 && (
                 <div className="flex items-center justify-between text-green-500">
                   <span>Rabatt (Code)</span>
                   <span>-€{Math.abs(discount).toFixed(2)}</span>
                 </div>
               )}
+              
               <div className="flex items-center justify-between pt-2 mt-2 border-t border-gray-200 dark:border-white/5 transition-colors">
                 <span className="font-bold text-gray-900 dark:text-white text-[14px]">Gesamt</span>
                 <span className="font-bold text-[#E53935] text-[16px]">€{total.toFixed(2)}</span>
@@ -289,7 +351,10 @@ export default function MobileCheckoutClient({ car, customer, locations }: { car
         <div className="p-4">
           <button 
             disabled={!isFormValid}
-            onClick={() => router.push(`/mobile/payment/${car.id}?startDate=${abholdatum}&endDate=${rueckgabedatum}`)}
+            onClick={() => {
+              const optionsParam = selectedOptionIds.join(",");
+              router.push(`/mobile/payment/${car.id}?startDate=${abholdatum}&endDate=${rueckgabedatum}&pickupTime=${abholzeit}&returnTime=${rueckgabezeit}&options=${optionsParam}&couponCode=${promoState === "valid" ? promoCode : ""}`);
+            }}
             className={`flex items-center justify-center w-full py-4 font-bold text-[16px] rounded-[1rem] transition-colors ${
               isFormValid 
                 ? "bg-[#E53935] hover:bg-red-700 text-white shadow-lg shadow-[#E53935]/30" 

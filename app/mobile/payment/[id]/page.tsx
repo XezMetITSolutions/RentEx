@@ -9,6 +9,13 @@ async function getCar(id: number) {
     });
 }
 
+async function getOptions() {
+    const options = await prisma.option.findMany({
+        where: { status: 'active' }
+    });
+    return options;
+}
+
 export default async function MobilePaymentPage({ params, searchParams }: { 
     params: Promise<{ id: string }>,
     searchParams: Promise<{ [key: string]: string | string[] | undefined }> 
@@ -29,23 +36,42 @@ export default async function MobilePaymentPage({ params, searchParams }: {
         notFound();
     }
 
-    const [car, customer] = await Promise.all([
+    const [car, customer, rawOptions] = await Promise.all([
         getCar(carId),
-        getCurrentCustomer()
+        getCurrentCustomer(),
+        getOptions()
     ]);
 
     if (!car) {
         notFound();
     }
 
+    // De-duplicate options by name: prefer car-specific options over templates
+    const processedOptionsMap = new Map();
+    // 1. Templates
+    rawOptions.filter(o => o.carId === null).forEach(o => processedOptionsMap.set(o.name, o));
+    // 2. Car specifics
+    rawOptions.filter(o => o.carId === car.id).forEach(o => processedOptionsMap.set(o.name, o));
+
+    const options = Array.from(processedOptionsMap.values()).map(opt => ({
+        ...opt,
+        price: Number(opt.price)
+    }));
+
     return (
         <MobilePaymentClient 
             car={car} 
             customer={customer} 
+            options={options}
             searchParams={{
                 startDate: startDate as string,
-                endDate: endDate as string
+                endDate: endDate as string,
+                pickupTime: (resolvedSearchParams.pickupTime as string) || '10:00',
+                returnTime: (resolvedSearchParams.returnTime as string) || '10:00',
+                options: (resolvedSearchParams.options as string) || '',
+                couponCode: (resolvedSearchParams.couponCode as string) || ''
             }} 
         />
     );
 }
+

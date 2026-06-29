@@ -54,6 +54,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const endDate = new Date(`${endDateStr}T${returnTimeStr}:00`);
     const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
     const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
+    const isMobile = formData.get('isMobile') === 'true';
 
     // Customer Data
     const firstName = formData.get('firstName') as string;
@@ -313,6 +314,13 @@ export async function createBooking(prevState: any, formData: FormData) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://rent-ex.at');
         let sessionUrl = null;
         try {
+            let successUrl = `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`;
+            let cancelUrl = `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}`;
+            if (isMobile) {
+                successUrl = `${baseUrl}/mobile/payment/success?rentalId=${rental.id}&session_id={CHECKOUT_SESSION_ID}`;
+                cancelUrl = `${baseUrl}/mobile/payment/${carId}?startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}&pickupTime=${pickupTimeStr}&returnTime=${returnTimeStr}&options=${formData.get('options') as string || ''}&couponCode=${formData.get('couponCode') as string || ''}`;
+            }
+
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'] as any,
                 line_items: [
@@ -329,8 +337,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                     },
                 ],
                 mode: 'payment',
-                success_url: `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}`,
+                success_url: successUrl,
+                cancel_url: cancelUrl,
                 customer_email: email,
                 metadata: {
                     rentalId: rental.id.toString(),
@@ -383,5 +391,9 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     }
 
-    redirect(`/checkout/success/${rental.id}`);
+    if (isMobile) {
+        redirect(`/mobile/payment/success?rentalId=${rental.id}`);
+    } else {
+        redirect(`/checkout/success/${rental.id}`);
+    }
 }

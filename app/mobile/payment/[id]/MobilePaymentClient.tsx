@@ -2,12 +2,68 @@
 
 import { useState, useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ChevronLeft, CheckCircle2, Lock, Loader2, User, Building2 } from "lucide-react";
+import { ChevronLeft, Lock, Loader2, User, Building2, Check, X, Calendar, CheckCircle2 } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
+import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
 
-export default function MobilePaymentClient({ car, customer, searchParams }: { car: any, customer: any, searchParams: { startDate: string, endDate: string } }) {
-  const [method, setMethod] = useState<'arrival' | 'online'>('online');
+const COUNTRIES = [
+    "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
+    "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
+    "Bangladesch", "Barbados", "Belgien", "Belize", "Benin", "Bhutan", "Bolivien", "Bosnien und Herzegowina",
+    "Botswana", "Brasilien", "Brunei Darussalam", "Bulgarien", "Burkina Faso", "Burundi", "Chile", "China",
+    "Costa Rica", "Dänemark", "Deutschland", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
+    "Elfenbeinküste", "El Salvador", "Eritrea", "Estland", "Eswatini", "Fidschi", "Finnland", "Frankreich",
+    "Gabun", "Gambia", "Georgien", "Ghana", "Grenada", "Griechenland", "Guatemala", "Guinea", "Guinea-Bissau",
+    "Guyana", "Haiti", "Honduras", "Indien", "Indonesien", "Irak", "Iran", "Irland", "Island", "Israel",
+    "Italien", "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
+    "Kasachstan", "Katar", "Kenia", "Kirgisistan", "Kiribati", "Kolumbien", "Komoren", "Kongo (Demokratische Republik)",
+    "Kongo (Republik)", "Nordkorea", "Südkorea", "Kosovo", "Kroatien", "Kuba", "Kuwait", "Laos", "Lesotho",
+    "Lettland", "Libanon", "Liberia", "Libyen", "Liechtenstein", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
+    "Malaysia", "Malediven", "Mali", "Malta", "Marokko", "Marshallinseln", "Mauretanien", "Mauritius", "Mexiko",
+    "Mikronesien", "Moldau", "Monaco", "Mongolei", "Montenegro", "Mosambik", "Myanmar", "Namibia", "Nauru",
+    "Nepal", "Neuseeland", "Nicaragua", "Niederlande", "Niederlande", "Niger", "Nigeria", "Nordmazedonien", "Norwegen", "Oman",
+    "Osttimor (Timor-Leste)", "Pakistan", "Palau", "Palästina", "Panama", "Papua-Neuguinea", "Paraguay", "Peru",
+    "Philippinen", "Polen", "Portugal", "Ruanda", "Rumänien", "Russland", "Salomonen", "Sambia", "Samoa",
+    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Schweiz", "Senegal", "Serbien",
+    "Seychellen", "Sierra Leone", "Simbabwe", "Singapur", "Slowakei", "Slowenien", "Somalia", "Spanien",
+    "Sri Lanka", "St. Kitts und Nevis", "St. Lucia", "St. Vincent und die Grenadinen", "Südafrika", "Sudan",
+    "Südsudan", "Suriname", "Syrien", "Tadschikistan", "Tansania", "Thailand", "Togo", "Tonga", "Trinidad und Tobago",
+    "Tschad", "Tschechien", "Tunesien", "Türkei", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "Ungarn",
+    "Uruguay", "Usbekistan", "Vanuatu", "Vatikanstadt", "Venezuela", "Vereinigte Arabische Emirate",
+    "Vereinigtes Königreich (Großbritannien)", "Vereinigte Staaten (USA)", "Vietnam", "Weißrussland (Belarus)",
+    "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
+];
+
+const formatDateOfBirth = (dateVal: any) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear().toString();
+    return `${day}/${month}/${year}`;
+};
+
+export default function MobilePaymentClient({ car, customer, options = [], searchParams }: { 
+    car: any, 
+    customer: any, 
+    options?: any[],
+    searchParams: { 
+        startDate: string, 
+        endDate: string,
+        pickupTime: string,
+        returnTime: string,
+        options: string,
+        couponCode: string
+    } 
+}) {
+  const isPickupOutside = isOutsideOpeningHours(searchParams.startDate, searchParams.pickupTime);
+  const isReturnOutside = isOutsideOpeningHours(searchParams.endDate, searchParams.returnTime);
+  const needsSelfCheckin = isPickupOutside || isReturnOutside;
+
+  const [method, setMethod] = useState<'arrival' | 'online'>(isPickupOutside ? 'online' : 'arrival');
   const [customerType, setCustomerType] = useState<'Private' | 'Business'>(customer?.customerType || 'Private');
+  const [agbAccepted, setAgbAccepted] = useState(false);
   const [state, formAction, isPending] = useActionState(createBooking, null);
 
   // Address Autofill Logic
@@ -16,7 +72,45 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [postalCode, setPostalCode] = useState(customer?.postalCode || '');
   const [city, setCity] = useState(customer?.city || '');
+  const [selectedCountry, setSelectedCountry] = useState(customer?.country || 'Österreich');
   const suggestionRef = useRef<HTMLDivElement>(null);
+
+  // Profile data states
+  const [isLoggedIn, setIsLoggedIn] = useState(!!customer);
+  const [emailValue, setEmailValue] = useState(customer?.email || '');
+  const [emailExists, setEmailExists] = useState(false);
+  const [firstName, setFirstName] = useState(customer?.firstName || '');
+  const [lastName, setLastName] = useState(customer?.lastName || '');
+  const [phone, setPhone] = useState(customer?.phone || '+43 ');
+  const [dateOfBirth, setDateOfBirth] = useState(customer?.dateOfBirth ? formatDateOfBirth(customer.dateOfBirth) : '');
+  const [licenseNumber, setLicenseNumber] = useState(customer?.licenseNumber || '');
+  const [licenseCountry, setLicenseCountry] = useState(customer?.licenseCountry || 'Österreich');
+  const [licensePhotoUrl, setLicensePhotoUrl] = useState(customer?.licensePhotoUrl || '');
+  const [licenseExpiryDate, setLicenseExpiryDate] = useState(customer?.licenseExpiryDate ? formatDateOfBirth(customer.licenseExpiryDate) : '');
+  const [company, setCompany] = useState(customer?.company || '');
+  const [taxId, setTaxId] = useState(customer?.taxId || '');
+
+  // Login Modal
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const isExpiryStringExpired = (dateStr: string) => {
+      if (!dateStr) return false;
+      const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
+      const parts = normalized.split('/');
+      if (parts.length !== 3) return false;
+      let day = parseInt(parts[0], 10);
+      let month = parseInt(parts[1], 10) - 1;
+      let year = parseInt(parts[2], 10);
+      if (year < 100) year += 2000;
+      const d = new Date(year, month, day);
+      return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
+  };
+
+  const isExpired = isExpiryStringExpired(licenseExpiryDate);
+  const showLicenseInput = !licenseNumber || !licenseExpiryDate || isExpired;
 
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -57,28 +151,104 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
       setShowSuggestions(false);
   };
 
-  const start = new Date(searchParams.startDate);
-  const end = new Date(searchParams.endDate);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-  const totalAmount = days * (Number(car.dailyRate) || 0);
+  const checkEmail = async (email: string) => {
+      if (!email || email.indexOf('@') === -1) {
+          setEmailExists(false);
+          return;
+      }
+      if (customer && customer.email === email) {
+          setEmailExists(false);
+          return;
+      }
+      try {
+          const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email.trim())}`);
+          const data = await res.json();
+          setEmailExists(data.exists);
+      } catch (e) {
+          console.error("Failed to check email", e);
+      }
+  };
+
+  const handleModalLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsLoggingIn(true);
+      setLoginError('');
+      try {
+          const res = await fetch('/api/auth/checkout-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: emailValue, password: loginPassword })
+          });
+          const data = await res.json();
+          if (data.success) {
+              const cust = data.customer;
+              setFirstName(cust.firstName || '');
+              setLastName(cust.lastName || '');
+              setPhone(cust.phone || '');
+              setAddressQuery(cust.address || '');
+              setCity(cust.city || '');
+              setPostalCode(cust.postalCode || '');
+              setSelectedCountry(cust.country || 'Österreich');
+              setCustomerType(cust.customerType || 'Private');
+              setCompany(cust.company || '');
+              setTaxId(cust.taxId || '');
+              setDateOfBirth(cust.dateOfBirth ? formatDateOfBirth(cust.dateOfBirth) : '');
+              setLicenseNumber(cust.licenseNumber || '');
+              setLicenseCountry(cust.licenseCountry || 'Österreich');
+              setLicensePhotoUrl(cust.licensePhotoUrl || '');
+              setLicenseExpiryDate(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+              setIsLoggedIn(true);
+              setShowLoginModal(false);
+              setEmailExists(false);
+          } else {
+              setLoginError(data.error || 'Login fehlgeschlagen.');
+          }
+      } catch (err) {
+          setLoginError('Serverfehler beim Anmelden.');
+      } finally {
+          setIsLoggingIn(false);
+      }
+  };
+
+  // Pricing calculations
+  const days = calculateChargeableDays(searchParams.startDate, searchParams.pickupTime, searchParams.endDate, searchParams.returnTime);
+  const selectedOptionIds = searchParams.options ? searchParams.options.split(',').map(Number) : [];
+  const selectedOptions = options.filter(o => selectedOptionIds.includes(o.id));
+
+  let totalAmount = days * (Number(car.dailyRate) || 0);
+  selectedOptions.forEach(opt => {
+      if (opt.isPerDay) {
+          totalAmount += (Number(opt.price) || 0) * days;
+      } else {
+          totalAmount += (Number(opt.price) || 0);
+      }
+  });
+
+  const discount = searchParams.couponCode?.toUpperCase() === "RENTEX50" ? -50 : 0;
+  totalAmount = Math.max(0, totalAmount + discount);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-32 transition-colors">
+    <>
+    <div className="flex flex-col min-h-screen bg-gray-55 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-[360px] transition-colors">
       <header className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#141414] sticky top-0 z-20 transition-colors">
-        <Link href={`/mobile/checkout/${car.id}`} className="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+        <Link href={`/mobile/checkout/${car.id}?from=${searchParams.startDate}&to=${searchParams.endDate}`} className="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
           <ChevronLeft className="w-6 h-6" />
         </Link>
         <h1 className="text-[16px] font-bold">Details & Zahlung</h1>
         <div className="w-10"></div>
       </header>
 
-      <form action={formAction} className="flex-1 flex flex-col">
+      <form action={formAction} encType="multipart/form-data" className="flex-1 flex flex-col">
+        {/* Hidden parameters matching server action */}
         <input type="hidden" name="carId" value={car.id} />
         <input type="hidden" name="startDate" value={searchParams.startDate} />
         <input type="hidden" name="endDate" value={searchParams.endDate} />
+        <input type="hidden" name="pickupTime" value={searchParams.pickupTime} />
+        <input type="hidden" name="returnTime" value={searchParams.returnTime} />
+        <input type="hidden" name="options" value={searchParams.options} />
         <input type="hidden" name="totalAmount" value={totalAmount} />
         <input type="hidden" name="paymentMethod" value={method} />
+        <input type="hidden" name="isMobile" value="true" />
 
         {state?.error && (
             <div className="mx-5 mt-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm">
@@ -108,11 +278,11 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
             <div className="space-y-4 pt-2">
               <div>
                 <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Firmenname</label>
-                <input required name="company" type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Firma GmbH" />
+                <input required name="company" type="text" value={company} onChange={e => setCompany(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Firma GmbH" />
               </div>
               <div>
                 <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">USt-IdNr.</label>
-                <input name="taxId" type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="ATU12345678" />
+                <input name="taxId" type="text" value={taxId} onChange={e => setTaxId(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="ATU12345678" />
               </div>
             </div>
           )}
@@ -123,21 +293,108 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Vorname</label>
-                <input required name="firstName" defaultValue={customer?.firstName || ''} type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Max" />
+                <input required name="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Max" />
               </div>
               <div>
                 <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Nachname</label>
-                <input required name="lastName" defaultValue={customer?.lastName || ''} type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Mustermann" />
+                <input required name="lastName" value={lastName} onChange={e => setLastName(e.target.value)} type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-250 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Mustermann" />
               </div>
             </div>
             <div>
               <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">E-Mail</label>
-              <input required name="email" defaultValue={customer?.email || ''} type="email" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="max@beispiel.com" />
+              <input 
+                required 
+                name="email" 
+                value={emailValue} 
+                onChange={e => {
+                  const val = e.target.value;
+                  setEmailValue(val);
+                  checkEmail(val);
+                }}
+                onBlur={e => checkEmail(e.target.value)}
+                type="email" 
+                className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" 
+                placeholder="max@beispiel.com" 
+              />
+              {emailExists && (
+                <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center justify-between animate-in fade-in duration-300">
+                    <span>Dieses E-Mail existiert bereits.</span>
+                    <button
+                        type="button"
+                        onClick={() => { setLoginError(''); setShowLoginModal(true); }}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-[10px]"
+                    >
+                        Anmelden
+                    </button>
+                </div>
+              )}
             </div>
             <div>
               <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Telefon</label>
-              <input required name="phone" defaultValue={customer?.phone || ''} type="tel" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="+43 123 456789" />
+              <input required name="phone" value={phone} onChange={e => setPhone(e.target.value)} type="tel" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="+43 123 456789" />
             </div>
+            <div>
+              <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Geburtsdatum *</label>
+              <input 
+                required 
+                name="dateOfBirth" 
+                value={dateOfBirth} 
+                onChange={e => setDateOfBirth(e.target.value)} 
+                type="text" 
+                className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" 
+                placeholder="TT/MM/JJJJ (z.B. 15/08/1990)" 
+                pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+              />
+            </div>
+
+            {/* Sürücü Belgesi (Driver's License) Details */}
+            {showLicenseInput ? (
+              <div className="space-y-4 pt-2">
+                {licenseNumber && isExpired && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs">
+                    ⚠️ Führerschein ({licenseNumber}) ist abgelaufen. Bitte neue Daten eintragen.
+                  </div>
+                )}
+                <div>
+                  <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Führerscheinnummer *</label>
+                  <input required name="licenseNumber" type="text" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="A1234567" />
+                </div>
+                <div>
+                  <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Ausstellungsland *</label>
+                  <select required name="licenseCountry" value={licenseCountry} onChange={e => setLicenseCountry(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors appearance-none">
+                    {COUNTRIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Ablaufdatum *</label>
+                  <input required name="licenseExpiryDate" type="text" value={licenseExpiryDate} onChange={e => setLicenseExpiryDate(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="TT/MM/JJJJ" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" />
+                </div>
+                <div>
+                  <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Führerschein Foto hochladen (Vorderseite) *</label>
+                  <input required={!licensePhotoUrl || isExpired} name="licensePhoto" type="file" accept="image/*" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-3.5 px-4 text-[14px] text-gray-900 dark:text-white focus:border-[#E53935] mt-1 transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-[#E53935]/15 file:text-[#E53935] file:font-semibold" />
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 rounded-2xl text-xs flex items-center gap-3">
+                <span className="text-lg">✓</span>
+                <div>
+                  <p className="font-bold">Führerscheindaten verifiziert</p>
+                  <p className="text-gray-400 leading-relaxed text-[11px] mt-0.5">
+                    Führerschein {licenseNumber} ({licenseCountry}) läuft am {licenseExpiryDate} ab.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!customer && (
+              <div className="space-y-2 pt-4 mt-2 border-t border-gray-200 dark:border-white/5">
+                <label className="text-[12px] font-medium text-red-500 ml-1">Konto erstellen (optional)</label>
+                <input name="password" type="password" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Passwort vergeben (min. 6 Zeichen)" />
+                <p className="text-[10px] text-gray-500 italic ml-1">Optional: Wenn Sie ein Passwort vergeben, wird automatisch ein Konto für Sie erstellt.</p>
+              </div>
+            )}
           </div>
 
           {/* Address Data */}
@@ -184,26 +441,66 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
                 <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Wien" />
               </div>
             </div>
+            <div>
+              <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Land</label>
+              <select name="country" value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors appearance-none">
+                {COUNTRIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Payment Method */}
-          <div className="space-y-4 pb-8">
+          <div className="space-y-4">
             <h2 className="text-[16px] font-bold text-gray-900 dark:text-white">Zahlungsmethode</h2>
             <div className="space-y-3">
+              {!isPickupOutside ? (
+                <button type="button" onClick={() => setMethod("arrival")} className={`flex items-center w-full p-4 rounded-[1rem] border transition-all ${method === "arrival" ? "bg-[#E53935]/10 border-[#E53935]" : "bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5"}`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 ${method === "arrival" ? "border-[#E53935]" : "border-gray-300 dark:border-[#A3A3A3]"}`}>
+                    {method === "arrival" && <div className="w-2.5 h-2.5 rounded-full bg-[#E53935]" />}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className={`text-[14px] font-medium block ${method === "arrival" ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#A3A3A3]"}`}>Bezahlung vor Ort</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 block mt-0.5">Zahlen Sie bei Abholung bar oder mit Karte</span>
+                  </div>
+                </button>
+              ) : (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs leading-relaxed">
+                  🔑 <strong>Online-Zahlung erforderlich:</strong> Da Ihre Abholzeit außerhalb der Öffnungszeiten liegt (Self-Check-in), ist die Bezahlung bei Abholung vor Ort nicht möglich.
+                </div>
+              )}
+              
               <button type="button" onClick={() => setMethod("online")} className={`flex items-center w-full p-4 rounded-[1rem] border transition-all ${method === "online" ? "bg-[#E53935]/10 border-[#E53935]" : "bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5"}`}>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 ${method === "online" ? "border-[#E53935]" : "border-gray-300 dark:border-[#A3A3A3]"}`}>
                   {method === "online" && <div className="w-2.5 h-2.5 rounded-full bg-[#E53935]" />}
                 </div>
-                <span className={`text-[14px] font-medium flex-1 text-left ${method === "online" ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#A3A3A3]"}`}>Online Bezahlen (Kreditkarte/Apple Pay)</span>
-              </button>
-              
-              <button type="button" onClick={() => setMethod("arrival")} className={`flex items-center w-full p-4 rounded-[1rem] border transition-all ${method === "arrival" ? "bg-[#E53935]/10 border-[#E53935]" : "bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-white/5"}`}>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 ${method === "arrival" ? "border-[#E53935]" : "border-gray-300 dark:border-[#A3A3A3]"}`}>
-                  {method === "arrival" && <div className="w-2.5 h-2.5 rounded-full bg-[#E53935]" />}
+                <div className="flex-1 text-left">
+                  <span className={`text-[14px] font-medium block ${method === "online" ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#A3A3A3]"}`}>Online Bezahlen (Kreditkarte/Apple Pay)</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 block mt-0.5">Sicher und verschlüsselt über Stripe</span>
                 </div>
-                <span className={`text-[14px] font-medium flex-1 text-left ${method === "arrival" ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-[#A3A3A3]"}`}>Bezahlung vor Ort</span>
               </button>
             </div>
+          </div>
+
+          {/* AGB Consent Checkbox */}
+          <div className="pt-2 pb-8">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative flex items-center mt-1">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agbAccepted}
+                  onChange={(e) => setAgbAccepted(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="w-5 h-5 border-2 border-gray-300 dark:border-white/10 rounded group-hover:border-red-500/50 peer-checked:border-[#E53935] peer-checked:bg-[#E53935] transition-all"></div>
+                <Check className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
+              </div>
+              <span className="text-[11px] text-gray-500 dark:text-[#A3A3A3] leading-relaxed select-none">
+                Ich habe die <a href="/agb" target="_blank" className="text-[#E53935] hover:underline font-bold">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-[#E53935] hover:underline font-bold">Datenschutzerklärung</a> gelesen und akzeptiere diese.
+              </span>
+            </label>
           </div>
         </div>
 
@@ -212,7 +509,7 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
           <div className="px-5 py-3 border-b border-gray-200 dark:border-white/5 flex items-center justify-between transition-colors">
             <div>
               <span className="text-[12px] text-gray-500 dark:text-[#A3A3A3] block">Gesamtbetrag</span>
-              <span className="text-[10px] text-gray-500 dark:text-[#A3A3A3]">inkl. MwSt.</span>
+              <span className="text-[10px] text-gray-500 dark:text-[#A3A3A3]">inkl. MwSt. ({days} Tage)</span>
             </div>
             <span className="text-[20px] font-bold text-gray-900 dark:text-white">
               {new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(totalAmount)}
@@ -222,10 +519,10 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
           <div className="p-4">
             <button 
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !agbAccepted}
               className={`flex items-center justify-center w-full py-4 font-bold text-[16px] rounded-[1rem] transition-colors ${
-                isPending 
-                  ? "bg-[#E53935]/80 text-white cursor-wait" 
+                isPending || !agbAccepted
+                  ? "bg-[#E53935]/40 text-white/55 cursor-not-allowed border border-transparent" 
                   : "bg-[#E53935] hover:bg-red-700 text-white shadow-lg shadow-[#E53935]/30"
               }`}
             >
@@ -246,5 +543,52 @@ export default function MobilePaymentClient({ car, customer, searchParams }: { c
         </div>
       </form>
     </div>
+
+    {/* Checkout Login Modal */}
+    {showLoginModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative w-full max-w-sm bg-white dark:bg-[#141414] border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
+                <button
+                    type="button"
+                    onClick={() => setShowLoginModal(false)}
+                    className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+                
+                <h3 className="text-lg font-bold mb-1">Konto vorhanden</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">Passwort für <strong>{emailValue}</strong> eingeben:</p>
+                
+                {loginError && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs">
+                        ⚠️ {loginError}
+                    </div>
+                )}
+                
+                <form onSubmit={handleModalLogin} className="space-y-4">
+                    <div>
+                        <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Passwort</label>
+                        <input
+                            required
+                            type="password"
+                            value={loginPassword}
+                            onChange={e => setLoginPassword(e.target.value)}
+                            placeholder="••••••"
+                            className="w-full bg-gray-55 dark:bg-black/40 border border-gray-250 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#E53935] outline-none"
+                        />
+                    </div>
+                    
+                    <button
+                        type="submit"
+                        disabled={isLoggingIn}
+                        className="w-full py-3 bg-[#E53935] hover:bg-red-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-all shadow-lg"
+                    >
+                        {isLoggingIn ? 'Wird angemeldet...' : 'Anmelden & Daten laden'}
+                    </button>
+                </form>
+            </div>
+        </div>
+    )}
+    </>
   );
 }
