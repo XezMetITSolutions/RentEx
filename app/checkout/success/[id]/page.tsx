@@ -21,9 +21,9 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
 
     if (!rental) {
         return (
-            <div className="min-h-screen bg-black text-white flex items-center justify-center">
+            <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Buchung nicht gefunden</h1>
+                    <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Buchung nicht gefunden</h1>
                     <Link href="/" className="text-red-500 hover:text-red-400">Zurück zur Startseite</Link>
                 </div>
             </div>
@@ -33,11 +33,11 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
     const isPaid = rental.paymentStatus === 'Paid' || !!sessionId;
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
+        <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
             <Navbar />
 
             <main className="pt-32 pb-20 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+                <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden shadow-xl shadow-black/5">
                     {/* Background Glow */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-red-500/10 blur-3xl rounded-full -z-10" />
 
@@ -45,28 +45,28 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                         <CheckCircle className={`w-10 h-10 ${isPaid ? 'text-green-500' : 'text-red-500'}`} />
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                         {isPaid ? 'Zahlung & Buchung erfolgreich!' : 'Buchung bestätigt!'}
                     </h1>
-                    <p className="text-gray-400 text-lg mb-8">
+                    <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
                         Vielen Dank, {rental.customer.firstName}. {isPaid ? 'Ihre Zahlung wurde bestätigt ve Ihre Reservierung ist abgeschlossen.' : 'Ihre Reservierung wurde erfolgreich entgegengenommen.'}
                     </p>
 
-                    <div className="bg-black/30 rounded-2xl p-6 border border-white/10 text-left mb-8">
-                        <h2 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-4">Buchungsdetails</h2>
+                    <div className="bg-gray-50 dark:bg-black/30 rounded-2xl p-6 border border-gray-200 dark:border-white/10 text-left mb-8">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-white/10 pb-4">Buchungsdetails</h2>
 
                         <div className="grid gap-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-400">Buchungsnummer</span>
-                                <span className="font-mono font-bold text-white">{rental.contractNumber}</span>
+                                <span className="text-gray-500 dark:text-gray-400">Buchungsnummer</span>
+                                <span className="font-mono font-bold text-gray-900 dark:text-white">{rental.contractNumber}</span>
                             </div>
 
-                            <div className="flex items-center gap-4 py-4 my-2 border-y border-white/5">
-                                <div className="relative w-20 h-14 bg-zinc-800 rounded-lg overflow-hidden shrink-0">
+                            <div className="flex items-center gap-4 py-4 my-2 border-y border-gray-200 dark:border-white/5">
+                                <div className="relative w-20 h-14 bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden shrink-0">
                                     {rental.car.imageUrl && <Image src={rental.car.imageUrl} alt={rental.car.model} fill className="object-cover" />}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-white">{rental.car.brand} {rental.car.model}</p>
+                                    <p className="font-bold text-gray-900 dark:text-white">{rental.car.brand} {rental.car.model}</p>
                                     <p className="text-xs text-gray-500">{rental.car.plate}</p>
                                 </div>
                             </div>
@@ -74,13 +74,13 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">Abholung</p>
-                                    <p className="text-white font-medium">{new Date(rental.startDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400">10:00 Uhr</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.startDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-500 mb-1">Rückgabe</p>
-                                    <p className="text-white font-medium">{new Date(rental.endDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400">10:00 Uhr</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.endDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
                                 </div>
                             </div>
                         </div>
@@ -88,14 +88,14 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
 
                     {!rental.customer.passwordHash && (
                         <div className="mt-12 p-1 bg-gradient-to-r from-red-500/20 via-red-500/5 to-red-500/20 rounded-3xl mb-8">
-                            <div className="bg-zinc-900 rounded-[22px] p-6 text-left border border-white/5">
+                            <div className="bg-white dark:bg-zinc-900 rounded-[22px] p-6 text-left border border-gray-100 dark:border-white/5">
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-red-500/20">
                                         <Zap className="w-6 h-6 text-red-500" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold text-white mb-2">Exklusive Vorteile sichern!</h3>
-                                        <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Exklusive Vorteile sichern!</h3>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 leading-relaxed">
                                             Erstellen Sie jetzt ein Passwort für Ihr Konto, um Ihre Buchungen zu verwalten, Dokumente einzusehen und von <strong>exklusiven Rabatten & Angeboten</strong> zu profitieren.
                                         </p>
                                         <Link
@@ -111,11 +111,11 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                     )}
 
                     <div className="space-y-4">
-                        <Link href="/fleet" className="block w-full py-4 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl border border-white/10 transition-colors">
+                        <Link href="/fleet" className="block w-full py-4 bg-gray-50 hover:bg-white/5 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white font-medium rounded-xl border border-gray-200 dark:border-white/10 transition-colors shadow-sm dark:shadow-none">
                             Weitere Fahrzeuge ansehen
                         </Link>
                         <p className="text-sm text-gray-500">
-                            Eine Bestätigung wurde an <span className="text-white">{rental.customer.email}</span> gesendet.
+                            Eine Bestätigung wurde an <span className="text-gray-900 dark:text-white font-semibold">{rental.customer.email}</span> gesendet.
                         </p>
                     </div>
                 </div>
