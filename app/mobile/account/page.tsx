@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ChevronLeft, User, Settings, LogOut, FileText } from "lucide-react";
 import { getCurrentCustomer } from "@/lib/dashboardAuth";
+import { logout } from "@/app/actions/auth";
 
 export default async function MobileAccount() {
   const customer = await getCurrentCustomer();
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-24 transition-colors">
+    <div className="flex flex-col min-h-screen bg-gray-55 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-24 transition-colors">
       <header className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#141414] sticky top-0 z-20 transition-colors">
         <Link href="/mobile" className="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-xl text-gray-900 dark:text-white transition-colors">
           <ChevronLeft className="w-6 h-6" />
@@ -40,32 +41,35 @@ export default async function MobileAccount() {
               </div>
             </div>
 
-        <div className="space-y-3">
-          <button className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
-              <span className="text-[14px] font-medium text-gray-900 dark:text-white">Profil bearbeiten</span>
+            <div className="space-y-3">
+              <Link href="/dashboard/profile" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
+                  <span className="text-[14px] font-medium text-gray-900 dark:text-white">Profil bearbeiten</span>
+                </div>
+              </Link>
+              <Link href="/dashboard/rentals" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
+                  <span className="text-[14px] font-medium text-gray-900 dark:text-white">Dokumente & Verträge</span>
+                </div>
+              </Link>
+              <Link href="/dashboard/settings" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Settings className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
+                  <span className="text-[14px] font-medium text-gray-900 dark:text-white">Einstellungen</span>
+                </div>
+              </Link>
+              
+              <form action={logout}>
+                <button type="submit" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-[#E53935]/10 group transition-colors mt-6 text-left">
+                  <div className="flex items-center gap-3">
+                    <LogOut className="w-5 h-5 text-[#E53935]" />
+                    <span className="text-[14px] font-medium text-[#E53935]">Abmelden</span>
+                  </div>
+                </button>
+              </form>
             </div>
-          </button>
-          <button className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
-              <span className="text-[14px] font-medium text-gray-900 dark:text-white">Dokumente & Verträge</span>
-            </div>
-          </button>
-          <button className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-3">
-              <Settings className="w-5 h-5 text-gray-400 dark:text-[#A3A3A3]" />
-              <span className="text-[14px] font-medium text-gray-900 dark:text-white">Einstellungen</span>
-            </div>
-          </button>
-            <Link href="/api/admin/logout" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-[#E53935]/10 group transition-colors mt-6">
-              <div className="flex items-center gap-3">
-                <LogOut className="w-5 h-5 text-[#E53935]" />
-                <span className="text-[14px] font-medium text-[#E53935]">Abmelden</span>
-              </div>
-            </Link>
-          </div>
           </>
         )}
       </div>
