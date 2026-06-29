@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Car, Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Car, Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -30,14 +30,11 @@ export default function Footer() {
                             Sie sind an der richtigen Adresse für sicheres, schnelles und komfortables Fahren.
                         </p>
                         <div className="flex gap-4">
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
-                                <Twitter className="w-5 h-5" />
+                            <a href="https://www.facebook.com/p/Rent_ex-100076092493354/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Facebook">
+                                <Facebook className="w-5 h-5" />
                             </a>
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
+                            <a href="https://www.instagram.com/rent_ex/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Instagram">
                                 <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="/" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all">
-                                <Linkedin className="w-5 h-5" />
                             </a>
                         </div>
                     </div>
