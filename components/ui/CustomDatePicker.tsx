@@ -14,8 +14,13 @@ type Props = {
 export default function CustomDatePicker({ value, onChange, min, className = "", inputClassName = "" }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => {
-    const d = value ? new Date(value) : new Date();
-    return isNaN(d.getTime()) ? new Date() : d;
+    if (value) {
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? new Date() : d;
+    } else {
+      const now = new Date();
+      return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    }
   });
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -48,35 +53,35 @@ export default function CustomDatePicker({ value, onChange, min, className = "",
   };
 
   const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
+    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   };
 
   const getFirstDayOfMonth = (year: number, month: number) => {
     // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     // Convert to: 0 = Monday, ..., 6 = Sunday for European standard
-    const day = new Date(year, month, 1).getDay();
+    const day = new Date(Date.UTC(year, month, 1)).getUTCDay();
     return day === 0 ? 6 : day - 1;
   };
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setCurrentDate(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 1, 1)));
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setCurrentDate(new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() + 1, 1)));
   };
 
   const handleSelectDay = (day: number) => {
-    const selectedMonth = currentDate.getMonth() + 1;
+    const selectedMonth = month + 1;
     const monthStr = selectedMonth.toString().padStart(2, "0");
     const dayStr = day.toString().padStart(2, "0");
-    const newIsoValue = `${currentDate.getFullYear()}-${monthStr}-${dayStr}`;
+    const newIsoValue = `${year}-${monthStr}-${dayStr}`;
     onChange(newIsoValue);
     setIsOpen(false);
   };
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth();
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDayIndex = getFirstDayOfMonth(year, month);
