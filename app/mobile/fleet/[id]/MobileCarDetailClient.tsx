@@ -17,8 +17,24 @@ export default function MobileCarDetailClient({ car }: { car: any }) {
   const [endDate, setEndDate] = useState(formatDate(tomorrow));
 
   const handleDateSelect = (start: Date, end: Date) => {
-    setStartDate(formatDate(start));
-    setEndDate(formatDate(end));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const s = new Date(start);
+    s.setHours(0, 0, 0, 0);
+
+    if (s < now) return;
+
+    const e = new Date(end);
+    e.setHours(0, 0, 0, 0);
+
+    // If same day or less than 24 hours, default to 1 day minimum duration
+    if (e.getTime() - s.getTime() < 86400000) {
+      e.setDate(s.getDate() + 1);
+    }
+
+    setStartDate(formatDate(s));
+    setEndDate(formatDate(e));
   };
 
   return (
