@@ -12,7 +12,7 @@ function fmt(date: Date, pattern: string): string {
 const COMPANY_NAME    = process.env.COMPANY_NAME    || 'Rent-Ex GmbH';
 const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Illstraße 75a, 6800 Feldkirch, Österreich';
 const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 660 9996800';
-export const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'info@rent-ex.at';
+export const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'rentex@metechnik.at';
 const COMPANY_WEB     = process.env.COMPANY_WEB     || 'www.rent-ex.at';
 const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
 const DEFAULT_BRANCH  = process.env.DEFAULT_BRANCH  || 'Rent-Ex Feldkirch';
