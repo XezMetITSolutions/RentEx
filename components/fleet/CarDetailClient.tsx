@@ -64,10 +64,12 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
         setStartDate(formatDate(s));
         setEndDate(formatDate(e));
 
-        // Smooth scroll to booking widget on mobile/if needed
-        const widget = document.getElementById('booking-widget');
-        if (widget) {
-            widget.scrollIntoView({ behavior: 'smooth' });
+        // Smooth scroll to booking widget on mobile
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            const widget = document.getElementById('booking-widget');
+            if (widget) {
+                widget.scrollIntoView({ behavior: 'smooth' });
+            }
         }
     };
 
@@ -226,8 +228,10 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
                         <BookingWidget
                             car={car}
                             options={options}
-                            initialStartDate={startDate}
-                            initialEndDate={endDate}
+                            startDate={startDate}
+                            endDate={endDate}
+                            setStartDate={setStartDate}
+                            setEndDate={setEndDate}
                         />
                     </div>
 
