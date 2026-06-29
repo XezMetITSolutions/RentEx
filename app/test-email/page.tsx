@@ -10,7 +10,8 @@ const TEMPLATES = [
     { id: 'pickupReminder', name: 'Abholerinnerung', desc: 'Erinnerungs-Mail am Tag vor der geplanten Fahrzeugabholung.' },
     { id: 'returnReminder', name: 'Rückgabeerinnerung', desc: 'Erinnerungs-Mail am Tag vor dem geplanten Mietende.' },
     { id: 'cancellationConfirmation', name: 'Stornierungsbestätigung', desc: 'Bestätigungs-Mail bei einer stornierten Buchung.' },
-    { id: 'maintenanceNotification', name: 'Wartungsbenachrichtigung', desc: 'Interne Benachrichtigung über fällige Fahrzeuginspektionen.' }
+    { id: 'maintenanceNotification', name: 'Wartungsbenachrichtigung', desc: 'Interne Benachrichtigung über fällige Fahrzeuginspektionen.' },
+    { id: 'birthdayCoupon', name: 'Geburtstags-Gutschein', desc: 'Wird an Kunden an ihrem Geburtstag versendet mit einem 10%-Rabattcode.' }
 ];
 
 export default function TestEmailPage() {

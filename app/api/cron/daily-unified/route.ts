@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { emailTemplates, sendEmail } from "@/lib/notificationTemplates";
+import { emailTemplates, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -120,11 +120,33 @@ export async function POST(req: NextRequest) {
                     triggerType: "BIRTHDAY"
                 }
             });
-            await resend.emails.send({
-                from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
-                to: customer.email,
-                subject: `ðŸŽ‚ Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
-                html: `<p>Alles Gute zum Geburtstag! Ihr Code: <strong>${code}</strong></p>`
+            await sendEmail(customer.email, {
+                subject: `🎂 Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
+                body: `Alles Gute zum Geburtstag! Ihr 10% Rabattcode lautet: ${code}. Gilt für 30 Tage.`,
+                html: wrapHtmlLayout(
+                    "ALLES GUTE ZUM GEBURTSTAG",
+                    "IHR GESCHENK IST DA",
+                    `
+                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${customer.firstName},</h2>
+                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
+                        wir wünschen Ihnen von Herzen alles Gute zum Geburtstag! 🎉
+                    </p>
+                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
+                        Als kleines Geschenk erhalten Sie einen <strong>10% Rabattgutschein</strong> für Ihre nächste Fahrzeugmiete bei uns.
+                    </p>
+
+                    <!-- Coupon Code Card -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #27272a; border-radius: 12px; margin-bottom: 25px;">
+                        <tr>
+                            <td align="center" style="padding: 25px;">
+                                <span style="color: #dc2626; font-size: 12px; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 6px;">Ihr exklusiver Geburtstagscode:</span>
+                                <strong style="color: #ffffff; font-size: 22px; letter-spacing: 2px; font-family: monospace; display: block; background-color: #09090b; padding: 10px 20px; border-radius: 8px; width: fit-content; margin: 0 auto;">${code}</strong>
+                                <span style="color: #a1a1aa; font-size: 11px; display: block; margin-top: 10px;">Gültig für 30 Tage ab heute.</span>
+                            </td>
+                        </tr>
+                    </table>
+                    `
+                )
             });
             birthdayProcessed++;
         }
