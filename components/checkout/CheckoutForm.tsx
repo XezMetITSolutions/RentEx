@@ -90,16 +90,16 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
 
     // useActionState generic typing: [state, dispatch]
     // Initial state null or object
-    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>(needsSelfCheckin ? 'online' : 'arrival');
+    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>(isPickupOutside ? 'online' : 'arrival');
     const [customerType, setCustomerType] = useState<'Private' | 'Business'>(initialCustomer?.customerType || 'Private');
     const [agbAccepted, setAgbAccepted] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
 
     useEffect(() => {
-        if (needsSelfCheckin) {
+        if (isPickupOutside) {
             setPaymentMethod('online');
         }
-    }, [needsSelfCheckin]);
+    }, [isPickupOutside]);
 
     // Address Autofill Logic
     const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
@@ -467,7 +467,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Zahlungsmethode</h2>
                     <div className="space-y-4">
-                        {!needsSelfCheckin ? (
+                        {!isPickupOutside ? (
                             <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'arrival' ? 'bg-red-500/10 border-red-500/50' : 'bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20'}`}>
                                 <input type="radio" name="paymentMethod" value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-white dark:bg-black border-gray-300 dark:border-gray-600" />
                                 <div className="flex-1">
@@ -478,7 +478,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             </label>
                         ) : (
                             <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs">
-                                🔑 <strong>Online-Zahlung erforderlich:</strong> Da Ihre Abhol- oder Rückgabezeit außerhalb der Öffnungszeiten liegt (Self-Check-in), ist die Bezahlung bei Abholung vor Ort nicht möglich.
+                                🔑 <strong>Online-Zahlung erforderlich:</strong> Da Ihre Abholzeit außerhalb der Öffnungszeiten liegt (Self-Check-in), ist die Bezahlung bei Abholung vor Ort nicht möglich.
                             </div>
                         )}
 
