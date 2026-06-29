@@ -3,6 +3,16 @@ import Link from "next/link";
 import { ArrowRight, Fuel, Gauge, Users } from "lucide-react";
 import { getFeaturedCars } from "@/app/actions";
 
+function slugify(text: string) {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+}
+
 export default async function CarFleetPreview() {
     const featuredCars = await getFeaturedCars();
 
@@ -32,7 +42,7 @@ export default async function CarFleetPreview() {
 
                 <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 snap-x snap-mandatory sm:snap-none hide-scrollbar">
                     {featuredCars.map((car) => (
-                        <Link key={car.id} href={`/fleet/${car.id}`} className="block min-w-[85vw] sm:min-w-0 snap-center flex-shrink-0 bg-gray-50/50 dark:bg-zinc-900/30 border border-gray-200/50 dark:border-white/5 rounded-[2rem] overflow-hidden group hover:border-red-500/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl">
+                        <Link key={car.id} href={`/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`} className="block min-w-[85vw] sm:min-w-0 snap-center flex-shrink-0 bg-gray-50/50 dark:bg-zinc-900/30 border border-gray-200/50 dark:border-white/5 rounded-[2rem] overflow-hidden group hover:border-red-500/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl">
                             {/* Image Area - Placeholder if no image */}
                             <div className="h-52 sm:h-60 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-900 dark:to-black flex items-center justify-center relative overflow-hidden p-6 border-b border-gray-100 dark:border-white/5">
                                 {car.imageUrl ? (

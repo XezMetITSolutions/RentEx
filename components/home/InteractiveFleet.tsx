@@ -29,6 +29,16 @@ interface InteractiveFleetProps {
   categories: CategoryType[];
 }
 
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
+
 export default function InteractiveFleet({ initialCars, categories }: InteractiveFleetProps) {
   const [activeTab, setActiveTab] = useState<string>("Alle");
   const [sortBy, setSortBy] = useState<string>("Beliebteste");
@@ -131,7 +141,7 @@ export default function InteractiveFleet({ initialCars, categories }: Interactiv
                   <span className="text-lg font-bold text-gray-900 dark:text-white">€{Number(car.dailyRate).toFixed(2).replace('.', ',')}</span>
                   <span className="text-[10px] text-gray-500 dark:text-zinc-500"> / Tag</span>
                 </div>
-                <Link href={`/fleet/${car.id}`} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
+                <Link href={`/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
                   Jetzt Buchen
                 </Link>
               </div>

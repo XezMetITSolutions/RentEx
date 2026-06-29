@@ -120,6 +120,16 @@ async function getCars(filters: FilterParams) {
     return uniqueCars.sort((a, b) => (Number(a.dailyRate) || 0) - (Number(b.dailyRate) || 0));
 }
 
+function slugify(text: string) {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+}
+
 export default async function FleetPage({
     searchParams,
 }: {
@@ -222,7 +232,7 @@ export default async function FleetPage({
                                     {cars.map((car) => (
                                         <Link 
                                             key={car.id} 
-                                            href={`/fleet/${car.id}`} 
+                                            href={`/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`} 
                                             className="group relative bg-white dark:bg-zinc-900/40 border border-gray-200 dark:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2 flex flex-col"
                                         >
                                             {/* Badge */}
