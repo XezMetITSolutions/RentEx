@@ -7,7 +7,6 @@ export default function NotificationSettings() {
     const [settings, setSettings] = useState({
         emailBooking: true,
         emailPromo: false,
-        smsReminder: true,
         pushUpdates: true,
     });
 
@@ -65,22 +64,6 @@ export default function NotificationSettings() {
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.emailPromo ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-800'}`}
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.emailPromo ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                    <div className="flex items-center gap-3">
-                        <Smartphone className="h-4 w-4 text-zinc-400" />
-                        <div>
-                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">SMS-Erinnerungen</p>
-                            <p className="text-xs text-zinc-500">Vor Mietbeginn und Rückgabe</p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => toggle('smsReminder')}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.smsReminder ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-800'}`}
-                    >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.smsReminder ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                 </div>
             </div>
