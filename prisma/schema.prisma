@@ -362,6 +362,7 @@ model Customer {
   idNumber      String?
   idPhotoUrl    String?       // Photo of ID card
   licenseNumber String?       // Führerscheinnummer
+  licenseCountry String?      // Ausstellungsland
   licenseIssueDate DateTime?
   licenseExpiryDate DateTime?
   licensePhotoUrl String?      // Photo of Driver License

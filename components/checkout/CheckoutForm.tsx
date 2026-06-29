@@ -91,7 +91,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     };
 
     return (
-        <form action={formAction} className="grid lg:grid-cols-3 gap-12">
+        <form action={formAction} encType="multipart/form-data" className="grid lg:grid-cols-3 gap-12">
             
             {state?.error && (
                 <div className="lg:col-span-3 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 font-medium">
@@ -165,8 +165,25 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer</label>
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>
                             <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ausstellungsland *</label>
+                            <select required name="licenseCountry" defaultValue={initialCustomer?.licenseCountry || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
+                                {[
+                                    "Österreich", "Deutschland", "Schweiz", "Italien", "Kroatien", "Slowenien", "Ungarn", "Slowakei", "Tschechien", "Polen", "Frankreich", "Niederlande", "Belgien", "Spanien", "Portugal"
+                                ].map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Foto hochladen (Vorderseite) *</label>
+                            <input required={!initialCustomer?.licensePhotoUrl} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
+                            {initialCustomer?.licensePhotoUrl && (
+                                <p className="text-xs text-green-600 dark:text-green-400 mt-1">✓ Bereits ein Führerscheinfoto hinterlegt.</p>
+                            )}
                         </div>
                         {!initialCustomer && (
                             <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-gray-150 dark:border-white/5">

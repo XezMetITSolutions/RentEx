@@ -6,6 +6,8 @@ import { stripe } from "@/lib/stripe";
 import { hashPassword, setSession, getSession } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
+import fs from 'fs';
+import path from 'path';
 
 
 export async function createBooking(prevState: any, formData: FormData) {
@@ -32,6 +34,30 @@ export async function createBooking(prevState: any, formData: FormData) {
     const paymentMethod = formData.get('paymentMethod') as string;
     const dateOfBirth = formData.get('dateOfBirth') as string;
     const licenseNumber = formData.get('licenseNumber') as string;
+    const licenseCountry = formData.get('licenseCountry') as string || null;
+
+    // Handle License Photo File Upload
+    async function saveLicenseFile(file: any) {
+        if (!file || !(file instanceof File) || file.size === 0) return null;
+        try {
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'licenses');
+            
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(path.join(uploadDir, fileName), buffer);
+            return `/uploads/licenses/${fileName}`;
+        } catch (error) {
+            console.error('License upload error:', error);
+            return null;
+        }
+    }
+
+    const licensePhotoFile = formData.get('licensePhoto');
+    const licensePhotoUrl = await saveLicenseFile(licensePhotoFile);
 
     // Business Data
     const customerType = formData.get('customerType') as string;
@@ -61,6 +87,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                 taxId,
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
                 licenseNumber,
+                licenseCountry,
+                licensePhotoUrl,
                 passwordHash: password && password.length >= 6 ? hashPassword(password) : undefined
             }
         });
@@ -104,7 +132,9 @@ export async function createBooking(prevState: any, formData: FormData) {
                 company,
                 taxId,
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-                licenseNumber: licenseNumber || undefined
+                licenseNumber: licenseNumber || undefined,
+                licenseCountry: licenseCountry || undefined,
+                licensePhotoUrl: licensePhotoUrl || undefined
             }
         });
 
