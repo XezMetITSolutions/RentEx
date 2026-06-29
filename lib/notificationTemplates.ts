@@ -404,13 +404,18 @@ export async function sendEmail(to: string, template: EmailTemplate): Promise<bo
                 },
             });
 
-            await transporter.sendMail({
+            const mailOptions: any = {
                 from: FROM,
                 to,
                 subject: template.subject,
-                text: template.body,
-                html: template.html,
-            });
+            };
+            if (template.html) {
+                mailOptions.html = template.html;
+            } else {
+                mailOptions.text = template.body;
+            }
+
+            await transporter.sendMail(mailOptions);
 
             return true;
         }
@@ -419,13 +424,19 @@ export async function sendEmail(to: string, template: EmailTemplate): Promise<bo
         if (!key) throw new Error('Neither SMTP_HOST nor RESEND_API_KEY is configured');
         const { Resend } = require('resend');
         const resend = new Resend(key);
-        const { error } = await resend.emails.send({
+        
+        const mailOptions: any = {
             from: FROM,
             to,
             subject: template.subject,
-            text: template.body,
-            html: template.html,
-        });
+        };
+        if (template.html) {
+            mailOptions.html = template.html;
+        } else {
+            mailOptions.text = template.body;
+        }
+
+        const { error } = await resend.emails.send(mailOptions);
         if (error) {
             console.error('[sendEmail] Resend error:', error);
             return false;
