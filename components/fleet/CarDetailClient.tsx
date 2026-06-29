@@ -39,7 +39,12 @@ export default function CarDetailClient({ car, options, featuresList }: CarDetai
     today.setHours(10, 0, 0, 0);
     tomorrow.setHours(10, 0, 0, 0);
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const formatDate = (date: Date) => {
+        const y = date.getFullYear();
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        const d = date.getDate().toString().padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
 
     const [startDate, setStartDate] = useState(formatDate(today));
     const [endDate, setEndDate] = useState(formatDate(tomorrow));
