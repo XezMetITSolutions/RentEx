@@ -215,18 +215,37 @@ export const smsTemplates = {
         `RentEx: Zahlung €${data.rental.totalAmount.toFixed(2)} erhalten. Vielen Dank! ${data.contractNumber}`,
 };
 
-function getResend() {
-    const key = process.env.RESEND_API_KEY;
-    if (!key) throw new Error('RESEND_API_KEY is not configured');
-    const { Resend } = require('resend');
-    return new Resend(key);
-}
+import nodemailer from 'nodemailer';
 
 const FROM = process.env.EMAIL_FROM || 'noreply@rent-ex.at';
 
 export async function sendEmail(to: string, template: EmailTemplate): Promise<boolean> {
     try {
-        const resend = getResend();
+        if (process.env.SMTP_HOST) {
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT || '587', 10),
+                secure: process.env.SMTP_PORT === '465',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS,
+                },
+            });
+
+            await transporter.sendMail({
+                from: FROM,
+                to,
+                subject: template.subject,
+                text: template.body,
+            });
+
+            return true;
+        }
+
+        const key = process.env.RESEND_API_KEY;
+        if (!key) throw new Error('Neither SMTP_HOST nor RESEND_API_KEY is configured');
+        const { Resend } = require('resend');
+        const resend = new Resend(key);
         const { error } = await resend.emails.send({
             from: FROM,
             to,
