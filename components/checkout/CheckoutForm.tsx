@@ -111,15 +111,15 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             <div className="lg:col-span-2 space-y-8">
 
                 {/* Customer Type */}
-                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
-                    <h2 className="text-xl font-bold text-white mb-6">Buchungstyp</h2>
+                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Buchungstyp</h2>
                     <div className="grid grid-cols-2 gap-4">
-                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Private' ? 'bg-red-500/10 border-red-500/50 text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/20'}`}>
+                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Private' ? 'bg-red-500/10 border-red-500/50 text-red-600 dark:text-white' : 'bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'}`}>
                             <input type="radio" name="customerType" value="Private" checked={customerType === 'Private'} onChange={() => setCustomerType('Private')} className="sr-only" />
                             <User className="w-5 h-5" />
                             <span className="font-medium">Privat</span>
                         </label>
-                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Business' ? 'bg-red-500/10 border-red-500/50 text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:border-white/20'}`}>
+                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Business' ? 'bg-red-500/10 border-red-500/50 text-red-600 dark:text-white' : 'bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'}`}>
                             <input type="radio" name="customerType" value="Business" checked={customerType === 'Business'} onChange={() => setCustomerType('Business')} className="sr-only" />
                             <Building2 className="w-5 h-5" />
                             <span className="font-medium">Geschäftlich</span>
@@ -127,52 +127,52 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                     </div>
 
                     {customerType === 'Business' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-150 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Firmenname</label>
-                                <input required name="company" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
+                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Firmenname</label>
+                                <input required name="company" type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">USt-IdNr.</label>
-                                <input name="taxId" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
+                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">USt-IdNr.</label>
+                                <input name="taxId" type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* Personal Info */}
-                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
-                    <h2 className="text-xl font-bold text-white mb-6">Persönliche Daten</h2>
+                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Persönliche Daten</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Vorname</label>
-                            <input required name="firstName" type="text" defaultValue={initialCustomer?.firstName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Max" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Vorname</label>
+                            <input required name="firstName" type="text" defaultValue={initialCustomer?.firstName || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Max" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Nachname</label>
-                            <input required name="lastName" type="text" defaultValue={initialCustomer?.lastName || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Nachname</label>
+                            <input required name="lastName" type="text" defaultValue={initialCustomer?.lastName || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">E-Mail Adresse</label>
-                            <input required name="email" type="email" defaultValue={initialCustomer?.email || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">E-Mail Adresse</label>
+                            <input required name="email" type="email" defaultValue={initialCustomer?.email || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="max@beispiel.com" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefonnummer</label>
+                            <input required name="phone" type="tel" defaultValue={initialCustomer?.phone || '+43 '} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Geburtsdatum</label>
-                            <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none [&::-webkit-calendar-picker-indicator]:invert" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Geburtsdatum</label>
+                            <input required name="dateOfBirth" type="date" defaultValue={initialCustomer?.dateOfBirth ? new Date(initialCustomer.dateOfBirth).toISOString().split('T')[0] : ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none dark:[&::-webkit-calendar-picker-indicator]:invert" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Führerscheinnummer</label>
-                            <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer</label>
+                            <input required name="licenseNumber" type="text" defaultValue={initialCustomer?.licenseNumber || ''} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
                         </div>
                         {!initialCustomer && (
-                            <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-white/5">
-                                <label className="text-sm font-medium text-red-400">Konto erstellen (optional)</label>
+                            <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-gray-150 dark:border-white/5">
+                                <label className="text-sm font-medium text-red-500">Konto erstellen (optional)</label>
                                 <div className="relative">
-                                    <input name="password" type="password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
+                                    <input name="password" type="password" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
                                 </div>
                                 <p className="text-[10px] text-gray-500 italic">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt, damit Sie Ihre Buchungen verwalten können.</p>
                             </div>
@@ -181,11 +181,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 </div>
 
                 {/* Address */}
-                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
-                    <h2 className="text-xl font-bold text-white mb-6">Anschrift</h2>
+                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Anschrift</h2>
                     <div className="space-y-6">
                         <div className="space-y-2 relative" ref={suggestionRef}>
-                            <label className="text-sm font-medium text-gray-400">Straẞe & Hausnummer</label>
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Straẞe & Hausnummer</label>
                             <input
                                 required
                                 name="address"
@@ -193,18 +193,18 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 value={addressQuery}
                                 onChange={(e) => fetchSuggestions(e.target.value)}
                                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none"
+                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
                                 placeholder="Hauptstraẞe 1"
                                 autoComplete="off"
                             />
                             {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
+                                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
                                     {suggestions.map((f, i) => (
                                         <button
                                             key={i}
                                             type="button"
                                             onClick={() => handleSelectSuggestion(f)}
-                                            className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 last:border-0"
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-950 hover:dark:text-white transition-colors border-b border-gray-100 dark:border-white/5 last:border-0"
                                         >
                                             <span className="font-medium">{f.properties.name} {f.properties.housenumber}</span>
                                             <span className="block text-xs text-gray-500">
@@ -217,17 +217,17 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">PLZ</label>
-                                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="6800" />
+                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">PLZ</label>
+                                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="6800" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Stadt</label>
-                                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none" placeholder="Feldkirch" />
+                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Stadt</label>
+                                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Feldkirch" />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Land</label>
-                            <select name="country" defaultValue={initialCustomer?.country || "Österreich"} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none appearance-none">
+                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Land</label>
+                            <select name="country" defaultValue={initialCustomer?.country || "Österreich"} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
                                 {[
                                     "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
                                     "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
@@ -263,23 +263,23 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 </div>
 
                 {/* Payment Method */}
-                <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8">
-                    <h2 className="text-xl font-bold text-white mb-6">Zahlungsmethode</h2>
+                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Zahlungsmethode</h2>
                     <div className="space-y-4">
-                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'arrival' ? 'bg-red-500/10 border-red-500/50' : 'bg-black/20 border-white/5 hover:border-white/20'}`}>
-                            <input type="radio" name="paymentMethod" value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-black border-gray-600" />
+                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'arrival' ? 'bg-red-500/10 border-red-500/50' : 'bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20'}`}>
+                            <input type="radio" name="paymentMethod" value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-white dark:bg-black border-gray-300 dark:border-gray-600" />
                             <div className="flex-1">
-                                <span className="block font-medium text-white">Bezahlung bei Abholung</span>
-                                <span className="block text-sm text-gray-400">Zahlen Sie bequem bar oder mit Karte vor Ort.</span>
+                                <span className="block font-medium text-gray-900 dark:text-white">Bezahlung bei Abholung</span>
+                                <span className="block text-sm text-gray-500 dark:text-gray-400">Zahlen Sie bequem bar oder mit Karte vor Ort.</span>
                             </div>
                             {paymentMethod === 'arrival' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
                         </label>
 
-                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'online' ? 'bg-red-500/10 border-red-500/50' : 'bg-black/20 border-white/5 hover:border-white/20'}`}>
-                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-black border-gray-600" />
+                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'online' ? 'bg-red-500/10 border-red-500/50' : 'bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20'}`}>
+                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-white dark:bg-black border-gray-300 dark:border-gray-600" />
                             <div className="flex-1">
-                                <span className="block font-medium text-white">Online Überweisung / Karte</span>
-                                <span className="block text-sm text-gray-400">Sicher online bezahlen (Stripe, Klarna, Kreditkarte).</span>
+                                <span className="block font-medium text-gray-900 dark:text-white">Online Überweisung / Karte</span>
+                                <span className="block text-sm text-gray-500 dark:text-gray-400">Sicher online bezahlen (Stripe, Klarna, Kreditkarte).</span>
                             </div>
                             {paymentMethod === 'online' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
                         </label>
@@ -292,49 +292,49 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             {/* RIGHT: Summary */}
             <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
-                    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-xl">
-                        <h3 className="text-lg font-bold text-white mb-4">Zusammenfassung</h3>
+                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl shadow-black/5">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Zusammenfassung</h3>
 
                         {/* Car Info */}
-                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
-                            <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-zinc-800">
+                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-white/10">
+                            <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800">
                                 {car.imageUrl && <Image src={car.imageUrl} alt={car.model} fill className="object-cover" />}
                             </div>
                             <div>
-                                <p className="font-bold text-white">{car.brand} {car.model}</p>
-                                <p className="text-xs text-gray-400">{car.category}</p>
+                                <p className="font-bold text-gray-900 dark:text-white">{car.brand} {car.model}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{car.category}</p>
                             </div>
                         </div>
 
                         {/* Dates */}
-                        <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
+                        <div className="space-y-4 mb-6 pb-6 border-b border-gray-200 dark:border-white/10">
                             <div className="flex items-start gap-3">
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
-                                    <p className="text-xs text-gray-400">Abholung</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-white">{start.toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-500">10:00 Uhr</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Abholung</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{start.toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">10:00 Uhr</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <Calendar className="w-4 h-4 text-red-500 mt-0.5" />
                                 <div>
-                                    <p className="text-xs text-gray-400">Rückgabe</p>
-                                    <p suppressHydrationWarning className="text-sm font-medium text-white">{end.toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-500">10:00 Uhr</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Rückgabe</p>
+                                    <p suppressHydrationWarning className="text-sm font-medium text-gray-900 dark:text-white">{end.toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">10:00 Uhr</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <div className="w-4" /> {/* Spacer */}
-                                <p className="text-xs text-gray-400">Dauer: <span className="text-white font-medium">{days} Tage</span></p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Dauer: <span className="text-gray-900 dark:text-white font-medium">{days} Tage</span></p>
                             </div>
                         </div>
 
                         {/* Price Breakdown */}
                         <div className="space-y-3 mb-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-400">Fahrzeugmiete</span>
-                                <span className="text-white">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
+                                <span className="text-gray-500 dark:text-gray-400">Fahrzeugmiete</span>
+                                <span className="text-gray-900 dark:text-white">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
                             </div>
 
                             {/* Packages (Kilometer) */}
@@ -343,11 +343,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Kilometer-Pakete</p>
                                     {selectedOptions.filter(o => o.type === 'package').map(opt => (
                                         <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
-                                            <span className="text-gray-400 flex items-center gap-1">
+                                            <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                 {opt.name}
                                                 {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
                                             </span>
-                                            <span className="text-white">
+                                            <span className="text-gray-900 dark:text-white">
                                                 {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
                                             </span>
                                         </div>
@@ -361,11 +361,11 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Zusatzoptionen</p>
                                     {selectedOptions.filter(o => o.type !== 'package').map(opt => (
                                         <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
-                                            <span className="text-gray-400 flex items-center gap-1">
+                                            <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                 {opt.name}
                                                 {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
                                             </span>
-                                            <span className="text-white">
+                                            <span className="text-gray-900 dark:text-white">
                                                 {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
                                             </span>
                                         </div>
@@ -374,19 +374,19 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                             )}
                         </div>
 
-                        <div className="mb-4 pb-4 border-b border-white/10">
-                            <label className="block text-xs text-gray-400 mb-1">Gutscheincode</label>
-                            <input name="couponCode" type="text" placeholder="Code eingeben" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-red-500 outline-none" />
+                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-white/10">
+                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Gutscheincode</label>
+                            <input name="couponCode" type="text" placeholder="Code eingeben" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:border-red-500 outline-none" />
                         </div>
 
-                        <div className="pt-4 border-t border-white/10">
+                        <div className="pt-4 border-t border-gray-200 dark:border-white/10">
                             <div className="flex justify-between items-end">
-                                <span className="text-gray-400 font-medium">Gesamtbetrag</span>
-                                <span className="text-2xl font-bold text-white text-right">
+                                <span className="text-gray-500 dark:text-gray-400 font-medium">Gesamtbetrag</span>
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white text-right">
                                     {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(total)}
                                 </span>
                             </div>
-                            <p className="text-xs text-right text-gray-500 mt-1">inkl. MwSt.</p>
+                            <p className="text-xs text-right text-gray-400 dark:text-gray-500 mt-1">inkl. MwSt.</p>
                         </div>
 
                         <div className="mt-8 space-y-4">
@@ -399,10 +399,10 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                         onChange={(e) => setAgbAccepted(e.target.checked)}
                                         className="peer sr-only"
                                     />
-                                    <div className="w-5 h-5 border-2 border-white/10 rounded group-hover:border-red-500/50 peer-checked:border-red-600 peer-checked:bg-red-600 transition-all"></div>
+                                    <div className="w-5 h-5 border-2 border-gray-350 dark:border-white/10 rounded group-hover:border-red-500/50 peer-checked:border-red-600 peer-checked:bg-red-600 transition-all"></div>
                                     <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
                                 </div>
-                                <span className="text-xs text-gray-400 leading-relaxed">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                                     Ich habe die <a href="/agb" target="_blank" className="text-red-500 hover:underline">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-red-500 hover:underline">Datenschutzerklärung</a> gelesen und akzeptiere diese.
                                 </span>
                             </label>

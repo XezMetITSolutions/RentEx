@@ -61,13 +61,13 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     }));
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
+        <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
             <Navbar />
 
             <main className="pt-32 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-12">
-                    <h1 className="text-4xl font-bold text-white mb-4">Buchung abschlieẞen</h1>
-                    <p className="text-gray-400">Bitte geben Sie Ihre Daten ein, um die Reservierung zu beenden.</p>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Buchung abschlieẞen</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Bitte geben Sie Ihre Daten ein, um die Reservierung zu beenden.</p>
                 </div>
 
                 <CheckoutForm
