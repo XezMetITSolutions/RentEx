@@ -49,11 +49,62 @@ export default async function Home() {
     }
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Darf ich mit dem Mietwagen ins Ausland fahren?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja, Fahrten ins Ausland sind jedoch ausschließlich mit unserer vorherigen Genehmigung zulässig. Bitte informieren Sie uns spätestens bei Mietbeginn über Ihre Reisepläne. Beachten Sie, dass bei Fahrten in bestimmte Länder (z.B. Italien, Polen, Balkanstaaten, Türkei) eine vereinbarte Haftungsreduzierung bei Diebstahl und Einbruch entfällt."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wie ist die Tankregelung bei der Rückgabe?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sie übernehmen das Fahrzeug mit vollem Kraftstofftank bzw. voller Batterieladung und können es ebenso voll zurückgeben. Falls wir für Sie nachtanken oder nachladen müssen, verrechnen wir die tatsächlichen Kosten zuzüglich einer pauschalen Aufwandsentschädigung von 18,00 €."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Gibt es Voraussetzungen für den Fahrer (Alter/Führerschein)?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Das Fahrzeug darf nur von Personen gelenkt werden, die uneingeschränkt fahrtüchtig und seit mindestens zwei Jahren im ununterbrochenen Besitz einer gültigen Lenkerberechtigung (Führerschein) sind."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Was kostet es, wenn ich zusätzliche Kilometer fahre?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sofern nicht anders vereinbart, werden zusätzliche Kilometer (Mehrkilometer) je nach gemietetem Fahrzeug mit 0,33 € bis 0,45 € pro gefahrenem Kilometer verrechnet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wie verhalte ich mich bei einem Unfall oder Schaden?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Bei jedem Unfall oder Schaden (auch bei reinen Sachschäden oder ohne Beteiligung Dritter) müssen Sie unverzüglich uns benachrichtigen und zwingend die Polizei zur Unfallaufnahme hinzuziehen. Ein Schuldeingeständnis darf vor Ort nicht abgegeben werden."
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-red-500/30 font-sans overflow-x-hidden transition-colors">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Navbar />
 
