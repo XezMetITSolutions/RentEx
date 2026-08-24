@@ -18,8 +18,43 @@ export default async function Home() {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CarRental",
+    "name": "Rent-Ex GmbH",
+    "image": "https://rent-ex.vercel.app/assets/logo.png",
+    "@id": "https://rent-ex.vercel.app/#carrental",
+    "url": "https://rent-ex.vercel.app",
+    "telephone": "+436609996800",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Illstraße 75a",
+      "addressLocality": "Feldkirch",
+      "postalCode": "6800",
+      "addressCountry": "AT"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "opens": "00:00",
+      "closes": "23:59"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-red-500/30 font-sans overflow-x-hidden transition-colors">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
 
       <main className="pt-28 pb-16 max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -94,7 +129,7 @@ export default async function Home() {
               <div>
                 <div className="font-bold text-sm text-gray-900 dark:text-white">Benötigen Sie Hilfe?</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">Unser Team ist 24/7 für Sie da.</p>
-                <p className="text-sm font-bold text-red-500 mt-1">+43 660 9996800</p>
+                <a href="tel:+436609996800" title="Rufen Sie uns an unter +43 660 9996800" className="text-sm font-bold text-red-500 mt-1 hover:underline transition-all block">+43 660 9996800</a>
               </div>
             </div>
           </aside>

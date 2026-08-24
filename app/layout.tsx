@@ -13,6 +13,35 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
   description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+  alternates: {
+    canonical: "https://rent-ex.vercel.app",
+    languages: {
+      "de-AT": "https://rent-ex.vercel.app",
+      "de-DE": "https://rent-ex.vercel.app",
+    },
+  },
+  openGraph: {
+    title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
+    description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+    url: "https://rent-ex.vercel.app",
+    siteName: "RentEx",
+    images: [
+      {
+        url: "https://rent-ex.vercel.app/assets/logo.png",
+        width: 800,
+        height: 600,
+        alt: "RentEx Logo",
+      },
+    ],
+    locale: "de_AT",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
+    description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+    images: ["https://rent-ex.vercel.app/assets/logo.png"],
+  },
   icons: {
     icon: "/assets/logo.png",
   },

@@ -119,11 +119,11 @@ export default function Footer() {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-red-500 shrink-0" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">+43 660 9996800</span>
+                                <a href="tel:+436609996800" title="Rufen Sie uns an unter +43 660 9996800" className="text-gray-600 dark:text-gray-400 text-sm hover:underline hover:text-red-500 transition-colors">+43 660 9996800</a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-red-500 shrink-0" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">info@rent-ex.at</span>
+                                <a href="mailto:info@rent-ex.at" title="Schreiben Sie uns eine E-Mail an info@rent-ex.at" className="text-gray-600 dark:text-gray-400 text-sm hover:underline hover:text-red-500 transition-colors">info@rent-ex.at</a>
                             </li>
                         </ul>
                     </div>

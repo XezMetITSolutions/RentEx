@@ -1,12 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import BottomNav from "@/components/mobile/BottomNav";
 import { getCurrentCustomer } from "@/lib/dashboardAuth";
+
+export const viewport: Viewport = {
+  themeColor: "#0A0A0A",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: "RENT-EX Mobile",
   description: "Premium Fahrzeugvermietung in Vorarlberg",
-  themeColor: "#0A0A0A",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+  alternates: {
+    canonical: "https://rent-ex.vercel.app",
+  },
 };
 
 export default async function MobileLayout({
