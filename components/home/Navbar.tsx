@@ -14,12 +14,13 @@ export default function Navbar() {
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group shrink-0">
+                    <Link href="/" title="Zur Startseite" className="flex items-center gap-2 group shrink-0">
                         <div className="relative w-32 h-14 overflow-hidden transition-all duration-300 flex items-center">
                             {/* Assuming the logo is an image. If not, text fallback */}
                             <Image
                                 src="/assets/logo.png"
                                 alt="Rent-Ex Logo"
+                                title="Rent-Ex Logo"
                                 fill
                                 className="object-contain"
                                 priority
@@ -29,26 +30,26 @@ export default function Navbar() {
 
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex items-center gap-8 ml-8">
-                        <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white border-b-2 border-red-500 pb-1">
+                        <Link href="/" title="Startseite" className="text-sm font-medium text-gray-900 dark:text-white border-b-2 border-red-500 pb-1">
                             Home
                         </Link>
-                        <Link href="/fleet" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <Link href="/fleet" title="Unsere Fahrzeugflotte ansehen" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Fahrzeuge
                         </Link>
-                        <Link href="/dashboard" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <Link href="/dashboard" title="Ihre Buchungen verwalten" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Buchungen
                         </Link>
-                        <Link href="/about" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <Link href="/about" title="Erfahren Sie mehr über uns" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Über uns
                         </Link>
-                        <Link href="/contact" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <Link href="/contact" title="Kontaktieren Sie uns" className="text-sm font-medium text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Kontakt
                         </Link>
                     </div>
 
                     {/* Actions */}
                     <div className="hidden lg:flex items-center gap-6 ml-auto">
-                        <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <a href="tel:+436609996800" title="Rufen Sie uns an unter +43 660 9996800" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                             <Phone className="w-4 h-4 text-gray-400 dark:text-zinc-400" />
                             <span>+43 660 9996800</span>
                         </a>
@@ -59,6 +60,7 @@ export default function Navbar() {
 
                         <Link
                             href="/fleet"
+                            title="Jetzt ein Fahrzeug online buchen"
                             className="px-6 py-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-all"
                         >
                             Jetzt Buchen →
@@ -82,17 +84,17 @@ export default function Navbar() {
             {isOpen && (
                 <div className="lg:hidden bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-white/5">
                     <div className="px-4 pt-2 pb-6 space-y-1">
-                        <Link href="/" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Home</Link>
-                        <Link href="/fleet" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Fahrzeuge</Link>
-                        <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Buchungen</Link>
-                        <Link href="/about" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Über uns</Link>
-                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Kontakt</Link>
+                        <Link href="/" title="Startseite" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Home</Link>
+                        <Link href="/fleet" title="Unsere Fahrzeugflotte ansehen" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Fahrzeuge</Link>
+                        <Link href="/dashboard" title="Ihre Buchungen verwalten" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Buchungen</Link>
+                        <Link href="/about" title="Erfahren Sie mehr über uns" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Über uns</Link>
+                        <Link href="/contact" title="Kontaktieren Sie uns" onClick={() => setIsOpen(false)} className="block px-3 py-3 text-sm font-bold text-gray-500 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg">Kontakt</Link>
                         
                         <div className="pt-4 mt-4 border-t border-gray-200 dark:border-white/5 flex flex-col gap-4 px-3">
-                            <a href="tel:+436609996800" className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-zinc-300">
+                            <a href="tel:+436609996800" title="Rufen Sie uns an unter +43 660 9996800" className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-zinc-300">
                                 <Phone className="w-4 h-4 text-red-500" /> +43 660 9996800
                             </a>
-                            <Link href="/fleet" onClick={() => setIsOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-md bg-red-600 text-white text-sm font-bold">
+                            <Link href="/fleet" title="Jetzt ein Fahrzeug online buchen" onClick={() => setIsOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-md bg-red-600 text-white text-sm font-bold">
                                 Jetzt Buchen →
                             </Link>
                         </div>

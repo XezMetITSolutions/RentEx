@@ -11,8 +11,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "RentEx - Autovermietung Verwaltungssystem",
-  description: "Professionelles Verwaltungssystem für Autovermietungen",
+  title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
+  description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
   icons: {
     icon: "/assets/logo.png",
   },

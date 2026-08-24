@@ -12,11 +12,12 @@ export default function Footer() {
 
                     {/* Brand Info */}
                     <div>
-                        <Link href="/" className="flex items-center gap-2 mb-6">
+                        <Link href="/" title="Zur Startseite" className="flex items-center gap-2 mb-6">
                             <div className="relative w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
                                 <Image
                                     src="/assets/logo.png"
                                     alt="Rent-Ex Logo"
+                                    title="Rent-Ex Logo"
                                     fill
                                     className="object-contain p-1"
                                 />
@@ -30,41 +31,43 @@ export default function Footer() {
                             Sie sind an der richtigen Adresse für sicheres, schnelles und komfortables Fahren.
                         </p>
                         <div className="flex gap-4">
-                            <a href="https://www.facebook.com/p/Rent_ex-100076092493354/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Facebook">
+                            <a href="https://www.facebook.com/p/Rent_ex-100076092493354/" target="_blank" rel="noopener noreferrer" title="Besuchen Sie uns auf Facebook" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Facebook">
                                 <Facebook className="w-5 h-5" />
+                                <span className="sr-only">Facebook</span>
                             </a>
-                            <a href="https://www.instagram.com/rent_ex/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Instagram">
+                            <a href="https://www.instagram.com/rent_ex/" target="_blank" rel="noopener noreferrer" title="Besuchen Sie uns auf Instagram" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Instagram">
                                 <Instagram className="w-5 h-5" />
+                                <span className="sr-only">Instagram</span>
                             </a>
                         </div>
                     </div>
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="text-gray-900 dark:text-white font-semibold mb-6">Schnelllinks</h4>
+                        <div className="text-gray-900 dark:text-white font-semibold mb-6">Schnelllinks</div>
                         <ul className="space-y-4">
                             <li>
-                                <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/about" title="Über uns" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Über uns
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/fleet" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/fleet" title="Fahrzeugflotte" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Fahrzeugflotte
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/services" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/services" title="Dienstleistungen" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Dienstleistungen
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/contact" title="Kontakt" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Kontakt
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/faq" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/faq" title="Häufig gestellte Fragen" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Häufig gestellte Fragen
                                 </Link>
                             </li>
@@ -73,30 +76,30 @@ export default function Footer() {
 
                     {/* Legal */}
                     <div>
-                        <h4 className="text-gray-900 dark:text-white font-semibold mb-6">Unternehmen</h4>
+                        <div className="text-gray-900 dark:text-white font-semibold mb-6">Unternehmen</div>
                         <ul className="space-y-4">
                             <li>
-                                <Link href="/terms" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/terms" title="Nutzungsbedingungen" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Nutzungsbedingungen
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/privacy" title="Datenschutzrichtlinie" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Datenschutzrichtlinie
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/cookies" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/cookies" title="Cookie-Richtlinie" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Cookie-Richtlinie
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/dsgvo" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/dsgvo" title="DSGVO-Informationstext" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     DSGVO-Informationstext
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/impressum" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
+                                <Link href="/impressum" title="Impressum" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors text-sm">
                                     Impressum
                                 </Link>
                             </li>
@@ -105,7 +108,7 @@ export default function Footer() {
 
                     {/* Contact */}
                     <div>
-                        <h4 className="text-gray-900 dark:text-white font-semibold mb-6">Kontaktieren Sie uns</h4>
+                        <div className="text-gray-900 dark:text-white font-semibold mb-6">Kontaktieren Sie uns</div>
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />

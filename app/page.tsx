@@ -28,7 +28,7 @@ export default async function Home() {
           {/* Left Sidebar (Fahrzeugsuche) */}
           <aside className="w-full xl:w-[320px] shrink-0 space-y-4">
             <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-[1.5rem] shadow-xl transition-colors">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Fahrzeugsuche</h3>
+              <div className="text-lg font-bold text-gray-900 dark:text-white mb-6">Fahrzeugsuche</div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
@@ -92,7 +92,7 @@ export default async function Home() {
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-white">Benötigen Sie Hilfe?</h4>
+                <div className="font-bold text-sm text-gray-900 dark:text-white">Benötigen Sie Hilfe?</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">Unser Team ist 24/7 für Sie da.</p>
                 <p className="text-sm font-bold text-red-500 mt-1">+43 660 9996800</p>
               </div>
@@ -123,6 +123,7 @@ export default async function Home() {
                   <Image 
                     src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=1200" 
                     alt="Premium BMW" 
+                    title="Premium BMW Mietwagen"
                     fill 
                     className="object-cover object-center rounded-l-[100px] mask-image-[linear-gradient(to_left,black,transparent)] opacity-90 dark:mix-blend-lighten mix-blend-darken"
                   />
@@ -146,7 +147,7 @@ export default async function Home() {
                 <ShieldCheck className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-white">Versicherte Fahrzeuge</h4>
+                <div className="font-bold text-sm text-gray-900 dark:text-white">Versicherte Fahrzeuge</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Vollkasko & Insassenschutz</p>
               </div>
             </div>
@@ -156,7 +157,7 @@ export default async function Home() {
                 <Phone className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-white">24/7 Support</h4>
+                <div className="font-bold text-sm text-gray-900 dark:text-white">24/7 Support</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Wir sind jederzeit für Sie da</p>
               </div>
             </div>
@@ -166,7 +167,7 @@ export default async function Home() {
                 <CheckCircle className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-white">Schnelle Buchung</h4>
+                <div className="font-bold text-sm text-gray-900 dark:text-white">Schnelle Buchung</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">In nur wenigen Schritten</p>
               </div>
             </div>
@@ -176,7 +177,7 @@ export default async function Home() {
                 <Tag className="w-7 h-7 stroke-[1.5]" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-white">Faire Preise</h4>
+                <div className="font-bold text-sm text-gray-900 dark:text-white">Faire Preise</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Transparente & keine versteckten Kosten</p>
               </div>
             </div>
@@ -190,28 +191,28 @@ export default async function Home() {
             <div className="flex items-center gap-4 px-4">
               <Car className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">20+ Fahrzeuge</h4>
+                <div className="text-base font-bold text-gray-900 dark:text-white">20+ Fahrzeuge</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500">Für jeden Bedarf das Richtige</p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">
               <MapPin className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">Im ganzen Ländle</h4>
+                <div className="text-base font-bold text-gray-900 dark:text-white">Im ganzen Ländle</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500">Für Sie in Vorarlberg</p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">
               <Heart className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">Beste Bewertungen</h4>
+                <div className="text-base font-bold text-gray-900 dark:text-white">Beste Bewertungen</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500">4,9/5 Sterne von Kunden</p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">
               <Calendar className="w-8 h-8 text-red-500 shrink-0" />
               <div>
-                <h4 className="text-base font-bold text-gray-900 dark:text-white">Flexible Mietdauer</h4>
+                <div className="text-base font-bold text-gray-900 dark:text-white">Flexible Mietdauer</div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-500">Täglich, wöchentlich, monatlich</p>
               </div>
             </div>
