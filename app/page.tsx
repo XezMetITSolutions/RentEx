@@ -234,7 +234,9 @@ export default async function Home() {
               <MapPin className="w-8 h-8 text-red-500 shrink-0" />
               <div>
                 <div className="text-base font-bold text-gray-900 dark:text-white">Im ganzen Ländle</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500">Für Sie in Vorarlberg</p>
+                <p className="text-[11px] text-gray-500 dark:text-zinc-500">
+                  Für Sie in <a href="https://www.vorarlberg.travel" target="_blank" rel="noopener noreferrer" title="Offizielles Tourismusportal Vorarlberg" className="hover:underline hover:text-red-500 transition-colors">Vorarlberg</a>
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 px-4">

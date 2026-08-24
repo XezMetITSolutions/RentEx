@@ -112,10 +112,10 @@ export default function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                                <a href="https://maps.google.com/?q=Illstraße+75a,+6800+Feldkirch" target="_blank" rel="noopener noreferrer" title="Adresse auf Google Maps anzeigen" className="text-gray-600 dark:text-gray-400 text-sm hover:underline hover:text-red-500 transition-colors">
                                     Illstraße 75a<br />
                                     6800 Feldkirch
-                                </span>
+                                </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-red-500 shrink-0" />
