@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'www.pngmart.com',
       },
       {
         protocol: 'https',
