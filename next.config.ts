@@ -1,17 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['playwright', 'playwright-core'],
   experimental: {
     serverActions: {
       bodySizeLimit: "15mb",
     },
-    serverExternalPackages: ['playwright', 'playwright-core'],
   },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'www.pngmart.com',
       },
       {
         protocol: 'https',
