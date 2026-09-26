@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "15mb",
     },
+    serverExternalPackages: ['playwright', 'playwright-core'],
   },
   images: {
     remotePatterns: [
