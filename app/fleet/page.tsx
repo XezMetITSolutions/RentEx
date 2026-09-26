@@ -1,4 +1,5 @@
 import Navbar from "@/components/home/Navbar";
+export const dynamic = 'force-dynamic';
 import Footer from "@/components/home/Footer";
 import Image from "next/image";
 import Link from "next/link";
