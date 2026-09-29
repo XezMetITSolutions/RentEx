@@ -235,7 +235,7 @@ export default function ProfileScreen() {
       <MenuItem
         icon="help-circle-outline"
         label={t('profile.help')}
-        onPress={() => Linking.openURL('https://rentex.app/faq').catch(() => {})}
+        onPress={() => Linking.openURL('https://rent-ex.at/faq').catch(() => {})}
       />
       <MenuItem
         icon="mail-outline"
@@ -246,7 +246,7 @@ export default function ProfileScreen() {
       <MenuItem
         icon="document-outline"
         label={t('profile.terms')}
-        onPress={() => Linking.openURL('https://rentex.app/agb').catch(() => {})}
+        onPress={() => Linking.openURL('https://rent-ex.at/terms').catch(() => {})}
       />
 
       <View style={{ height: 20 }} />
@@ -256,7 +256,7 @@ export default function ProfileScreen() {
         onPress={handleLogout}
         danger
       />
-      </>}
+      </>)}
     </ScrollView>
   );
 }

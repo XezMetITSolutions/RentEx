@@ -41,7 +41,7 @@ export default function NewBookingScreen() {
   const [endDate, setEndDate] = useState<Date>(qEnd ? new Date(qEnd) : addDays(today, 3));
   const [pickupLocation, setPickupLocation] = useState('');
   const [returnLocation, setReturnLocation] = useState('');
-  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<number[]>([]);
 
   useEffect(() => {
     const id = Number(carId);
@@ -72,18 +72,20 @@ export default function NewBookingScreen() {
     })();
   }, [carId]);
 
-  const EXTRAS = [
-    { id: 'insurance', name: 'Premium-Versicherung', price: 15, icon: 'shield-checkmark' },
-    { id: 'gps', name: 'GPS Navigationssystem', price: 5, icon: 'navigate' },
-    { id: 'seat', name: 'Kindersitz', price: 8, icon: 'body' },
-  ];
+  // Real, bookable options from the server — priced there exactly like this.
+  const EXTRAS = (car?.options ?? []).map(opt => ({
+    ...opt,
+    icon: opt.type === 'insurance' ? 'shield-checkmark' : opt.type === 'package' ? 'speedometer' : 'add-circle',
+  }));
+  const extraCost = (extra: { price: number; isPerDay: boolean }) =>
+    extra.isPerDay ? extra.price * days : extra.price;
 
   const days = daysBetween(startDate, endDate);
   const dailyRate = car ? Number(car.dailyRate) || 0 : 0;
   const extrasTotal = selectedExtras.reduce((acc, id) => {
     const extra = EXTRAS.find(e => e.id === id);
-    return acc + (extra?.price || 0);
-  }, 0) * days;
+    return acc + (extra ? extraCost(extra) : 0);
+  }, 0);
   const subtotal = dailyRate * days;
   const total = subtotal + extrasTotal;
 
@@ -98,6 +100,7 @@ export default function NewBookingScreen() {
         endDate: toIsoDate(endDate),
         pickupLocation: pickupLocation,
         returnLocation: returnLocation || pickupLocation,
+        optionIds: selectedExtras,
       });
       setBookingId(booking.id);
       
@@ -120,7 +123,7 @@ export default function NewBookingScreen() {
     }
   }
 
-  const toggleExtra = (id: string) => {
+  const toggleExtra = (id: number) => {
     setSelectedExtras(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
@@ -265,7 +268,7 @@ export default function NewBookingScreen() {
                 </View>
                 <View style={{ flex: 1, backgroundColor: 'transparent' }}>
                   <Text style={styles.extraName}>{extra.name}</Text>
-                  <Text style={styles.extraPrice}>{formatCurrency(extra.price)} / Tag</Text>
+                  <Text style={styles.extraPrice}>{formatCurrency(extra.price)}{extra.isPerDay ? ' / Tag' : ' einmalig'}</Text>
                 </View>
                 <Ionicons 
                   name={selectedExtras.includes(extra.id) ? "checkbox" : "square-outline"} 
@@ -301,7 +304,7 @@ export default function NewBookingScreen() {
                 return (
                   <View key={id} style={styles.summaryRow}>
                     <Text style={{ color: colors.tabIconDefault }}>{e?.name}</Text>
-                    <Text style={styles.summaryValue}>{formatCurrency((e?.price || 0) * days)}</Text>
+                    <Text style={styles.summaryValue}>{formatCurrency(e ? extraCost(e) : 0)}</Text>
                   </View>
                 );
               })}

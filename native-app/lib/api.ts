@@ -147,6 +147,7 @@ export const api = {
     endDate: string;
     pickupLocation?: string;
     returnLocation?: string;
+    optionIds?: number[];
   }): Promise<Booking> {
     return request<Booking>('/api/mobile/bookings', {
       method: 'POST',

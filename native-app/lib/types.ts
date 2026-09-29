@@ -19,6 +19,17 @@ export interface Car {
   status?: string | null;
   currentMileage?: number | null;
   nextInspection?: string | null;
+  /** Bookable extras (only returned by the car detail endpoint). */
+  options?: CarOption[];
+}
+
+export interface CarOption {
+  id: number;
+  name: string;
+  description: string | null;
+  type: string | null;
+  price: number;
+  isPerDay: boolean;
 }
 
 export interface Customer {
@@ -61,6 +72,8 @@ export interface Booking {
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number | string;
+  /** AGB cancellation fee (only on the booking detail endpoint). */
+  cancellationFee?: number;
   pickupLocation?: { name: string; address: string | null; city: string | null } | null;
   returnLocation?: { name: string; address: string | null; city: string | null } | null;
   createdAt: string;

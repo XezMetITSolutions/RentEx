@@ -8,7 +8,6 @@ import {
   RefreshControl,
   Dimensions,
   Modal,
-  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -287,44 +286,6 @@ export default function HomeScreen() {
               {filteredCars.map(renderCarCard)}
             </View>
           )}
-        </View>
-
-        {/* Rewards Card */}
-        <View style={[styles.rewardsCard, { backgroundColor: colorScheme === 'dark' ? '#111' : '#1a1a1a' }]}>
-          <View style={[styles.accentBar, { backgroundColor: colors.tint }]} />
-          
-          {/* Decorative Icon */}
-          <View style={styles.rewardsIconWrapper}>
-             <Ionicons name="gift-outline" size={64} color="rgba(255,255,255,0.05)" />
-          </View>
-          
-          <View style={styles.rewardsHeader}>
-            <Ionicons name="star" size={14} color={colors.tint} />
-            <Text style={[styles.rewardsKicker, { color: colors.tint, marginBottom: 0, marginLeft: 6 }]}>{t('home.rewardsTitle')}</Text>
-          </View>
-
-          <View style={styles.kmValueRow}>
-            <Text style={[styles.kmValue, { color: '#fff' }]}>1.240</Text>
-            <Text style={[styles.kmUnit, { color: '#fff', opacity: 0.7 }]}>km</Text>
-          </View>
-          <Text style={[styles.rewardsDesc, { color: '#fff', opacity: 0.8 }]}>
-            {t('home.rewardsDesc')}
-          </Text>
-          <TouchableOpacity 
-            style={[styles.rewardBtn, { backgroundColor: colors.tint }]}
-            onPress={async () => {
-              try {
-                await Share.share({
-                  message: 'Hey! Melde dich bei RentEx an und wir beide bekommen 250 km gratis für unsere nächste Fahrt. Lade die App herunter: https://rentex.app/invite/1240',
-                });
-              } catch (error) {
-                console.error(error);
-              }
-            }}
-          >
-            <Text style={[styles.rewardBtnText, { color: colors.accentInk }]}>Jetzt Freunde einladen</Text>
-            <Ionicons name="share-social-outline" size={16} color={colors.accentInk} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
         </View>
 
         <View style={{ height: 40 }} />

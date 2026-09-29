@@ -23,7 +23,7 @@ function resolveApiBase(): string {
 export const Config = {
   apiBase: resolveApiBase(),
   appName: 'RentEx',
-  supportEmail: 'support@rentex.app',
+  supportEmail: 'info@rent-ex.at',
   currency: 'EUR',
   currencySymbol: '€',
   locale: 'de-AT',

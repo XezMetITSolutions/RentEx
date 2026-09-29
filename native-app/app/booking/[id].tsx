@@ -113,10 +113,18 @@ export default function BookingDetailScreen() {
         setCancelling(false);
       }
     };
+    // The AGB cancellation fee is kept back from a paid booking — say so up front.
+    const fee = booking.cancellationFee;
+    const paid = booking.paymentStatus === 'Paid' ? Number(booking.totalAmount) : 0;
+    const feeText = fee != null
+      ? `\n\nGemäß AGB fällt eine Stornogebühr von ${formatCurrency(fee)} an.` +
+        (paid > 0 ? ` Sie erhalten ${formatCurrency(Math.max(0, paid - fee))} zurück.` : '')
+      : '';
+    const question = `Buchung wirklich stornieren?${feeText}`;
     if (Platform.OS === 'web') {
-      if (window.confirm('Buchung wirklich stornieren?')) await doCancel();
+      if (window.confirm(question)) await doCancel();
     } else {
-      Alert.alert('Stornieren', 'Buchung wirklich stornieren?', [
+      Alert.alert('Stornieren', question, [
         { text: 'Abbrechen', style: 'cancel' },
         { text: 'Stornieren', style: 'destructive', onPress: doCancel },
       ]);
