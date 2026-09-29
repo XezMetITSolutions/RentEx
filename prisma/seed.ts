@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-    console.log('ðŸŒ± Seeding database...')
+    console.log('🌱 Seeding database...')
 
     // Clean up existing data
     await prisma.payment.deleteMany()
@@ -14,16 +14,16 @@ async function main() {
     await prisma.location.deleteMany() // Added location cleanup
     await prisma.customer.deleteMany()
 
-    console.log('âœ… Cleaned existing data')
+    console.log('✅ Cleaned existing data')
 
     // Create Locations
     const feldkirch = await prisma.location.create({
         data: {
             name: 'Hauptfiliale Feldkirch',
             code: 'FK-MAIN',
-            address: 'HauptstraÃŸe 1',
+            address: 'Hauptstraße 1',
             city: 'Feldkirch',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 123 456789',
             email: 'feldkirch@rentex.com',
             openingTime: '08:00',
@@ -36,9 +36,9 @@ async function main() {
         data: {
             name: 'Filiale Wien',
             code: 'VIE-MAIN',
-            address: 'Mariahilfer StraÃŸe 1',
+            address: 'Mariahilfer Straße 1',
             city: 'Wien',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 1 123456',
             email: 'wien@rent-ex.at',
             openingTime: '08:00',
@@ -51,9 +51,9 @@ async function main() {
         data: {
             name: 'Filiale Innsbruck',
             code: 'INN-MAIN',
-            address: 'Maria-Theresien-StraÃŸe 5',
+            address: 'Maria-Theresien-Straße 5',
             city: 'Innsbruck',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 512 123456',
             email: 'innsbruck@rent-ex.at',
             openingTime: '08:00',
@@ -67,7 +67,7 @@ async function main() {
             code: 'SZG-MAIN',
             address: 'Getreidegasse 1',
             city: 'Salzburg',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 662 123456',
             email: 'salzburg@rent-ex.at',
             openingTime: '08:00',
@@ -81,7 +81,7 @@ async function main() {
             code: 'GRZ-MAIN',
             address: 'Herrengasse 1',
             city: 'Graz',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 316 123456',
             email: 'graz@rent-ex.at',
         }
@@ -91,9 +91,9 @@ async function main() {
         data: {
             name: 'Filiale Linz',
             code: 'LNZ-MAIN',
-            address: 'LandstraÃŸe 1',
+            address: 'Landstraße 1',
             city: 'Linz',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 732 123456',
             email: 'linz@rent-ex.at',
         }
@@ -105,13 +105,13 @@ async function main() {
             code: 'BRG-MAIN',
             address: 'Kornmarktplatz 1',
             city: 'Bregenz',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             phone: '+43 5574 123456',
             email: 'bregenz@rent-ex.at',
         }
     })
 
-    console.log('âœ… Created 7 Locations')
+    console.log('✅ Created 7 Locations')
 
     // Create Cars with real data based on user fleet
     // Categories: PKW, Kastenwagen, Bus
@@ -123,7 +123,7 @@ async function main() {
             model: 'Ducato L3H2',
             plate: 'FK-FD 3032',
             year: 2024,
-            color: 'WeiÃŸ',
+            color: 'Weiß',
             fuelType: 'Diesel',
             transmission: 'Manuell',
             category: 'Kastenwagen',
@@ -144,7 +144,7 @@ async function main() {
             hasAirConditioning: true,
             hasGPS: true,
             hasParkingSensors: true,
-            description: 'GroÃŸer Transporter fÃ¼r UmzÃ¼ge und gewerbliche Transporte.',
+            description: 'Großer Transporter für Umzüge und gewerbliche Transporte.',
             features: 'Klimaanlage, Parksensoren, Hohes Dach',
             imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
@@ -159,7 +159,7 @@ async function main() {
             model: 'Ducato L4H2',
             plate: 'FK-FD 4042',
             year: 2023,
-            color: 'WeiÃŸ',
+            color: 'Weiß',
             fuelType: 'Diesel',
             transmission: 'Manuell',
             category: 'Kastenwagen',
@@ -181,8 +181,8 @@ async function main() {
             hasGPS: true,
             hasParkingSensors: true,
             hasBackupCamera: true,
-            description: 'Maximaler Stauraum fÃ¼r groÃŸe Transporte.',
-            features: 'RÃ¼ckfahrkamera, Navi, Klimaanlage',
+            description: 'Maximaler Stauraum für große Transporte.',
+            features: 'Rückfahrkamera, Navi, Klimaanlage',
             imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
@@ -217,7 +217,7 @@ async function main() {
             hasAirConditioning: true,
             hasGPS: false,
             hasBluetoothAudio: true,
-            description: 'Komfortabler 9-Sitzer fÃ¼r Gruppenreisen.',
+            description: 'Komfortabler 9-Sitzer für Gruppenreisen.',
             features: '9 Sitze, Bluetooth, Klimaanlage',
             imageUrl: '/assets/cars/ford_transit.png',
             locationId: feldkirch.id,
@@ -254,7 +254,7 @@ async function main() {
             hasGPS: true,
             hasBluetoothAudio: true,
             hasCruiseControl: true,
-            description: 'Langversion mit Automatikgetriebe fÃ¼r maximalen Komfort.',
+            description: 'Langversion mit Automatikgetriebe für maximalen Komfort.',
             features: 'Automatik, Navi, Langversion, Tempomat',
             imageUrl: '/assets/cars/ford_transit.png',
             locationId: feldkirch.id,
@@ -291,7 +291,7 @@ async function main() {
             hasGPS: true,
             hasHeatedSeats: true,
             hasCruiseControl: true,
-            description: 'GerÃ¤umiger Kombi mit Premium-Ausstattung.',
+            description: 'Geräumiger Kombi mit Premium-Ausstattung.',
             features: 'Navi, Sitzheizung, Automatik, Viel Platz',
             imageUrl: '/assets/cars/skoda_superb.png',
             locationId: feldkirch.id,
@@ -342,7 +342,7 @@ async function main() {
             model: 'Polo',
             plate: 'FK-VW 7001',
             year: 2024,
-            color: 'WeiÃŸ',
+            color: 'Weiß',
             fuelType: 'Benzin',
             transmission: 'Manuell',
             category: 'PKW',
@@ -362,7 +362,7 @@ async function main() {
             maxMileagePerDay: 200,
             hasAirConditioning: true,
             hasBluetoothAudio: true,
-            description: 'Wendiger Kleinwagen fÃ¼r die Stadt.',
+            description: 'Wendiger Kleinwagen für die Stadt.',
             features: 'Klimaanlage, Bluetooth, Kompakt',
             imageUrl: '/assets/cars/VWPolo.png',
             locationId: feldkirch.id,
@@ -414,7 +414,7 @@ async function main() {
             model: 'Ducato L3H2 Plus',
             plate: 'FK-FD 9001',
             year: 2024,
-            color: 'WeiÃŸ',
+            color: 'Weiß',
             fuelType: 'Diesel',
             transmission: 'Manuell',
             category: 'Kastenwagen',
@@ -435,8 +435,8 @@ async function main() {
             hasAirConditioning: true,
             hasGPS: true,
             hasParkingSensors: true,
-            description: 'Plus-Version mit extra Ausstattung fÃ¼r Profis.',
-            features: 'VerstÃ¤rkte Federung, GroÃŸer Laderaum',
+            description: 'Plus-Version mit extra Ausstattung für Profis.',
+            features: 'Verstärkte Federung, Großer Laderaum',
             imageUrl: '/assets/cars/fiat_ducato.png',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
@@ -510,8 +510,8 @@ async function main() {
             hasGPS: true,
             hasBluetoothAudio: true,
             hasBackupCamera: true,
-            description: 'Reisen mit franzÃ¶sischem Komfort.',
-            features: '8 Sitze, Automatik, SchiebetÃ¼ren beidseitig',
+            description: 'Reisen mit französischem Komfort.',
+            features: '8 Sitze, Automatik, Schiebetüren beidseitig',
             imageUrl: '/assets/cars/peugeot_traveller.jpg',
             locationId: feldkirch.id,
             homeLocationId: feldkirch.id
@@ -583,7 +583,7 @@ async function main() {
             hasGPS: true,
             hasHeatedSeats: true,
             hasCruiseControl: true,
-            description: 'Der beliebteste Kombi fÃ¼r Business und Familie.',
+            description: 'Der beliebteste Kombi für Business und Familie.',
             features: 'Automatik, Navi, ACC, Sitzheizung',
             imageUrl: '/assets/cars/Skoda_Superb_Kombi.png',
             locationId: feldkirch.id,
@@ -598,7 +598,7 @@ async function main() {
             model: 'Ibiza',
             plate: 'FK-SI 1414',
             year: 2023,
-            color: 'WeiÃŸ',
+            color: 'Weiß',
             fuelType: 'Benzin',
             transmission: 'Manuell',
             category: 'PKW',
@@ -626,7 +626,7 @@ async function main() {
         }
     })
 
-    console.log('âœ… Created 14 real cars based on fleet')
+    console.log('✅ Created 14 real cars based on fleet')
 
     // Create Option Groups
     const pkwGroup = await prisma.optionGroup.create({
@@ -636,24 +636,24 @@ async function main() {
         }
     })
 
-    console.log('âœ… Created Option Groups')
+    console.log('✅ Created Option Groups')
 
     // Create Options
     await prisma.option.createMany({
         data: [
-            { name: 'Mehrkilometer 200 Paket', description: 'Zur Ihrer Buchung werden 200km Mehrkilometer hinzugefÃ¼gt', price: 66.00, type: 'package', groupId: pkwGroup.id },
-            { name: 'Mehrkilometer 500 Paket', description: 'Zur Ihrer Buchung werden 500km Mehrkilometer hinzugefÃ¼gt', price: 150.00, type: 'package', groupId: pkwGroup.id },
-            { name: 'Mehrkilometer 900 Paket', description: 'Zur Ihrer Buchung werden 900km Mehrkilometer hinzugefÃ¼gt', price: 247.00, type: 'package', groupId: pkwGroup.id },
-            { name: 'Mehrkilometer 1500 Paket', description: 'Zur Ihrer Buchung werden 1500km Mehrkilometer hinzugefÃ¼gt', price: 400.00, type: 'package', groupId: pkwGroup.id },
-            { name: 'Mehrkilometer 2000 Paket', description: 'Zur Ihrer Buchung werden 2000km Mehrkilometer hinzugefÃ¼gt', price: 519.00, type: 'package', groupId: pkwGroup.id },
-            { name: 'Selbstbehalt ErmÃ¤ÃŸigung', description: 'Diese ErmÃ¤ÃŸigung reduziert den Selbstbehalt auf 500â‚¬. Gilt fÃ¼r den gesamten Mietzeitraum', price: 60.48, type: 'insurance', isPerDay: false, groupId: pkwGroup.id },
-            { name: 'Zusatzfahrer', description: 'Ein Zusatzfahrer fÃ¼r den gesamten Mietzeitraum', price: 33.60, type: 'driver', isPerDay: false, groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 200 Paket', description: 'Zur Ihrer Buchung werden 200km Mehrkilometer hinzugefügt', price: 66.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 500 Paket', description: 'Zur Ihrer Buchung werden 500km Mehrkilometer hinzugefügt', price: 150.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 900 Paket', description: 'Zur Ihrer Buchung werden 900km Mehrkilometer hinzugefügt', price: 247.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 1500 Paket', description: 'Zur Ihrer Buchung werden 1500km Mehrkilometer hinzugefügt', price: 400.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Mehrkilometer 2000 Paket', description: 'Zur Ihrer Buchung werden 2000km Mehrkilometer hinzugefügt', price: 519.00, type: 'package', groupId: pkwGroup.id },
+            { name: 'Selbstbehalt Ermäßigung', description: 'Diese Ermäßigung reduziert den Selbstbehalt auf 500€. Gilt für den gesamten Mietzeitraum', price: 60.48, type: 'insurance', isPerDay: false, groupId: pkwGroup.id },
+            { name: 'Zusatzfahrer', description: 'Ein Zusatzfahrer für den gesamten Mietzeitraum', price: 33.60, type: 'driver', isPerDay: false, groupId: pkwGroup.id },
             { name: 'Kindersitz 9-18 kg', price: 4.80, type: 'equipment', isPerDay: true },
-            { name: 'KindersitzerhÃ¶hung 15-36 kg', price: 2.40, type: 'equipment', isPerDay: true }
+            { name: 'Kindersitzerhöhung 15-36 kg', price: 2.40, type: 'equipment', isPerDay: true }
         ]
     })
 
-    console.log('âœ… Created 9 options')
+    console.log('✅ Created 9 options')
 
 
     // Create Customers
@@ -663,10 +663,10 @@ async function main() {
             lastName: 'Mustermann',
             email: 'max.mustermann@example.com',
             phone: '+43 676 1234567',
-            address: 'Mariahilfer StraÃŸe 123',
+            address: 'Mariahilfer Straße 123',
             city: 'Wien',
             postalCode: '1060',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             licenseNumber: 'B1234567890',
             customerType: 'Private',
         }
@@ -678,10 +678,10 @@ async function main() {
             lastName: 'Schmidt',
             email: 'anna.schmidt@example.com',
             phone: '+43 676 2345678',
-            address: 'BahnhofstraÃŸe 45',
+            address: 'Bahnhofstraße 45',
             city: 'Innsbruck',
             postalCode: '6020',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             licenseNumber: 'B9876543210',
             customerType: 'Business',
             company: 'Tech Solutions GmbH',
@@ -697,7 +697,7 @@ async function main() {
             address: 'Getreidegasse 78',
             city: 'Salzburg',
             postalCode: '5020',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             licenseNumber: 'B5555555555',
             customerType: 'Private',
         }
@@ -706,13 +706,13 @@ async function main() {
     const customer4 = await prisma.customer.create({
         data: {
             firstName: 'Lisa',
-            lastName: 'MÃ¼ller',
+            lastName: 'Müller',
             email: 'lisa.mueller@example.com',
             phone: '+43 676 4567890',
             address: 'Herrengasse 12',
             city: 'Graz',
             postalCode: '8010',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             licenseNumber: 'B1111111111',
             customerType: 'VIP',
         }
@@ -724,16 +724,16 @@ async function main() {
             lastName: 'Schneider',
             email: 'michael.schneider@example.com',
             phone: '+43 676 5678901',
-            address: 'LandstraÃŸe 56',
+            address: 'Landstraße 56',
             city: 'Linz',
             postalCode: '4020',
-            country: 'Ã–sterreich',
+            country: 'Österreich',
             licenseNumber: 'B2222222222',
             customerType: 'Private',
         }
     })
 
-    console.log('âœ… Created 5 customers')
+    console.log('✅ Created 5 customers')
 
     // Create Rentals - Today's pickups and returns
     const today = new Date()
@@ -854,14 +854,14 @@ async function main() {
         }
     })
 
-    console.log('âœ… Created 5 rentals')
+    console.log('✅ Created 5 rentals')
 
     // Create Maintenance Records
     await prisma.maintenanceRecord.create({
         data: {
             carId: mustang.id,
             maintenanceType: 'Oil Change',
-            description: 'VollstÃ¤ndiger Ã–lwechsel mit Filteraustausch',
+            description: 'Vollständiger Ölwechsel mit Filteraustausch',
             cost: 120.50,
             mileage: 14500,
             performedBy: 'Ford Service Feldkirch',
@@ -875,7 +875,7 @@ async function main() {
         data: {
             carId: skodaSuperb.id,
             maintenanceType: 'Inspection',
-            description: 'JÃ¤hrliche Hauptuntersuchung',
+            description: 'Jährliche Hauptuntersuchung',
             cost: 250.00,
             mileage: 21000,
             performedBy: 'Skoda Service Innsbruck',
@@ -913,9 +913,9 @@ async function main() {
         }
     })
 
-    console.log('âœ… Created 4 maintenance records')
+    console.log('✅ Created 4 maintenance records')
 
-    console.log('ðŸŽ‰ Seeding completed successfully!')
+    console.log('🎉 Seeding completed successfully!')
 }
 
 main()

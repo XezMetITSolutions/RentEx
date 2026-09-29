@@ -157,7 +157,7 @@ A setup script contains a plaintext password for a "Super Admin" account. If thi
 ```typescript
 // scripts/add_admin.ts
 const email = 'admin@rent-ex.at';
-const password = '01528797Mb##';
+const password = '<redacted>';
 ```
 
 **Impact:**

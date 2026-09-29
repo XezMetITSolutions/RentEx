@@ -24,8 +24,14 @@ async function resetUserPassword(email: string, newPassword: string) {
     console.log(`Password reset for ${email} successfully.`);
 }
 
-const email = 'gsgmete68@gmail.com';
-const pass = '01528797Mb##';
+// Never hard-code credentials: pass them in, e.g.
+//   ADMIN_EMAIL=... ADMIN_PASSWORD=... npx tsx scripts/reset_password.ts
+const email = process.env.ADMIN_EMAIL;
+const pass = process.env.ADMIN_PASSWORD;
+if (!email || !pass) {
+    console.error('ADMIN_EMAIL und ADMIN_PASSWORD müssen gesetzt sein.');
+    process.exit(1);
+}
 
 resetUserPassword(email, pass)
     .catch(console.error)
