@@ -5,6 +5,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
+  // id is interpolated into HTML and an inline <script>; only allow numeric booking ids.
+  if (!/^\d+$/.test(id)) {
+    return new NextResponse('Ungültige Buchungs-ID', { status: 400 });
+  }
   const url = new URL(req.url);
   const status = url.searchParams.get('status') === 'cancel' ? 'cancel' : 'success';
   // Whitelist scheme to only allow 'rentex' or other known app schemes

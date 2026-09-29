@@ -1,11 +1,13 @@
 'use server';
 
+import { requireAdmin } from '@/lib/adminAuth';
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import fs from "fs/promises";
 import path from "path";
 
 export async function getCheckInFolders() {
+    await requireAdmin();
     try {
         const checkInDir = path.join(process.cwd(), 'Check-in');
         const items = await fs.readdir(checkInDir, { withFileTypes: true });
@@ -19,6 +21,7 @@ export async function getCheckInFolders() {
 }
 
 export async function getCarsForMapping() {
+    await requireAdmin();
     return await prisma.car.findMany({
         select: {
             id: true,
@@ -34,6 +37,7 @@ export async function getCarsForMapping() {
 }
 
 export async function assignTemplateToCars(carIds: number[], templateName: string | null) {
+    await requireAdmin();
     await prisma.car.updateMany({
         where: {
             id: { in: carIds }
@@ -53,6 +57,7 @@ export async function assignTemplateToCars(carIds: number[], templateName: strin
 }
 
 export async function getTemplateMapping(templateName: string) {
+    await requireAdmin();
     try {
         const folderPath = path.join(process.cwd(), 'Check-in', templateName);
         const files = await fs.readdir(folderPath);

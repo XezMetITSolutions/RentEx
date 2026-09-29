@@ -12,7 +12,7 @@ export async function GET(
 
         // Security check: ensure the path is within the Check-in directory
         const absoluteCheckInDir = path.join(process.cwd(), 'Check-in');
-        if (!filePath.startsWith(absoluteCheckInDir)) {
+        if (!filePath.startsWith(absoluteCheckInDir + path.sep)) {
             return new NextResponse('Forbidden', { status: 403 });
         }
 

@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
@@ -29,12 +30,16 @@ export async function getCarCategories() {
         });
         const startOrder = (maxOrderResult._max.sortOrder ?? -1) + 1;
 
-        await prisma.carCategory.createMany({
-            data: missingNames.map((name, i) => ({
-                name,
-                sortOrder: startOrder + i
-            }))
-        });
+        try {
+            await prisma.carCategory.createMany({
+                data: missingNames.map((name, i) => ({
+                    name,
+                    sortOrder: startOrder + i
+                }))
+            });
+        } catch (e) {
+            console.warn('[Sync] Race condition caught in carCategory.createMany:', e);
+        }
 
         list = await prisma.carCategory.findMany({
             orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -45,6 +50,7 @@ export async function getCarCategories() {
 }
 
 export async function createCarCategory(name: string) {
+    await requireAdmin();
     const maxOrder = await prisma.carCategory.aggregate({ _max: { sortOrder: true } });
     await prisma.carCategory.create({
         data: { name: name.trim(), sortOrder: (maxOrder._max.sortOrder ?? -1) + 1 },
@@ -53,11 +59,13 @@ export async function createCarCategory(name: string) {
 }
 
 export async function updateCarCategory(id: number, name: string) {
+    await requireAdmin();
     await prisma.carCategory.update({ where: { id }, data: { name: name.trim() } });
     revalidatePath('/admin/fleet');
 }
 
 export async function deleteCarCategory(id: number) {
+    await requireAdmin();
     await prisma.carCategory.delete({ where: { id } });
     revalidatePath('/admin/fleet');
 }

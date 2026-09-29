@@ -1,9 +1,11 @@
 'use server';
 
+import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
 export async function createOption(formData: FormData) {
+    await requireAdmin();
     try {
         const carId = formData.get('carId') ? Number(formData.get('carId')) : null;
         const groupId = formData.get('groupId') ? Number(formData.get('groupId')) : null;
@@ -29,6 +31,7 @@ export async function createOption(formData: FormData) {
 }
 
 export async function deleteOption(id: number) {
+    await requireAdmin();
     try {
         await prisma.option.delete({ where: { id } });
         revalidatePath('/admin/options');
@@ -41,6 +44,7 @@ export async function deleteOption(id: number) {
 }
 
 export async function updateOption(id: number, formData: FormData) {
+    await requireAdmin();
     try {
         const groupId = formData.get('groupId') ? Number(formData.get('groupId')) : null;
         await prisma.option.update({
@@ -65,6 +69,7 @@ export async function updateOption(id: number, formData: FormData) {
 }
 
 export async function createOptionGroup(formData: FormData) {
+    await requireAdmin();
     try {
         await prisma.optionGroup.create({
             data: {
@@ -81,6 +86,7 @@ export async function createOptionGroup(formData: FormData) {
 }
 
 export async function deleteOptionGroup(id: number) {
+    await requireAdmin();
     try {
         await prisma.optionGroup.delete({ where: { id } });
         revalidatePath('/admin/options');

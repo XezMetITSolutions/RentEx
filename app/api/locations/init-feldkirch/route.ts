@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         // Check if Feldkirch location already exists
         const existingLocation = await prisma.location.findFirst({

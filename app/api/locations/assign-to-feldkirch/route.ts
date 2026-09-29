@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAdminSession } from '@/lib/adminAuth';
 
 // Austrian license plate prefixes for Vorarlberg (Feldkirch region)
 const AUSTRIAN_PREFIXES = ['FK', 'BZ', 'DO', 'BL', 'FE'];
@@ -13,6 +14,11 @@ function generateAustrianPlate(index: number): string {
 }
 
 export async function POST(request: NextRequest) {
+    const session = await getAdminSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
     try {
         // Find Feldkirch location
         const feldkirch = await prisma.location.findFirst({
