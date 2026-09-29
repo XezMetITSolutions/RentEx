@@ -1,16 +1,18 @@
 import crypto from 'crypto';
 import { NextRequest } from 'next/server';
 import { AUTH_CONFIG } from './config';
+import prisma from './prisma';
 
 const TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_CUSTOMER_TOKEN_TTL;
 const STAFF_TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_STAFF_TOKEN_TTL;
 
 function getSecret(): string {
   const secret = process.env.MOBILE_TOKEN_SECRET || process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') {
-    console.error('CRITICAL: MOBILE_TOKEN_SECRET or JWT_SECRET is missing in production! Using fallback.');
+  if (secret) return secret;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('MOBILE_TOKEN_SECRET (or JWT_SECRET) must be set in production');
   }
-  return secret || 'dev-secret-only-for-local';
+  return 'dev-secret-only-for-local';
 }
 
 function base64url(input: Buffer | string): string {
@@ -93,12 +95,22 @@ export interface StaffAuth {
   role: string;
 }
 
-export function getAuthStaff(req: NextRequest): StaffAuth | null {
+/**
+ * Resolves the staff member behind a Bearer token. The DB lookup makes
+ * deactivation and role changes take effect immediately instead of when the
+ * token expires; the role in the token payload is not trusted.
+ */
+export async function getAuthStaff(req: NextRequest): Promise<StaffAuth | null> {
   const token = extractToken(req);
   if (!token) return null;
   const payload = verifyMobileToken(token);
   if (!payload || payload.role !== 'staff') return null;
-  return { id: payload.sub, role: payload.staffRole ?? 'AGENT' };
+  const staff = await prisma.staff.findUnique({
+    where: { id: payload.sub },
+    select: { id: true, role: true, isActive: true },
+  });
+  if (!staff || !staff.isActive) return null;
+  return { id: staff.id, role: staff.role };
 }
 
 export function requireStaffRole(staff: StaffAuth | null, roles: string[]): boolean {

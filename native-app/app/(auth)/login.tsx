@@ -31,6 +31,9 @@ export default function LoginScreen() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set once the server reports that this staff account has 2FA enabled.
+  const [needsTotp, setNeedsTotp] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
 
   useEffect(() => {
     Storage.get(StorageKeys.lastEmail).then((v) => {
@@ -44,9 +47,19 @@ export default function LoginScreen() {
       setError('Bitte E-Mail und Passwort eingeben.');
       return;
     }
+    if (needsTotp && !totpCode.trim()) {
+      setError('Bitte geben Sie Ihren 2FA-Code ein.');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
+      if (needsTotp) {
+        // Already identified as a staff account with 2FA — skip the customer attempt.
+        await signInAsStaff(email.trim(), password, totpCode.trim());
+        return;
+      }
+
       let success = false;
       try {
         await signIn(email.trim(), password);
@@ -54,15 +67,16 @@ export default function LoginScreen() {
       } catch (err: any) {
         if (err.code === 'NETWORK') throw err;
       }
-      
+
       if (!success) {
-        try {
-          await signInAsStaff(email.trim(), password);
-        } catch (staffErr: any) {
-          throw staffErr;
-        }
+        await signInAsStaff(email.trim(), password);
       }
     } catch (err: any) {
+      if (err?.code === 'TOTP_REQUIRED') {
+        setNeedsTotp(true);
+        setError(err.message);
+        return;
+      }
       const msg = err?.message || 'Anmeldung fehlgeschlagen.';
       setError(msg);
       if (Platform.OS !== 'web') {
@@ -108,7 +122,7 @@ export default function LoginScreen() {
               <Ionicons name="mail-outline" size={20} color="rgba(255,255,255,0.7)" />
               <TextInput
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(v) => { setEmail(v); setNeedsTotp(false); setTotpCode(''); }}
                 placeholder="name@example.com"
                 placeholderTextColor="rgba(255,255,255,0.5)"
                 autoCapitalize="none"
@@ -137,6 +151,24 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
             </RNView>
+
+            {needsTotp && (
+              <RNView style={[styles.inputWrap, { marginTop: 16 }]}>
+                <Ionicons name="shield-checkmark-outline" size={20} color="rgba(255,255,255,0.7)" />
+                <TextInput
+                  value={totpCode}
+                  onChangeText={setTotpCode}
+                  placeholder="2FA-Code oder Backup-Code"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  autoCapitalize="characters"
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
+                  maxLength={11}
+                  autoFocus
+                  style={styles.input}
+                />
+              </RNView>
+            )}
 
             {error && (
               <RNView style={styles.errorBox}>

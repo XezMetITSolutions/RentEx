@@ -8,6 +8,7 @@
 import { generateSecret, generateURI, verify } from 'otplib';
 import QRCode from 'qrcode';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import prisma from './prisma';
 
 const ISSUER = 'Rentex';
 // Tolerate ±30s clock skew (one full step before and after current)
@@ -100,4 +101,30 @@ export function consumeBackupCode(
         }
     }
     return { ok: false };
+}
+
+// ─────────────────────────────────────────────────
+// Shared second-factor check (web 2FA page + mobile staff login)
+// ─────────────────────────────────────────────────
+
+/**
+ * Verify a TOTP or backup code for a staff member with 2FA enabled. A used
+ * backup code is removed from the stored list.
+ */
+export async function verifyStaffSecondFactor(
+    staff: { id: number; twoFactorSecret: string | null; twoFactorBackupCodes: string | null },
+    code: string,
+    useBackup: boolean
+): Promise<boolean> {
+    if (useBackup) {
+        const result = consumeBackupCode(staff.twoFactorBackupCodes, code);
+        if (!result.ok) return false;
+        await prisma.staff.update({
+            where: { id: staff.id },
+            data: { twoFactorBackupCodes: JSON.stringify(result.remaining) },
+        });
+        return true;
+    }
+    if (!staff.twoFactorSecret) return false;
+    return verifyTotpCode(staff.twoFactorSecret, code);
 }

@@ -34,7 +34,7 @@ function serialize(r: any) {
 }
 
 export async function GET(req: NextRequest) {
-  const staff = getAuthStaff(req);
+  const staff = await getAuthStaff(req);
   if (!staff) return NextResponse.json({ error: 'Nicht angemeldet.' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);

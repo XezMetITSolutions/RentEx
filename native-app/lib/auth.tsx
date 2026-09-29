@@ -19,7 +19,7 @@ interface AuthContextValue {
     password: string;
     phone?: string;
   }) => Promise<void>;
-  signInAsStaff: (email: string, password: string) => Promise<void>;
+  signInAsStaff: (email: string, password: string, totpCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -114,8 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     syncPushTokenOnAuth().catch(() => {});
   }, []);
 
-  const signInAsStaff = useCallback(async (email: string, password: string) => {
-    const session = await api.adminLogin(email, password);
+  const signInAsStaff = useCallback(async (email: string, password: string, totpCode?: string) => {
+    const session = await api.adminLogin(email, password, totpCode);
     await Storage.set(StorageKeys.authToken, session.token);
     await Storage.set(StorageKeys.staffUser, JSON.stringify(session.staff));
     await Storage.set(StorageKeys.authRole, 'staff');

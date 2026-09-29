@@ -6,7 +6,7 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const staff = getAuthStaff(req);
+  const staff = await getAuthStaff(req);
   if (!staff) return NextResponse.json({ error: 'Nicht angemeldet.' }, { status: 401 });
 
   const { id } = await context.params;

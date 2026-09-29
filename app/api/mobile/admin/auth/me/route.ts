@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { getAuthStaff } from '@/lib/mobileAuth';
 
 export async function GET(req: NextRequest) {
-  const auth = getAuthStaff(req);
+  const auth = await getAuthStaff(req);
   if (!auth) {
     return NextResponse.json({ error: 'Nicht angemeldet.' }, { status: 401 });
   }

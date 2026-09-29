@@ -18,7 +18,7 @@ import {
     buildQrDataUrl,
     verifyTotpCode,
     generateBackupCodes,
-    consumeBackupCode,
+    verifyStaffSecondFactor,
 } from '@/lib/totp';
 import { auditLog } from '@/lib/audit';
 
@@ -112,17 +112,8 @@ export async function verifyAdmin2FA(formData: FormData) {
         return { error: '2FA ist nicht aktiv. Bitte erneut anmelden.' };
     }
 
-    if (useBackup) {
-        const result = consumeBackupCode(staff.twoFactorBackupCodes, code);
-        if (!result.ok) return { error: 'Backup-Code ungültig.' };
-        await prisma.staff.update({
-            where: { id: staff.id },
-            data: { twoFactorBackupCodes: JSON.stringify(result.remaining) },
-        });
-    } else {
-        if (!(await verifyTotpCode(staff.twoFactorSecret, code))) {
-            return { error: 'Code ungültig.' };
-        }
+    if (!(await verifyStaffSecondFactor(staff, code, useBackup))) {
+        return { error: useBackup ? 'Backup-Code ungültig.' : 'Code ungültig.' };
     }
 
     await clearAdmin2FAPending();

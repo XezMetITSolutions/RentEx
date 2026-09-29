@@ -185,10 +185,10 @@ export const api = {
   },
 
   // ── Admin ──
-  async adminLogin(email: string, password: string): Promise<StaffSession> {
+  async adminLogin(email: string, password: string, totpCode?: string): Promise<StaffSession> {
     return request<StaffSession>('/api/mobile/admin/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, ...(totpCode ? { totpCode } : {}) }),
     });
   },
   async adminMe(): Promise<Staff> {
