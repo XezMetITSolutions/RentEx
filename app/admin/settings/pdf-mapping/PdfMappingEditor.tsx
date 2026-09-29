@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
-import { PdfFieldMapping } from '@/lib/pdfMapping';
+import type { PdfFieldMapping } from '@/lib/pdfMapping';
 import { Save, Loader2, Info, Upload, X, Plus, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Document, Page, pdfjs } from 'react-pdf';

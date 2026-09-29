@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import prisma from './prisma';
 
 export interface PdfFieldMapping {
     field: string;
@@ -10,7 +9,8 @@ export interface PdfFieldMapping {
     label: string; // Human readable name for the admin UI
 }
 
-const CONFIG_PATH = path.join(process.cwd(), 'config', 'pdf-mapping.json');
+// Stored in SystemSettings rather than on disk: the Workers runtime has no writable filesystem.
+const SETTINGS_KEY = 'pdf-mapping';
 
 // Default coordinates based on a standard A4 (595 x 842 points) - simplified example
 // 0,0 is bottom-left in pdf-lib
@@ -55,22 +55,21 @@ export const defaultMapping: PdfFieldMapping[] = [
     { field: 'sketchNotes', label: 'Skizze / Bemerkungen', x: 50, y: 140, page: 0 },
 ];
 
-export function getPdfMapping(): PdfFieldMapping[] {
+export async function getPdfMapping(): Promise<PdfFieldMapping[]> {
     try {
-        if (fs.existsSync(CONFIG_PATH)) {
-            const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
-            return JSON.parse(raw);
-        }
+        const row = await prisma.systemSettings.findUnique({ where: { key: SETTINGS_KEY } });
+        if (row) return JSON.parse(row.value);
     } catch (error) {
         console.error('Error reading PDF mapping config:', error);
     }
     return defaultMapping;
 }
 
-export function savePdfMapping(mapping: PdfFieldMapping[]) {
-    const dir = path.dirname(CONFIG_PATH);
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(mapping, null, 2), 'utf-8');
+export async function savePdfMapping(mapping: PdfFieldMapping[], updatedBy?: string) {
+    const value = JSON.stringify(mapping);
+    await prisma.systemSettings.upsert({
+        where: { key: SETTINGS_KEY },
+        update: { value, updatedBy },
+        create: { key: SETTINGS_KEY, value, category: 'PDF', description: 'Feldkoordinaten für den Unfallbericht-PDF', updatedBy },
+    });
 }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function PdfMappingPage() {
-    const mapping = getPdfMapping();
+    const mapping = await getPdfMapping();
 
     return (
         <div className="space-y-6">

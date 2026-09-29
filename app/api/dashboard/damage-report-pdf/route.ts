@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import fs from 'fs';
-import path from 'path';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { r2, R2_BUCKET_NAME, DAMAGE_REPORT_TEMPLATE_KEY } from '@/lib/s3';
 import { getPdfMapping } from '@/lib/pdfMapping';
+import { getSession } from '@/lib/auth';
+import { getAdminSession } from '@/lib/adminAuth';
 
 // Simple helper to safely get values from FormData
 function getFormValue(formData: FormData, key: string): string {
@@ -10,18 +12,32 @@ function getFormValue(formData: FormData, key: string): string {
     return val ? String(val) : '';
 }
 
+/** Admin-uploaded template from R2, or null when none has been uploaded yet. */
+async function loadTemplate(): Promise<Uint8Array | null> {
+    try {
+        const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: DAMAGE_REPORT_TEMPLATE_KEY }));
+        return obj.Body ? await obj.Body.transformToByteArray() : null;
+    } catch (error: any) {
+        if (error?.name !== 'NoSuchKey') console.error('Error loading PDF template:', error);
+        return null;
+    }
+}
+
 export async function POST(request: NextRequest) {
+    if ((await getSession()) == null && !(await getAdminSession())) {
+        return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 });
+    }
+
     try {
         const formData = await request.formData();
         const debug = request.nextUrl.searchParams.get('debug') === 'true';
 
         // Load or create PDF
         let pdfDoc: PDFDocument;
-        const templatePath = path.join(process.cwd(), 'public', 'damage-report-template.pdf');
+        const templateBytes = await loadTemplate();
 
-        if (fs.existsSync(templatePath)) {
-            const existingPdfBytes = fs.readFileSync(templatePath);
-            pdfDoc = await PDFDocument.load(existingPdfBytes);
+        if (templateBytes) {
+            pdfDoc = await PDFDocument.load(templateBytes);
         } else {
             // Create a blank A4 document if no template exists
             pdfDoc = await PDFDocument.create();
@@ -33,7 +49,7 @@ export async function POST(request: NextRequest) {
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
         // Get mapping config
-        const mapping = getPdfMapping();
+        const mapping = await getPdfMapping();
 
         // Iterate over mapping and fill fields
         for (const fieldMap of mapping) {

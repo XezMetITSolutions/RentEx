@@ -3,8 +3,11 @@
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
+import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 import { refundRental } from '@/lib/refunds';
 
 export async function updateProfile(formData: FormData) {
@@ -125,16 +128,20 @@ export async function submitDamageReport(formData: FormData) {
     async function saveFile(file: any, subDir: string) {
         if (!file || !(file instanceof File) || file.size === 0) return null;
         try {
-            const buffer = Buffer.from(await file.arrayBuffer());
-            const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'damage', subDir);
-            
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
+            const v = await validateUpload({ file, allowed: UPLOAD_PRESETS.IMAGES_AND_PDF, maxBytes: 15 * 1024 * 1024 });
+            if (!v.ok) {
+                console.warn(`Damage upload rejected (${subDir}): ${v.error}`);
+                return null;
             }
-            
-            fs.writeFileSync(path.join(uploadDir, fileName), buffer);
-            return `/uploads/damage/${subDir}/${fileName}`;
+            const extension = path.extname(file.name).replace(/[^a-zA-Z0-9.]/g, '') || '.bin';
+            const key = `damage/${customerId}/${subDir}/${crypto.randomUUID()}${extension}`;
+            await r2.send(new PutObjectCommand({
+                Bucket: R2_BUCKET_NAME,
+                Key: key,
+                Body: v.buffer!,
+                ContentType: v.mime,
+            }));
+            return R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${key}` : `https://${R2_BUCKET_NAME}.r2.dev/${key}`;
         } catch (error) {
             console.error('File upload error:', error);
             return null;

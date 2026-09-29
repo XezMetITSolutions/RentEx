@@ -47,7 +47,7 @@ export default async function DamageReportPage({ searchParams }: { searchParams:
                 </p>
                 <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                     <FileText className="h-4 w-4" />
-                    <a href="/api/unfallbericht-pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <a href="/unfallbericht-oeamtc.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
                         Europäischer Unfallbericht (PDF)
                     </a>
                     {' '}

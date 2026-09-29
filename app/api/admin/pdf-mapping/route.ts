@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/adminAuth';
 export async function GET() {
     const session = await getAdminSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const mapping = getPdfMapping();
+    const mapping = await getPdfMapping();
     return NextResponse.json(mapping);
 }
 
@@ -14,8 +14,10 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     try {
         const body = await request.json();
-        // Validation could go here
-        savePdfMapping(body as PdfFieldMapping[]);
+        if (!Array.isArray(body)) {
+            return NextResponse.json({ error: 'Ungültiges Format' }, { status: 400 });
+        }
+        await savePdfMapping(body as PdfFieldMapping[], session.name);
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Error saving PDF mapping:', error);

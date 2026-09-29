@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { r2, R2_BUCKET_NAME, DAMAGE_REPORT_TEMPLATE_KEY } from '@/lib/s3';
 import { getAdminSession } from '@/lib/adminAuth';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
         }
         const { buffer } = v;
 
-        // Ensure public directory exists
-        const publicDir = path.join(process.cwd(), 'public');
-        await mkdir(publicDir, { recursive: true });
-
-        const filePath = path.join(publicDir, 'damage-report-template.pdf');
-        await writeFile(filePath, buffer!);
+        await r2.send(new PutObjectCommand({
+            Bucket: R2_BUCKET_NAME,
+            Key: DAMAGE_REPORT_TEMPLATE_KEY,
+            Body: buffer!,
+            ContentType: 'application/pdf',
+        }));
 
         return NextResponse.json({ success: true, message: 'PDF erfolgreich hochgeladen' });
     } catch (error) {

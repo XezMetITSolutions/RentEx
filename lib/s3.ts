@@ -15,4 +15,7 @@ export const r2 = new S3Client({
 });
 
 export const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'rent-ex';
+/** Private object key of the admin-uploaded accident report PDF template. */
+export const DAMAGE_REPORT_TEMPLATE_KEY = 'templates/damage-report-template.pdf';
+
 export const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || ''; // E.g., https://pub-xxx.r2.dev or custom domain
