@@ -8,6 +8,7 @@ import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
 import path from 'path';
 import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { SITE_URL } from "@/lib/config";
 import { isCarAvailable, lockCarForBooking } from "@/lib/availability";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -357,7 +358,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     });
 
     if (paymentMethod === 'online') {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://rent-ex.at');
+        const baseUrl = SITE_URL;
         let sessionUrl = null;
         try {
             let successUrl = `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`;

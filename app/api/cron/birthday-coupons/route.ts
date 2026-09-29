@@ -5,7 +5,7 @@ import crypto from "crypto";
 
 /**
  * POST /api/cron/birthday-coupons
- * Run daily (e.g. via Vercel Cron or external scheduler at midnight)
+ * Run daily (triggered by the Cloudflare cron in custom-worker.ts via daily-unified)
  * Generates and emails a birthday coupon for every customer whose birthday is today
  */
 export async function POST(req: NextRequest) {

@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
+import { SITE_URL } from '@/lib/config';
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -14,20 +15,20 @@ export const metadata: Metadata = {
   title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
   description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
   alternates: {
-    canonical: "https://rent-ex.vercel.app",
+    canonical: SITE_URL,
     languages: {
-      "de-AT": "https://rent-ex.vercel.app",
-      "de-DE": "https://rent-ex.vercel.app",
+      "de-AT": SITE_URL,
+      "de-DE": SITE_URL,
     },
   },
   openGraph: {
     title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
     description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
-    url: "https://rent-ex.vercel.app",
+    url: SITE_URL,
     siteName: "RentEx",
     images: [
       {
-        url: "https://rent-ex.vercel.app/assets/logo.png",
+        url: `${SITE_URL}/assets/logo.png`,
         width: 800,
         height: 600,
         alt: "RentEx Logo",
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
     description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
-    images: ["https://rent-ex.vercel.app/assets/logo.png"],
+    images: [`${SITE_URL}/assets/logo.png`],
   },
   icons: {
     icon: "/assets/logo.png",

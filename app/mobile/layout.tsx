@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import BottomNav from "@/components/mobile/BottomNav";
 import { getCurrentCustomer } from "@/lib/dashboardAuth";
+import { SITE_URL } from '@/lib/config';
 
 export const viewport: Viewport = {
   themeColor: "#0A0A0A",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title: "RENT-EX Mobile",
   description: "Premium Fahrzeugvermietung in Vorarlberg",
   alternates: {
-    canonical: "https://rent-ex.vercel.app",
+    canonical: SITE_URL,
   },
 };
 

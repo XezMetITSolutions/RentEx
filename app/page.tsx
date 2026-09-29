@@ -8,6 +8,7 @@ import { getFeaturedCars, getCarCategories } from "@/app/actions";
 import { Calendar, Car, MapPin, Search, Phone, ShieldCheck, Clock, CheckCircle, Heart, Settings, Fuel, Users, Wind, ChevronDown, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SITE_URL } from '@/lib/config';
 
 export default async function Home() {
   const featuredCars = await getFeaturedCars();
@@ -22,9 +23,9 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "CarRental",
     "name": "Rent-Ex GmbH",
-    "image": "https://rent-ex.vercel.app/assets/logo.png",
-    "@id": "https://rent-ex.vercel.app/#carrental",
-    "url": "https://rent-ex.vercel.app",
+    "image": `${SITE_URL}/assets/logo.png`,
+    "@id": `${SITE_URL}/#carrental`,
+    "url": SITE_URL,
     "telephone": "+436609996800",
     "address": {
       "@type": "PostalAddress",

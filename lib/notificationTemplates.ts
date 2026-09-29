@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { de } from 'date-fns/locale';
 import nodemailer from 'nodemailer';
+import { SITE_URL } from './config';
 
 const TZ = 'Europe/Vienna';
 
@@ -14,7 +15,7 @@ const COMPANY_ADDRESS = process.env.COMPANY_ADDRESS || 'Illstraße 75a, 6800 Fel
 const COMPANY_PHONE   = process.env.COMPANY_PHONE   || '+43 660 9996800';
 export const COMPANY_EMAIL   = process.env.COMPANY_EMAIL   || 'rentex@metechnik.at';
 const COMPANY_WEB     = process.env.COMPANY_WEB     || 'www.rent-ex.at';
-const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.vercel.app';
+const APP_URL         = SITE_URL;
 const DEFAULT_BRANCH  = process.env.DEFAULT_BRANCH  || 'Rent-Ex Feldkirch';
 
 interface EmailTemplate {

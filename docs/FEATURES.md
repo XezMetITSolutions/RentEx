@@ -43,7 +43,7 @@ Bu dokümanda mevcut özellikler ve ileride eklenebilecek özellikler listelenir
   Abgeschlossene Mieten için 1–5 Sterne + Kurztext; neue Tabelle `RentalReview`.
 
 - **Dokumente hochladen**  
-  Führerschein, Ausweis (optional); Storage (z. B. S3/Vercel Blob) + DB-Referenz.
+  Führerschein, Ausweis (optional); Storage (z. B. Cloudflare R2) + DB-Referenz.
 
 - **Mietverlängerung anfragen**  
   Aktive Miete için “Verlängern” → Antrag mit neuem Enddatum; Admin onayı veya otomatik.
@@ -74,7 +74,7 @@ Bu dokümanda mevcut özellikler ve ileride eklenebilecek özellikler listelenir
   Statt eigener Cookie-Logik: OAuth (Google, Apple), Magic Link, bessere Session-Verwaltung.
 
 - **Rate Limiting**  
-  Login/Register ve kritik API’ler için (z. B. Vercel KV oder Upstash).
+  Login/Register ve kritik API’ler için (z. B. Cloudflare KV / Durable Objects).
 
 - **E2E-Tests**  
   Playwright/Cypress: Login, Buchung, Dashboard-Flows.

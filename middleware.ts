@@ -44,7 +44,8 @@ export async function middleware(request: NextRequest) {
         'http://localhost:19000',
         'http://localhost:19006',
         'https://rentex.at',
-        'https://rent-ex.vercel.app'
+        'https://rent-ex.at',
+        'https://www.rent-ex.at'
     ];
 
     const isAllowedOrigin = allowedOrigins.includes(origin) || origin.includes('localhost:');

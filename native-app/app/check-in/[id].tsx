@@ -28,6 +28,7 @@ const STEPS: Step[] = ['WELCOME', 'MILEAGE', 'FUEL', 'DAMAGE_FRONT', 'DAMAGE_BAC
 
 import SignaturePad from '@/components/SignaturePad';
 import DamageSelector, { Damage } from '@/components/DamageSelector';
+import { Config } from '@/constants/Config';
 
 export default function CheckInScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -68,10 +69,10 @@ export default function CheckInScreen() {
         // We'll simulate fetching template images or use the car image as fallback
         // In a real app, you'd fetch this from the API
         setViewImages({
-          front: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/front.png`,
-          back: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/back.png`,
-          left: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/left.png`,
-          right: `https://rent-ex.vercel.app/api/check-in-images/${data.car.checkInTemplate}/right.png`,
+          front: `${Config.apiBase}/api/check-in-images/${data.car.checkInTemplate}/front.png`,
+          back: `${Config.apiBase}/api/check-in-images/${data.car.checkInTemplate}/back.png`,
+          left: `${Config.apiBase}/api/check-in-images/${data.car.checkInTemplate}/left.png`,
+          right: `${Config.apiBase}/api/check-in-images/${data.car.checkInTemplate}/right.png`,
         });
       }
     } catch (err) {

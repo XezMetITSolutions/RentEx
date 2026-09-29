@@ -1,7 +1,7 @@
 /**
  * Cloudflare Worker entry point: wraps the OpenNext-generated worker to add a
- * `scheduled` handler, because Cloudflare Cron Triggers (unlike vercel.json
- * crons) invoke the worker directly instead of calling an HTTP path.
+ * `scheduled` handler, because Cloudflare Cron Triggers invoke the worker
+ * directly instead of calling an HTTP path.
  *
  * Each cron expression here must also be listed under `triggers.crons` in
  * wrangler.jsonc.

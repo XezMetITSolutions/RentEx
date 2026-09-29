@@ -47,7 +47,7 @@ export default function DbFixPage() {
                         <ShieldAlert className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
                         <div className="text-sm text-orange-800 dark:text-orange-300">
                             <p className="font-bold mb-1">Dikkat!</p>
-                            <p>Bu işlem `Option` tablosuna `carId` sütununu ekler ve eski çoktan-çoğa ilişki tablosunu siler. Sadece Vercel üzerindeki 500 hatalarını düzeltmek için kullanın.</p>
+                            <p>Bu işlem `Option` tablosuna `carId` sütununu ekler ve eski çoktan-çoğa ilişki tablosunu siler. Sadece production ortamındaki 500 hatalarını düzeltmek için kullanın.</p>
                         </div>
                     </div>
 
@@ -84,7 +84,7 @@ export default function DbFixPage() {
 
             <div className="text-center">
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                    &copy; 2026 Rent-Ex Admin Tools | Database ID: {process.env.NEXT_PUBLIC_VERCEL_ENV || 'Production'}
+                    &copy; 2026 Rent-Ex Admin Tools | Database ID: Production
                 </p>
             </div>
         </div>
