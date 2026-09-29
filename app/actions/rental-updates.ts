@@ -3,10 +3,15 @@
 import prisma from "@/lib/prisma";
 import { getAdminSession } from "@/lib/adminAuth";
 import { revalidatePath } from "next/cache";
+import { cancelRental, completeRental, sendCancellationEmail } from "@/lib/bookingLifecycle";
+
+const RENTAL_STATUSES = ['Pending', 'Confirmed', 'Active', 'Completed', 'Cancelled'];
+const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid', 'Refunded', 'Overdue'];
 
 export async function updateRentalStatus(id: number, status: string, returnMileageOrFormData?: number | FormData) {
     const session = await getAdminSession();
     if (!session) throw new Error("Unauthorized");
+    if (!RENTAL_STATUSES.includes(status)) throw new Error("Ungültiger Status");
 
     let returnMileage: number | undefined;
     if (typeof returnMileageOrFormData === 'number') {
@@ -24,59 +29,43 @@ export async function updateRentalStatus(id: number, status: string, returnMilea
     if (!rental) throw new Error("Rental not found");
 
     if (status === 'Completed') {
-        const finalReturnMileage = returnMileage || Number(rental.returnMileage || 0);
-        const usedKm = finalReturnMileage - Number(rental.pickupMileage || 0);
-        const includedKm = Number(rental.includedKm || 0);
-        const surplusKm = includedKm - usedKm;
-
-        if (surplusKm > 0) {
-            // Add surplus KM to customer's balance
-            await prisma.kmBalance.upsert({
-                where: { customerId: rental.customerId },
-                update: { balance: { increment: surplusKm } },
-                create: { customerId: rental.customerId, balance: surplusKm }
-            });
-
-            // Create a transfer record for tracking (system transfer)
-            await prisma.kmTransfer.create({
-                data: {
-                    fromId: rental.customerId, 
-                    toId: rental.customerId,
-                    amount: surplusKm,
-                    note: `Automatische Gutschrift aus Vertrag #${rental.contractNumber || rental.id} (${includedKm} paket - ${usedKm} used)`
-                }
-            });
+        const finalReturnMileage = returnMileage ?? (rental.returnMileage != null ? Number(rental.returnMileage) : null);
+        if (finalReturnMileage == null || Number.isNaN(finalReturnMileage)) {
+            throw new Error("KM-Stand bei Rückgabe fehlt");
         }
 
-        await prisma.rental.update({
-            where: { id },
-            data: { 
-                status: 'Completed',
-                returnMileage: finalReturnMileage || undefined,
-                actualReturnDate: new Date()
+        await completeRental(id, { returnMileage: finalReturnMileage });
+    } else if (status === 'Cancelled') {
+        // Releases the coupon use and, for a handed-over car, the car itself.
+        if (await cancelRental(id)) await sendCancellationEmail(id);
+    } else if (status === 'Active') {
+        await prisma.$transaction(async (tx) => {
+            const activated = await tx.rental.updateMany({
+                where: { id, status: { in: ['Pending', 'Confirmed'] } },
+                data: { status: 'Active', checkInAt: rental.checkInAt ?? new Date() }
+            });
+            // The car is handed over, so it must no longer show as available.
+            if (activated.count > 0) {
+                await tx.car.update({ where: { id: rental.carId }, data: { status: 'Rented' } });
             }
-        });
-
-        // Also update car status to 'Active' (Available)
-        await prisma.car.update({
-            where: { id: rental.carId },
-            data: { status: 'Active', currentMileage: finalReturnMileage || undefined }
         });
     } else {
         await prisma.rental.update({
             where: { id: id },
-            data: { status: status as any }
+            data: { status }
         });
     }
 
     revalidatePath(`/admin/reservations/${id}`);
     revalidatePath('/admin/reservations');
     revalidatePath('/admin/km-transfer');
+    revalidatePath('/admin/fleet');
 }
 
 export async function updatePaymentStatus(id: number, paymentStatus: string) {
     const session = await getAdminSession();
     if (!session) throw new Error("Unauthorized");
+    if (!PAYMENT_STATUSES.includes(paymentStatus)) throw new Error("Ungültiger Zahlungsstatus");
     await prisma.rental.update({
         where: { id },
         data: { paymentStatus }

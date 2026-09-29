@@ -3,6 +3,7 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { clsx } from 'clsx';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +36,10 @@ async function getLocations(locationId?: number | null) {
 
 export default async function LocationsPage() {
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && !isAdministrator(staff.role);
     const locations = await getLocations(isRestricted ? staff?.locationId : undefined);
 
-    const isSup = staff?.role === 'ADMINISTRATOR';
+    const isSup = isAdministrator(staff?.role);
 
     return (
         <div className="space-y-6">

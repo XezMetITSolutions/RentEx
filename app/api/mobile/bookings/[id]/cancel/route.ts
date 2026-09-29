@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
+import { refundRental } from '@/lib/refunds';
+import { cancelRental } from '@/lib/bookingLifecycle';
+import { customerCancellationFee } from '@/lib/cancellationFee';
 
 function parseFeatures(features: string | null): string[] | null {
   if (!features) return null;
@@ -71,9 +74,24 @@ export async function POST(
       );
     }
 
-    const updated = await prisma.rental.update({
+    // Paid bookings are refunded first, exactly like a cancellation on the website.
+    if (rental.paymentStatus === 'Paid') {
+      const refund = await refundRental({
+        rentalId: bookingId,
+        reason: 'Stornierung durch Kunden (App)',
+        actor: { kind: 'customer', customerId },
+        // AGB "Rücktritt vom Vertrag": the cancellation fee is kept back.
+        retainAmount: customerCancellationFee(Number(rental.totalAmount)),
+      });
+      if (!refund.ok) {
+        return NextResponse.json({ error: refund.error }, { status: refund.status });
+      }
+    }
+
+    // Also gives back a used coupon.
+    await cancelRental(bookingId);
+    const updated = await prisma.rental.findUniqueOrThrow({
       where: { id: bookingId },
-      data: { status: 'Cancelled' },
       include: { car: true, customer: true, pickupLocation: true, returnLocation: true },
     });
 

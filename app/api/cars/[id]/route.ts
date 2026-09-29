@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getBookableOptions } from '@/lib/bookableOptions';
 
 function parseFeatures(features: string | null): string[] | null {
   if (!features) return null;
@@ -58,6 +59,7 @@ export async function GET(
       doors: car.doors,
       description: car.description,
       features: parseFeatures(car.features),
+      options: await getBookableOptions(car.id),
     });
   } catch (err) {
     console.error('[cars-id]', err);

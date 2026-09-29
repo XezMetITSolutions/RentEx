@@ -61,6 +61,42 @@ export function rateLimit(
     };
 }
 
+type SharedLimiter = { limit(options: { key: string }): Promise<{ success: boolean }> };
+
+/** Cloudflare rate-limit binding (wrangler.jsonc `ratelimits`), if running on Workers. */
+function getSharedAuthLimiter(): SharedLimiter | undefined {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { getCloudflareContext } = require('@opennextjs/cloudflare');
+        const env = getCloudflareContext({ async: false })?.env as Record<string, unknown> | undefined;
+        return env?.AUTH_RATE_LIMITER as SharedLimiter | undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Rate limit for authentication attempts. On Workers every isolate has its own
+ * memory, so the in-memory counter alone can be bypassed by spreading requests;
+ * the shared Cloudflare limiter (10/min per key) closes that gap. Falls back
+ * to in-memory only (e.g. `next dev`, scripts).
+ */
+export async function rateLimitAuth(identifier: string, config: RateLimitConfig): Promise<RateLimitResult> {
+    const local = rateLimit(identifier, config);
+    if (!local.allowed) return local;
+
+    const shared = getSharedAuthLimiter();
+    if (shared) {
+        try {
+            const { success } = await shared.limit({ key: identifier });
+            if (!success) return { allowed: false, remaining: 0, resetAt: Date.now() + 60_000 };
+        } catch (error) {
+            console.error('[rateLimit] shared limiter failed, using in-memory only:', error);
+        }
+    }
+    return local;
+}
+
 /** Helper: get client IP from Next.js request (API routes) */
 export function getClientIp(req: Request): string {
     const cf = req.headers.get("cf-connecting-ip");

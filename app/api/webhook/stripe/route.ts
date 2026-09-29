@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 import { emailTemplates, sendEmail, COMPANY_EMAIL } from '@/lib/notificationTemplates';
 import { notifyCustomer } from '@/lib/pushNotifications';
+import { cancelUnpaidOnlineBooking } from '@/lib/bookingLifecycle';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -28,6 +29,16 @@ export async function POST(req: Request) {
     const isPaymentEvent =
         event.type === 'checkout.session.completed' ||
         event.type === 'checkout.session.async_payment_succeeded';
+
+    // Abandoned checkout: release the car and the coupon use right away.
+    if (event.type === 'checkout.session.expired') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const id = parseInt(session.metadata?.rentalId ?? '', 10);
+        if (Number.isInteger(id) && await cancelUnpaidOnlineBooking(id)) {
+            console.log(`[stripe-webhook] Rental ${id} cancelled — checkout session expired.`);
+        }
+        return NextResponse.json({ received: true });
+    }
 
     if (isPaymentEvent) {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -69,6 +80,10 @@ export async function POST(req: Request) {
             const expectedCents = Math.round(Number(rental.totalAmount) * 100);
             if (session.amount_total !== expectedCents) {
                 console.warn(`[stripe-webhook] Amount mismatch for rental ${id}: paid ${session.amount_total}, expected ${expectedCents}.`);
+            }
+            if (rental.status === 'Cancelled') {
+                // Should not happen (sessions are expired before cancelling), but staff must know.
+                console.error(`[stripe-webhook] Payment received for cancelled rental ${id} — manual review/refund needed.`);
             }
 
             // Send payment confirmation email

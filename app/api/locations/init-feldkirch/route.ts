@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAdminSession } from '@/lib/adminAuth';
+import { getSuperAdminSession } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
-    const session = await getAdminSession();
+    // Database maintenance tool: SUPERADMIN only.
+    const session = await getSuperAdminSession();
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }

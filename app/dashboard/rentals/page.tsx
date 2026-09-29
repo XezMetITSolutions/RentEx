@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
@@ -79,7 +80,7 @@ export default async function RentalsPage() {
                                         <div className="mt-2 flex flex-wrap gap-3 text-sm text-zinc-600 dark:text-zinc-400">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="h-3.5 w-3.5" />
-                                                {format(new Date(rental.startDate), 'dd.MM.yyyy', { locale: de })} – {format(new Date(rental.endDate), 'dd.MM.yyyy', { locale: de })}
+                                                {formatBusinessDate(rental.startDate, 'dd.MM.yyyy')} – {formatBusinessDate(rental.endDate, 'dd.MM.yyyy')}
                                             </span>
                                             {(rental.pickupLocation?.name || rental.returnLocation?.name) && (
                                                 <span className="flex items-center gap-1">

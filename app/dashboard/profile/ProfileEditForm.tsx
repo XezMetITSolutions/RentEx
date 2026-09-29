@@ -4,7 +4,7 @@ import { updateProfile } from '@/app/actions/dashboard';
 import { useState } from 'react';
 import { Customer } from '@prisma/client';
 
-export default function ProfileEditForm({ customer }: { customer: Customer }) {
+export default function ProfileEditForm({ customer }: { customer: Omit<Customer, 'passwordHash'> }) {
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     async function handleSubmit(formData: FormData) {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isCarAvailable, lockCarForBooking } from '@/lib/availability';
+import { parseBookingDateTime } from '@/lib/bookingUtils';
+import { priceRental } from '@/lib/pricing';
+import { BOOKABLE_CAR_STATUSES } from '@/lib/publicCar';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 
 function parseFeatures(features: string | null): string[] | null {
@@ -80,8 +83,17 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => null);
     const carId = Number(body?.carId);
-    const startDate = body?.startDate ? new Date(body.startDate) : null;
-    const endDate = body?.endDate ? new Date(body.endDate) : null;
+    // The app sends plain dates ("YYYY-MM-DD"); they mean 10:00 Vienna time,
+    // the default pickup/return time of the website. Full ISO timestamps
+    // (with an explicit offset) are still accepted as-is.
+    const toBookingDate = (value: unknown) => {
+      if (typeof value !== 'string' || !value) return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return parseBookingDateTime(value, '10:00');
+      const d = new Date(value);
+      return isNaN(+d) ? null : d;
+    };
+    const startDate = toBookingDate(body?.startDate);
+    const endDate = toBookingDate(body?.endDate);
 
     if (!carId || !startDate || !endDate || isNaN(+startDate) || isNaN(+endDate)) {
       return NextResponse.json({ error: 'Ungültige Daten.' }, { status: 400 });
@@ -97,13 +109,25 @@ export async function POST(req: NextRequest) {
     if (!car) {
       return NextResponse.json({ error: 'Fahrzeug nicht gefunden.' }, { status: 404 });
     }
+    if (!car.isActive || !BOOKABLE_CAR_STATUSES.includes(car.status)) {
+      return NextResponse.json({ error: 'Dieses Fahrzeug ist derzeit nicht buchbar.' }, { status: 409 });
+    }
 
+    // Same day count and price as a booking on the website. (Previously a
+    // hidden 5 % fee was added here that the app never showed to the customer.)
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = Math.max(1, Math.ceil((+endDate - +startDate) / msPerDay));
-    const dailyRate = Number(car.dailyRate);
-    const subtotal = dailyRate * totalDays;
-    const serviceFee = subtotal * 0.05;
-    const totalAmount = subtotal + serviceFee;
+    const totalDays = Math.max(1, Math.ceil((+endDate - +startDate) / msPerDay - 2 / 24));
+    // Only options that are bookable for this car (active template or car-specific).
+    const optionIds = Array.isArray(body?.optionIds)
+      ? body.optionIds.map(Number).filter(Number.isInteger)
+      : [];
+    const selectedOptions = optionIds.length
+      ? await prisma.option.findMany({
+          where: { id: { in: optionIds }, status: 'active', OR: [{ carId: null }, { carId }] },
+        })
+      : [];
+    const price = priceRental(car, selectedOptions, totalDays);
+    const totalAmount = price.baseTotal;
 
     // Lock the car row so two concurrent requests cannot both pass the overlap check.
     const rental = await prisma.$transaction(async (tx) => {
@@ -118,8 +142,14 @@ export async function POST(req: NextRequest) {
           dailyRate: car.dailyRate,
           totalDays,
           totalAmount,
+          includedKm: price.includedKm,
+          extrasCost: price.extrasCost,
+          insuranceCost: price.insuranceCost,
+          insuranceType: price.insuranceType,
           status: 'Pending',
           paymentStatus: 'Pending',
+          pickupLocationId: car.locationId,
+          returnLocationId: car.locationId,
         },
         include: {
           car: true,

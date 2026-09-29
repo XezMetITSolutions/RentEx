@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Receipt, FileText, ExternalLink, Eye, ChevronRight, TrendingUp, Filter, Search, Download, AlertCircle, Shield, MoreHorizontal, CheckCircle2, Clock } from 'lucide-react';
@@ -135,7 +136,7 @@ export default async function RechnungenPage() {
                                             {r.car?.brand} {r.car?.model}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                            {r.startDate ? format(new Date(r.startDate), 'dd.MM.yyyy', { locale: de }) : '-'} - {r.endDate ? format(new Date(r.endDate), 'dd.MM.yyyy', { locale: de }) : '-'}
+                                            {r.startDate ? formatBusinessDate(r.startDate, 'dd.MM.yyyy') : '-'} - {r.endDate ? formatBusinessDate(r.endDate, 'dd.MM.yyyy') : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-gray-900 dark:text-white">
                                             €{Number(r.totalAmount || 0).toLocaleString('de-AT', { minimumFractionDigits: 2 })}

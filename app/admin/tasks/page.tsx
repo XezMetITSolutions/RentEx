@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Plus, ListTodo } from 'lucide-react';
 import TaskBoard from '@/components/admin/tasks/TaskBoard';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,7 @@ async function getTasks(locationId?: number | null) {
 
 export default async function TasksPage() {
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && !isAdministrator(staff.role);
     const tasks = await getTasks(isRestricted ? staff?.locationId : undefined);
 
     return (

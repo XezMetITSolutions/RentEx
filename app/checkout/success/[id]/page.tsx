@@ -2,24 +2,23 @@ import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { CheckCircle, Calendar, MapPin, Car, Zap } from "lucide-react";
-import prisma from "@/lib/prisma";
 import Image from "next/image";
+import { getBookingForConfirmation } from "@/lib/bookingConfirmation";
+import { BUSINESS_TIME_ZONE } from "@/lib/bookingUtils";
+
+const formatDate = (date: Date) => date.toLocaleDateString('de-AT', { timeZone: BUSINESS_TIME_ZONE });
+const formatTime = (date: Date) => date.toLocaleTimeString('de-AT', { timeZone: BUSINESS_TIME_ZONE, hour: '2-digit', minute: '2-digit' });
 
 export default async function SuccessPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const resolvedParams = await params;
     const resolvedSearch = await searchParams;
     const rentalId = parseInt(resolvedParams.id);
-    const sessionId = resolvedSearch.session_id;
+    const sessionId = resolvedSearch.session_id as string | undefined;
+    const token = resolvedSearch.t as string | undefined;
 
-    const rental = await prisma.rental.findUnique({
-        where: { id: rentalId },
-        include: {
-            car: true,
-            customer: true
-        }
-    });
+    const booking = await getBookingForConfirmation(rentalId, token, sessionId);
 
-    if (!rental) {
+    if (!booking) {
         return (
             <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground flex items-center justify-center">
                 <div className="text-center">
@@ -30,7 +29,9 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
         );
     }
 
-    const isPaid = rental.paymentStatus === 'Paid' || !!sessionId;
+    const { rental, isPaid, isOnline } = booking;
+    // Returned from Stripe, but the payment is not confirmed yet (e.g. still processing).
+    const isPaymentPending = isOnline && !isPaid;
 
     return (
         <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
@@ -46,10 +47,14 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                     </div>
 
                     <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                        {isPaid ? 'Zahlung & Buchung erfolgreich!' : 'Buchung bestätigt!'}
+                        {isPaid ? 'Zahlung & Buchung erfolgreich!' : isPaymentPending ? 'Zahlung wird geprüft' : 'Buchung bestätigt!'}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
-                        Vielen Dank, {rental.customer.firstName}. {isPaid ? 'Ihre Zahlung wurde bestätigt ve Ihre Reservierung ist abgeschlossen.' : 'Ihre Reservierung wurde erfolgreich entgegengenommen.'}
+                        Vielen Dank, {rental.customer.firstName}. {isPaid
+                            ? 'Ihre Zahlung wurde bestätigt und Ihre Reservierung ist abgeschlossen.'
+                            : isPaymentPending
+                                ? 'Ihre Reservierung ist eingegangen. Sobald die Zahlung bestätigt ist, erhalten Sie eine E-Mail.'
+                                : 'Ihre Reservierung wurde erfolgreich entgegengenommen.'}
                     </p>
 
                     <div className="bg-gray-50 dark:bg-black/30 rounded-2xl p-6 border border-gray-200 dark:border-white/10 text-left mb-8">
@@ -74,13 +79,13 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">Abholung</p>
-                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.startDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{formatDate(rental.startDate)}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatTime(rental.startDate)} Uhr</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-500 mb-1">Rückgabe</p>
-                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.endDate).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{formatDate(rental.endDate)}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatTime(rental.endDate)} Uhr</p>
                                 </div>
                             </div>
                         </div>

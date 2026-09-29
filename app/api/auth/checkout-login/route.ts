@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { setSession, verifyPassword } from "@/lib/auth";
+import { getClientIp, RATE_LIMITS, rateLimitAuth, rateLimitErrorMessage } from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,6 +11,12 @@ export async function POST(request: NextRequest) {
 
         if (!email || !password) {
             return NextResponse.json({ error: "E-Mail und Passwort eingeben." }, { status: 400 });
+        }
+
+        // Same brute-force protection as the regular login.
+        const rl = await rateLimitAuth(`login:${getClientIp(request)}:${email}`, RATE_LIMITS.AUTH_LOGIN);
+        if (!rl.allowed) {
+            return NextResponse.json({ error: rateLimitErrorMessage(rl) }, { status: 429 });
         }
 
         const customer = await prisma.customer.findUnique({ where: { email } });

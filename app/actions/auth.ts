@@ -11,7 +11,7 @@ import {
 } from '@/lib/adminAuth';
 import { redirect } from 'next/navigation';
 import { validateName } from '@/lib/nameValidation';
-import { rateLimit, getClientIpFromHeaders, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { rateLimit, rateLimitAuth, getClientIpFromHeaders, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 import {
     generateTotpSecret,
     buildOtpauthUri,
@@ -31,7 +31,7 @@ export async function adminLogin(formData: FormData) {
     }
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`admin-login:${ip}:${email.toLowerCase()}`, RATE_LIMITS.AUTH_LOGIN);
+    const rl = await rateLimitAuth(`admin-login:${ip}:${email.toLowerCase()}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) {
         return { error: rateLimitErrorMessage(rl) };
     }
@@ -103,7 +103,7 @@ export async function verifyAdmin2FA(formData: FormData) {
     const useBackup = formData.get('useBackup') === '1';
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`admin-2fa:${ip}:${staffId}`, RATE_LIMITS.AUTH_LOGIN);
+    const rl = await rateLimitAuth(`admin-2fa:${ip}:${staffId}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) return { error: rateLimitErrorMessage(rl) };
 
     const staff = await prisma.staff.findUnique({ where: { id: staffId } });
@@ -237,7 +237,7 @@ export async function login(formData: FormData) {
     }
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`login:${ip}:${email.toLowerCase()}`, RATE_LIMITS.AUTH_LOGIN);
+    const rl = await rateLimitAuth(`login:${ip}:${email.toLowerCase()}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) {
         redirect(`/login?error=${encodeURIComponent(rateLimitErrorMessage(rl))}&from=${encodeURIComponent(from)}`);
     }
@@ -271,7 +271,7 @@ export async function register(formData: FormData) {
     }
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
+    const rl = await rateLimitAuth(`register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
     if (!rl.allowed) {
         redirect(`/register?error=${encodeURIComponent(rateLimitErrorMessage(rl))}`);
     }
@@ -316,7 +316,7 @@ export async function changePassword(formData: FormData) {
     if (customerId == null) return { error: 'Nicht angemeldet.' };
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
+    const rl = await rateLimitAuth(`change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
     if (!rl.allowed) return { error: rateLimitErrorMessage(rl) };
 
     const current = formData.get('currentPassword') as string;

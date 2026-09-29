@@ -3,14 +3,14 @@ import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { signToken } from '@/lib/mobileAuth';
 import { validateName } from '@/lib/nameValidation';
-import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { rateLimit, rateLimitAuth, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 import { apiOk, apiValidation, apiInternal, apiRateLimited, apiError, ERROR_CODES } from '@/lib/apiResponse';
 import { registerMobileSchema, safeValidate } from '@/lib/schemas';
 
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const rl = rateLimit(`mobile-register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
+    const rl = await rateLimitAuth(`mobile-register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
     if (!rl.allowed) {
       return apiRateLimited(rl, rateLimitErrorMessage(rl));
     }

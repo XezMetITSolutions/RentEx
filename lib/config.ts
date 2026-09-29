@@ -15,12 +15,9 @@ export const FEES_CONFIG = {
     STRAFZETTEL_PROCESSING_FEE: 25.00,
 };
 
-export const STAFF_ROLES = {
-    SUPERADMIN: 'SUPERADMIN',
-    MANAGER: 'MANAGER',
-    AGENT: 'AGENT',
-    DRIVER: 'DRIVER',
-} as const;
+// Staff roles live in lib/staffRoles.ts (German names, legacy English aliases).
+export { STAFF_ROLE as STAFF_ROLES } from './staffRoles';
+import type { StaffRoleName } from './staffRoles';
 
 export const RENTAL_STATUS = {
     PENDING: 'Pending',
@@ -41,5 +38,5 @@ export const MAINTENANCE_ALERT_THRESHOLDS = {
     TIRE_CHANGE_WARNING_DAYS: 150,
 } as const;
 
-export type StaffRole = typeof STAFF_ROLES[keyof typeof STAFF_ROLES];
+export type StaffRole = StaffRoleName;
 export type RentalStatus = typeof RENTAL_STATUS[keyof typeof RENTAL_STATUS];

@@ -19,7 +19,12 @@ export default function ExtendRentalModal({ rental, onClose }: { rental: any, on
         if (extraDays <= 0) return;
         setIsSubmitting(true);
         try {
-            await extendRental(rental.id, newDate, extraCost);
+            const result = await extendRental(rental.id, newDate, extraCost);
+            if (!result.success) {
+                toast.error(result.error);
+                return;
+            }
+            toast.success('Miete verlängert.');
             onClose();
         } catch (error) {
             toast.error('Fehler beim Verlängern');

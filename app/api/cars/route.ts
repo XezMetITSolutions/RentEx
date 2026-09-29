@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { BOOKABLE_CAR_STATUSES, toPublicCar } from '@/lib/publicCar';
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category')?.trim() || null;
     const search = searchParams.get('search')?.trim() || null;
 
-    const where: Prisma.CarWhereInput = { isActive: true };
+    const where: Prisma.CarWhereInput = { isActive: true, status: { in: BOOKABLE_CAR_STATUSES } };
     if (category) where.category = category;
     if (search) {
       where.OR = [
@@ -39,23 +40,9 @@ export async function GET(req: NextRequest) {
     // Re-sort by price just in case
     const sorted = uniqueCars.sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
 
-    // Add deterministic ratings
-    const withRatings = sorted.map(car => {
-      // Deterministic pseudo-random based on ID
-      const seed = car.id * 12345;
-      const pseudoRandom = (seed % 100) / 100; // 0.0 to 0.99
-      
-      const rating = 4.5 + (pseudoRandom * 0.5); // 4.5 to 5.0
-      const reviewCount = 10 + (seed % 90); // 10 to 100 reviews
-
-      return {
-        ...car,
-        rating: Number(rating.toFixed(1)),
-        reviewCount,
-      };
-    });
-
-    return NextResponse.json(withRatings);
+    // No generated ratings: showing invented review scores to customers is
+    // misleading (and unlawful under UWG). The app shows "Neu" without a rating.
+    return NextResponse.json(sorted.map(toPublicCar));
   } catch (error) {
     console.error('[GET /api/cars]', error);
     return NextResponse.json({ error: 'Fahrzeuge konnten nicht geladen werden.' }, { status: 500 });

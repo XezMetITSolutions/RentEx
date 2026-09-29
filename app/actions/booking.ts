@@ -6,14 +6,25 @@ import { stripe } from "@/lib/stripe";
 import { hashPassword, setSession, getSession } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
-import path from 'path';
-import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { BUSINESS_TIME_ZONE, calculateChargeableDays, parseBookingDateTime, todayInBusinessTimeZone } from "@/lib/bookingUtils";
 import { SITE_URL } from "@/lib/config";
 import { isCarAvailable, lockCarForBooking } from "@/lib/availability";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import { sendEmail, emailTemplates, COMPANY_EMAIL } from "@/lib/notificationTemplates";
+import { COUPON_REASON_PREFIX, evaluateCoupon } from "@/lib/coupons";
+import { cancelUnpaidOnlineBooking, releaseOwnAbandonedAttempts } from "@/lib/bookingLifecycle";
+import { createSessionToken } from "@/lib/sessionToken";
+import { priceRental } from "@/lib/pricing";
+import { BOOKABLE_CAR_STATUSES } from "@/lib/publicCar";
+import { UPLOAD_PRESETS, validateUpload } from "@/lib/fileValidation";
+
+/** File extension from the detected content type, never from the user's file name. */
+const LICENSE_EXTENSIONS: Record<string, string> = {
+    'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp',
+    'image/heic': '.heic', 'image/heif': '.heif', 'application/pdf': '.pdf',
+};
 
 
 function parseDateOfBirth(dateStr: string): Date | null {
@@ -21,11 +32,11 @@ function parseDateOfBirth(dateStr: string): Date | null {
     const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
     const parts = normalized.split('/');
     if (parts.length !== 3) return null;
-    
+
     let day = parseInt(parts[0], 10);
     let month = parseInt(parts[1], 10) - 1;
     let year = parseInt(parts[2], 10);
-    
+
     if (year < 100) {
         const currentYearShort = new Date().getFullYear() % 100;
         if (year > currentYearShort + 5) {
@@ -34,13 +45,20 @@ function parseDateOfBirth(dateStr: string): Date | null {
             year += 2000;
         }
     }
-    
+
     const d = new Date(year, month, day);
     return isNaN(d.getTime()) ? null : d;
 }
 
 /** Expected booking failures that are reported to the user instead of thrown. */
 class BookingConflictError extends Error {}
+
+const BOOKING_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
+/** Stripe's minimum is 30 minutes; the extra minute covers clock skew. */
+const STRIPE_SESSION_TTL_SECONDS = 31 * 60;
+
+const formatViennaDate = (date: Date) =>
+    date.toLocaleDateString('de-AT', { timeZone: BUSINESS_TIME_ZONE });
 
 export async function createBooking(prevState: any, formData: FormData) {
     const adminSession = await getAdminSession();
@@ -53,53 +71,103 @@ export async function createBooking(prevState: any, formData: FormData) {
     const endDateStr = formData.get('endDate') as string;
     const pickupTimeStr = formData.get('pickupTime') as string || '10:00';
     const returnTimeStr = formData.get('returnTime') as string || '10:00';
+    const optionsParam = (formData.get('options') as string) || '';
 
-    const startDate = new Date(`${startDateStr}T${pickupTimeStr}:00`);
-    const endDate = new Date(`${endDateStr}T${returnTimeStr}:00`);
-    const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
+    const startDate = parseBookingDateTime(startDateStr, pickupTimeStr);
+    const endDate = parseBookingDateTime(endDateStr, returnTimeStr);
+    const optionIds = optionsParam.split(',').filter(Boolean).map(Number).filter(Number.isInteger);
     const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
     const isMobile = formData.get('isMobile') === 'true';
 
-    if (!Number.isInteger(carId) || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate <= startDate) {
+    if (!Number.isInteger(carId) || !startDate || !endDate || endDate <= startDate) {
         return { success: false, error: 'Ungültiger Buchungszeitraum.' };
     }
-    // Early, unlocked check so we fail before creating/updating the customer.
+    if (startDateStr < todayInBusinessTimeZone()) {
+        return { success: false, error: 'Das Abholdatum liegt in der Vergangenheit.' };
+    }
+
+    // Customer Data
+    const email = ((formData.get('email') as string) || '').trim().toLowerCase();
+    const firstName = ((formData.get('firstName') as string) || '').trim();
+    const lastName = ((formData.get('lastName') as string) || '').trim();
+    const paymentMethod = formData.get('paymentMethod') as string;
+    const password = formData.get('password') as string;
+
+    // The AGB/Datenschutz checkbox is required — and recorded below as proof of consent.
+    if (!adminSession && formData.get('agbAccepted') !== 'yes') {
+        return { success: false, error: 'Bitte akzeptieren Sie die AGB und die Datenschutzerklärung.' };
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !firstName || !lastName) {
+        return { success: false, error: 'Bitte geben Sie Vorname, Nachname und eine gültige E-Mail-Adresse an.' };
+    }
+
+    // 2. Resolve the customer (read-only) and check who may book for them
+    const existingCustomer = await prisma.customer.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } }
+    });
+    const isAdmin = !!adminSession;
+    const isSelf = !!existingCustomer && customerSession === existingCustomer.id;
+    // Guest customers (no password) can book again with the same e-mail; their
+    // stored profile is then only completed, never overwritten.
+    const isGuestRecord = !!existingCustomer && !existingCustomer.passwordHash;
+
+    if (existingCustomer && !isSelf && !isAdmin && !isGuestRecord) {
+        return {
+            success: false,
+            error: `Ein Konto mit ${email} existiert bereits. Bitte melden Sie sich an.`
+        };
+    }
+    if (existingCustomer?.isBlacklisted && !isAdmin) {
+        return { success: false, error: 'Eine Online-Buchung ist für dieses Konto nicht möglich. Bitte kontaktieren Sie uns.' };
+    }
+
+    // A retry after an abandoned or failed online payment must not be blocked
+    // by the customer's own earlier attempt.
+    if (existingCustomer) {
+        await releaseOwnAbandonedAttempts(existingCustomer.id, carId, startDate, endDate);
+    }
+
+    // Early, unlocked check so we fail before uploading files or writing the customer.
     // The authoritative check runs again under a row lock when the rental is created.
     if (!(await isCarAvailable(carId, startDate, endDate))) {
         return { success: false, error: 'Fahrzeug ist in diesem Zeitraum bereits gebucht.' };
     }
 
-    // Customer Data
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
-    const address = formData.get('address') as string;
-    const city = formData.get('city') as string;
-    const postalCode = formData.get('postalCode') as string;
-    const country = formData.get('country') as string;
-    const paymentMethod = formData.get('paymentMethod') as string;
-    const dateOfBirth = formData.get('dateOfBirth') as string;
-    const parsedDob = parseDateOfBirth(dateOfBirth);
-    const licenseNumber = formData.get('licenseNumber') as string;
-    const licenseCountry = formData.get('licenseCountry') as string || null;
-    const licenseExpiryDateStr = formData.get('licenseExpiryDate') as string;
-    const parsedLicenseExpiry = parseDateOfBirth(licenseExpiryDateStr);
+    const car = await prisma.car.findUnique({ where: { id: carId } });
+    if (!car) {
+        return { success: false, error: 'Fahrzeug nicht gefunden.' };
+    }
+    // Deactivated cars or cars in the workshop are not offered, even via a direct link.
+    if (!isAdmin && (!car.isActive || !BOOKABLE_CAR_STATUSES.includes(car.status))) {
+        return { success: false, error: 'Dieses Fahrzeug ist derzeit nicht buchbar.' };
+    }
+
+    // License photo: this form is public, so the upload is checked by content
+    // (magic bytes) — otherwise anyone could host e.g. HTML on our R2 domain.
+    const licenseFile = formData.get('licensePhoto');
+    let validatedLicense: { buffer: Buffer; mime: string } | null = null;
+    if (licenseFile instanceof File && licenseFile.size > 0) {
+        const v = await validateUpload({ file: licenseFile, allowed: UPLOAD_PRESETS.IMAGES_AND_PDF, maxBytes: 10 * 1024 * 1024 });
+        if (!v.ok) {
+            return { success: false, error: `Führerschein-Foto: ${v.error}` };
+        }
+        validatedLicense = { buffer: v.buffer!, mime: v.mime };
+    }
 
     // Handle License Photo File Upload to Cloudflare R2
-    async function saveLicenseFile(file: any) {
-        if (!file || !(file instanceof File) || file.size === 0) return null;
+    async function saveLicenseFile() {
+        if (!validatedLicense) return null;
         try {
-            const buffer = Buffer.from(await file.arrayBuffer());
-            const fileExtension = path.extname(file.name) || '.jpg';
+            const fileExtension = LICENSE_EXTENSIONS[validatedLicense.mime] ?? '.jpg';
             const fileName = `${Date.now()}-${crypto.randomUUID()}${fileExtension}`;
             const key = `customer-docs/licenses/${fileName}`;
 
             await r2.send(new PutObjectCommand({
                 Bucket: R2_BUCKET_NAME,
                 Key: key,
-                Body: buffer,
-                ContentType: file.type || 'image/jpeg',
+                Body: validatedLicense.buffer,
+                ContentType: validatedLicense.mime,
             }));
 
             const publicUrl = R2_PUBLIC_URL
@@ -113,40 +181,40 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     }
 
-    const licensePhotoFile = formData.get('licensePhoto');
-    const licensePhotoUrl = await saveLicenseFile(licensePhotoFile);
+    const fields = {
+        firstName,
+        lastName,
+        phone: formData.get('phone') as string,
+        address: formData.get('address') as string,
+        city: formData.get('city') as string,
+        postalCode: formData.get('postalCode') as string,
+        country: formData.get('country') as string,
+        customerType: formData.get('customerType') as string,
+        company: formData.get('company') as string,
+        taxId: formData.get('taxId') as string,
+        dateOfBirth: parseDateOfBirth(formData.get('dateOfBirth') as string),
+        licenseNumber: formData.get('licenseNumber') as string,
+        licenseCountry: formData.get('licenseCountry') as string || null,
+        licenseExpiryDate: parseDateOfBirth(formData.get('licenseExpiryDate') as string),
+        licensePhotoUrl: await saveLicenseFile(),
+    };
+    // Proof of consent (AGB + privacy policy) at the time of this booking.
+    const consentVersion = (await prisma.agbVersion.findFirst({ where: { isActive: true }, select: { version: true } }))?.version ?? null;
+    const consent = adminSession ? {} : {
+        agbAcceptedAt: new Date(),
+        agbAcceptedVersion: consentVersion,
+        gdprConsentDate: new Date(),
+        gdprConsentVersion: consentVersion,
+    };
 
-    // Business Data
-    const customerType = formData.get('customerType') as string;
-    const company = formData.get('company') as string;
-    const taxId = formData.get('taxId') as string;
-    const password = formData.get('password') as string;
-
-    // 2. Find or Create Customer
-    // Simple check by email for now
-    let customer = await prisma.customer.findUnique({
-        where: { email }
-    });
-
-    if (!customer) {
+    // 3. Create or update the customer
+    let customer;
+    if (!existingCustomer) {
         customer = await prisma.customer.create({
             data: {
-                firstName,
-                lastName,
+                ...fields,
+                ...consent,
                 email,
-                phone,
-                address,
-                city,
-                postalCode,
-                country,
-                customerType,
-                company,
-                taxId,
-                dateOfBirth: parsedDob,
-                licenseNumber,
-                licenseCountry,
-                licenseExpiryDate: parsedLicenseExpiry,
-                licensePhotoUrl,
                 passwordHash: password && password.length >= 6 ? hashPassword(password) : undefined
             }
         });
@@ -163,37 +231,26 @@ export async function createBooking(prevState: any, formData: FormData) {
             entityId: customer.id,
             description: `Customer account created during booking: ${customer.email}`
         });
-    } else {
-        // If customer exists, check if requester has permission to update
-        const isSelf = customerSession === customer.id;
-        const isAdmin = !!adminSession;
-
-        if (!isSelf && !isAdmin) {
-            return { 
-                success: false, 
-                error: `Ein Konto mit ${email} existiert bereits. Bitte melden Sie sich an.` 
-            };
-        }
-
-        // Update customer details 
+    } else if (isSelf || isAdmin) {
         customer = await prisma.customer.update({
-            where: { id: customer.id },
+            where: { id: existingCustomer.id },
             data: {
-                firstName,
-                lastName,
-                phone,
-                address,
-                city,
-                postalCode,
-                country,
-                customerType,
-                company,
-                taxId,
-                dateOfBirth: parsedDob || undefined,
-                licenseNumber: licenseNumber || undefined,
-                licenseCountry: licenseCountry || undefined,
-                licensePhotoUrl: licensePhotoUrl || undefined,
-                licenseExpiryDate: parsedLicenseExpiry || undefined
+                firstName: fields.firstName,
+                lastName: fields.lastName,
+                phone: fields.phone,
+                address: fields.address,
+                city: fields.city,
+                postalCode: fields.postalCode,
+                country: fields.country,
+                customerType: fields.customerType,
+                company: fields.company,
+                taxId: fields.taxId,
+                dateOfBirth: fields.dateOfBirth || undefined,
+                licenseNumber: fields.licenseNumber || undefined,
+                licenseCountry: fields.licenseCountry || undefined,
+                licensePhotoUrl: fields.licensePhotoUrl || undefined,
+                licenseExpiryDate: fields.licenseExpiryDate || undefined,
+                ...consent,
             }
         });
 
@@ -205,70 +262,43 @@ export async function createBooking(prevState: any, formData: FormData) {
             entityId: customer.id,
             description: `Customer details updated during booking: ${customer.email}`
         });
+    } else {
+        // Unauthenticated guest re-booking: only fill in what is still missing.
+        const missing = Object.fromEntries(
+            Object.entries(fields).filter(([key, value]) =>
+                value != null && value !== '' && (existingCustomer as Record<string, unknown>)[key] == null
+            )
+        );
+        customer = await prisma.customer.update({ where: { id: existingCustomer.id }, data: { ...missing, ...consent } });
     }
 
-    // 3. Create Rental
+    // 4. Price the rental
     const days = calculateChargeableDays(startDateStr, pickupTimeStr, endDateStr, returnTimeStr);
 
-    const car = await prisma.car.findUnique({ where: { id: carId } });
-    if (!car) throw new Error("Car not found");
-
+    // Only active options that are generic templates or belong to this car.
     const selectedOptions = await prisma.option.findMany({
-        where: { id: { in: optionIds } }
-    });
-
-    let extrasCost = 0;
-    let insuranceCost = 0;
-    let selectedInsuranceType = 'Basis';
-    let addedKm = 0;
-
-    selectedOptions.forEach(opt => {
-        const cost = opt.isPerDay ? (Number(opt.price) * days) : Number(opt.price);
-        if (opt.type === 'insurance') {
-            insuranceCost += cost;
-            selectedInsuranceType = opt.name;
-        } else {
-            extrasCost += cost;
-            // Parse KM from package name if it's a KM package
-            if (opt.type === 'package' && opt.name.toLowerCase().includes('km')) {
-                const match = opt.name.match(/(\d+)/);
-                if (match) {
-                    addedKm += parseInt(match[0], 10);
-                }
-            }
+        where: {
+            id: { in: optionIds },
+            status: 'active',
+            OR: [{ carId: null }, { carId }],
         }
     });
 
-    const includedKm = (Number(car.maxMileagePerDay || 0) * days) + addedKm;
-
-    let baseTotal = Number(car.dailyRate) * days + extrasCost + insuranceCost;
-    let discountAmount = 0;
-    let discountReason: string | null = null;
-    let couponId: number | null = null;
-
-    if (couponCode) {
-        const coupon = await prisma.discountCoupon.findFirst({
-            where: { code: couponCode, isActive: true }
-        });
-        if (coupon) {
-            const now = new Date();
-            const validFrom = coupon.validFrom ? new Date(coupon.validFrom) : null;
-            const validUntil = coupon.validUntil ? new Date(coupon.validUntil) : null;
-            if ((!validFrom || now >= validFrom) && (!validUntil || now <= validUntil)) {
-                if (coupon.usageLimit == null || coupon.usedCount < coupon.usageLimit) {
-                    if (coupon.discountType === 'PERCENTAGE') {
-                        discountAmount = baseTotal * (Number(coupon.discountValue) / 100);
-                    } else {
-                        discountAmount = Math.min(Number(coupon.discountValue), baseTotal);
-                    }
-                    discountReason = `Gutschein ${coupon.code}`;
-                    couponId = coupon.id;
-                }
-            }
-        }
-    }
+    const {
+        baseTotal,
+        extrasCost,
+        insuranceCost,
+        insuranceType: selectedInsuranceType,
+        includedKm,
+    } = priceRental(car, selectedOptions, days);
+    const coupon = await evaluateCoupon(couponCode, baseTotal);
+    const discountAmount = coupon?.discountAmount ?? 0;
+    const discountReason = coupon ? `${COUPON_REASON_PREFIX}${coupon.code}` : null;
+    const couponId = coupon?.couponId ?? null;
 
     const totalAmount = Math.max(0, baseTotal - discountAmount);
+    // Nothing to charge (e.g. a 100 % coupon): skip Stripe, which rejects 0 € sessions.
+    const payOnline = paymentMethod === 'online' && totalAmount > 0;
 
     let rental;
     try {
@@ -314,7 +344,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                     insuranceType: selectedInsuranceType,
                     pickupLocationId: car.locationId,
                     returnLocationId: car.locationId,
-                    paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
+                    paymentMethod: payOnline ? 'Online' : 'arrival',
                     includedKm: includedKm
                 }
             });
@@ -333,6 +363,8 @@ export async function createBooking(prevState: any, formData: FormData) {
         throw error;
     }
     const contractNumber = rental.contractNumber!;
+    // Grants the (possibly not logged-in) customer access to their confirmation page.
+    const bookingToken = await createSessionToken('booking', rental.id, BOOKING_TOKEN_TTL_SECONDS);
 
     await auditLog({
         userId: adminSession?.id || customer.id,
@@ -344,7 +376,7 @@ export async function createBooking(prevState: any, formData: FormData) {
         metadata: { totalAmount, days, carId }
     });
 
-    // 4. Create Notification
+    // 5. Create Notification
     await prisma.notification.create({
         data: {
             type: 'System',
@@ -357,15 +389,25 @@ export async function createBooking(prevState: any, formData: FormData) {
         }
     });
 
-    if (paymentMethod === 'online') {
+    if (payOnline) {
         const baseUrl = SITE_URL;
         let sessionUrl = null;
         try {
-            let successUrl = `${baseUrl}/checkout/success/${rental.id}?session_id={CHECKOUT_SESSION_ID}`;
-            let cancelUrl = `${baseUrl}/checkout?carId=${carId}&startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}`;
+            // Cancelling payment returns the customer to the form with their selection intact.
+            const retryParams = new URLSearchParams({
+                startDate: startDateStr,
+                endDate: endDateStr,
+                pickupTime: pickupTimeStr,
+                returnTime: returnTimeStr,
+                options: optionsParam,
+            });
+            if (couponCode) retryParams.set('couponCode', couponCode);
+
+            let successUrl = `${baseUrl}/checkout/success/${rental.id}?t=${bookingToken}&session_id={CHECKOUT_SESSION_ID}`;
+            let cancelUrl = `${baseUrl}/checkout?carId=${carId}&${retryParams}`;
             if (isMobile) {
-                successUrl = `${baseUrl}/mobile/payment/success?rentalId=${rental.id}&session_id={CHECKOUT_SESSION_ID}`;
-                cancelUrl = `${baseUrl}/mobile/payment/${carId}?startDate=${formData.get('startDate') as string}&endDate=${formData.get('endDate') as string}&pickupTime=${pickupTimeStr}&returnTime=${returnTimeStr}&options=${formData.get('options') as string || ''}&couponCode=${formData.get('couponCode') as string || ''}`;
+                successUrl = `${baseUrl}/mobile/payment/success?rentalId=${rental.id}&t=${bookingToken}&session_id={CHECKOUT_SESSION_ID}`;
+                cancelUrl = `${baseUrl}/mobile/payment/${carId}?${retryParams}`;
             }
 
             const session = await stripe.checkout.sessions.create({
@@ -376,7 +418,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                             currency: 'eur',
                             product_data: {
                                 name: `${car.brand} ${car.model} Miete`,
-                                description: `${days} Tage Miete (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`,
+                                description: `${days} Tage Miete (${formatViennaDate(startDate)} - ${formatViennaDate(endDate)})`,
                             },
                             unit_amount: Math.round(totalAmount * 100),
                         },
@@ -386,7 +428,8 @@ export async function createBooking(prevState: any, formData: FormData) {
                 mode: 'payment',
                 success_url: successUrl,
                 cancel_url: cancelUrl,
-                customer_email: email,
+                customer_email: customer.email,
+                expires_at: Math.floor(Date.now() / 1000) + STRIPE_SESSION_TTL_SECONDS,
                 metadata: {
                     rentalId: rental.id.toString(),
                 },
@@ -400,7 +443,11 @@ export async function createBooking(prevState: any, formData: FormData) {
             sessionUrl = session.url;
         } catch (error: any) {
             console.error("Stripe Session Error:", error);
-            return { success: false, error: `Stripe Fehler: ${error.message || 'Unbekannter Fehler'}` };
+            // Don't leave a booking behind that blocks the car and uses up the coupon.
+            await cancelUnpaidOnlineBooking(rental.id).catch((cleanupError) =>
+                console.error(`[booking] Failed to cancel rental ${rental.id} after Stripe error:`, cleanupError)
+            );
+            return { success: false, error: 'Die Online-Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut oder wählen Sie „Bezahlung vor Ort“.' };
         }
 
         if (sessionUrl) {
@@ -439,8 +486,8 @@ export async function createBooking(prevState: any, formData: FormData) {
     }
 
     if (isMobile) {
-        redirect(`/mobile/payment/success?rentalId=${rental.id}`);
+        redirect(`/mobile/payment/success?rentalId=${rental.id}&t=${bookingToken}`);
     } else {
-        redirect(`/checkout/success/${rental.id}`);
+        redirect(`/checkout/success/${rental.id}?t=${bookingToken}`);
     }
 }

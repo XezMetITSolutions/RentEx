@@ -2,10 +2,13 @@ import { getPdfMapping } from '@/lib/pdfMapping';
 import PdfMappingEditor from './PdfMappingEditor';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { guardAdminArea } from '@/lib/adminAccess';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PdfMappingPage() {
+    // Admin-only (the /admin/settings/2fa page stays open to every staff member).
+    await guardAdminArea('settings');
     const mapping = await getPdfMapping();
 
     return (

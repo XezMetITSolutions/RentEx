@@ -1,10 +1,10 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { getAdminForArea } from '@/lib/adminAccess';
 
 // PUT /api/admin/strafzettel/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('strafzettel');
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { id } = await params;
     try {
@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/admin/strafzettel/[id]
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('strafzettel');
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { id } = await params;
     await prisma.strafzettelRecord.delete({ where: { id: parseInt(id) } });

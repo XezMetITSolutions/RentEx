@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthStaff } from '@/lib/mobileAuth';
+import { completeRental } from '@/lib/bookingLifecycle';
 
 export async function POST(
   req: NextRequest,
@@ -28,26 +29,14 @@ export async function POST(
     );
   }
 
-  await prisma.$transaction([
-    prisma.rental.update({
-      where: { id: rentalId },
-      data: {
-        status: 'Completed',
-        actualReturnDate: new Date(),
-        returnMileage: returnMileage ?? undefined,
-        fuelLevelReturn: fuelLevelReturn ?? undefined,
-        damageReport: damageReport ?? undefined,
-        extraCharges: extraCharges ?? undefined,
-      },
-    }),
-    prisma.car.update({
-      where: { id: rental.carId },
-      data: {
-        status: 'Active',
-        currentMileage: returnMileage ?? undefined,
-      },
-    }),
-    prisma.activityLog.create({
+  if (returnMileage == null || Number.isNaN(returnMileage)) {
+    return NextResponse.json({ error: 'KM-Stand bei Rückgabe fehlt.' }, { status: 400 });
+  }
+
+  // Same completion as the web admin (incl. KM credit); safe against app retries.
+  const completed = await completeRental(rentalId, { returnMileage, fuelLevelReturn, damageReport, extraCharges });
+  if (completed) {
+    await prisma.activityLog.create({
       data: {
         action: 'RENTAL_CHECKOUT',
         entityType: 'Rental',
@@ -56,8 +45,8 @@ export async function POST(
         description: `Staff #${staff.id} completed rental #${rentalId}`,
         metadata: JSON.stringify({ returnMileage, fuelLevelReturn, extraCharges }),
       },
-    }),
-  ]);
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

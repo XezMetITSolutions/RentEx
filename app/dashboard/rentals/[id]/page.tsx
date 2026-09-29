@@ -1,10 +1,12 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import { Car, Calendar, MapPin, ArrowLeft } from 'lucide-react';
 import { cancelReservation } from '@/app/actions/dashboard';
 import CancelReservationButton from './CancelReservationButton';
+import { customerCancellationFee } from '@/lib/cancellationFee';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { notFound } from 'next/navigation';
@@ -89,7 +91,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                             <Calendar className="h-4 w-4" />
                             Abholung
                         </h3>
-                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{format(new Date(rental.startDate), 'EEEE, dd. MMMM yyyy', { locale: de })}</p>
+                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{formatBusinessDate(rental.startDate, 'EEEE, dd. MMMM yyyy')}</p>
                         <p className="text-sm text-zinc-600 dark:text-zinc-400">{rental.pickupLocation?.name ?? '–'}</p>
                     </div>
                     <div className="p-6">
@@ -97,7 +99,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                             <MapPin className="h-4 w-4" />
                             Rückgabe
                         </h3>
-                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{format(new Date(rental.endDate), 'EEEE, dd. MMMM yyyy', { locale: de })}</p>
+                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{formatBusinessDate(rental.endDate, 'EEEE, dd. MMMM yyyy')}</p>
                         <p className="text-sm text-zinc-600 dark:text-zinc-400">{rental.returnLocation?.name ?? '–'}</p>
                     </div>
                 </div>
@@ -118,7 +120,11 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
 
                 {rental.status === 'Pending' && (
                     <div className="border-t border-zinc-200 dark:border-zinc-800 p-6">
-                        <CancelReservationButton rentalId={rental.id} />
+                        <CancelReservationButton
+                            rentalId={rental.id}
+                            fee={customerCancellationFee(Number(rental.totalAmount))}
+                            paidAmount={rental.paymentStatus === 'Paid' ? Number(rental.totalAmount) : 0}
+                        />
                     </div>
                 )}
             </div>

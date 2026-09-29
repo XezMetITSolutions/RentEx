@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { getAdminSession } from '@/lib/adminAuth';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export async function POST(request: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('fleet');
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }

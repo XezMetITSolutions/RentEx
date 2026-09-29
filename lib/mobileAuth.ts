@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { NextRequest } from 'next/server';
 import { AUTH_CONFIG } from './config';
 import prisma from './prisma';
+import { isAdministrator, normalizeRole } from './staffRoles';
 
 const TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_CUSTOMER_TOKEN_TTL;
 const STAFF_TOKEN_TTL_SECONDS = AUTH_CONFIG.MOBILE_STAFF_TOKEN_TTL;
@@ -115,6 +116,7 @@ export async function getAuthStaff(req: NextRequest): Promise<StaffAuth | null> 
 
 export function requireStaffRole(staff: StaffAuth | null, roles: string[]): boolean {
   if (!staff) return false;
-  if (staff.role === 'SUPERADMIN') return true;
-  return roles.includes(staff.role);
+  if (isAdministrator(staff.role)) return true;
+  const role = normalizeRole(staff.role);
+  return roles.some((r) => normalizeRole(r) === role);
 }

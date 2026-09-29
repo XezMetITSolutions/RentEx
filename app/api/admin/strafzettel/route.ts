@@ -1,12 +1,12 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
 import { FEES_CONFIG } from "@/lib/config";
 import { ApiErrorHandler } from "@/lib/errors";
+import { getAdminForArea } from '@/lib/adminAccess';
 
 // GET /api/admin/strafzettel
 export async function GET(req: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('strafzettel');
     if (!session) {
         return ApiErrorHandler.unauthorized("Nicht autorisiert");
     }
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/strafzettel — Create new fine record
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('strafzettel');
     if (!session) {
         return ApiErrorHandler.unauthorized("Nicht autorisiert");
     }

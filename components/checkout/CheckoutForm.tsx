@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2, User, X } from "lucide-react";
 import { createBooking } from "@/app/actions/booking";
 import { useEffect, useRef } from "react";
-import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import { calculateChargeableDays, isOutsideOpeningHours, todayInBusinessTimeZone } from "@/lib/bookingUtils";
+import { checkCarAvailability, previewCoupon, type CouponPreview } from "@/app/actions/booking-checks";
 import CustomDatePicker from "@/components/ui/CustomDatePicker";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
         pickupTime: string;
         returnTime: string;
         options: string;
+        couponCode?: string;
     };
 };
 
@@ -65,6 +67,25 @@ const formatDateOfBirth = (dateVal: any) => {
     return `${day}/${month}/${year}`;
 };
 
+const isExpiryStringExpired = (dateStr: string) => {
+    if (!dateStr) return false;
+    const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
+    const parts = normalized.split('/');
+    if (parts.length !== 3) return false;
+    let day = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10) - 1;
+    let year = parseInt(parts[2], 10);
+    if (year < 100) year += 2000;
+    const d = new Date(year, month, day);
+    return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
+};
+
+/** True when the customer's profile already holds a license that has not expired. */
+const hasValidStoredLicense = (cust: any) =>
+    !!cust?.licenseNumber && !isExpiryStringExpired(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+
+const formatEur = (value: number) => new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(value);
+
 export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
     const [startDate, setStartDate] = useState(searchParams.startDate);
     const [endDate, setEndDate] = useState(searchParams.endDate);
@@ -102,6 +123,44 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
         }
     }, [isPickupOutside]);
 
+    // Re-check availability whenever the period is changed on this page.
+    const [isAvailable, setIsAvailable] = useState(true);
+    const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+    useEffect(() => {
+        let cancelled = false;
+        setIsCheckingAvailability(true);
+        checkCarAvailability(car.id, startDate, pickupTime, endDate, returnTime).then((available) => {
+            if (cancelled) return;
+            setIsAvailable(available);
+            setIsCheckingAvailability(false);
+        });
+        return () => { cancelled = true; };
+    }, [car.id, startDate, pickupTime, endDate, returnTime]);
+
+    // Coupon preview; the server recomputes the discount when booking.
+    const [couponInput, setCouponInput] = useState(searchParams.couponCode || '');
+    const [coupon, setCoupon] = useState<CouponPreview | null>(null);
+    const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+    const applyCoupon = async (code: string) => {
+        if (!code.trim()) {
+            setCoupon(null);
+            return;
+        }
+        setIsCheckingCoupon(true);
+        try {
+            setCoupon(await previewCoupon(code, car.id, startDate, pickupTime, endDate, returnTime, selectedOptionIds));
+        } finally {
+            setIsCheckingCoupon(false);
+        }
+    };
+    // Percentage coupons depend on the rental length, so refresh on period changes.
+    useEffect(() => {
+        if (couponInput.trim()) applyCoupon(couponInput);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startDate, pickupTime, endDate, returnTime]);
+    const discount = coupon?.valid ? coupon.discountAmount : 0;
+    const finalTotal = Math.max(0, total - discount);
+
     // Address Autofill Logic
     const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -122,6 +181,8 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
     const [licenseCountry, setLicenseCountry] = useState(initialCustomer?.licenseCountry || 'Österreich');
     const [licensePhotoUrl, setLicensePhotoUrl] = useState(initialCustomer?.licensePhotoUrl || '');
     const [licenseExpiryDate, setLicenseExpiryDate] = useState(initialCustomer?.licenseExpiryDate ? formatDateOfBirth(initialCustomer.licenseExpiryDate) : '');
+    const [hasStoredLicense, setHasStoredLicense] = useState(() => hasValidStoredLicense(initialCustomer));
+    const [hasExpiredStoredLicense, setHasExpiredStoredLicense] = useState(() => !!initialCustomer?.licenseNumber && !hasValidStoredLicense(initialCustomer));
     const [selectedCountry, setSelectedCountry] = useState(initialCustomer?.country || 'Österreich');
     const [company, setCompany] = useState(initialCustomer?.company || '');
     const [taxId, setTaxId] = useState(initialCustomer?.taxId || '');
@@ -177,6 +238,8 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                 setLicenseCountry(cust.licenseCountry || 'Österreich');
                 setLicensePhotoUrl(cust.licensePhotoUrl || '');
                 setLicenseExpiryDate(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+                setHasStoredLicense(hasValidStoredLicense(cust));
+                setHasExpiredStoredLicense(!!cust.licenseNumber && !hasValidStoredLicense(cust));
                 setIsLoggedIn(true);
                 setShowLoginModal(false);
                 setEmailExists(false);
@@ -189,21 +252,10 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             setIsLoggingIn(false);
         }
     };
-    const isExpiryStringExpired = (dateStr: string) => {
-        if (!dateStr) return false;
-        const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
-        const parts = normalized.split('/');
-        if (parts.length !== 3) return false;
-        let day = parseInt(parts[0], 10);
-        let month = parseInt(parts[1], 10) - 1;
-        let year = parseInt(parts[2], 10);
-        if (year < 100) year += 2000;
-        const d = new Date(year, month, day);
-        return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
-    };
-
     const isExpired = isExpiryStringExpired(licenseExpiryDate);
-    const showLicenseInput = !licenseNumber || isExpired;
+    // Decided from the stored profile, not the fields being typed — otherwise the
+    // license inputs would disappear as soon as the first character is entered.
+    const showLicenseInput = !hasStoredLicense;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -259,7 +311,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             <input type="hidden" name="startDate" value={startDate} />
             <input type="hidden" name="endDate" value={endDate} />
             <input type="hidden" name="options" value={searchParams.options} />
-            <input type="hidden" name="totalAmount" value={total} />
+            <input type="hidden" name="totalAmount" value={finalTotal} />
             <input type="hidden" name="pickupTime" value={pickupTime} />
             <input type="hidden" name="returnTime" value={returnTime} />
 
@@ -359,9 +411,14 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                         {/* Driver's License Info - Only visible if not already supplied by logged-in user or if expired */}
                         {showLicenseInput ? (
                             <>
-                                {licenseNumber && isExpired && (
+                                {hasExpiredStoredLicense && (
                                     <div className="md:col-span-2 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs animate-in fade-in duration-300">
-                                        ⚠️ Ihr hinterlegter Führerschein ({licenseNumber}) ist am {licenseExpiryDate} abgelaufen. Bitte tragen Sie die neuen Daten ein und laden Sie das neue Dokument hoch.
+                                        ⚠️ Ihr hinterlegter Führerschein ist abgelaufen. Bitte tragen Sie die neuen Daten ein und laden Sie das neue Dokument hoch.
+                                    </div>
+                                )}
+                                {!hasExpiredStoredLicense && licenseExpiryDate && isExpired && (
+                                    <div className="md:col-span-2 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs animate-in fade-in duration-300">
+                                        ⚠️ Das angegebene Ablaufdatum liegt in der Vergangenheit. Bitte prüfen Sie Ihren Führerschein.
                                     </div>
                                 )}
                                 <div className="space-y-2 animate-in fade-in duration-300">
@@ -524,7 +581,7 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <div className="grid grid-cols-2 gap-2">
                                     <CustomDatePicker
                                         value={startDate}
-                                        min={new Date().toISOString().split('T')[0]}
+                                        min={todayInBusinessTimeZone()}
                                         onChange={(newStart) => {
                                             setStartDate(newStart);
                                             if (endDate < newStart) {
@@ -626,14 +683,39 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
 
                         <div className="mb-4 pb-4 border-b border-gray-200 dark:border-white/10">
                             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Gutscheincode</label>
-                            <input name="couponCode" type="text" placeholder="Code eingeben" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:border-red-500 outline-none" />
+                            <div className="flex gap-2">
+                                <input
+                                    name="couponCode"
+                                    type="text"
+                                    value={couponInput}
+                                    onChange={(e) => { setCouponInput(e.target.value); setCoupon(null); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(couponInput); } }}
+                                    placeholder="Code eingeben"
+                                    className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:border-red-500 outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => applyCoupon(couponInput)}
+                                    disabled={isCheckingCoupon || !couponInput.trim()}
+                                    className="shrink-0 px-4 py-2 text-sm font-semibold rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 disabled:opacity-50"
+                                >
+                                    {isCheckingCoupon ? '...' : 'Anwenden'}
+                                </button>
+                            </div>
+                            {coupon?.valid === false && <p className="text-xs text-red-500 mt-1">Ungültiger oder abgelaufener Gutscheincode</p>}
+                            {coupon?.valid && (
+                                <div className="flex justify-between text-sm mt-2 text-green-600 dark:text-green-400">
+                                    <span>Gutschein {coupon.code}</span>
+                                    <span>-{formatEur(coupon.discountAmount)}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-4 border-t border-gray-200 dark:border-white/10">
                             <div className="flex justify-between items-end">
                                 <span className="text-gray-500 dark:text-gray-400 font-medium">Gesamtbetrag</span>
                                 <span className="text-2xl font-bold text-gray-900 dark:text-white text-right">
-                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(total)}
+                                    {formatEur(finalTotal)}
                                 </span>
                             </div>
                             <p className="text-xs text-right text-gray-400 dark:text-gray-500 mt-1">inkl. MwSt.</p>
@@ -644,6 +726,8 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                 <div className="relative flex items-center mt-1">
                                     <input
                                         type="checkbox"
+                                        name="agbAccepted"
+                                        value="yes"
                                         required
                                         checked={agbAccepted}
                                         onChange={(e) => setAgbAccepted(e.target.checked)}
@@ -653,13 +737,18 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
                                     <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
                                 </div>
                                 <span className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    Ich habe die <a href="/agb" target="_blank" className="text-red-500 hover:underline">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-red-500 hover:underline">Datenschutzerklärung</a> gelesen und akzeptiere diese.
+                                    Ich habe die <a href="/terms" target="_blank" className="text-red-500 hover:underline">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/privacy" target="_blank" className="text-red-500 hover:underline">Datenschutzerklärung</a> gelesen und akzeptiere diese.
                                 </span>
                             </label>
                         </div>
 
+                        {!isAvailable && !isCheckingAvailability && (
+                            <div className="mt-6 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs">
+                                Das Fahrzeug ist im gewählten Zeitraum leider nicht verfügbar. Bitte wählen Sie andere Daten.
+                            </div>
+                        )}
                         <button
-                            disabled={isPending || !agbAccepted}
+                            disabled={isPending || !agbAccepted || !isAvailable || isCheckingAvailability}
                             type="submit"
                             className="w-full py-4 mt-6 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]"
                         >

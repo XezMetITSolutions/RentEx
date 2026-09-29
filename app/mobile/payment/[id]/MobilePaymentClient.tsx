@@ -44,10 +44,29 @@ const formatDateOfBirth = (dateVal: any) => {
     return `${day}/${month}/${year}`;
 };
 
-export default function MobilePaymentClient({ car, customer, options = [], searchParams }: { 
+const isExpiryStringExpired = (dateStr: string) => {
+    if (!dateStr) return false;
+    const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
+    const parts = normalized.split('/');
+    if (parts.length !== 3) return false;
+    let day = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10) - 1;
+    let year = parseInt(parts[2], 10);
+    if (year < 100) year += 2000;
+    const d = new Date(year, month, day);
+    return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
+};
+
+/** True when the customer's profile already holds a license that has not expired. */
+const hasValidStoredLicense = (cust: any) =>
+    !!cust?.licenseNumber && !isExpiryStringExpired(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+
+export default function MobilePaymentClient({ car, customer, options = [], appliedCoupon, searchParams }: { 
     car: any, 
     customer: any, 
     options?: any[],
+    /** Coupon from the previous step, validated and priced on the server. */
+    appliedCoupon: { code: string, discountAmount: number } | null,
     searchParams: { 
         startDate: string, 
         endDate: string,
@@ -87,6 +106,8 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
   const [licenseCountry, setLicenseCountry] = useState(customer?.licenseCountry || 'Österreich');
   const [licensePhotoUrl, setLicensePhotoUrl] = useState(customer?.licensePhotoUrl || '');
   const [licenseExpiryDate, setLicenseExpiryDate] = useState(customer?.licenseExpiryDate ? formatDateOfBirth(customer.licenseExpiryDate) : '');
+  const [hasStoredLicense, setHasStoredLicense] = useState(() => hasValidStoredLicense(customer));
+  const [hasExpiredStoredLicense, setHasExpiredStoredLicense] = useState(() => !!customer?.licenseNumber && !hasValidStoredLicense(customer));
   const [company, setCompany] = useState(customer?.company || '');
   const [taxId, setTaxId] = useState(customer?.taxId || '');
 
@@ -96,21 +117,10 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const isExpiryStringExpired = (dateStr: string) => {
-      if (!dateStr) return false;
-      const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
-      const parts = normalized.split('/');
-      if (parts.length !== 3) return false;
-      let day = parseInt(parts[0], 10);
-      let month = parseInt(parts[1], 10) - 1;
-      let year = parseInt(parts[2], 10);
-      if (year < 100) year += 2000;
-      const d = new Date(year, month, day);
-      return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
-  };
-
   const isExpired = isExpiryStringExpired(licenseExpiryDate);
-  const showLicenseInput = !licenseNumber || isExpired;
+  // Decided from the stored profile, not the fields being typed — otherwise the
+  // license inputs would disappear as soon as the first character is entered.
+  const showLicenseInput = !hasStoredLicense;
 
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -197,6 +207,8 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
               setLicenseCountry(cust.licenseCountry || 'Österreich');
               setLicensePhotoUrl(cust.licensePhotoUrl || '');
               setLicenseExpiryDate(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+              setHasStoredLicense(hasValidStoredLicense(cust));
+              setHasExpiredStoredLicense(!!cust.licenseNumber && !hasValidStoredLicense(cust));
               setIsLoggedIn(true);
               setShowLoginModal(false);
               setEmailExists(false);
@@ -224,8 +236,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
       }
   });
 
-  const discount = searchParams.couponCode?.toUpperCase() === "RENTEX50" ? -50 : 0;
-  totalAmount = Math.max(0, totalAmount + discount);
+  totalAmount = Math.max(0, totalAmount - (appliedCoupon?.discountAmount ?? 0));
 
   return (
     <>
@@ -249,6 +260,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
         <input type="hidden" name="totalAmount" value={totalAmount} />
         <input type="hidden" name="paymentMethod" value={method} />
         <input type="hidden" name="isMobile" value="true" />
+        {appliedCoupon && <input type="hidden" name="couponCode" value={appliedCoupon.code} />}
 
         {state?.error && (
             <div className="mx-5 mt-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm">
@@ -350,9 +362,14 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
             {/* Sürücü Belgesi (Driver's License) Details */}
             {showLicenseInput ? (
               <div className="space-y-4 pt-2">
-                {licenseNumber && isExpired && (
+                {hasExpiredStoredLicense && (
                   <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs">
-                    ⚠️ Führerschein ({licenseNumber}) ist abgelaufen. Bitte neue Daten eintragen.
+                    ⚠️ Ihr hinterlegter Führerschein ist abgelaufen. Bitte neue Daten eintragen.
+                  </div>
+                )}
+                {!hasExpiredStoredLicense && licenseExpiryDate && isExpired && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs">
+                    ⚠️ Das angegebene Ablaufdatum liegt in der Vergangenheit.
                   </div>
                 )}
                 <div>
@@ -489,6 +506,8 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
               <div className="relative flex items-center mt-1">
                 <input
                   type="checkbox"
+                                        name="agbAccepted"
+                                        value="yes"
                   required
                   checked={agbAccepted}
                   onChange={(e) => setAgbAccepted(e.target.checked)}
@@ -498,7 +517,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
                 <Check className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
               </div>
               <span className="text-[11px] text-gray-500 dark:text-[#A3A3A3] leading-relaxed select-none">
-                Ich habe die <a href="/agb" target="_blank" className="text-[#E53935] hover:underline font-bold">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-[#E53935] hover:underline font-bold">Datenschutzerklärung</a> gelesen und akzeptiere diese.
+                Ich habe die <a href="/terms" target="_blank" className="text-[#E53935] hover:underline font-bold">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/privacy" target="_blank" className="text-[#E53935] hover:underline font-bold">Datenschutzerklärung</a> gelesen und akzeptiere diese.
               </span>
             </label>
           </div>
@@ -509,7 +528,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
           <div className="px-5 py-3 border-b border-gray-200 dark:border-white/5 flex items-center justify-between transition-colors">
             <div>
               <span className="text-[12px] text-gray-500 dark:text-[#A3A3A3] block">Gesamtbetrag</span>
-              <span className="text-[10px] text-gray-500 dark:text-[#A3A3A3]">inkl. MwSt. ({days} Tage)</span>
+              <span className="text-[10px] text-gray-500 dark:text-[#A3A3A3]">inkl. MwSt. ({days} Tage){appliedCoupon && ` · Gutschein ${appliedCoupon.code} -${new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(appliedCoupon.discountAmount)}`}</span>
             </div>
             <span className="text-[20px] font-bold text-gray-900 dark:text-white">
               {new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(totalAmount)}

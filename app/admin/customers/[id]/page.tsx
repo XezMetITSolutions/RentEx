@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 export const dynamic = 'force-dynamic';
 
 import CustomerForm from '@/components/admin/CustomerForm';
@@ -212,7 +213,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                                    {format(new Date(rental.startDate), 'dd.MM.yyyy', { locale: de })}
+                                                    {formatBusinessDate(rental.startDate, 'dd.MM.yyyy')}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {rental.status === 'Completed' ? (

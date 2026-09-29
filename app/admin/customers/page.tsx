@@ -97,7 +97,7 @@ export default async function CustomersPage() {
                         Kundenverwaltung
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Verwalten Sie Ihren Kundenstamm, Treuestufen ve Umsatzeinblicke.
+                        Verwalten Sie Ihren Kundenstamm, Treuestufen und Umsatzeinblicke.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">

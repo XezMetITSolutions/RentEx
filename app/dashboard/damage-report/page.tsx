@@ -1,4 +1,5 @@
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
@@ -79,7 +80,7 @@ export default async function DamageReportPage({ searchParams }: { searchParams:
                                                 : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700'
                                         }`}
                                     >
-                                        {r.car.brand} {r.car.model} ({r.car.plate}) – {format(new Date(r.startDate), 'dd.MM.yy', { locale: de })}
+                                        {r.car.brand} {r.car.model} ({r.car.plate}) – {formatBusinessDate(r.startDate, 'dd.MM.yy')}
                                     </Link>
                                 ))}
                             </div>

@@ -9,6 +9,8 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 import { refundRental } from '@/lib/refunds';
+import { cancelRental, sendCancellationEmail } from '@/lib/bookingLifecycle';
+import { customerCancellationFee } from '@/lib/cancellationFee';
 
 export async function updateProfile(formData: FormData) {
     const customerId = await getSession();
@@ -63,6 +65,8 @@ export async function cancelReservation(formData: FormData) {
             rentalId,
             reason: 'Stornierung durch Kunden',
             actor: { kind: 'customer', customerId },
+            // AGB "Rücktritt vom Vertrag": the cancellation fee is kept back.
+            retainAmount: customerCancellationFee(Number(rental.totalAmount)),
         });
         if (!refund.ok) {
             return { error: refund.error };
@@ -70,10 +74,8 @@ export async function cancelReservation(formData: FormData) {
         refundedAmount = refund.amount;
     }
 
-    await prisma.rental.update({
-        where: { id: rentalId },
-        data: { status: 'Cancelled' },
-    });
+    // Also gives back a used coupon.
+    if (await cancelRental(rentalId)) await sendCancellationEmail(rentalId);
 
     revalidatePath('/dashboard/rentals');
     revalidatePath('/dashboard/rentals/[id]');

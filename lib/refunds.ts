@@ -22,6 +22,8 @@ export interface RefundOptions {
     actor: RefundActor;
     /** Free-form reason persisted in the Payment entry */
     reason?: string;
+    /** Amount kept back from the paid total, e.g. the AGB cancellation fee. */
+    retainAmount?: number;
 }
 
 export interface RefundOk {
@@ -60,6 +62,14 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
         (p) => p.paymentMethod === 'Online' && p.transactionId
     );
 
+    const totalPaid = rental.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const retained = Math.min(Math.max(opts.retainAmount ?? 0, 0), totalPaid);
+    const refundAmount = Math.round((totalPaid - retained) * 100) / 100;
+    if (refundAmount <= 0) {
+        // The whole payment is kept (e.g. the fee is higher than what was paid).
+        return { ok: true, stripeRefundId: null, amount: 0 };
+    }
+
     let stripeRefundId: string | null = null;
     if (stripePayment?.transactionId) {
         try {
@@ -74,6 +84,8 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
             if (paymentIntentId) {
                 const refund = await stripe.refunds.create({
                     payment_intent: paymentIntentId,
+                    // Partial when a cancellation fee is retained.
+                    ...(retained > 0 ? { amount: Math.round(refundAmount * 100) } : {}),
                     reason: 'requested_by_customer',
                     metadata: {
                         rentalId: String(opts.rentalId),
@@ -97,8 +109,6 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
         }
     }
 
-    const totalPaid = rental.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-
     await prisma.rental.update({
         where: { id: opts.rentalId },
         data: { paymentStatus: 'Refunded' },
@@ -112,10 +122,10 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
     await prisma.payment.create({
         data: {
             rentalId: opts.rentalId,
-            amount: -totalPaid,
+            amount: -refundAmount,
             paymentMethod: stripeRefundId ? 'Online' : 'Manual',
             transactionId: stripeRefundId ?? null,
-            notes: `Erstattung${opts.reason ? `: ${opts.reason}` : ''} — ${actorLabel}`,
+            notes: `Erstattung${opts.reason ? `: ${opts.reason}` : ''}${retained > 0 ? ` (einbehalten: €${retained.toFixed(2)})` : ''} — ${actorLabel}`,
         },
     });
 
@@ -127,9 +137,9 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
             opts.actor.kind === 'admin'
                 ? { kind: 'admin', id: opts.actor.staffId, name: opts.actor.staffName }
                 : { kind: 'customer', id: opts.actor.customerId },
-        description: `Erstattung €${totalPaid.toFixed(2)}${opts.reason ? ` — ${opts.reason}` : ''}`,
-        metadata: { amount: totalPaid, stripeRefundId, reason: opts.reason ?? null },
+        description: `Erstattung €${refundAmount.toFixed(2)}${opts.reason ? ` — ${opts.reason}` : ''}`,
+        metadata: { amount: refundAmount, retained, stripeRefundId, reason: opts.reason ?? null },
     });
 
-    return { ok: true, stripeRefundId, amount: totalPaid };
+    return { ok: true, stripeRefundId, amount: refundAmount };
 }

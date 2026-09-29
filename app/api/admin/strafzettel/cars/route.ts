@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export async function GET() {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('strafzettel');
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {

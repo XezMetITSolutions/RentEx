@@ -9,12 +9,13 @@
  * Uses Web Crypto only, so it runs in both the Node runtime and middleware.
  */
 
-export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa';
+/** 'booking' tokens grant read access to a single booking's confirmation page. */
+export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa' | 'booking';
 
 const DEV_FALLBACK_SECRET = 'dev-secret-only-for-local';
 
 function getSecret(purpose: SessionPurpose): string {
-    const secret = purpose === 'customer'
+    const secret = purpose === 'customer' || purpose === 'booking'
         ? process.env.SESSION_SECRET || process.env.JWT_SECRET
         : process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET;
     if (secret) return secret;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
+import { customerCancellationFee } from '@/lib/cancellationFee';
 
 function parseFeatures(features: string | null): string[] | null {
   if (!features) return null;
@@ -49,6 +50,8 @@ function serializeBooking(r: any) {
     status: r.status,
     paymentStatus: r.paymentStatus,
     totalAmount: r.totalAmount?.toString?.() ?? r.totalAmount,
+    // AGB cancellation fee, shown by the app before the customer cancels.
+    cancellationFee: customerCancellationFee(Number(r.totalAmount)),
     pickupLocation: r.pickupLocation ? {
       name: r.pickupLocation.name,
       address: r.pickupLocation.address,

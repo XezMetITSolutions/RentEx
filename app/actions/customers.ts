@@ -4,12 +4,12 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { customerSchema, formDataToObject, safeValidate } from '@/lib/schemas';
 
-import { getAdminSession } from '@/lib/adminAuth';
 import { auditLog } from '@/lib/audit';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 
 export async function createCustomer(formData: FormData) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('customers');
     if (!session) return { success: false, error: 'Unauthorized' };
 
     const parsed = safeValidate(customerSchema, formDataToObject(formData));
@@ -39,7 +39,7 @@ export async function createCustomer(formData: FormData) {
 }
 
 export async function updateCustomer(id: number, formData: FormData) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('customers');
     if (!session) return { success: false, error: 'Unauthorized' };
 
     const parsed = safeValidate(customerSchema, formDataToObject(formData));

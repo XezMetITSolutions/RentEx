@@ -1,11 +1,11 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAdminArea } from '@/lib/adminAccess';
 
 export async function updateCompetitorPrices() {
-    await requireAdmin();
+    await requireAdminArea('competitor-pricing');
     const cars = await prisma.car.findMany({
         select: {
             brand: true,

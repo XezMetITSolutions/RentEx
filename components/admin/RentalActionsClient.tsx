@@ -40,7 +40,7 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
 
     return (
         <div className="flex flex-wrap gap-2">
-            {rental.status === 'Pending' && (
+            {(rental.status === 'Pending' || rental.status === 'Confirmed') && (
                 <>
                     <Link
                         href={`/admin/reservations/${rental.id}/check-in`}
@@ -58,7 +58,7 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                 </>
             )}
 
-            {(rental.status === 'Active' || rental.status === 'Pending') && (
+            {(rental.status === 'Active' || rental.status === 'Pending' || rental.status === 'Confirmed') && (
                 <button
                     onClick={() => setShowExtendModal(true)}
                     className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
@@ -102,7 +102,17 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
             )}
 
             {rental.status !== 'Cancelled' && rental.status !== 'Completed' && (
-                <form action={updateRentalStatus.bind(null, rental.id, 'Cancelled')}>
+                <form
+                    action={updateRentalStatus.bind(null, rental.id, 'Cancelled')}
+                    onSubmit={(e) => {
+                        const warning = rental.paymentStatus === 'Paid'
+                            ? '\n\nAchtung: Die Miete ist bereits bezahlt. Die Erstattung erfolgt NICHT automatisch – bitte danach „Erstatten“ verwenden.'
+                            : '';
+                        if (!window.confirm(`Reservierung ${rental.contractNumber || rental.id} wirklich stornieren?${warning}`)) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
                     <button className="flex items-center gap-2 bg-white dark:bg-gray-700 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-bold transition-all">
                         <XCircle className="w-4 h-4" />
                         Stornieren

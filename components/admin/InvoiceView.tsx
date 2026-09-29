@@ -16,6 +16,7 @@ import {
     Car
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { de } from 'date-fns/locale';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -41,6 +42,11 @@ interface InvoiceViewProps {
             extrasCost: number | string;
             insuranceCost: number | string;
             insuranceType: string | null;
+            discountAmount?: number | string | null;
+            discountReason?: string | null;
+            extraCharges?: number | string | null;
+            extraChargesNote?: string | null;
+            paymentStatus?: string | null;
             car: {
                 brand: string;
                 model: string;
@@ -140,7 +146,7 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
             head: [['BESCHREIBUNG', 'MENGE', 'EINZELPREIS', 'GESAMT']],
             body: [
                 [
-                    `Fahrzeugmiete (${format(new Date(rental.startDate), 'dd.MM.yyyy')} - ${format(new Date(rental.endDate), 'dd.MM.yyyy')})`,
+                    `Fahrzeugmiete (${formatBusinessDate(rental.startDate, 'dd.MM.yyyy')} - ${formatBusinessDate(rental.endDate, 'dd.MM.yyyy')})`,
                     `${rental.totalDays} Tage`,
                     `€${Number(rental.dailyRate).toFixed(2)}`,
                     `€${(Number(rental.dailyRate) * rental.totalDays).toFixed(2)}`
@@ -156,6 +162,18 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                     '1 Pausch.',
                     `€${Number(rental.insuranceCost).toFixed(2)}`,
                     `€${Number(rental.insuranceCost).toFixed(2)}`
+                ]] : []),
+                ...(Number(rental.extraCharges ?? 0) > 0 ? [[
+                    `Zusatzkosten${rental.extraChargesNote ? ` (${rental.extraChargesNote})` : ''}`,
+                    '1 Pausch.',
+                    `€${Number(rental.extraCharges).toFixed(2)}`,
+                    `€${Number(rental.extraCharges).toFixed(2)}`
+                ]] : []),
+                ...(Number(rental.discountAmount ?? 0) > 0 ? [[
+                    rental.discountReason || 'Rabatt',
+                    '1',
+                    `-€${Number(rental.discountAmount).toFixed(2)}`,
+                    `-€${Number(rental.discountAmount).toFixed(2)}`
                 ]] : [])
             ],
             theme: 'striped',
@@ -351,7 +369,7 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                                 <td className="py-6">
                                     <p className="font-bold text-gray-900 dark:text-white">Fahrzeugmiete</p>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        Zeitraum: {format(new Date(rental.startDate), 'dd.MM.yyyy')} – {format(new Date(rental.endDate), 'dd.MM.yyyy')}
+                                        Zeitraum: {formatBusinessDate(rental.startDate, 'dd.MM.yyyy')} – {formatBusinessDate(rental.endDate, 'dd.MM.yyyy')}
                                     </p>
                                 </td>
                                 <td className="py-6 text-center text-gray-600 dark:text-gray-400">{rental.totalDays} Tag(e)</td>
@@ -380,6 +398,27 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                                     <td className="py-6 text-right font-medium text-gray-900 dark:text-white">€{Number(rental.insuranceCost).toFixed(2)}</td>
                                 </tr>
                             )}
+                            {Number(rental.extraCharges ?? 0) > 0 && (
+                                <tr>
+                                    <td className="py-6">
+                                        <p className="font-bold text-gray-900 dark:text-white">Zusatzkosten</p>
+                                        {rental.extraChargesNote && <p className="text-xs text-gray-500 mt-1">{rental.extraChargesNote}</p>}
+                                    </td>
+                                    <td className="py-6 text-center text-gray-600 dark:text-gray-400">1 Pausch.</td>
+                                    <td className="py-6 text-right text-gray-600 dark:text-gray-400">€{Number(rental.extraCharges).toFixed(2)}</td>
+                                    <td className="py-6 text-right font-medium text-gray-900 dark:text-white">€{Number(rental.extraCharges).toFixed(2)}</td>
+                                </tr>
+                            )}
+                            {Number(rental.discountAmount ?? 0) > 0 && (
+                                <tr>
+                                    <td className="py-6">
+                                        <p className="font-bold text-gray-900 dark:text-white">{rental.discountReason || 'Rabatt'}</p>
+                                    </td>
+                                    <td className="py-6 text-center text-gray-600 dark:text-gray-400">1</td>
+                                    <td className="py-6 text-right text-gray-600 dark:text-gray-400">-€{Number(rental.discountAmount).toFixed(2)}</td>
+                                    <td className="py-6 text-right font-medium text-gray-900 dark:text-white">-€{Number(rental.discountAmount).toFixed(2)}</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -390,7 +429,9 @@ export default function InvoiceView({ invoice }: InvoiceViewProps) {
                         <div className="max-w-xs">
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Zahlungsinhalt</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                Der Betrag wurde gemäß dem Vertrag bereits beglichen. Vielen Dank für Ihr Vertrauen!
+                                {rental.paymentStatus === 'Paid'
+                                    ? 'Der Betrag wurde gemäß dem Vertrag bereits beglichen. Vielen Dank für Ihr Vertrauen!'
+                                    : 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen unter Angabe der Rechnungsnummer. Vielen Dank für Ihr Vertrauen!'}
                             </p>
                         </div>
 

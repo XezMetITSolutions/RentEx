@@ -1,10 +1,10 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { getAdminForArea } from '@/lib/adminAccess';
 
 // GET /api/admin/agb — List all versions
 export async function GET() {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('agb');
     if (!session) {
         return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
     }
@@ -15,7 +15,7 @@ export async function GET() {
 
 // POST /api/admin/agb — Create a new AGB version
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('agb');
     if (!session) {
         return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
     }

@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Search, Filter, Calendar, List, ChevronRight, Plus, Activity } from 'lucide-react';
@@ -6,6 +7,7 @@ import { clsx } from 'clsx';
 import ReservationCalendar from '@/components/admin/ReservationCalendar';
 import Link from 'next/link';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +33,7 @@ async function getRentals(locationId?: number | null) {
 export default async function ReservationsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
     const resolvedSearchParams = await searchParams;
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && !isAdministrator(staff.role);
     
     const rentals = await getRentals(isRestricted ? staff?.locationId : undefined);
     const view = resolvedSearchParams.view || 'list';
@@ -114,8 +116,8 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
                                     </tr>
                                 ) : (
                                     rentals.map((rental) => {
-                                        const startDate = format(new Date(rental.startDate), 'dd.MM.yyyy', { locale: de });
-                                        const endDate = format(new Date(rental.endDate), 'dd.MM.yyyy', { locale: de });
+                                        const startDate = formatBusinessDate(rental.startDate, 'dd.MM.yyyy');
+                                        const endDate = formatBusinessDate(rental.endDate, 'dd.MM.yyyy');
 
                                         return (
                                             <tr key={rental.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">

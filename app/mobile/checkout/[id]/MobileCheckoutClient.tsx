@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MoreHorizontal, MapPin, Calendar, Clock, ChevronDown, Check, X, Info, User } from "lucide-react";
-import { checkMobileCarAvailability } from "../../actions";
-import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { checkCarAvailability, previewCoupon, type CouponPreview } from "@/app/actions/booking-checks";
+import { calculateChargeableDays, todayInBusinessTimeZone } from "@/lib/bookingUtils";
 import CustomDatePicker from "@/components/ui/CustomDatePicker";
 
 
@@ -14,17 +14,16 @@ export default function MobileCheckoutClient({ car, customer, locations, options
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const todayISO = new Date().toISOString().split("T")[0];
-  const threeDaysLater = new Date();
-  threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+  const todayISO = todayInBusinessTimeZone();
+  const threeDaysLater = new Date(`${todayISO}T12:00:00Z`);
+  threeDaysLater.setUTCDate(threeDaysLater.getUTCDate() + 3);
   const defaultEndISO = threeDaysLater.toISOString().split("T")[0];
   
   const fromParam = searchParams.get('from');
   const toParam = searchParams.get('to');
   
-  const [gleicherOrt, setGleicherOrt] = useState(true);
-  const [abholort, setAbholort] = useState(locations.length > 0 ? locations[0].id.toString() : "");
-  const [rueckgabeort, setRueckgabeort] = useState(locations.length > 0 ? locations[0].id.toString() : "");
+  // Pickup and return always happen at the car's own location.
+  const carLocation = locations.find((loc) => loc.id === car.locationId);
   
   const [abholdatum, setAbholdatum] = useState(fromParam || todayISO);
   const [abholzeit, setAbholzeit] = useState("10:00");
@@ -34,26 +33,29 @@ export default function MobileCheckoutClient({ car, customer, locations, options
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
   
   const [promoCode, setPromoCode] = useState("");
-  const [promoState, setPromoState] = useState<"idle" | "valid" | "invalid">("idle");
+  const [coupon, setCoupon] = useState<CouponPreview | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
   
   const [summaryOpen, setSummaryOpen] = useState(true);
   const [isAvailable, setIsAvailable] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
 
-  const startDateObj = new Date(abholdatum);
-  const endDateObj = new Date(rueckgabedatum);
-  const isValidDate = endDateObj >= startDateObj && startDateObj >= new Date(todayISO);
-  const isFormValid = abholort && abholdatum && rueckgabedatum && isValidDate && isAvailable && !isChecking;
+  // "YYYY-MM-DD" / "HH:MM" strings compare correctly as plain strings.
+  const isValidDate = !!abholdatum && !!rueckgabedatum && abholdatum >= todayISO &&
+    (rueckgabedatum > abholdatum || (rueckgabedatum === abholdatum && rueckgabezeit > abholzeit));
+  const isFormValid = abholdatum && rueckgabedatum && isValidDate && isAvailable && !isChecking;
 
   useEffect(() => {
-    if (isValidDate) {
-      setIsChecking(true);
-      checkMobileCarAvailability(car.id, abholdatum, rueckgabedatum).then((available) => {
-        setIsAvailable(available);
-        setIsChecking(false);
-      });
-    }
-  }, [abholdatum, rueckgabedatum, car.id, isValidDate]);
+    if (!isValidDate) return;
+    let cancelled = false;
+    setIsChecking(true);
+    checkCarAvailability(car.id, abholdatum, abholzeit, rueckgabedatum, rueckgabezeit).then((available) => {
+      if (cancelled) return;
+      setIsAvailable(available);
+      setIsChecking(false);
+    });
+    return () => { cancelled = true; };
+  }, [abholdatum, abholzeit, rueckgabedatum, rueckgabezeit, car.id, isValidDate]);
 
   // Pricing math using actual options and calculateChargeableDays
   const days = calculateChargeableDays(abholdatum, abholzeit, rueckgabedatum, rueckgabezeit);
@@ -70,13 +72,23 @@ export default function MobileCheckoutClient({ car, customer, locations, options
     }
   });
 
-  const discount = promoState === "valid" ? -50 : 0;
-  const total = totalBase + extrasCost + discount;
+  const discount = coupon?.valid ? coupon.discountAmount : 0;
+  const total = Math.max(0, totalBase + extrasCost - discount);
 
-  const handleApplyPromo = () => {
-    if (promoCode.toUpperCase() === "RENTEX50") setPromoState("valid");
-    else setPromoState("invalid");
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setIsCheckingCoupon(true);
+    try {
+      setCoupon(await previewCoupon(promoCode, car.id, abholdatum, abholzeit, rueckgabedatum, rueckgabezeit, selectedOptionIds));
+    } finally {
+      setIsCheckingCoupon(false);
+    }
   };
+
+  // The discount depends on period and extras; drop a stale preview when they change.
+  useEffect(() => {
+    setCoupon((prev) => (prev?.valid ? null : prev));
+  }, [abholdatum, abholzeit, rueckgabedatum, rueckgabezeit, selectedOptionIds]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-[360px] transition-colors">
@@ -151,47 +163,14 @@ export default function MobileCheckoutClient({ car, customer, locations, options
       {/* Form Fields */}
       <div className="px-5 mt-6 space-y-5">
         
-        {/* Abholort */}
+        {/* Abhol- & Rückgabeort */}
         <div className="space-y-2">
-          <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Abholort</label>
-          <div className="relative">
-            <select value={abholort} onChange={(e) => setAbholort(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 pl-12 pr-10 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] appearance-none transition-colors">
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id.toString()}>{loc.name}</option>
-              ))}
-            </select>
+          <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Abhol- & Rückgabeort</label>
+          <div className="relative w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 pl-12 pr-4 text-[14px] text-gray-900 dark:text-white transition-colors">
+            {carLocation ? carLocation.name : "Standort des Fahrzeugs"}
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
           </div>
         </div>
-
-        {/* Rückgabeort Toggle */}
-        <div className="flex items-center gap-3 ml-1">
-          <button 
-            type="button" 
-            onClick={() => setGleicherOrt(!gleicherOrt)}
-            className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${gleicherOrt ? 'bg-[#E53935]' : 'bg-gray-100 dark:bg-[#1C1C1C] border border-gray-300 dark:border-white/20'}`}
-          >
-            {gleicherOrt && <Check className="w-3.5 h-3.5 text-white" />}
-          </button>
-          <span className="text-[14px] text-gray-900 dark:text-white">Gleicher Ort wie Abholort</span>
-        </div>
-
-        {/* Rückgabeort (Hidden by default) */}
-        {!gleicherOrt && (
-          <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-            <label className="text-[12px] font-medium text-gray-500 dark:text-[#A3A3A3] ml-1">Rückgabeort</label>
-            <div className="relative">
-              <select value={rueckgabeort} onChange={(e) => setRueckgabeort(e.target.value)} className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 pl-12 pr-10 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] appearance-none transition-colors">
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id.toString()}>{loc.name}</option>
-                ))}
-              </select>
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#A3A3A3] pointer-events-none" />
-            </div>
-          </div>
-        )}
 
         {/* Abholdatum & Zeit */}
         <div className="grid grid-cols-[2fr_1fr] gap-3">
@@ -283,18 +262,18 @@ export default function MobileCheckoutClient({ car, customer, locations, options
             <input 
               type="text" 
               value={promoCode}
-              onChange={(e) => { setPromoCode(e.target.value); setPromoState("idle"); }}
+              onChange={(e) => { setPromoCode(e.target.value); setCoupon(null); }}
               placeholder="Code eingeben" 
               className={`flex-1 bg-white dark:bg-[#1C1C1C] border rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none transition-colors ${
-                promoState === "invalid" ? "border-[#E53935]" : promoState === "valid" ? "border-green-500" : "border-gray-200 dark:border-white/5 focus:border-[#E53935]"
+                coupon?.valid === false ? "border-[#E53935]" : coupon?.valid ? "border-green-500" : "border-gray-200 dark:border-white/5 focus:border-[#E53935]"
               }`} 
             />
-            <button onClick={handleApplyPromo} className="px-6 py-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20 rounded-[1rem] text-[14px] font-medium text-gray-900 dark:text-white transition-colors">
-              Anwenden
+            <button type="button" onClick={handleApplyPromo} disabled={isCheckingCoupon || !promoCode.trim()} className="px-6 py-4 disabled:opacity-50 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20 rounded-[1rem] text-[14px] font-medium text-gray-900 dark:text-white transition-colors">
+              {isCheckingCoupon ? "..." : "Anwenden"}
             </button>
           </div>
-          {promoState === "invalid" && <span className="text-[#E53935] text-[10px] ml-1">Ungültiger Code</span>}
-          {promoState === "valid" && <span className="text-green-500 text-[10px] ml-1">Rabatt angewendet</span>}
+          {coupon?.valid === false && <span className="text-[#E53935] text-[10px] ml-1">Ungültiger oder abgelaufener Code</span>}
+          {coupon?.valid && <span className="text-green-500 text-[10px] ml-1">Rabatt angewendet</span>}
         </div>
 
       </div>
@@ -328,10 +307,10 @@ export default function MobileCheckoutClient({ car, customer, locations, options
                 </div>
               ))}
 
-              {discount < 0 && (
+              {discount > 0 && (
                 <div className="flex items-center justify-between text-green-500">
-                  <span>Rabatt (Code)</span>
-                  <span>-€{Math.abs(discount).toFixed(2)}</span>
+                  <span>Rabatt ({coupon?.valid ? coupon.code : "Code"})</span>
+                  <span>-€{discount.toFixed(2)}</span>
                 </div>
               )}
               
@@ -347,8 +326,15 @@ export default function MobileCheckoutClient({ car, customer, locations, options
           <button 
             disabled={!isFormValid}
             onClick={() => {
-              const optionsParam = selectedOptionIds.join(",");
-              router.push(`/mobile/payment/${car.id}?startDate=${abholdatum}&endDate=${rueckgabedatum}&pickupTime=${abholzeit}&returnTime=${rueckgabezeit}&options=${optionsParam}&couponCode=${promoState === "valid" ? promoCode : ""}`);
+              const params = new URLSearchParams({
+                startDate: abholdatum,
+                endDate: rueckgabedatum,
+                pickupTime: abholzeit,
+                returnTime: rueckgabezeit,
+                options: selectedOptionIds.join(","),
+              });
+              if (coupon?.valid) params.set("couponCode", coupon.code);
+              router.push(`/mobile/payment/${car.id}?${params}`);
             }}
             className={`flex items-center justify-center w-full py-4 font-bold text-[16px] rounded-[1rem] transition-colors ${
               isFormValid 

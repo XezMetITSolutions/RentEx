@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart3, PieChart, Calendar, FileText, Download, CheckCircle2, AlertTriangle, Clock, Loader2 } from 'lucide-react';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -190,7 +191,7 @@ export default function ReportsView({ data }: { data: ReportsData }) {
                                                 {rental.car.brand} {rental.car.model}
                                             </td>
                                             <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                                {format(new Date(rental.startDate), 'dd.MM.yyyy')}
+                                                {formatBusinessDate(rental.startDate, 'dd.MM.yyyy')}
                                             </td>
                                         </tr>
                                     ))

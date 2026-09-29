@@ -103,7 +103,7 @@ export function wrapHtmlLayout(title: string, subtitle: string, contentHtml: str
     `.trim();
 }
 
-export const emailTemplates = {
+const rawEmailTemplates = {
     // Booking Confirmation
     bookingConfirmation: (data: RentalData): EmailTemplate => {
         const title = "BUCHUNG BESTÄTIGT";
@@ -375,6 +375,33 @@ export const emailTemplates = {
         };
     },
 };
+
+export const escapeHtml = (value: string) =>
+    value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+/** Deep-copies template data with every string HTML-escaped (Dates/numbers untouched). */
+function escapeTemplateData<T>(value: T): T {
+    if (typeof value === 'string') return escapeHtml(value) as T;
+    if (value === null || typeof value !== 'object' || value instanceof Date) return value;
+    if (Array.isArray(value)) return value.map(escapeTemplateData) as T;
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, escapeTemplateData(v)])) as T;
+}
+
+/**
+ * Customer-entered values (names, …) end up in these e-mails — also in the
+ * copy sent to the company. The HTML part is built from escaped data so a name
+ * like `<a href=…>` cannot inject markup; subject and plain text stay raw.
+ */
+export const emailTemplates = Object.fromEntries(
+    Object.entries(rawEmailTemplates).map(([name, build]) => [
+        name,
+        (data: any): EmailTemplate => {
+            const plain = (build as (d: any) => EmailTemplate)(data);
+            const safe = (build as (d: any) => EmailTemplate)(escapeTemplateData(data));
+            return { subject: plain.subject, body: plain.body, html: safe.html };
+        },
+    ])
+) as typeof rawEmailTemplates;
 
 export const smsTemplates = {
     pickupReminder: (data: RentalData): string =>

@@ -10,6 +10,10 @@ import prisma from './prisma';
  * 4. Receipt verification
  */
 
+/** Escapes a value for an XML text node (PINs etc. may contain & or <). */
+const xml = (value: unknown) =>
+    String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
 const SESSION_WSDL = 'https://finanzonline.bmf.gv.at/fonws/ws/sessionService.wsdl';
 const RKDB_WSDL = 'https://finanzonline.bmf.gv.at/fonws/ws/regKasseService.wsdl';
 
@@ -54,9 +58,9 @@ export async function loginToFinanzOnline(): Promise<string> {
             <soapenv:Header/>
             <soapenv:Body>
                 <ses:loginRequest>
-                    <ses:tid>${credentials.tid}</ses:tid>
-                    <ses:benid>${credentials.benid}</ses:benid>
-                    <ses:pin>${credentials.pin}</ses:pin>
+                    <ses:tid>${xml(credentials.tid)}</ses:tid>
+                    <ses:benid>${xml(credentials.benid)}</ses:benid>
+                    <ses:pin>${xml(credentials.pin)}</ses:pin>
                 </ses:loginRequest>
             </soapenv:Body>
         </soapenv:Envelope>
@@ -92,14 +96,14 @@ export async function registerCashRegister(kassenId: string, aesKey: string) {
             <soapenv:Header/>
             <soapenv:Body>
                 <rkdb:rkdbRequest>
-                    <rkdb:tid>${credentials.tid}</rkdb:tid>
-                    <rkdb:benid>${credentials.benid}</rkdb:benid>
-                    <rkdb:id>${sessionId}</rkdb:id>
-                    <rkdb:art_uebermittlung>${credentials.mode}</rkdb:art_uebermittlung>
+                    <rkdb:tid>${xml(credentials.tid)}</rkdb:tid>
+                    <rkdb:benid>${xml(credentials.benid)}</rkdb:benid>
+                    <rkdb:id>${xml(sessionId)}</rkdb:id>
+                    <rkdb:art_uebermittlung>${xml(credentials.mode)}</rkdb:art_uebermittlung>
                     <rkdb:registrierung_kasse>
                         <rkdb:satznr>1</rkdb:satznr>
-                        <rkdb:kassenidentifikationsnummer>${kassenId}</rkdb:kassenidentifikationsnummer>
-                        <rkdb:benutzerschluessel>${aesKey}</rkdb:benutzerschluessel>
+                        <rkdb:kassenidentifikationsnummer>${xml(kassenId)}</rkdb:kassenidentifikationsnummer>
+                        <rkdb:benutzerschluessel>${xml(aesKey)}</rkdb:benutzerschluessel>
                     </rkdb:registrierung_kasse>
                 </rkdb:rkdbRequest>
             </soapenv:Body>
@@ -136,9 +140,9 @@ export async function logoutFromFinanzOnline(sessionId: string) {
             <soapenv:Header/>
             <soapenv:Body>
                 <ses:logoutRequest>
-                    <ses:tid>${credentials.tid}</ses:tid>
-                    <ses:benid>${credentials.benid}</ses:benid>
-                    <ses:id>${sessionId}</ses:id>
+                    <ses:tid>${xml(credentials.tid)}</ses:tid>
+                    <ses:benid>${xml(credentials.benid)}</ses:benid>
+                    <ses:id>${xml(sessionId)}</ses:id>
                 </ses:logoutRequest>
             </soapenv:Body>
         </soapenv:Envelope>

@@ -1,8 +1,8 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdminArea } from '@/lib/adminAccess';
 
 export async function performCheckIn(rentalId: number, data: {
     mileage: number;
@@ -20,13 +20,17 @@ export async function performCheckIn(rentalId: number, data: {
         yPosition: number;
     }[];
 }) {
-    await requireAdmin();
+    await requireAdminArea('reservations');
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
-        select: { carId: true }
+        select: { carId: true, status: true }
     });
 
     if (!rental) throw new Error("Rental not found");
+    // Cancelled or completed rentals must not be re-activated by a check-in.
+    if (!['Pending', 'Confirmed'].includes(rental.status)) {
+        throw new Error(`Check-in nicht möglich: Miete hat den Status „${rental.status}“.`);
+    }
 
     await prisma.$transaction([
         prisma.rental.update({

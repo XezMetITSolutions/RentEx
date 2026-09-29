@@ -96,8 +96,11 @@ export const rentalSchema = z
     .object({
         carId: positiveInt,
         customerId: positiveInt,
-        startDate: z.coerce.date(),
-        endDate: z.coerce.date(),
+        // Calendar date + wall-clock time in Vienna; combined by the action.
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ungültiges Abholdatum'),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ungültiges Rückgabedatum'),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('10:00'),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('10:00'),
         paymentMethod: z.string().max(50).optional().default('Cash'),
         driverName: optionalString(200),
         driverLicense: optionalString(100),
@@ -107,7 +110,7 @@ export const rentalSchema = z
         notes: optionalString(2000),
         options: z.array(positiveInt).default([]),
     })
-    .refine((v) => v.endDate.getTime() > v.startDate.getTime(), {
+    .refine((v) => `${v.endDate}T${v.endTime}` > `${v.startDate}T${v.startTime}`, {
         message: 'Endedatum muss nach Startdatum liegen',
         path: ['endDate'],
     });

@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
             const coupon = await prisma.discountCoupon.create({
                 data: {
                     code,
-                    description: `Geburtstags-Gutschein fÃ¼r ${customer.firstName} ${customer.lastName}`,
+                    description: `Geburtstags-Gutschein für ${customer.firstName} ${customer.lastName}`,
                     discountType: "PERCENTAGE",
                     discountValue: 10,
                     validFrom: today,
@@ -77,19 +77,19 @@ export async function POST(req: NextRequest) {
             await resend.emails.send({
                 from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
                 to: customer.email,
-                subject: `ðŸŽ‚ Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
+                subject: `🎂 Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
                 html: `
                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h1 style="color: #dc2626;">ðŸŽ‚ Herzlichen GlÃ¼ckwunsch zum Geburtstag!</h1>
+                        <h1 style="color: #dc2626;">🎂 Herzlichen Glückwunsch zum Geburtstag!</h1>
                         <p>Liebe/r ${customer.firstName} ${customer.lastName},</p>
-                        <p>wir wÃ¼nschen Ihnen alles Gute zu Ihrem besonderen Tag und mÃ¶chten ihn mit einem kleinen Geschenk feiern!</p>
+                        <p>wir wünschen Ihnen alles Gute zu Ihrem besonderen Tag und möchten ihn mit einem kleinen Geschenk feiern!</p>
                         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
-                            <p style="margin: 0; font-size: 14px; color: #6b7280;">Ihr persÃ¶nlicher Gutscheincode</p>
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">Ihr persönlicher Gutscheincode</p>
                             <p style="margin: 8px 0; font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #dc2626;">${code}</p>
-                            <p style="margin: 0; font-size: 14px; color: #6b7280;">10% Rabatt auf Ihre nÃ¤chste Buchung | GÃ¼ltig 30 Tage</p>
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">10% Rabatt auf Ihre nächste Buchung | Gültig 30 Tage</p>
                         </div>
-                        <p>GenieÃŸen Sie Ihren Geburtstag â€“ und Ihre nÃ¤chste Fahrt mit RentEx!</p>
-                        <p>Mit freundlichen GrÃ¼ÃŸen,<br/>Ihr RentEx-Team</p>
+                        <p>Genießen Sie Ihren Geburtstag – und Ihre nächste Fahrt mit RentEx!</p>
+                        <p>Mit freundlichen Grüßen,<br/>Ihr RentEx-Team</p>
                     </div>
                 `,
             });

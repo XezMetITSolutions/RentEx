@@ -2,14 +2,16 @@
 
 import prisma from '@/lib/prisma';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 /**
  * One-shot manual schema corrections for legacy environments. Should be
  * a no-op on a current database (each step is guarded with IF NOT EXISTS).
  */
 export async function fixDatabaseSchema() {
+    // Alters the database schema: ADMINISTRATOR only.
     const session = await getAdminSession();
-    if (!session) throw new Error('Unauthorized');
+    if (!session || !isAdministrator(session.role)) throw new Error('Unauthorized');
     try {
         // 1. Add carId column to Option if it doesn't exist
         await prisma.$executeRawUnsafe(`

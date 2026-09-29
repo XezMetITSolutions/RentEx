@@ -7,6 +7,7 @@ import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,7 +110,7 @@ export default async function AdminDashboard() {
         return null;
     }
 
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && !isAdministrator(staff.role);
     const locId = isRestricted ? staff?.locationId : undefined;
 
     const [stats, recentRentals] = await Promise.all([

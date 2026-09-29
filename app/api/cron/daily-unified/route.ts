@@ -1,8 +1,10 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-import { emailTemplates, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
+import { emailTemplates, escapeHtml, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
 import crypto from "crypto";
+import { ABANDONED_ONLINE_BOOKING_MINUTES } from "@/lib/availability";
+import { cancelUnpaidOnlineBooking } from "@/lib/bookingLifecycle";
+import { businessTodayBounds } from "@/lib/bookingUtils";
 
 export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
@@ -19,25 +21,37 @@ export async function POST(req: NextRequest) {
     }
 
 
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
-    }
-    const resend = new Resend(resendApiKey);
-
+    // sendEmail() uses SMTP or Resend, whichever is configured. (This route used
+    // to require RESEND_API_KEY and failed completely without it — no reminders,
+    // birthday coupons, dunning or cleanup ran after the switch to SMTP.)
     const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
+    // "Tomorrow" is the next Vienna calendar day, not the next 24 h in UTC.
+    const { start: tomorrow, end: dayAfter } = businessTodayBounds(1);
 
     const results: any = {
         pickupReminders: null,
         returnReminders: null,
         birthday: null,
         mahnwesen: null,
-        cartCleanup: null
+        cartCleanup: null,
+        abandonedBookings: null
     };
+
+    // 0. Abandoned online checkouts (safety net for missed `checkout.session.expired` webhooks)
+    try {
+        const cutoff = new Date(Date.now() - ABANDONED_ONLINE_BOOKING_MINUTES * 60_000);
+        const abandoned = await prisma.rental.findMany({
+            where: { status: 'Pending', paymentMethod: 'Online', paymentStatus: { not: 'Paid' }, createdAt: { lt: cutoff } },
+            select: { id: true },
+        });
+        let cancelled = 0;
+        for (const { id } of abandoned) {
+            if (await cancelUnpaidOnlineBooking(id)) cancelled++;
+        }
+        results.abandonedBookings = { cancelled };
+    } catch (e: any) {
+        results.abandonedBookings = { error: e.message };
+    }
 
     // 1. Pickup Reminders (1 day before start)
     try {
@@ -45,6 +59,8 @@ export async function POST(req: NextRequest) {
             where: {
                 status: { in: ["Confirmed", "Pending"] },
                 startDate: { gte: tomorrow, lt: dayAfter },
+                // Unpaid online checkouts are not real bookings yet.
+                NOT: { paymentMethod: "Online", paymentStatus: { not: "Paid" } },
             },
             include: { customer: true, car: true, pickupLocation: true },
         });
@@ -104,11 +120,16 @@ export async function POST(req: NextRequest) {
 
         let birthdayProcessed = 0;
         for (const customer of birthdayCustomers) {
+            // Idempotent: a cron retry must not create a second coupon this year.
+            const alreadyGiven = await prisma.discountCoupon.count({
+                where: { customerId: customer.id, triggerType: "BIRTHDAY", code: { startsWith: `BDAY-${customer.id}-${today.getFullYear()}-` } },
+            });
+            if (alreadyGiven > 0) continue;
             const code = `BDAY-${customer.id}-${today.getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
             await prisma.discountCoupon.create({
                 data: {
                     code,
-                    description: `Geburtstags-Gutschein fÃ¼r ${customer.firstName} ${customer.lastName}`,
+                    description: `Geburtstags-Gutschein für ${customer.firstName} ${customer.lastName}`,
                     discountType: "PERCENTAGE",
                     discountValue: 10,
                     validFrom: today,
@@ -127,7 +148,7 @@ export async function POST(req: NextRequest) {
                     "ALLES GUTE ZUM GEBURTSTAG",
                     "IHR GESCHENK IST DA",
                     `
-                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${customer.firstName},</h2>
+                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${escapeHtml(customer.firstName)},</h2>
                     <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
                         wir wünschen Ihnen von Herzen alles Gute zum Geburtstag! 🎉
                     </p>
@@ -155,41 +176,66 @@ export async function POST(req: NextRequest) {
         results.birthday = { error: e.message };
     }
 
-    // 4. Mahnwesen
+    // 4. Mahnwesen — levels are sent strictly in order (1 → 2 → 3), each only
+    // after the previous one plus the waiting period.
     try {
-        const delays = { 1: 3, 2: 10, 3: 21 };
+        const DAYS_AFTER_RETURN = 3;   // first reminder
+        const DAYS_BETWEEN_LEVELS = 7; // reminder 2 and 3
+        const dayMs = 24 * 60 * 60 * 1000;
         const overdue = await prisma.rental.findMany({
             where: {
                 paymentStatus: { in: ["Pending", "Partial"] },
                 status: { in: ["Completed", "Active"] },
-                endDate: { lt: today }
+                endDate: { lt: today },
+                mahnung3SentAt: null,
             },
-            include: { customer: true, car: true }
+            include: { customer: true, car: true, payments: true }
         });
 
         let m1 = 0, m2 = 0, m3 = 0;
         for (const rental of overdue) {
-            const daysPast = Math.floor((today.getTime() - new Date(rental.endDate).getTime()) / (1000 * 60 * 60 * 24));
-            const totalOwed = Number(rental.totalAmount) - Number(rental.depositPaid ?? 0);
-            
-            const sendM = async (level: 1 | 2 | 3) => {
-                await resend.emails.send({
-                    from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
-                    to: rental.customer.email,
-                    subject: `Mahnung ${level} - Rechnung ${rental.contractNumber ?? rental.id}`,
-                    html: `<p>Sehr geehrte/r ${rental.customer.firstName}, bitte zahlen Sie â‚¬ ${totalOwed.toFixed(2)}.</p>`
-                });
-                await prisma.mahnungRecord.create({
-                    data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }
-                });
-                const update: any = { isOverdue: true };
-                update[`mahnung${level}SentAt`] = today;
-                await prisma.rental.update({ where: { id: rental.id }, data: update });
-            };
+            // What is still open: rent + extra charges − payments received.
+            // (The deposit is a security, not a payment, so it is not deducted.)
+            const paid = rental.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+            const totalOwed = Math.round((Number(rental.totalAmount) + Number(rental.extraCharges ?? 0) - paid) * 100) / 100;
+            if (totalOwed <= 0) continue;
 
-            if (daysPast >= delays[3] && !rental.mahnung3SentAt) { await sendM(3); m3++; }
-            else if (daysPast >= delays[2] && !rental.mahnung2SentAt) { await sendM(2); m2++; }
-            else if (daysPast >= delays[1] && !rental.mahnung1SentAt) { await sendM(1); m1++; }
+            const daysSince = (d: Date) => (today.getTime() - new Date(d).getTime()) / dayMs;
+            let level: 1 | 2 | 3 | null = null;
+            if (!rental.mahnung1SentAt) {
+                if (daysSince(rental.endDate) >= DAYS_AFTER_RETURN) level = 1;
+            } else if (!rental.mahnung2SentAt) {
+                if (daysSince(rental.mahnung1SentAt) >= DAYS_BETWEEN_LEVELS) level = 2;
+            } else if (daysSince(rental.mahnung2SentAt) >= DAYS_BETWEEN_LEVELS) {
+                level = 3;
+            }
+            if (!level || !rental.customer) continue;
+
+            const amount = new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalOwed);
+            const reference = rental.contractNumber ?? String(rental.id);
+            const sent = await sendEmail(rental.customer.email, {
+                subject: `${level}. Mahnung – Vertrag ${reference}`,
+                body: `Sehr geehrte/r ${rental.customer.firstName} ${rental.customer.lastName}, für Vertrag ${reference} ist noch ein Betrag von ${amount} offen. Bitte überweisen Sie diesen umgehend.`,
+                html: wrapHtmlLayout(
+                    `${level}. MAHNUNG`,
+                    `VERTRAG ${reference}`,
+                    `
+                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6;">Sehr geehrte/r ${escapeHtml(rental.customer.firstName)} ${escapeHtml(rental.customer.lastName)},</p>
+                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6;">für Ihren Mietvertrag <strong>${reference}</strong>${rental.car ? ` (${rental.car.brand} ${rental.car.model})` : ''} ist noch ein Betrag von <strong style="color: #ffffff;">${amount}</strong> offen.</p>
+                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6;">Bitte überweisen Sie den Betrag umgehend. Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.</p>
+                    `
+                ),
+            });
+            if (!sent) continue; // retry tomorrow instead of recording an unsent reminder
+
+            await prisma.mahnungRecord.create({
+                data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }
+            });
+            await prisma.rental.update({
+                where: { id: rental.id },
+                data: { isOverdue: true, [`mahnung${level}SentAt`]: today },
+            });
+            if (level === 1) m1++; else if (level === 2) m2++; else m3++;
         }
         results.mahnwesen = { m1, m2, m3 };
     } catch (e: any) {

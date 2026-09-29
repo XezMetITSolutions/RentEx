@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/adminAuth";
 import { hashPassword } from "@/lib/auth";
 import { apiOk, apiUnauthorized, apiNotFound, apiValidation, apiInternal, apiError } from "@/lib/apiResponse";
 import { auditLog } from "@/lib/audit";
+import { isAdministrator } from '@/lib/staffRoles';
 
 // GET /api/admin/staff/[id]
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +17,8 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
         include: { location: true },
     });
     if (!staff) return apiNotFound();
-    const { passwordHash: _ignored, ...safe } = staff;
+    // Never return credentials (password hash, 2FA secret and backup codes)
+    const { passwordHash: _p, twoFactorSecret: _s, twoFactorBackupCodes: _b, ...safe } = staff;
     return apiOk(safe);
 }
 
@@ -26,7 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!session) return apiUnauthorized();
 
     // Only SUPERADMIN can update staff
-    if (session.role !== 'SUPERADMIN') {
+    if (!isAdministrator(session.role)) {
         return apiError("Nur Super-Admins können Mitarbeiter bearbeiten", 403);
     }
 
@@ -46,7 +48,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             where: { id: parseInt(id) },
             data: updateData as Parameters<typeof prisma.staff.update>[0]["data"],
         });
-        const { passwordHash: _ignored, ...safe } = staff;
+        // Never return credentials (password hash, 2FA secret and backup codes)
+    const { passwordHash: _p, twoFactorSecret: _s, twoFactorBackupCodes: _b, ...safe } = staff;
 
         await auditLog({
             action: 'STAFF_UPDATED',
@@ -72,7 +75,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     if (!session) return apiUnauthorized();
 
     // Only SUPERADMIN can delete staff
-    if (session.role !== 'SUPERADMIN') {
+    if (!isAdministrator(session.role)) {
         return apiError("Nur Super-Admins können Mitarbeiter löschen", 403);
     }
 

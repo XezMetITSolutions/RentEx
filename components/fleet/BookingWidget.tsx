@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Users, Zap, Baby, Calendar, Clock } from "lucide-react";
-import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import { calculateChargeableDays, isOutsideOpeningHours, todayInBusinessTimeZone } from "@/lib/bookingUtils";
 
 type Option = {
     id: number;
@@ -123,9 +123,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
             params.set('options', selectedOptions.join(','));
         }
 
-        setTimeout(() => {
-            router.push(`/checkout?${params.toString()}`);
-        }, 750);
+        router.push(`/checkout?${params.toString()}`);
     };
 
     return (
@@ -165,7 +163,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                             <input
                                 type="date"
                                 value={startDate}
-                                min={new Date().toISOString().split('T')[0]}
+                                min={todayInBusinessTimeZone()}
                                 onChange={(e) => {
                                     const newStart = e.target.value;
                                     setStartDate(newStart);

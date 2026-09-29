@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { getAdminSession } from '@/lib/adminAuth';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ function escapeCsv(s: string | number): string {
 }
 
 export async function GET(request: Request) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('fahrtenbuch');
     if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

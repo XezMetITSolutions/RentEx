@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
-import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { rateLimit, rateLimitAuth, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 import { apiOk, apiValidation, apiUnauthorized, apiRateLimited } from '@/lib/apiResponse';
 
 export async function POST(req: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req);
-  const rl = rateLimit(`mobile-change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
+  const rl = await rateLimitAuth(`mobile-change-pw:${ip}:${customerId}`, RATE_LIMITS.AUTH_PASSWORD);
   if (!rl.allowed) {
     return apiRateLimited(rl, rateLimitErrorMessage(rl));
   }

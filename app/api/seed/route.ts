@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAdminSession } from '@/lib/adminAuth';
+import { getSuperAdminSession } from '@/lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +44,12 @@ function plateForIndex(index: number): string {
 }
 
 export async function POST() {
-    const session = await getAdminSession();
+    // Wipes and re-creates the fleet — development only, never on the live site.
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'In Produktion deaktiviert.' }, { status: 403 });
+    }
+    // Database maintenance tool: SUPERADMIN only.
+    const session = await getSuperAdminSession();
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }

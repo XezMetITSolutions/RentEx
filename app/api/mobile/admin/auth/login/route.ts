@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { signToken } from '@/lib/mobileAuth';
 import { verifyPassword } from '@/lib/auth';
 import { verifyStaffSecondFactor } from '@/lib/totp';
-import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
+import { rateLimit, rateLimitAuth, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 import { auditLog } from '@/lib/audit';
 
 const BACKUP_CODE_RE = /^[0-9A-F]{5}-[0-9A-F]{5}$/i;
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getClientIp(req);
-    const rl = rateLimit(`mobile-admin-login:${ip}:${email}`, RATE_LIMITS.AUTH_LOGIN);
+    const rl = await rateLimitAuth(`mobile-admin-login:${ip}:${email}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) {
       return NextResponse.json({ error: rateLimitErrorMessage(rl) }, { status: 429 });
     }
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
       // Separate per-account budget so a stolen password cannot be paired with
       // a brute-forced code by rotating IPs.
-      const rl2fa = rateLimit(`mobile-admin-2fa:${staff.id}`, RATE_LIMITS.AUTH_LOGIN);
+      const rl2fa = await rateLimitAuth(`mobile-admin-2fa:${staff.id}`, RATE_LIMITS.AUTH_LOGIN);
       if (!rl2fa.allowed) {
         return NextResponse.json({ error: rateLimitErrorMessage(rl2fa) }, { status: 429 });
       }

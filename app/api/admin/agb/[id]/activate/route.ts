@@ -1,11 +1,11 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getAdminSession } from "@/lib/adminAuth";
+import { getAdminForArea } from '@/lib/adminAccess';
 
 // POST /api/admin/agb/[id]/activate — Activate version & notify all customers
 export async function POST(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('agb');
     if (!session) {
         return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
     }

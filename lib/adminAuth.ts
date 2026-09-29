@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { AUTH_CONFIG } from './config';
 import { createSessionToken, verifySessionToken } from './sessionToken';
+import { isAdministrator } from './staffRoles';
 
 export const ADMIN_COOKIE_NAME = 'rentex_admin_session';
 const ADMIN_2FA_PENDING_COOKIE = 'rentex_admin_2fa_pending';
@@ -14,7 +15,10 @@ export async function getAdminSession() {
 
     const staff = await prisma.staff.findUnique({
         where: { id, isActive: true },
-        include: { location: true }
+        include: { location: true },
+        // The session is handed to client components (admin layout) — never
+        // include credentials. Login/2FA code reads them via prisma directly.
+        omit: { passwordHash: true, twoFactorSecret: true, twoFactorBackupCodes: true },
     });
 
     return staff;
@@ -28,6 +32,15 @@ export async function requireAdmin() {
     const staff = await getAdminSession();
     if (!staff) throw new Error('Nicht autorisiert');
     return staff;
+}
+
+/**
+ * Session of an ADMINISTRATOR (legacy: SUPERADMIN), or null. For database/maintenance tools that must
+ * not be available to managers, agents or drivers.
+ */
+export async function getSuperAdminSession() {
+    const staff = await getAdminSession();
+    return staff && isAdministrator(staff.role) ? staff : null;
 }
 
 export async function setAdminSession(staffId: number) {

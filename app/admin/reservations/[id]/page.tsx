@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -156,7 +157,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Abholung</p>
-                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{format(start, 'dd.MM.yyyy HH:mm', { locale: de })}</p>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatBusinessDate(start, 'dd.MM.yyyy HH:mm')}</p>
                                         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                                             <MapPin className="w-3 h-3" />
                                             {rental.pickupLocation?.name || rental.car.currentLocation?.name || rental.car.homeLocation?.name || 'Hauptstandort'}
@@ -171,7 +172,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Rückgabe</p>
-                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{format(end, 'dd.MM.yyyy HH:mm', { locale: de })}</p>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatBusinessDate(end, 'dd.MM.yyyy HH:mm')}</p>
                                         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                                             <MapPin className="w-3 h-3" />
                                             {rental.returnLocation?.name || rental.car.currentLocation?.name || rental.car.homeLocation?.name || 'Hauptstandort'}

@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/adminAuth";
 import { hashPassword } from "@/lib/auth";
 import { apiOk, apiUnauthorized, apiValidation, apiError, apiInternal, ERROR_CODES } from "@/lib/apiResponse";
 import { auditLog } from "@/lib/audit";
+import { isAdministrator } from '@/lib/staffRoles';
 
 // GET /api/admin/staff
 export async function GET() {
@@ -15,8 +16,8 @@ export async function GET() {
             include: { location: { select: { id: true, name: true } } },
             orderBy: { createdAt: "desc" },
         });
-        // Never return passwordHash
-        return apiOk(staff.map(({ passwordHash: _ignored, ...s }) => s));
+        // Never return credentials (password hash, 2FA secret and backup codes)
+        return apiOk(staff.map(({ passwordHash: _p, twoFactorSecret: _s, twoFactorBackupCodes: _b, ...s }) => s));
     } catch (e) {
         return apiInternal("Fehler beim Laden der Mitarbeiter");
     }
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (!session) return apiUnauthorized();
     
     // Only SUPERADMIN can create staff
-    if (session.role !== 'SUPERADMIN') {
+    if (!isAdministrator(session.role)) {
         return apiError("Nur Super-Admins können Mitarbeiter erstellen", 403);
     }
 

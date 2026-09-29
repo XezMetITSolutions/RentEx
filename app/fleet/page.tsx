@@ -6,6 +6,9 @@ import Link from "next/link";
 import { Fuel, Gauge, Users, Car, Truck, ChevronRight } from "lucide-react";
 import prisma from "@/lib/prisma";
 import FleetSidebar from "@/components/fleet/FleetSidebar";
+import { BOOKABLE_CAR_STATUSES } from "@/lib/publicCar";
+import { blockingRentalWhere } from "@/lib/availability";
+import { parseBookingDateTime } from "@/lib/bookingUtils";
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
 
@@ -38,42 +41,18 @@ async function getCars(filters: FilterParams) {
     let excludedCarIds: number[] = [];
     if (pickupDate && returnDate) {
         try {
-            const start = new Date(pickupDate);
-            const end = new Date(returnDate);
+            // Whole Vienna days, like the search form presents them.
+            const start = parseBookingDateTime(String(pickupDate), '00:00');
+            const end = parseBookingDateTime(String(returnDate), '23:59');
 
             // Validate dates
-            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-                // Find rentals that overlap with the selected period
+            if (start && end) {
+                // Find rentals that overlap with the selected period (same rule as booking)
                 const overlappingRentals = await prisma.rental.findMany({
                     where: {
-                        status: {
-                            in: ['Active', 'Pending']
-                        },
-                        OR: [
-                            {
-                                // Rental starts during our period
-                                startDate: {
-                                    gte: start,
-                                    lte: end
-                                }
-                            },
-                            {
-                                // Rental ends during our period
-                                endDate: {
-                                    gte: start,
-                                    lte: end
-                                }
-                            },
-                            {
-                                // Rental covers our entire period
-                                startDate: {
-                                    lte: start
-                                },
-                                endDate: {
-                                    gte: end
-                                }
-                            }
-                        ]
+                        startDate: { lte: end },
+                        endDate: { gte: start },
+                        ...blockingRentalWhere(),
                     },
                     select: {
                         carId: true
@@ -90,7 +69,7 @@ async function getCars(filters: FilterParams) {
 
     const cars = await prisma.car.findMany({
         where: {
-            status: 'Active',
+            status: { in: BOOKABLE_CAR_STATUSES },
             isActive: true,
             ...(excludedCarIds.length > 0 && { id: { notIn: excludedCarIds } }),
             ...(categories.length > 0 && { category: { in: categories } }),
@@ -197,7 +176,7 @@ export default async function FleetPage({
                         </h1>
                         <p className="text-gray-500 dark:text-zinc-400 max-w-2xl text-lg font-medium leading-relaxed">
                             Entdecken Sie unsere handverlesene Auswahl an erstklassigen Fahrzeugen. 
-                            Jedes Auto in unserer Flotte wird höchsten Ansprüchen an Komfort, Sicherheit ve Leistung gerecht.
+                            Jedes Auto in unserer Flotte wird höchsten Ansprüchen an Komfort, Sicherheit und Leistung gerecht.
                         </p>
                     </div>
 

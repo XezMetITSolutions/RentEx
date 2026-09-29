@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id: idStr } = await params;
-    const session = await getAdminSession();
+    const session = await getAdminForArea('competitor-pricing');
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }

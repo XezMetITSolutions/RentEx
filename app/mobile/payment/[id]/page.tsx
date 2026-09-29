@@ -1,7 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { getCurrentCustomer } from "@/lib/dashboardAuth";
+import { getCurrentCustomer, toClientCustomer } from "@/lib/dashboardAuth";
 import MobilePaymentClient from "./MobilePaymentClient";
+import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { evaluateCoupon } from "@/lib/coupons";
+import { priceRental } from "@/lib/pricing";
+import { toPublicCar } from "@/lib/publicCar";
+import { getBookableOptions } from "@/lib/bookableOptions";
 
 async function getCar(id: number) {
     return await prisma.car.findUnique({
@@ -9,12 +14,6 @@ async function getCar(id: number) {
     });
 }
 
-async function getOptions() {
-    const options = await prisma.option.findMany({
-        where: { status: 'active' }
-    });
-    return options;
-}
 
 export default async function MobilePaymentPage({ params, searchParams }: { 
     params: Promise<{ id: string }>,
@@ -36,33 +35,31 @@ export default async function MobilePaymentPage({ params, searchParams }: {
         notFound();
     }
 
-    const [car, customer, rawOptions] = await Promise.all([
+    const [car, customer] = await Promise.all([
         getCar(carId),
         getCurrentCustomer(),
-        getOptions()
     ]);
 
     if (!car) {
         notFound();
     }
 
-    // De-duplicate options by name: prefer car-specific options over templates
-    const processedOptionsMap = new Map();
-    // 1. Templates
-    rawOptions.filter(o => o.carId === null).forEach(o => processedOptionsMap.set(o.name, o));
-    // 2. Car specifics
-    rawOptions.filter(o => o.carId === car.id).forEach(o => processedOptionsMap.set(o.name, o));
+    const options = await getBookableOptions(car.id);
 
-    const options = Array.from(processedOptionsMap.values()).map(opt => ({
-        ...opt,
-        price: Number(opt.price)
-    }));
+    // Price the coupon the same way createBooking will.
+    const pickupTime = (resolvedSearchParams.pickupTime as string) || '10:00';
+    const returnTime = (resolvedSearchParams.returnTime as string) || '10:00';
+    const days = calculateChargeableDays(startDate as string, pickupTime, endDate as string, returnTime);
+    const selectedIds = ((resolvedSearchParams.options as string) || '').split(',').filter(Boolean).map(Number);
+    const { baseTotal } = priceRental(car, options.filter(o => selectedIds.includes(o.id)), days);
+    const coupon = await evaluateCoupon(resolvedSearchParams.couponCode as string, baseTotal);
 
     return (
         <MobilePaymentClient 
-            car={car} 
-            customer={customer} 
+            car={JSON.parse(JSON.stringify(toPublicCar(car)))} 
+            customer={toClientCustomer(customer)} 
             options={options}
+            appliedCoupon={coupon ? { code: coupon.code, discountAmount: coupon.discountAmount } : null}
             searchParams={{
                 startDate: startDate as string,
                 endDate: endDate as string,

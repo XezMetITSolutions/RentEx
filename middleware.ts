@@ -124,21 +124,32 @@ export async function middleware(request: NextRequest) {
     // --- MOBILE REDIRECT ---
     const userAgent = request.headers.get('user-agent') || '';
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    // Pages without a mobile variant that must stay reachable on phones
+    // (legal texts linked from the booking form, booking confirmations).
+    const MOBILE_PASSTHROUGH = ['/terms', '/privacy', '/impressum', '/dsgvo', '/cookies', '/checkout/success'];
 
     if (
-        isMobile && 
-        !pathname.startsWith('/mobile') && 
+        isMobile &&
+        !pathname.startsWith('/mobile') &&
         !pathname.startsWith('/api') &&
         !pathname.startsWith('/admin') &&
         !pathname.startsWith('/dashboard') &&
         !pathname.startsWith('/login') &&
-        !pathname.startsWith('/register')
+        !pathname.startsWith('/register') &&
+        !MOBILE_PASSTHROUGH.some((p) => pathname === p || pathname.startsWith(`${p}/`))
     ) {
-        let targetPath = '/mobile';
-        if (pathname === '/') targetPath = '/mobile';
-        else if (pathname.startsWith('/fleet')) targetPath = `/mobile${pathname}`;
-        
-        return NextResponse.redirect(new URL(targetPath, request.url));
+        const target = new URL('/mobile', request.url);
+        if (pathname.startsWith('/fleet')) {
+            target.pathname = `/mobile${pathname}`;
+        } else if (pathname === '/checkout' && /^\d+$/.test(request.nextUrl.searchParams.get('carId') || '')) {
+            // Keep the selected car, period and extras when switching to the mobile checkout.
+            const params = new URLSearchParams(request.nextUrl.searchParams);
+            target.pathname = `/mobile/payment/${params.get('carId')}`;
+            params.delete('carId');
+            target.search = params.toString();
+        }
+
+        return NextResponse.redirect(target);
     }
 
     return response;

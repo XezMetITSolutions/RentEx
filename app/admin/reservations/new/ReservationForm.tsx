@@ -5,6 +5,8 @@ import { Calendar, MapPin, User, Car as CarIcon, DollarSign, Save, ArrowLeft } f
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { differenceInDays, format, isWithinInterval, parseISO } from 'date-fns';
+import { toast } from 'sonner';
+import { calculateChargeableDays, parseBookingDateTime, todayInBusinessTimeZone } from '@/lib/bookingUtils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import CarCalendar from '@/components/admin/CarCalendar';
 import CustomerModal from '@/components/admin/CustomerModal';
@@ -40,6 +42,7 @@ type Option = {
     name: string;
     price: number;
     description: string | null;
+    isPerDay: boolean;
 };
 
 export default function ReservationForm({ cars, customers, locations, options }: { cars: any[], customers: Customer[], locations: Location[], options: Option[] }) {
@@ -55,6 +58,9 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const [customerSearch, setCustomerSearch] = useState('');
     const [startDate, setStartDate] = useState(startDateFromUrl || '');
     const [endDate, setEndDate] = useState(endDateFromUrl || '');
+    const [startTime, setStartTime] = useState('10:00');
+    const [endTime, setEndTime] = useState('10:00');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [depositPaid, setDepositPaid] = useState<string>('');
     const [calendarData, setCalendarData] = useState<{ rentals: any[], maintenance: any[], tasks: any[] } | null>(null);
     const [isCalendarLoading, setIsCalendarLoading] = useState(false);
@@ -64,7 +70,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
     const [paymentMethod, setPaymentMethod] = useState('Cash');
     const [isConflict, setIsConflict] = useState(false);
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = todayInBusinessTimeZone();
 
     const selectedCar = useMemo(() => cars.find(c => c.id === Number(selectedCarId)), [selectedCarId, cars]);
     const selectedCustomer = useMemo(() => localCustomers.find(c => c.id === Number(selectedCustomerId)), [selectedCustomerId, localCustomers]);
@@ -126,13 +132,19 @@ export default function ReservationForm({ cars, customers, locations, options }:
             return;
         }
 
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parseBookingDateTime(startDate, startTime);
+        const end = parseBookingDateTime(endDate, endTime);
+        if (!start || !end) {
+            setIsConflict(false);
+            return;
+        }
 
+        // Same rule as the server: completed rentals and cancellations don't block.
         const hasRentalConflict = calendarData.rentals.some(r => {
+            if (r.status === 'Completed' || r.status === 'Cancelled') return false;
             const rStart = new Date(r.startDate);
             const rEnd = new Date(r.endDate);
-            return (start < rEnd && end > rStart);
+            return (start <= rEnd && end >= rStart);
         });
 
         const hasMaintenanceConflict = calendarData.maintenance.some(m => {
@@ -142,7 +154,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
         });
 
         setIsConflict(hasRentalConflict || hasMaintenanceConflict);
-    }, [startDate, endDate, calendarData, selectedCar]);
+    }, [startDate, endDate, startTime, endTime, calendarData, selectedCar]);
 
     const isLicenseExpired = useMemo(() => {
         if (!selectedCustomer?.licenseExpiryDate) return false;
@@ -165,15 +177,15 @@ export default function ReservationForm({ cars, customers, locations, options }:
     // Pricing calculation
     const pricing = useMemo(() => {
         if (!selectedCar || !startDate || !endDate) return { dailyTotal: 0, optionsTotal: 0, total: 0, days: 0 };
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const days = differenceInDays(end, start);
-        if (days <= 0) return { dailyTotal: 0, optionsTotal: 0, total: 0, days: 0 };
-        
+        if (`${endDate}T${endTime}` <= `${startDate}T${startTime}`) return { dailyTotal: 0, optionsTotal: 0, total: 0, days: 0 };
+        // Same day count and per-day option pricing as the server (lib/pricing.ts).
+        const days = calculateChargeableDays(startDate, startTime, endDate, endTime);
+
         const dailyTotal = Number(selectedCar.dailyRate) * days;
         const optionsTotal = selectedOptions.reduce((acc, optId) => {
             const opt = options.find(o => o.id === optId);
-            return acc + (opt ? Number(opt.price) : 0);
+            if (!opt) return acc;
+            return acc + (opt.isPerDay ? Number(opt.price) * days : Number(opt.price));
         }, 0);
 
         return {
@@ -182,11 +194,23 @@ export default function ReservationForm({ cars, customers, locations, options }:
             total: dailyTotal + optionsTotal,
             days
         };
-    }, [selectedCar, startDate, endDate, selectedOptions, options]);
+    }, [selectedCar, startDate, endDate, startTime, endTime, selectedOptions, options]);
 
     return (
         <>
-        <form action={async (formData) => { await createRental(formData); }} className="space-y-6">
+        <form
+            action={async (formData) => {
+                setIsSubmitting(true);
+                try {
+                    // On success the action redirects; otherwise it reports why.
+                    const result = await createRental(formData);
+                    if (result && !result.success) toast.error(result.error);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            }}
+            className="space-y-6"
+        >
             {/* Vehicle & Customer Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2 border-b border-gray-100 dark:border-gray-700/50 pb-4">
@@ -300,7 +324,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                     <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg flex items-center gap-2">
                                         <span className="text-amber-600 text-lg">⚠️</span>
                                         <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-tight">
-                                            Kein Foto vorhanden. Für diesen Kunden muss vor dem Check-out bir Foto hochgeladen werden.
+                                            Kein Foto vorhanden. Für diesen Kunden muss vor dem Check-out ein Foto hochgeladen werden.
                                         </p>
                                     </div>
                                 )}
@@ -377,7 +401,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                     </div>
                 ) : (
                     <div className="mb-8 p-6 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben bir Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
+                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben ein Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
                     </div>
                 )}
 
@@ -393,6 +417,14 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                         />
+                        <input
+                            name="startTime"
+                            type="time"
+                            required
+                            className="mt-2 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rückgabedatum *</label>
@@ -405,13 +437,21 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                         />
+                        <input
+                            name="endTime"
+                            type="time"
+                            required
+                            className="mt-2 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 dark:text-white"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                        />
                     </div>
                     {isConflict && (
                         <div className="md:col-span-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 animate-pulse">
                             <AlertTriangle className="w-6 h-6 text-red-600" />
                             <div>
                                 <p className="text-sm font-bold text-red-800 dark:text-red-200">Achtung: Zeitliche Überschneidung!</p>
-                                <p className="text-xs text-red-700 dark:text-red-300">Das Fahrzeug ist im gewählten Zeitraum bereits belegt veya Wartungda.</p>
+                                <p className="text-xs text-red-700 dark:text-red-300">Das Fahrzeug ist im gewählten Zeitraum bereits belegt oder in Wartung.</p>
                             </div>
                         </div>
                     )}
@@ -570,7 +610,9 @@ export default function ReservationForm({ cars, customers, locations, options }:
                 </Link>
                 <button
                     type="submit"
-                    className="flex items-center gap-2 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-95"
+                    disabled={isSubmitting || isConflict}
+                    title={isConflict ? 'Das Fahrzeug ist im gewählten Zeitraum belegt.' : undefined}
+                    className="flex items-center gap-2 px-10 py-4 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-95"
                 >
                     <Save className="w-5 h-5" />
                     Reservierung erstellen

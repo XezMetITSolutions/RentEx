@@ -2,15 +2,18 @@
 
 import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { registerCashRegister } from '@/lib/bmf';
 import crypto from 'crypto';
 
-import { startOfDay, endOfDay, differenceInDays, addDays } from 'date-fns';
+import { differenceInDays, addDays } from 'date-fns';
+import { BUSINESS_TIME_ZONE, businessTodayBounds, parseBookingDateTime } from '@/lib/bookingUtils';
+import { requireAdminArea } from '@/lib/adminAccess';
 
 export async function getActivityLogs() {
-    await requireAdmin();
+    await requireAdminArea('activity');
     const logs = await prisma.activityLog.findMany({
         take: 20,
         orderBy: { createdAt: 'desc' }
@@ -29,9 +32,9 @@ export async function getActivityLogs() {
 
 export async function getTodayEvents() {
     await requireAdmin();
-    const today = new Date();
-    const startDay = startOfDay(today);
-    const endDay = endOfDay(today);
+    // "Today" is the Vienna business day; the server itself runs in UTC.
+    const { start: startDay, end: dayEnd } = businessTodayBounds();
+    const endDay = new Date(dayEnd.getTime() - 1);
 
     const rentals = await prisma.rental.findMany({
         where: {
@@ -41,7 +44,7 @@ export async function getTodayEvents() {
                         gte: startDay,
                         lte: endDay
                     },
-                    status: 'Pending'
+                    status: { in: ['Pending', 'Confirmed'] }
                 },
                 {
                     endDate: {
@@ -72,7 +75,7 @@ export async function getTodayEvents() {
         return {
             id: rental.id,
             type: isPickup ? 'pickup' as const : 'return' as const,
-            time: new Intl.DateTimeFormat('de-AT', { hour: '2-digit', minute: '2-digit' }).format(
+            time: new Intl.DateTimeFormat('de-AT', { hour: '2-digit', minute: '2-digit', timeZone: BUSINESS_TIME_ZONE }).format(
                 isPickup ? rental.startDate : rental.endDate
             ),
             car: `${rental.car.brand} ${rental.car.model}`,
@@ -181,7 +184,7 @@ export async function getMaintenanceAlerts() {
 
 /** Tüm araçları "Rent-Ex Feldkirch" standortuna atar (locationId + homeLocationId). Plakalar değiştirilmez. */
 export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message: string; count?: number }> {
-    await requireAdmin();
+    await requireAdminArea('fleet-management');
     const feldkirch = await prisma.location.findFirst({
         where: {
             OR: [
@@ -238,7 +241,7 @@ export async function createTask(formData: FormData) {
 }
 
 export async function createCoupon(formData: FormData) {
-    await requireAdmin();
+    await requireAdminArea('marketing');
     const code = (formData.get('code') as string)?.trim().toUpperCase();
     if (!code) {
         return { error: 'Gutscheincode ist erforderlich.' };
@@ -255,8 +258,13 @@ export async function createCoupon(formData: FormData) {
     const description = (formData.get('description') as string)?.trim() || null;
     const validFromStr = formData.get('validFrom') as string;
     const validUntilStr = formData.get('validUntil') as string;
-    const validFrom = validFromStr ? new Date(validFromStr) : null;
-    const validUntil = validUntilStr ? new Date(validUntilStr) : null;
+    // Dates from the form are Vienna calendar days; "valid until" includes the whole last day.
+    const validFrom = validFromStr ? parseBookingDateTime(validFromStr, '00:00') : null;
+    const validUntilStart = validUntilStr ? parseBookingDateTime(validUntilStr, '23:59') : null;
+    const validUntil = validUntilStart ? new Date(validUntilStart.getTime() + 59_999) : null;
+    if ((validFromStr && !validFrom) || (validUntilStr && !validUntil)) {
+        return { error: 'Ungültiges Datum.' };
+    }
     const usageLimitStr = formData.get('usageLimit') as string;
     const usageLimit = usageLimitStr ? parseInt(usageLimitStr, 10) : null;
     const isActive = formData.get('isActive') === 'on';
@@ -309,10 +317,10 @@ export async function createFahrtenbuchEntry(formData: FormData) {
 }
 
 /** Nächste Rechnungsnummer (RE-JJJJ-NNNNN) */
-async function getNextInvoiceNumber(): Promise<string> {
+async function getNextInvoiceNumber(db: Prisma.TransactionClient | typeof prisma = prisma): Promise<string> {
     const year = new Date().getFullYear();
     const prefix = `RE-${year}-`;
-    const last = await prisma.invoice.findFirst({
+    const last = await db.invoice.findFirst({
         where: { invoiceNumber: { startsWith: prefix } },
         orderBy: { id: 'desc' },
         select: { invoiceNumber: true },
@@ -325,7 +333,7 @@ async function getNextInvoiceNumber(): Promise<string> {
 
 /** Rechnung erstellen (aus Formular: rentalId im FormData) */
 export async function createInvoiceFormAction(formData: FormData) {
-    await requireAdmin();
+    await requireAdminArea('rechnungen');
     const rentalId = parseInt(formData.get('rentalId') as string);
     if (Number.isNaN(rentalId)) {
         redirect('/admin/rechnungen?error=invalid');
@@ -336,7 +344,7 @@ export async function createInvoiceFormAction(formData: FormData) {
 
 /** Rechnung für eine Miete erstellen (Registrierkassa-ready) */
 export async function createInvoiceForRental(rentalId: number) {
-    await requireAdmin();
+    await requireAdminArea('rechnungen');
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
         include: { car: true, customer: true },
@@ -354,24 +362,37 @@ export async function createInvoiceForRental(rentalId: number) {
         return;
     }
 
-    const total = Number(rental.totalAmount);
+    // Rent (after discount) plus charges added at return (km, fuel, cleaning …).
+    const total = Math.round((Number(rental.totalAmount) + Number(rental.extraCharges ?? 0)) * 100) / 100;
     const taxRate = 20; // Österreich USt 20 %
     const subtotal = Math.round((total / (1 + taxRate / 100)) * 100) / 100;
     const taxAmount = Math.round((total - subtotal) * 100) / 100;
 
-    const invoiceNumber = await getNextInvoiceNumber();
-
-    await prisma.invoice.create({
-        data: {
-            rentalId,
-            invoiceNumber,
-            subtotal,
-            taxRate,
-            taxAmount,
-            total,
-            status: 'ISSUED',
-        },
-    });
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Serialize numbering: invoice numbers must be sequential without
+            // gaps or duplicates, even when two invoices are created at once.
+            await tx.$executeRaw`SELECT pg_advisory_xact_lock(72110001)`;
+            const invoiceNumber = await getNextInvoiceNumber(tx);
+            await tx.invoice.create({
+                data: {
+                    rentalId,
+                    invoiceNumber,
+                    subtotal,
+                    taxRate,
+                    taxAmount,
+                    total,
+                    status: 'ISSUED',
+                },
+            });
+        });
+    } catch (error) {
+        // Unique rentalId: someone created the invoice in the meantime.
+        if ((error as { code?: string })?.code === 'P2002') {
+            redirect('/admin/rechnungen?error=duplicate');
+        }
+        throw error;
+    }
     revalidatePath('/admin/rechnungen');
     revalidatePath(`/admin/reservations`);
     redirect('/admin/rechnungen');
@@ -379,7 +400,7 @@ export async function createInvoiceForRental(rentalId: number) {
 
 /** Registrierkasse bei FinanzOnline (BMF) anmelden */
 export async function registerKasseWithBMF() {
-    await requireAdmin();
+    await requireAdminArea('settings');
     const tid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_tid' } });
     const benid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_benid' } });
     const pin = await prisma.systemSettings.findUnique({ where: { key: 'bmf_pin' } });

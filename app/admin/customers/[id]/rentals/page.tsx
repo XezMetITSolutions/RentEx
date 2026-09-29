@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { formatBusinessDate } from '@/lib/bookingUtils';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ChevronLeft, Car, Calendar, CreditCard, Clock } from 'lucide-react';
@@ -50,8 +51,8 @@ export default async function CustomerRentalsPage({ params }: { params: Promise<
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {customer.rentals.map((rental) => {
-                        const startDate = format(new Date(rental.startDate), 'dd.MM.yyyy', { locale: de });
-                        const endDate = format(new Date(rental.endDate), 'dd.MM.yyyy', { locale: de });
+                        const startDate = formatBusinessDate(rental.startDate, 'dd.MM.yyyy');
+                        const endDate = formatBusinessDate(rental.endDate, 'dd.MM.yyyy');
                         
                         return (
                             <Link 

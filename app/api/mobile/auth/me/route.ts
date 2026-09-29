@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
+import { R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 
 function serialize(c: any) {
   return {
@@ -49,12 +50,19 @@ export async function PATCH(req: NextRequest) {
     'firstName', 'lastName', 'phone', 'address', 'city', 'postalCode', 'country',
     'licenseNumber', 'idNumber', 'idType', 'licensePhotoUrl', 'idPhotoUrl'
   ];
+  const input = body as Record<string, unknown>;
+  // Document photos must be files uploaded through /api/mobile/upload — not
+  // arbitrary links that staff would later open from the admin panel.
+  const ownUploadPrefix = `${R2_PUBLIC_URL || `https://${R2_BUCKET_NAME}.r2.dev`}/`;
   for (const key of allowed) {
-    if (key in body) {
-      const val = body[key];
+    if (key in input) {
+      const val = input[key];
       if (val === null) data[key] = null;
       else if (typeof val === 'string') {
         const trimmed = val.trim();
+        if ((key === 'licensePhotoUrl' || key === 'idPhotoUrl') && trimmed && !trimmed.startsWith(ownUploadPrefix)) {
+          return NextResponse.json({ error: 'Ungültige Dokument-URL.' }, { status: 400 });
+        }
         data[key] = trimmed === '' ? null : trimmed;
       }
     }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export async function GET(req: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('competitor-pricing');
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('competitor-pricing');
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }

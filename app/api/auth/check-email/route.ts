@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
     
     const customer = await prisma.customer.findUnique({
         where: { email },
-        select: { id: true }
+        select: { passwordHash: true }
     });
-    
-    return NextResponse.json({ exists: !!customer });
+
+    // Only accounts with a password can log in; guest customers may book again
+    // with the same e-mail, so they must not be asked to sign in.
+    return NextResponse.json({ exists: !!customer?.passwordHash });
 }

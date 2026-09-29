@@ -2,12 +2,12 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { getAdminSession } from '@/lib/adminAuth';
 import { auditLog } from '@/lib/audit';
 import { hashPassword } from '@/lib/auth';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export async function toggleCustomerBlacklist(customerId: number, reason?: string) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('customers');
     if (!session) return { success: false, error: 'Unauthorized' };
 
     try {
@@ -47,7 +47,7 @@ export async function toggleCustomerBlacklist(customerId: number, reason?: strin
 }
 
 export async function resetCustomerPassword(customerId: number, newPassword?: string) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('customers');
     if (!session) return { success: false, error: 'Unauthorized' };
 
     try {

@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { FleetManager } from '@/components/admin/FleetManager';
 import { getAdminSession } from '@/lib/adminAuth';
+import { isAdministrator } from '@/lib/staffRoles';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ async function getCars(locationId?: number | null) {
 export default async function FleetPage() {
     const staff = await getAdminSession();
     // ADMINISTRATOR sees everything. Others only see their location.
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && !isAdministrator(staff.role);
     const cars = await getCars(isRestricted ? staff?.locationId : undefined);
     
     const globalCategories = await prisma.carCategory.findMany({

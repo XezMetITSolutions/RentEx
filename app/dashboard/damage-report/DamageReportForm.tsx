@@ -29,7 +29,7 @@ const CIRCUMSTANCE_OPTIONS = [
     { id: '12', label: 'Andere (siehe Bemerkungen)' },
 ];
 
-export default function DamageReportForm({ rental, customer }: { rental: RentalWithRelations; customer: Customer }) {
+export default function DamageReportForm({ rental, customer }: { rental: RentalWithRelations; customer: Omit<Customer, 'passwordHash'> }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);

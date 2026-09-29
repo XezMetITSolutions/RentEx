@@ -28,6 +28,7 @@ import {
     Zap
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { normalizeRole } from '@/lib/staffRoles';
 
 const menuGroups = [
     {
@@ -112,7 +113,7 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
 
     const isItemAllowed = (name: string) => {
         if (!staff) return false;
-        const perms = rolePermissions[staff.role] || [];
+        const perms = rolePermissions[normalizeRole(staff.role)] || [];
         return perms.includes('all') || perms.includes(name);
     };
 

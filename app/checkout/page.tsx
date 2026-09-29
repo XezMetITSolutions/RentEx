@@ -4,6 +4,9 @@ import Footer from "@/components/home/Footer";
 import prisma from "@/lib/prisma";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
 import { getSession } from "@/lib/auth";
+import { toClientCustomer } from "@/lib/dashboardAuth";
+import { toPublicCar } from "@/lib/publicCar";
+import { getBookableOptions } from "@/lib/bookableOptions";
 
 async function getCar(id: number) {
     const car = await prisma.car.findUnique({
@@ -12,12 +15,6 @@ async function getCar(id: number) {
     return car;
 }
 
-async function getOptions() {
-    const options = await prisma.option.findMany({
-        where: { status: 'active' }
-    });
-    return options;
-}
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const resolvedParams = await searchParams;
@@ -34,9 +31,8 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         notFound();
     }
 
-    const [car, rawOptions, customerId] = await Promise.all([
+    const [car, customerId] = await Promise.all([
         getCar(carId),
-        getOptions(),
         getSession()
     ]);
 
@@ -48,17 +44,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         ? await prisma.customer.findUnique({ where: { id: customerId } })
         : null;
 
-    // De-duplicate options by name: prefer car-specific options over templates
-    const processedOptionsMap = new Map();
-    // 1. Templates
-    rawOptions.filter(o => o.carId === null).forEach(o => processedOptionsMap.set(o.name, o));
-    // 2. Car specifics
-    rawOptions.filter(o => o.carId === car.id).forEach(o => processedOptionsMap.set(o.name, o));
-
-    const options = Array.from(processedOptionsMap.values()).map(opt => ({
-        ...opt,
-        price: Number(opt.price)
-    }));
+    const options = await getBookableOptions(car.id);
 
     return (
         <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
@@ -71,15 +57,16 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
                 </div>
 
                 <CheckoutForm
-                    car={car}
+                    car={JSON.parse(JSON.stringify(toPublicCar(car)))}
                     options={options}
-                    initialCustomer={currentCustomer ? JSON.parse(JSON.stringify(currentCustomer)) : null}
+                    initialCustomer={toClientCustomer(currentCustomer)}
                     searchParams={{
                         startDate: startDate as string,
                         endDate: endDate as string,
                         pickupTime: (resolvedParams.pickupTime as string) || '10:00',
                         returnTime: (resolvedParams.returnTime as string) || '10:00',
-                        options: (resolvedParams.options as string) || ''
+                        options: (resolvedParams.options as string) || '',
+                        couponCode: (resolvedParams.couponCode as string) || ''
                     }}
                 />
             </main>

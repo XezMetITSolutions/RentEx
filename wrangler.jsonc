@@ -27,6 +27,15 @@
       "bucket_name": "rentex-app-opennext-cache"
     }
   ],
+  // Shared across all Worker isolates (the in-memory limiter in lib/rateLimit.ts
+  // only sees one isolate). Used for login/password attempts.
+  "ratelimits": [
+    {
+      "name": "AUTH_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ],
   "images": {
     "binding": "IMAGES"
   },

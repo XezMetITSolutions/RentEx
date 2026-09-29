@@ -1,11 +1,11 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAdminArea } from '@/lib/adminAccess';
 
 export async function updateSystemSetting(key: string, value: string) {
-    await requireAdmin();
+    await requireAdminArea('settings');
     try {
         await prisma.systemSettings.upsert({
             where: { key },

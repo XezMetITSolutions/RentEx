@@ -3,13 +3,13 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import crypto from 'crypto';
 import path from 'path';
-import { getAdminSession } from '@/lib/adminAuth';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
+import { getAdminForArea } from '@/lib/adminAccess';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
-    const session = await getAdminSession();
+    const session = await getAdminForArea('maintenance');
     if (!session) {
         return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }
