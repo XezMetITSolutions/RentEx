@@ -85,10 +85,12 @@ export default async function CarDetailPage({ params }: PageProps) {
 
     const featuresList = car.features ? car.features.split(',').map(f => f.trim()) : [];
 
+    const serializedCar = JSON.parse(JSON.stringify(car));
+
     return (
         <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
             <Navbar />
-            <CarDetailClient car={car} options={options} featuresList={featuresList} />
+            <CarDetailClient car={serializedCar} options={options} featuresList={featuresList} />
             <Footer />
         </div>
     );
