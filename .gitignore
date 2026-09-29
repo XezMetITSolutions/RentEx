@@ -55,3 +55,7 @@ next-env.d.ts
 !.dev.vars.example
 
 !.env.example
+
+# Local data / PII — never commit
+staff_list.json
+prisma/dev.db
