@@ -6,9 +6,9 @@ import { stripe } from "@/lib/stripe";
 import { hashPassword, setSession, getSession } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
-import fs from 'fs';
 import path from 'path';
 import { calculateChargeableDays } from "@/lib/bookingUtils";
+import { isCarAvailable, lockCarForBooking } from "@/lib/availability";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
@@ -38,6 +38,9 @@ function parseDateOfBirth(dateStr: string): Date | null {
     return isNaN(d.getTime()) ? null : d;
 }
 
+/** Expected booking failures that are reported to the user instead of thrown. */
+class BookingConflictError extends Error {}
+
 export async function createBooking(prevState: any, formData: FormData) {
     const adminSession = await getAdminSession();
     const customerSession = await getSession();
@@ -55,6 +58,15 @@ export async function createBooking(prevState: any, formData: FormData) {
     const optionIds = (formData.get('options') as string)?.split(',').filter(Boolean).map(Number) || [];
     const couponCode = (formData.get('couponCode') as string)?.trim().toUpperCase() || null;
     const isMobile = formData.get('isMobile') === 'true';
+
+    if (!Number.isInteger(carId) || isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate <= startDate) {
+        return { success: false, error: 'Ungültiger Buchungszeitraum.' };
+    }
+    // Early, unlocked check so we fail before creating/updating the customer.
+    // The authoritative check runs again under a row lock when the rental is created.
+    if (!(await isCarAvailable(carId, startDate, endDate))) {
+        return { success: false, error: 'Fahrzeug ist in diesem Zeitraum bereits gebucht.' };
+    }
 
     // Customer Data
     const firstName = formData.get('firstName') as string;
@@ -200,10 +212,6 @@ export async function createBooking(prevState: any, formData: FormData) {
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) throw new Error("Car not found");
 
-    const year = new Date().getFullYear();
-    const count = await prisma.rental.count();
-    const contractNumber = `RNT-${year}-${(count + 1).toString().padStart(6, '0')}`;
-
     const selectedOptions = await prisma.option.findMany({
         where: { id: { in: optionIds } }
     });
@@ -235,6 +243,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     let baseTotal = Number(car.dailyRate) * days + extrasCost + insuranceCost;
     let discountAmount = 0;
     let discountReason: string | null = null;
+    let couponId: number | null = null;
 
     if (couponCode) {
         const coupon = await prisma.discountCoupon.findFirst({
@@ -252,10 +261,7 @@ export async function createBooking(prevState: any, formData: FormData) {
                         discountAmount = Math.min(Number(coupon.discountValue), baseTotal);
                     }
                     discountReason = `Gutschein ${coupon.code}`;
-                    await prisma.discountCoupon.update({
-                        where: { id: coupon.id },
-                        data: { usedCount: coupon.usedCount + 1 }
-                    });
+                    couponId = coupon.id;
                 }
             }
         }
@@ -263,29 +269,69 @@ export async function createBooking(prevState: any, formData: FormData) {
 
     const totalAmount = Math.max(0, baseTotal - discountAmount);
 
-    const rental = await prisma.rental.create({
-        data: {
-            carId,
-            customerId: customer.id,
-            startDate,
-            endDate,
-            dailyRate: car.dailyRate,
-            totalDays: days,
-            totalAmount,
-            discountAmount: discountAmount || undefined,
-            discountReason: discountReason || undefined,
-            status: 'Pending',
-            paymentStatus: 'Pending',
-            contractNumber,
-            extrasCost: extrasCost,
-            insuranceCost: insuranceCost,
-            insuranceType: selectedInsuranceType,
-            pickupLocationId: car.locationId,
-            returnLocationId: car.locationId,
-            paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
-            includedKm: includedKm
+    let rental;
+    try {
+        rental = await prisma.$transaction(async (tx) => {
+            await lockCarForBooking(tx, carId);
+            if (!(await isCarAvailable(carId, startDate, endDate, tx))) {
+                throw new BookingConflictError('Fahrzeug ist in diesem Zeitraum bereits gebucht.');
+            }
+
+            if (couponId != null) {
+                // Atomic claim: only succeeds while the coupon is still under its usage limit.
+                const claimed = await tx.discountCoupon.updateMany({
+                    where: {
+                        id: couponId,
+                        isActive: true,
+                        OR: [
+                            { usageLimit: null },
+                            { usedCount: { lt: prisma.discountCoupon.fields.usageLimit } },
+                        ],
+                    },
+                    data: { usedCount: { increment: 1 } },
+                });
+                if (claimed.count === 0) {
+                    throw new BookingConflictError('Der Gutschein ist nicht mehr verfügbar.');
+                }
+            }
+
+            const created = await tx.rental.create({
+                data: {
+                    carId,
+                    customerId: customer.id,
+                    startDate,
+                    endDate,
+                    dailyRate: car.dailyRate,
+                    totalDays: days,
+                    totalAmount,
+                    discountAmount: discountAmount || undefined,
+                    discountReason: discountReason || undefined,
+                    status: 'Pending',
+                    paymentStatus: 'Pending',
+                    extrasCost: extrasCost,
+                    insuranceCost: insuranceCost,
+                    insuranceType: selectedInsuranceType,
+                    pickupLocationId: car.locationId,
+                    returnLocationId: car.locationId,
+                    paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
+                    includedKm: includedKm
+                }
+            });
+
+            // Derived from the id so it is unique without a racy count(); 7 digits
+            // keeps it distinct from the legacy 6-digit count-based numbers.
+            return tx.rental.update({
+                where: { id: created.id },
+                data: { contractNumber: `RNT-${new Date().getFullYear()}-${String(created.id).padStart(7, '0')}` },
+            });
+        });
+    } catch (error) {
+        if (error instanceof BookingConflictError) {
+            return { success: false, error: error.message };
         }
-    });
+        throw error;
+    }
+    const contractNumber = rental.contractNumber!;
 
     await auditLog({
         userId: adminSession?.id || customer.id,

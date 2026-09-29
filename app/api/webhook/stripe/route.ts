@@ -23,29 +23,53 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
     }
 
-    if (event.type === 'checkout.session.completed') {
+    // `completed` can arrive with payment_status 'unpaid' for delayed methods;
+    // those are confirmed later via `async_payment_succeeded`.
+    const isPaymentEvent =
+        event.type === 'checkout.session.completed' ||
+        event.type === 'checkout.session.async_payment_succeeded';
+
+    if (isPaymentEvent) {
         const session = event.data.object as Stripe.Checkout.Session;
         const rentalId = session.metadata?.rentalId;
+        const id = rentalId ? parseInt(rentalId, 10) : NaN;
 
-        if (rentalId) {
-            const id = parseInt(rentalId);
+        if (session.payment_status === 'paid' && Number.isInteger(id)) {
+            // Stripe retries and duplicates events. The conditional update makes
+            // processing idempotent: only the first delivery flips the status,
+            // records the payment and sends notifications.
+            const firstDelivery = await prisma.$transaction(async (tx) => {
+                const claimed = await tx.rental.updateMany({
+                    where: { id, paymentStatus: { not: 'Paid' } },
+                    data: { paymentStatus: 'Paid' },
+                });
+                if (claimed.count === 0) return false;
+                await tx.payment.create({
+                    data: {
+                        rentalId: id,
+                        amount: (session.amount_total || 0) / 100,
+                        paymentMethod: 'Online',
+                        transactionId: session.id,
+                        notes: `Stripe Checkout Session confirmed.`,
+                    }
+                });
+                return true;
+            });
 
-            const rental = await prisma.rental.update({
+            if (!firstDelivery) {
+                console.log(`[stripe-webhook] Rental ${id} already paid — duplicate event ${event.id} ignored.`);
+                return NextResponse.json({ received: true });
+            }
+
+            const rental = await prisma.rental.findUniqueOrThrow({
                 where: { id },
-                data: { paymentStatus: 'Paid' },
                 include: { customer: true, car: true },
             });
 
-            // Create a Payment record
-            await prisma.payment.create({
-                data: {
-                    rentalId: id,
-                    amount: (session.amount_total || 0) / 100,
-                    paymentMethod: 'Online',
-                    transactionId: session.id,
-                    notes: `Stripe Checkout Session confirmed.`,
-                }
-            });
+            const expectedCents = Math.round(Number(rental.totalAmount) * 100);
+            if (session.amount_total !== expectedCents) {
+                console.warn(`[stripe-webhook] Amount mismatch for rental ${id}: paid ${session.amount_total}, expected ${expectedCents}.`);
+            }
 
             // Send payment confirmation email
             if (rental.customer && rental.car && rental.contractNumber) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isCarAvailable, lockCarForBooking } from '@/lib/availability';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 
 function parseFeatures(features: string | null): string[] | null {
@@ -97,23 +98,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fahrzeug nicht gefunden.' }, { status: 404 });
     }
 
-    const overlapping = await prisma.rental.count({
-      where: {
-        carId,
-        status: { in: ['Pending', 'Confirmed', 'Active'] },
-        AND: [
-          { startDate: { lte: endDate } },
-          { endDate: { gte: startDate } },
-        ],
-      },
-    });
-    if (overlapping > 0) {
-      return NextResponse.json(
-        { error: 'Fahrzeug ist in diesem Zeitraum bereits gebucht.' },
-        { status: 409 }
-      );
-    }
-
     const msPerDay = 1000 * 60 * 60 * 24;
     const totalDays = Math.max(1, Math.ceil((+endDate - +startDate) / msPerDay));
     const dailyRate = Number(car.dailyRate);
@@ -121,24 +105,35 @@ export async function POST(req: NextRequest) {
     const serviceFee = subtotal * 0.05;
     const totalAmount = subtotal + serviceFee;
 
-    const rental = await prisma.rental.create({
-      data: {
-        carId,
-        customerId,
-        startDate,
-        endDate,
-        dailyRate: car.dailyRate,
-        totalDays,
-        totalAmount,
-        status: 'Pending',
-        paymentStatus: 'Pending',
-      },
-      include: {
-        car: true,
-        pickupLocation: true,
-        returnLocation: true,
-      },
+    // Lock the car row so two concurrent requests cannot both pass the overlap check.
+    const rental = await prisma.$transaction(async (tx) => {
+      await lockCarForBooking(tx, carId);
+      if (!(await isCarAvailable(carId, startDate, endDate, tx))) return null;
+      return tx.rental.create({
+        data: {
+          carId,
+          customerId,
+          startDate,
+          endDate,
+          dailyRate: car.dailyRate,
+          totalDays,
+          totalAmount,
+          status: 'Pending',
+          paymentStatus: 'Pending',
+        },
+        include: {
+          car: true,
+          pickupLocation: true,
+          returnLocation: true,
+        },
+      });
     });
+    if (!rental) {
+      return NextResponse.json(
+        { error: 'Fahrzeug ist in diesem Zeitraum bereits gebucht.' },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(serializeBooking(rental), { status: 201 });
   } catch (err) {
