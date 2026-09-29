@@ -18,7 +18,7 @@ interface AdminLayoutWrapperProps {
 export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayoutWrapperProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
-    const isLoginPage = pathname === '/admin/login';
+    const isLoginPage = pathname === '/admin/login' || pathname.startsWith('/admin/login/');
 
     // Close sidebar on mobile when route changes
     useEffect(() => {

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifySessionToken } from '@/lib/sessionToken';
 
 // Basic in-memory rate limiting (per edge instance)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     const { pathname } = request.nextUrl;
 
@@ -60,7 +61,10 @@ export function middleware(request: NextRequest) {
         
         return response;
     }
-    let response = NextResponse.next();
+    // Always overwrite x-pathname so clients cannot spoof it; the admin layout reads it.
+    const forwardedHeaders = new Headers(request.headers);
+    forwardedHeaders.set('x-pathname', pathname);
+    let response = NextResponse.next({ request: { headers: forwardedHeaders } });
 
     // 1. Security Headers
     response.headers.set('X-DNS-Prefetch-Control', 'on');
@@ -101,15 +105,17 @@ export function middleware(request: NextRequest) {
     }
 
     if (pathname.startsWith('/dashboard')) {
-        if (!request.cookies.get('rentex_customer')?.value) {
+        if (await verifySessionToken('customer', request.cookies.get('rentex_customer')?.value) == null) {
             const login = new URL('/login', request.url);
             login.searchParams.set('from', pathname);
             return NextResponse.redirect(login);
         }
     }
 
-    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-        if (!request.cookies.get('rentex_admin_session')?.value) {
+    const isAdminLoginPath = pathname === '/admin/login' || pathname.startsWith('/admin/login/');
+    if (pathname.startsWith('/admin') && !isAdminLoginPath) {
+        // Signature + expiry check here; getAdminSession() additionally checks isActive in the DB.
+        if (await verifySessionToken('admin', request.cookies.get('rentex_admin_session')?.value) == null) {
             return NextResponse.redirect(new URL('/admin/login', request.url));
         }
     }
