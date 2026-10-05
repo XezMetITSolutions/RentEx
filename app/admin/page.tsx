@@ -106,7 +106,7 @@ export default async function AdminDashboard() {
         return null;
     }
 
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR' && staff.role !== 'SUPERADMIN';
     const locId = isRestricted ? staff?.locationId : undefined;
 
     const [stats, recentRentals] = await Promise.all([

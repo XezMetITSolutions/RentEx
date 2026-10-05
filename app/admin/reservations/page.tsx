@@ -32,7 +32,7 @@ async function getRentals(locationId?: number | null) {
 export default async function ReservationsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
     const resolvedSearchParams = await searchParams;
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR' && staff.role !== 'SUPERADMIN';
     
     const rentals = await getRentals(isRestricted ? staff?.locationId : undefined);
     const view = resolvedSearchParams.view || 'list';

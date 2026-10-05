@@ -25,7 +25,7 @@ async function getTasks(locationId?: number | null) {
 
 export default async function TasksPage() {
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR' && staff.role !== 'SUPERADMIN';
     const tasks = await getTasks(isRestricted ? staff?.locationId : undefined);
 
     return (

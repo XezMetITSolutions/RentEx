@@ -8,11 +8,12 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 
-const ROLES = ["ADMINISTRATOR", "FILIALLEITER", "MITARBEITER", "FAHRER"] as const;
+const ROLES = ["ADMINISTRATOR", "SUPERADMIN", "FILIALLEITER", "MITARBEITER", "FAHRER"] as const;
 type Role = typeof ROLES[number];
 
 const ROLE_BADGES: Record<Role, string> = {
     ADMINISTRATOR: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+    SUPERADMIN: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
     FILIALLEITER: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
     MITARBEITER: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
     FAHRER: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",

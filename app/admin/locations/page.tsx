@@ -35,10 +35,10 @@ async function getLocations(locationId?: number | null) {
 
 export default async function LocationsPage() {
     const staff = await getAdminSession();
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR' && staff.role !== 'SUPERADMIN';
     const locations = await getLocations(isRestricted ? staff?.locationId : undefined);
 
-    const isSup = staff?.role === 'ADMINISTRATOR';
+    const isSup = staff?.role === 'ADMINISTRATOR' || staff?.role === 'SUPERADMIN';
 
     return (
         <div className="space-y-6">

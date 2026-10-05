@@ -33,8 +33,8 @@ async function getCars(locationId?: number | null) {
 
 export default async function FleetPage() {
     const staff = await getAdminSession();
-    // ADMINISTRATOR sees everything. Others only see their location.
-    const isRestricted = staff && staff.role !== 'ADMINISTRATOR';
+    // ADMINISTRATOR / SUPERADMIN sees everything. Others only see their location.
+    const isRestricted = staff && staff.role !== 'ADMINISTRATOR' && staff.role !== 'SUPERADMIN';
     const cars = await getCars(isRestricted ? staff?.locationId : undefined);
     
     const globalCategories = await prisma.carCategory.findMany({
