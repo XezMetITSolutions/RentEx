@@ -12,6 +12,9 @@ import { getFeaturedCars, getCarCategories } from "@/app/actions";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { SITE_URL } from '@/lib/config';
 
+// Live fleet + availability: render per request, never prerender at build (CI has no DB).
+export const dynamic = "force-dynamic";
+
 const archivo = Archivo({
   variable: "--font-hm-archivo",
   subsets: ["latin"],
