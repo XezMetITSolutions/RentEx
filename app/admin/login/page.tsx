@@ -1,19 +1,23 @@
 "use client";
 
+/* Hallmark · component: login screen · genre: modern-minimal · theme: custom (brand red) · tokens.css
+ * states: default · hover · focus · active · disabled · loading · error
+ */
 import { useState } from "react";
 import Image from "next/image";
-import { Key, Mail, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { adminLogin } from "@/app/actions/auth";
 
 export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
         setError("");
-        
+
         const formData = new FormData(e.currentTarget);
         const result = await adminLogin(formData);
         if (result?.error) {
@@ -24,127 +28,118 @@ export default function AdminLoginPage() {
         // No catch block needed here as Next.js handles redirects via throw
     }
 
+    const inputClass =
+        "w-full min-h-12 rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper px-4 text-[15px] text-hm-ink outline-none placeholder:text-hm-muted hover:border-hm-muted focus:border-hm-ink transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out disabled:opacity-60";
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-[#0a0a0a]">
-            {/* Background Image with Advanced Overlay */}
-            <div className="absolute inset-0 z-0">
-                <Image
-                    src="/assets/luxury-bg.png"
-                    alt="Hintergrund"
-                    fill
-                    className="object-cover opacity-60"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/40 to-transparent"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
-            </div>
-
-            {/* Content Container */}
-            <div className="relative z-10 w-full max-w-[460px] animate-in fade-in zoom-in-95 duration-1000 ease-out">
-                {/* Logo Section */}
-                <div className="flex flex-col items-center mb-12">
-                    <div className="relative w-[200px] h-[70px] mb-2 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                        <Image 
-                            src="/assets/logo.png" 
-                            alt="RentEx Logo" 
+        <div className="hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+            {/* Brand panel */}
+            <div className="hidden lg:flex p-4">
+                <div className="hm-stage relative flex w-full flex-col justify-between overflow-hidden rounded-[var(--hm-radius-stage)] ring-1 ring-inset ring-hm-rule dark:ring-0 p-12 text-hm-stage-ink">
+                    {/* The logo's tagline is white, so it sits on a dark chip. */}
+                    <div className="w-fit rounded-[var(--hm-radius-input)] bg-hm-stage-ink px-4 py-2.5">
+                        <div className="relative h-11 w-32">
+                            <Image src="/assets/logo.png" alt="Rent-Ex" fill priority className="object-contain" sizes="128px" />
+                        </div>
+                    </div>
+                    <div className="relative -mr-12 aspect-[16/7]">
+                        <Image
+                            src="/assets/cars/Ford_Mustang_MachE_GT.png"
+                            alt=""
                             fill
-                            className="object-contain brightness-0 invert"
                             priority
+                            sizes="55vw"
+                            className="object-contain"
                         />
                     </div>
-                </div>
-
-                {/* Login Card - Ultra Glassmorphism */}
-                <div className="relative group">
-                    {/* Subtle Glow behind the card */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-red-600/20 to-transparent rounded-[42px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                    
-                    <div className="relative bg-white/[0.03] backdrop-blur-[32px] border border-white/10 p-10 rounded-[40px] shadow-2xl overflow-hidden">
-                        {/* Inner corner highlight */}
-                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                        
-                        <div className="mb-10 text-center">
-                            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                                Admin-Zugang
-                            </h1>
-                            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
-                                Sicheres Kontrollzentrum
-                            </p>
-                        </div>
-
-                        {error && (
-                            <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-xs font-semibold animate-shake">
-                                <AlertCircle className="h-4 w-4 shrink-0" />
-                                {error}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-7">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 ml-1">
-                                    Operator-ID / E-Mail
-                                </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white text-sm font-medium outline-none focus:bg-white/10 focus:border-red-600/50 focus:ring-4 focus:ring-red-600/10 transition-all placeholder:text-white/10"
-                                        placeholder="admin@rent-ex.at"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 ml-1">
-                                    Zugriffsschlüssel
-                                </label>
-                                <div className="relative">
-                                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        required
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white text-sm font-medium outline-none focus:bg-white/10 focus:border-red-600/50 focus:ring-4 focus:ring-red-600/10 transition-all placeholder:text-white/10"
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full relative group/btn h-[64px] bg-red-600 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                                >
-                                    <div className="absolute inset-0 bg-black opacity-0 group-hover/btn:opacity-10 transition-opacity"></div>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                                    
-                                    <div className="relative flex items-center justify-center gap-3">
-                                        {loading ? (
-                                            <Loader2 className="h-5 w-5 animate-spin text-white" />
-                                        ) : (
-                                            <>
-                                                <span className="text-white font-bold uppercase tracking-[0.2em] text-xs">Portal betreten</span>
-                                                <div className="w-6 h-[1px] bg-white/30"></div>
-                                            </>
-                                        )}
-                                    </div>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                {/* Footer Section */}
-                <div className="text-center mt-12">
-                    <p className="text-[10px] font-medium text-white/5 uppercase tracking-[0.4em]">
-                        RentEx &copy; 2026
+                    <p className="max-w-sm text-sm text-hm-stage-muted">
+                        Verwaltung für Flotte, Reservierungen, Check-in und Abrechnung.
                     </p>
                 </div>
             </div>
+
+            {/* Form */}
+            <main className="flex items-center justify-center px-6 py-16">
+                <div className="w-full max-w-[400px]">
+                    <div className="mb-10 w-fit rounded-[var(--hm-radius-input)] bg-hm-stage-ink px-4 py-2.5 lg:hidden">
+                        <div className="relative h-10 w-28">
+                            <Image src="/assets/logo.png" alt="Rent-Ex" fill priority className="object-contain" sizes="112px" />
+                        </div>
+                    </div>
+
+                    <h1 className="text-3xl font-bold tracking-tight">Admin-Login</h1>
+                    <p className="mt-2 text-sm text-hm-ink-2">Mit Ihrem Mitarbeiterkonto anmelden.</p>
+
+                    {error && (
+                        <div role="alert" className="mt-8 flex items-start gap-3 rounded-[var(--hm-radius-input)] border border-hm-accent/30 bg-hm-accent/10 px-4 py-3 text-sm text-hm-accent-text">
+                            <AlertCircle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                        <div>
+                            <label htmlFor="admin-email" className="block text-sm font-semibold">E-Mail</label>
+                            <input
+                                id="admin-email"
+                                type="email"
+                                name="email"
+                                required
+                                autoComplete="username"
+                                autoFocus
+                                disabled={loading}
+                                className={`${inputClass} mt-2`}
+                                placeholder="name@firma.at"
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="admin-password" className="block text-sm font-semibold">Passwort</label>
+                            <div className="relative mt-2">
+                                <input
+                                    id="admin-password"
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    required
+                                    autoComplete="current-password"
+                                    disabled={loading}
+                                    className={`${inputClass} pr-12`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-[var(--hm-radius-input)] text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 transition-[background-color,color] duration-[var(--hm-dur-short)]"
+                                >
+                                    {showPassword ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group mt-2 w-full min-h-12 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px text-hm-accent-ink font-semibold text-[15px] transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out disabled:opacity-70 disabled:pointer-events-none"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                                    Anmelden …
+                                </>
+                            ) : (
+                                <>
+                                    Anmelden
+                                    <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+
+                    <p className="mt-10 text-xs text-hm-muted">
+                        Zugang vergessen? Bitte an die Geschäftsleitung wenden.
+                    </p>
+                </div>
+            </main>
         </div>
     );
 }

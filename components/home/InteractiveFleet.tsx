@@ -1,22 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
-
-interface CarType {
-  id: number;
-  brand: string;
-  model: string;
-  imageUrl: string | null;
-  dailyRate: number;
-  fuelType: string;
-  transmission: string | null;
-  seats: number | null;
-  category: string | null;
-  hasAirConditioning?: boolean;
-}
+import CarCard, { type CarCardData } from "@/components/fleet/CarCard";
+import { carSlug } from "@/lib/carPhotos";
 
 interface CategoryType {
   id: number;
@@ -25,24 +13,11 @@ interface CategoryType {
 }
 
 interface InteractiveFleetProps {
-  initialCars: CarType[];
+  initialCars: CarCardData[];
   categories: CategoryType[];
 }
 
 type SortKey = "price-asc" | "price-desc";
-
-function slugify(text: string) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-');
-}
-
-const formatEuro = (value: number) =>
-  value.toLocaleString("de-AT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function InteractiveFleet({ initialCars, categories }: InteractiveFleetProps) {
   const [activeTab, setActiveTab] = useState<string>("Alle");
@@ -113,57 +88,11 @@ export default function InteractiveFleet({ initialCars, categories }: Interactiv
 
       {displayedCars.length > 0 ? (
         <ul className="mt-10 grid grid-cols-1 sm:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(3,minmax(0,1fr))] 2xl:grid-cols-[repeat(4,minmax(0,1fr))] gap-4">
-          {displayedCars.map((car) => {
-            const href = `/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`;
-            const specs = [
-              car.transmission || "Automatik",
-              car.fuelType || "Diesel",
-              `${car.seats || 5} Sitze`,
-              car.hasAirConditioning ? "Klima" : null,
-            ].filter(Boolean);
-
-            return (
-              <li key={car.id}>
-                <Link
-                  href={href}
-                  title={`${car.brand} ${car.model} buchen`}
-                  className="group flex h-full flex-col rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper p-3 hover:border-hm-ink-2 transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out"
-                >
-                  <div className="hm-stage relative aspect-[16/10] w-full overflow-hidden rounded-[calc(var(--hm-radius-card)-6px)]">
-                    <span className="absolute left-3 top-3 z-10 rounded-[var(--hm-radius-pill)] bg-hm-stage-2 px-2.5 py-1 font-hm-mono text-[10px] uppercase tracking-[0.08em] text-hm-stage-muted">
-                      {car.category || "Fahrzeug"}
-                    </span>
-                    <Image
-                      src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"}
-                      alt={`${car.brand} ${car.model}`}
-                      fill
-                      sizes="(min-width: 1536px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      className="object-contain p-2 transition-transform duration-[var(--hm-dur-med)] ease-hm-out group-hover:scale-[1.04]"
-                    />
-                  </div>
-
-                  <div className="flex flex-1 flex-col px-2 pb-2">
-                  <h3 className="mt-4 text-base font-bold leading-snug text-hm-ink">
-                    {car.brand} {car.model}
-                  </h3>
-                  <p className="mt-1 text-xs text-hm-muted">{specs.join(" · ")}</p>
-
-                  <div className="mt-auto pt-5 flex items-center justify-between gap-3">
-                    <p className="hm-tnum">
-                      <span className="text-xs text-hm-muted">ab </span>
-                      <span className="text-xl font-bold text-hm-ink">€ {formatEuro(car.dailyRate)}</span>
-                      <span className="text-xs text-hm-muted"> / Tag</span>
-                    </p>
-                    <span className="inline-flex min-h-9 items-center gap-1 whitespace-nowrap rounded-[var(--hm-radius-pill)] bg-hm-paper-2 px-3.5 text-sm font-semibold text-hm-ink transition-[background-color,color] duration-[var(--hm-dur-short)] ease-hm-out group-hover:bg-hm-accent group-hover:text-hm-accent-ink">
-                      Buchen
-                      <ArrowRight aria-hidden className="w-4 h-4" />
-                    </span>
-                  </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
+          {displayedCars.map((car) => (
+            <li key={car.id}>
+              <CarCard car={car} href={`/fleet/${car.id}/${carSlug(car.brand, car.model)}`} />
+            </li>
+          ))}
         </ul>
       ) : (
         <p className="mt-10 py-16 text-center text-sm text-hm-muted border border-hm-rule rounded-[var(--hm-radius-card)]">

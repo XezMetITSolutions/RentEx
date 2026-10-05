@@ -1,11 +1,13 @@
 import Navbar from "@/components/home/Navbar";
 export const dynamic = 'force-dynamic';
 import Footer from "@/components/home/Footer";
-import Image from "next/image";
 import Link from "next/link";
-import { Fuel, Gauge, Users, Car, Truck, ChevronRight } from "lucide-react";
+import { ArrowRight, Car, ChevronDown } from "lucide-react";
 import prisma from "@/lib/prisma";
 import FleetSidebar from "@/components/fleet/FleetSidebar";
+import CarCard, { type CarCardData } from "@/components/fleet/CarCard";
+import { hmFontVariables } from "@/lib/hmFonts";
+import { carPhoto, carSlug } from "@/lib/carPhotos";
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
 
@@ -121,47 +123,33 @@ async function getCars(filters: FilterParams) {
     return uniqueCars.sort((a, b) => (Number(a.dailyRate) || 0) - (Number(b.dailyRate) || 0));
 }
 
-function slugify(text: string) {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-');
-}
+type FleetSearchParams = {
+    type?: string | string[];
+    pickup?: string | string[];
+    return?: string | string[];
+    category?: string | string[];
+    brand?: string | string[];
+    transmission?: string | string[];
+    fuelType?: string | string[];
+};
 
-export default async function FleetPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ 
-        type?: string | string[]; 
-        pickup?: string | string[]; 
-        return?: string | string[]; 
-        category?: string | string[];
-        brand?: string | string[];
-        transmission?: string | string[];
-        fuelType?: string | string[];
-    }>;
-}) {
-    try {
-        const resolvedSearchParams = await searchParams;
+async function loadFleetData(resolvedSearchParams: FleetSearchParams) {
+    // Helper to get string from potentially array search param
+    const getSingleParam = (param: string | string[] | undefined) =>
+        Array.isArray(param) ? param[0] : param;
 
-        // Helper to get string from potentially array search param
-        const getSingleParam = (param: string | string[] | undefined) =>
-            Array.isArray(param) ? param[0] : param;
+    const typeParam = getSingleParam(resolvedSearchParams.type);
+    const vehicleType = (typeParam as VehicleType) || "all";
 
-        const typeParam = getSingleParam(resolvedSearchParams.type);
-        const vehicleType = (typeParam as VehicleType) || "all";
+    const pickupParam = getSingleParam(resolvedSearchParams.pickup);
+    const returnParam = getSingleParam(resolvedSearchParams.return);
+    const categoryParam = getSingleParam(resolvedSearchParams.category);
+    const brandParam = getSingleParam(resolvedSearchParams.brand);
+    const transParam = getSingleParam(resolvedSearchParams.transmission);
+    const fuelParam = getSingleParam(resolvedSearchParams.fuelType);
 
-        const pickupParam = getSingleParam(resolvedSearchParams.pickup);
-        const returnParam = getSingleParam(resolvedSearchParams.return);
-        const categoryParam = getSingleParam(resolvedSearchParams.category);
-        const brandParam = getSingleParam(resolvedSearchParams.brand);
-        const transParam = getSingleParam(resolvedSearchParams.transmission);
-        const fuelParam = getSingleParam(resolvedSearchParams.fuelType);
-
-        const cars = await getCars({
+    const [carsRaw, allCarsRaw, allCategoriesRaw] = await Promise.all([
+        getCars({
             vehicleType,
             pickupDate: pickupParam,
             returnDate: returnParam,
@@ -169,166 +157,196 @@ export default async function FleetPage({
             brand: brandParam,
             transmission: transParam,
             fuelType: fuelParam
-        });
+        }),
+        // Unfiltered list: drives the filter options and their counts.
+        getCars({}),
+        prisma.carCategory.findMany({ orderBy: { sortOrder: 'asc' }, select: { name: true } }),
+    ]);
 
-        const allCategoriesRaw = await prisma.carCategory.findMany({
-            orderBy: { sortOrder: 'asc' },
-            select: { name: true }
-        });
-        
-        const allCategories = allCategoriesRaw.map(c => ({ category: c.name }));
+    const toCard = (car: (typeof carsRaw)[number]): CarCardData => ({
+        id: car.id,
+        brand: car.brand,
+        model: car.model,
+        imageUrl: carPhoto(car.brand, car.model, car.imageUrl),
+        dailyRate: Number(car.dailyRate),
+        fuelType: car.fuelType,
+        transmission: car.transmission,
+        seats: car.seats,
+        category: car.category,
+        hasAirConditioning: car.hasAirConditioning,
+    });
+    const cars = carsRaw.map(toCard);
 
-        const brands = await prisma.car.findMany({
-            where: { isActive: true, status: 'Active' },
-            select: { brand: true },
-            distinct: ['brand']
-        });
+    const countBy = (pick: (car: (typeof allCarsRaw)[number]) => string | null) => {
+        const counts = new Map<string, number>();
+        for (const car of allCarsRaw) {
+            const key = pick(car);
+            if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+        return counts;
+    };
+    const categoryCounts = countBy((car) => car.category);
+    const categoryOptions = allCategoriesRaw
+        .filter((c) => categoryCounts.has(c.name))
+        .map((c) => ({ value: c.name, count: categoryCounts.get(c.name)! }));
+    const transmissionOptions = [...countBy((car) => car.transmission)].map(([value, count]) => ({ value, count }));
+    const fuelOptions = [...countBy((car) => car.fuelType)].map(([value, count]) => ({ value, count }));
 
-        return (
-            <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
-                <Navbar />
+    const hasDates = Boolean(pickupParam && returnParam);
+    const formatDate = (value?: string) =>
+        value ? new Date(value).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
 
-                <main className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
-                    {/* Header Section */}
-                    <div className="relative mb-16">
-                        <div className="absolute -left-4 top-0 w-1 h-20 bg-red-600 rounded-full blur-sm" />
-                        <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tighter mb-4">
-                            Premium <span className="text-red-600">Flotte</span>
-                        </h1>
-                        <p className="text-gray-500 dark:text-zinc-400 max-w-2xl text-lg font-medium leading-relaxed">
-                            Entdecken Sie unsere handverlesene Auswahl an erstklassigen Fahrzeugen. 
-                            Jedes Auto in unserer Flotte wird höchsten Ansprüchen an Komfort, Sicherheit ve Leistung gerecht.
-                        </p>
-                    </div>
+    const todayStr = new Date().toISOString().split("T")[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+    return { vehicleType, pickupParam, returnParam, categoryParam, brandParam, transParam, fuelParam, cars, categoryOptions, transmissionOptions, fuelOptions, hasDates, formatDate, todayStr, tomorrowStr };
+}
 
-                    <div className="flex flex-col lg:flex-row gap-12">
-                        {/* Sidebar */}
-                        <FleetSidebar 
-                            categories={allCategories} 
-                            brands={brands} 
-                            activeFilters={{
-                                type: vehicleType,
-                                category: categoryParam,
-                                brand: brandParam,
-                                transmission: transParam,
-                                fuelType: fuelParam
-                            }}
-                        />
-
-                        {/* Content Area */}
-                        <div className="flex-1">
-                            {cars.length === 0 ? (
-                                <div className="text-center py-32 bg-white dark:bg-zinc-900/30 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-white/10 flex flex-col items-center justify-center">
-                                    <div className="w-20 h-20 bg-gray-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mb-6">
-                                        <Car className="w-10 h-10 text-gray-300" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Keine Fahrzeuge gefunden</h3>
-                                    <p className="text-gray-500 max-w-sm">Wir konnten keine Fahrzeuge finden, die Ihren Suchkriterien entsprechen. Versuchen Sie es mit anderen Filtern.</p>
-                                    <Link href="/fleet" className="mt-8 px-8 py-3 bg-red-600 text-white rounded-2xl font-bold hover:scale-105 transition-all">
-                                        Alle anzeigen
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="grid md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
-                                    {cars.map((car) => (
-                                        <Link 
-                                            key={car.id} 
-                                            href={`/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`} 
-                                            className="group relative bg-white dark:bg-zinc-900/40 border border-gray-200 dark:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 hover:-translate-y-2 flex flex-col"
-                                        >
-                                            {/* Badge */}
-                                            <div className="absolute top-4 left-4 z-10">
-                                                <span className="px-4 py-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">
-                                                    {car.category}
-                                                </span>
-                                            </div>
-
-                                            {/* Image Area */}
-                                            <div className="h-64 relative overflow-hidden bg-gray-100 dark:bg-zinc-800">
-                                                {car.imageUrl ? (
-                                                    <Image
-                                                        src={car.imageUrl}
-                                                        alt={`${car.brand} ${car.model}`}
-                                                        fill
-                                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 italic text-sm">
-                                                        Kein Bild verfügbar
-                                                    </div>
-                                                )}
-                                                {/* Overlay Gradient */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-
-                                            <div className="p-8 flex-1 flex flex-col">
-                                                <div className="flex justify-between items-start mb-6">
-                                                    <div>
-                                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{car.brand} {car.model}</h3>
-                                                        <p className="text-sm text-gray-500 font-medium mt-1 uppercase tracking-tighter">Premium Rental</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <span className="block text-2xl font-black text-red-600">
-                                                            {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(car.dailyRate))}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">pro Tag</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-3 gap-2 py-6 border-y border-gray-100 dark:border-white/5 mb-6">
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                                                            <Fuel className="w-4 h-4 text-gray-400" />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.fuelType}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-center gap-2 border-x border-gray-100 dark:border-white/5">
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                                                            <Gauge className="w-4 h-4 text-gray-400" />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.transmission}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                                                            <Users className="w-4 h-4 text-gray-400" />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{car.seats} Sitze</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-auto">
-                                                    <div className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black text-sm uppercase tracking-widest transition-all group-hover:bg-red-600 group-hover:text-white flex items-center justify-center gap-2">
-                                                        Details Ansehen
-                                                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </main>
-
-                <Footer />
+function FleetError() {
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="max-w-md w-full text-center space-y-6">
+                <div className="p-4 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl border border-red-500/20">
+                    <Car className="w-12 h-12 mx-auto mb-4" />
+                    <h1 className="text-2xl font-bold">Ups! Ein Fehler ist aufgetreten.</h1>
+                    <p className="mt-2 opacity-80">Wir konnten die Fahrzeugliste momentan nicht laden. Bitte versuchen Sie es in Kürze erneut.</p>
+                </div>
+                <Link href="/" className="inline-block px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:scale-[1.02] transition-all">
+                    Zurück zur Startseite
+                </Link>
             </div>
-        );
+        </div>
+    );
+}
+
+/* Hallmark · genre: modern-minimal · macrostructure: Catalogue (filterable) · theme: custom (brand red) · design-system: tokens.css · shares homepage stage + CarCard
+ * pre-emit critique: P4 H5 E4 S5 R4 V4
+ */
+export default async function FleetPage({ searchParams }: { searchParams: Promise<FleetSearchParams> }) {
+    let data: Awaited<ReturnType<typeof loadFleetData>> | null = null;
+    try {
+        data = await loadFleetData(await searchParams);
     } catch (error) {
         console.error("Error rendering FleetPage:", error);
-        return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="max-w-md w-full text-center space-y-6">
-                    <div className="p-4 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl border border-red-500/20">
-                        <Car className="w-12 h-12 mx-auto mb-4" />
-                        <h1 className="text-2xl font-bold">Ups! Ein Fehler ist aufgetreten.</h1>
-                        <p className="mt-2 opacity-80">Wir konnten die Fahrzeugliste momentan nicht laden. Bitte versuchen Sie es in Kürze erneut.</p>
-                    </div>
-                    <Link href="/" className="inline-block px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:scale-[1.02] transition-all">
-                        Zurück zur Startseite
-                    </Link>
-                </div>
-            </div>
-        );
     }
+    if (!data) return <FleetError />;
+    const { vehicleType, pickupParam, returnParam, categoryParam, brandParam, transParam, fuelParam, cars, categoryOptions, transmissionOptions, fuelOptions, hasDates, formatDate, todayStr, tomorrowStr } = data;
+
+    const fieldClass =
+        "w-full min-h-12 bg-transparent px-0 pt-0.5 text-[15px] font-semibold text-hm-ink outline-none dark:[color-scheme:dark]";
+    const labelClass = "block font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted";
+    const cellClass =
+        "min-w-0 rounded-[var(--hm-radius-input)] px-4 pt-3 pb-1 hover:bg-hm-paper-2 focus-within:bg-hm-paper-2 transition-[background-color] duration-[var(--hm-dur-short)] ease-hm-out";
+
+    return (
+        <div className={`${hmFontVariables} hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body selection:bg-hm-accent/25`}>
+            <Navbar />
+
+            <main className="pt-28 pb-24 px-4 sm:px-6 lg:px-10 max-w-[1480px] mx-auto">
+                {/* Header */}
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <h1 className="hm-display text-[length:var(--hm-text-display-s)] font-[800] leading-[0.92]">
+                            Unsere Fahrzeuge<span className="text-hm-accent">.</span>
+                        </h1>
+                        <p className="hm-tnum mt-3 text-hm-ink-2">
+                            {hasDates ? (
+                                <>{cars.length} {cars.length === 1 ? "Modell" : "Modelle"} frei vom {formatDate(pickupParam)} bis {formatDate(returnParam)}</>
+                            ) : (
+                                <>{cars.length} {cars.length === 1 ? "Modell" : "Modelle"} · Abholung in Feldkirch</>
+                            )}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Booking bar — keeps the other active filters */}
+                <form
+                    // Remount when filters change so the uncontrolled fields show the active values.
+                    key={[pickupParam, returnParam, categoryParam, vehicleType, brandParam, transParam, fuelParam].join("|")}
+                    action="/fleet"
+                    method="get"
+                    aria-label="Zeitraum wählen"
+                    className="hm-float mt-8 rounded-[calc(var(--hm-radius-input)+8px)] bg-hm-paper border border-hm-rule p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-1"
+                >
+                    {vehicleType !== "all" && <input type="hidden" name="type" value={vehicleType} />}
+                    {brandParam && <input type="hidden" name="brand" value={brandParam} />}
+                    {transParam && <input type="hidden" name="transmission" value={transParam} />}
+                    {fuelParam && <input type="hidden" name="fuelType" value={fuelParam} />}
+                    <div className={cellClass}>
+                        <label htmlFor="fl-pickup" className={labelClass}>Abholung</label>
+                        <input id="fl-pickup" name="pickup" type="date" defaultValue={pickupParam || todayStr} min={todayStr} className={fieldClass} />
+                    </div>
+                    <div className={cellClass}>
+                        <label htmlFor="fl-return" className={labelClass}>Rückgabe</label>
+                        <input id="fl-return" name="return" type="date" defaultValue={returnParam || tomorrowStr} min={todayStr} className={fieldClass} />
+                    </div>
+                    <div className={`${cellClass} sm:col-span-2 lg:col-span-1`}>
+                        <label htmlFor="fl-category" className={labelClass}>Fahrzeugklasse</label>
+                        <div className="relative">
+                            <select id="fl-category" name="category" defaultValue={categoryParam || ""} className={`${fieldClass} appearance-none pr-8 cursor-pointer`}>
+                                <option value="">Alle Klassen</option>
+                                {categoryOptions.map((c) => (
+                                    <option key={c.value} value={c.value}>{c.value}</option>
+                                ))}
+                            </select>
+                            <ChevronDown aria-hidden className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted pointer-events-none" />
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        className="group sm:col-span-2 lg:col-span-1 min-h-14 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px px-7 text-hm-accent-ink font-semibold text-[15px] transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
+                    >
+                        {hasDates ? "Zeitraum ändern" : "Verfügbarkeit prüfen"}
+                        <ArrowRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
+                    </button>
+                </form>
+
+                <div className="mt-12 grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-10">
+                    <FleetSidebar
+                        categories={categoryOptions}
+                        transmissions={transmissionOptions}
+                        fuelTypes={fuelOptions}
+                        activeFilters={{
+                            type: vehicleType,
+                            category: categoryParam,
+                            brand: brandParam,
+                            transmission: transParam,
+                            fuelType: fuelParam
+                        }}
+                    />
+
+                    <div className="min-w-0">
+                        {cars.length === 0 ? (
+                            <div className="hm-stage ring-1 ring-inset ring-hm-rule dark:ring-0 rounded-[var(--hm-radius-card)] px-6 py-20 text-center text-hm-stage-ink">
+                                <Car aria-hidden className="mx-auto w-10 h-10 text-hm-stage-muted" />
+                                <h2 className="hm-display mt-5 text-3xl font-[750]">Keine passenden Fahrzeuge.</h2>
+                                <p className="mx-auto mt-3 max-w-sm text-sm text-hm-stage-muted">
+                                    {hasDates
+                                        ? "Im gewählten Zeitraum ist mit diesen Filtern nichts frei. Anderen Zeitraum wählen oder Filter lockern."
+                                        : "Mit diesen Filtern gibt es kein Fahrzeug. Filter lockern oder alle anzeigen."}
+                                </p>
+                                <Link
+                                    href="/fleet"
+                                    className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-pill)] bg-hm-stage-ink px-5 text-sm font-semibold text-hm-stage hover:bg-hm-accent hover:text-hm-accent-ink transition-[background-color,color] duration-[var(--hm-dur-short)] ease-hm-out"
+                                >
+                                    Alle Fahrzeuge zeigen
+                                </Link>
+                            </div>
+                        ) : (
+                            <ul className="grid grid-cols-1 sm:grid-cols-[repeat(2,minmax(0,1fr))] xl:grid-cols-[repeat(3,minmax(0,1fr))] gap-4">
+                                {cars.map((car, i) => (
+                                    <li key={car.id}>
+                                        <CarCard car={car} priority={i < 3} href={`/fleet/${car.id}/${carSlug(car.brand, car.model)}`} />
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            </main>
+
+            <Footer />
+        </div>
+    );
 }

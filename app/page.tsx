@@ -1,7 +1,6 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Photographic (showroom stage) · theme: custom (brand red) · enrichment: real fleet photography · nav: shared Navbar · footer: shared Footer
  * replaces: Catalogue (2026-10-05) · tokens: /tokens.css · pre-emit critique: P4 H5 E4 S5 R4 V5
  */
-import { Archivo, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/home/Navbar";
 import InteractiveFleet from "@/components/home/InteractiveFleet";
 import HeroShowroom, { type ShowcaseItem } from "@/components/home/HeroShowroom";
@@ -14,53 +13,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, ChevronDown, Phone, ShieldCheck, CalendarRange, MapPin } from "lucide-react";
 import { SITE_URL } from '@/lib/config';
+import { hmFontVariables } from "@/lib/hmFonts";
+import { BRANDED_PHOTOS, carPhoto, carSlug } from "@/lib/carPhotos";
 
 // Live fleet + availability: render per request, never prerender at build (CI has no DB).
 export const dynamic = "force-dynamic";
 
-const archivo = Archivo({
-  variable: "--font-hm-archivo",
-  subsets: ["latin"],
-  axes: ["wdth"],
-});
-
-const jetbrains = JetBrains_Mono({
-  variable: "--font-hm-jetbrains",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
 const formatEuro = (value: number) =>
   value.toLocaleString("de-AT", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-
-// Branded studio shots that exist in /public/assets/cars but aren't (yet) set as
-// the car's imageUrl in the admin. Keyed by "Brand Model".
-const STUDIO_PHOTOS: Record<string, string> = {
-  "Peugeot Traveller": "/assets/cars/Peugeot Traveller Automatic.png",
-  "Fiat Ducato L3H2": "/assets/cars/Fiat_Ducato_L3H2.png",
-  "Fiat Ducato L3H2 Plus": "/assets/cars/Fiat_Ducato_L3H2.png",
-  "Fiat Ducato L4H2": "/assets/cars/Fiat_Ducato_L4H2.png",
-  "Hyundai Ioniq Elektro": "/assets/cars/Hyundai Ioniq Elektro.png",
-  "VW Golf Kombi": "/assets/cars/VW_Golf_Kombi.png",
-};
-
-// Rent-Ex branded studio shots (1536×672, logo on the door) — preferred for the hero.
-const BRANDED_PHOTOS = new Set([
-  "/assets/cars/Ford_Mustang_MachE_GT.png",
-  "/assets/cars/Peugeot Traveller Automatic.png",
-  "/assets/cars/Fiat_Ducato_L3H2.png",
-  "/assets/cars/Fiat_Ducato_L4H2.png",
-  "/assets/cars/Hyundai Ioniq Elektro.png",
-  "/assets/cars/OpelCorsa.png",
-  "/assets/cars/Seat_Leon_Kombi.png",
-  "/assets/cars/Skoda_Superb_Kombi.png",
-  "/assets/cars/VWPolo.png",
-  "/assets/cars/VW_Golf_Kombi.png",
-]);
-
-function slugify(text: string) {
-  return text.toLowerCase().trim().replace(/s+/g, "-").replace(/[^w-]+/g, "").replace(/--+/g, "-");
-}
 
 export default async function Home() {
   const featuredCarsRaw = await getFeaturedCars();
@@ -71,7 +31,7 @@ export default async function Home() {
     id: car.id,
     brand: car.brand,
     model: car.model,
-    imageUrl: STUDIO_PHOTOS[`${car.brand} ${car.model}`] ?? car.imageUrl,
+    imageUrl: carPhoto(car.brand, car.model, car.imageUrl),
     dailyRate: Number(car.dailyRate),
     fuelType: car.fuelType,
     transmission: car.transmission,
@@ -104,7 +64,7 @@ export default async function Home() {
       car: {
         name: `${pick.brand} ${pick.model}`,
         imageUrl: pick.imageUrl,
-        href: `/fleet/${pick.id}/${slugify(`${pick.brand}-${pick.model}`)}`,
+        href: `/fleet/${pick.id}/${carSlug(pick.brand, pick.model)}`,
         specs: [pick.transmission || "Automatik", pick.fuelType, `${pick.seats || 5} Sitze`].filter(Boolean).join(" · "),
         rate: pick.dailyRate,
       },
@@ -209,7 +169,7 @@ export default async function Home() {
     "min-w-0 rounded-[var(--hm-radius-input)] px-4 pt-3 pb-1 hover:bg-hm-paper-2 focus-within:bg-hm-paper-2 transition-[background-color] duration-[var(--hm-dur-short)] ease-hm-out";
 
   return (
-    <div className={`${archivo.variable} ${jetbrains.variable} hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body selection:bg-hm-accent/25`}>
+    <div className={`${hmFontVariables} hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body selection:bg-hm-accent/25`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
