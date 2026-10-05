@@ -14,8 +14,9 @@ export async function POST(
     return apiUnauthorized();
   }
 
-  // RBAC: Only SUPERADMIN and MANAGER can process refunds
-  if (session.role !== 'SUPERADMIN' && session.role !== 'MANAGER') {
+  // RBAC: Only SUPERADMIN/ADMINISTRATOR and MANAGER/FILIALLEITER can process refunds
+  const allowedRefundRoles = ['SUPERADMIN', 'ADMINISTRATOR', 'MANAGER', 'FILIALLEITER'];
+  if (!allowedRefundRoles.includes(session.role)) {
     return apiError('Forbidden: Insufficient permissions', 403, ERROR_CODES.FORBIDDEN);
   }
 

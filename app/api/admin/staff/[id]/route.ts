@@ -25,9 +25,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const session = await getAdminSession();
     if (!session) return apiUnauthorized();
 
-    // Only SUPERADMIN can update staff
-    if (session.role !== 'SUPERADMIN') {
-        return apiError("Nur Super-Admins können Mitarbeiter bearbeiten", 403);
+    // Only SUPERADMIN or ADMINISTRATOR can update staff
+    if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
+        return apiError("Nur Administratoren können Mitarbeiter bearbeiten", 403);
     }
 
     const { id } = await params;
@@ -71,9 +71,9 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const session = await getAdminSession();
     if (!session) return apiUnauthorized();
 
-    // Only SUPERADMIN can delete staff
-    if (session.role !== 'SUPERADMIN') {
-        return apiError("Nur Super-Admins können Mitarbeiter löschen", 403);
+    // Only SUPERADMIN or ADMINISTRATOR can delete staff
+    if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
+        return apiError("Nur Administratoren können Mitarbeiter löschen", 403);
     }
 
     const { id } = await params;

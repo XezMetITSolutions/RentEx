@@ -31,13 +31,14 @@ export async function adminLogin(formData: FormData) {
     }
 
     const ip = await getClientIpFromHeaders();
-    const rl = rateLimit(`admin-login:${ip}:${email.toLowerCase()}`, RATE_LIMITS.AUTH_LOGIN);
+    const normalizedEmail = email.toLowerCase();
+    const rl = rateLimit(`admin-login:${ip}:${normalizedEmail}`, RATE_LIMITS.AUTH_LOGIN);
     if (!rl.allowed) {
         return { error: rateLimitErrorMessage(rl) };
     }
 
     const staff = await prisma.staff.findUnique({
-        where: { email },
+        where: { email: normalizedEmail },
         include: { location: true }
     });
 

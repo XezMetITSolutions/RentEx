@@ -115,6 +115,6 @@ export async function getAuthStaff(req: NextRequest): Promise<StaffAuth | null> 
 
 export function requireStaffRole(staff: StaffAuth | null, roles: string[]): boolean {
   if (!staff) return false;
-  if (staff.role === 'SUPERADMIN') return true;
+  if (staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR') return true;
   return roles.includes(staff.role);
 }

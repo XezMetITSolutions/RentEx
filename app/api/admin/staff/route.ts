@@ -27,9 +27,9 @@ export async function POST(req: NextRequest) {
     const session = await getAdminSession();
     if (!session) return apiUnauthorized();
     
-    // Only SUPERADMIN can create staff
-    if (session.role !== 'SUPERADMIN') {
-        return apiError("Nur Super-Admins können Mitarbeiter erstellen", 403);
+    // Only SUPERADMIN or ADMINISTRATOR can create staff
+    if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
+        return apiError("Nur Administratoren können Mitarbeiter erstellen", 403);
     }
 
     try {
