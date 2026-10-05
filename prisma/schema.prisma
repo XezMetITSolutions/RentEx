@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x", "windows"]
+  // Rust-free client: Cloudflare Workers cannot load the native query engine.
+  engineType    = "client"
 }
 
 datasource db {

@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['playwright', 'playwright-core'],
+  serverExternalPackages: ['playwright', 'playwright-core', '@prisma/client', '.prisma/client'],
+  // File tracing follows the "node" condition and only copies pg-cloudflare's
+  // empty stub; the Workers bundle needs its real socket implementation.
+  outputFileTracingIncludes: {
+    '/*': ['./node_modules/pg-cloudflare/**/*'],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "15mb",
