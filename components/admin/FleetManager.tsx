@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css · pre-emit critique: P5 H5 E5 S5 R4 V4 */
 'use client';
 
 import { useState, useMemo, useTransition } from 'react';
@@ -8,10 +9,11 @@ import {
     Settings2, Car as CarIcon,
     Edit2, LayoutGrid, List,
     BookOpen, Wrench, X, Save, Loader2,
-    Tag
+    Tag, Plus
 } from 'lucide-react';
 import { DeleteCarButton } from '@/app/admin/fleet/DeleteCarButton';
 import { CategoriesModal } from '@/components/admin/CategoriesModal';
+import { clsx } from 'clsx';
 
 interface Car {
     id: number;
@@ -52,7 +54,6 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
     // Extract unique values for filters
     const brands = useMemo(() => Array.from(new Set(initialCars.map(c => c.brand))).sort(), [initialCars]);
     
-    // Use global categories if available, otherwise fallback to existing car categories
     const categories = useMemo(() => {
         if (globalCategories && globalCategories.length > 0) {
             return globalCategories.map(c => c.name);
@@ -89,21 +90,21 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
         });
     }, [initialCars, searchQuery, statusFilter, brandFilter, categoryFilter, fuelFilter, locationFilter]);
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
-            case 'Active': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
-            case 'NeedsRepair': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
-            case 'Maintenance': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
-            case 'Rented': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
-            case 'Reserved': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+            case 'Active': return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+            case 'NeedsRepair': return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
+            case 'Maintenance': return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+            case 'Rented': return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+            case 'Reserved': return 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20';
+            default: return 'bg-hm-paper-2 text-hm-muted border-hm-rule';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'Active': return 'Verfügbar';
-            case 'NeedsRepair': return '⚠️ Reparatur';
+            case 'NeedsRepair': return 'Reparatur';
             case 'Maintenance': return 'Wartung';
             case 'Rented': return 'Vermietet';
             case 'Reserved': return 'Reserviert';
@@ -139,13 +140,10 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                 } else {
                     setFormSuccess('Fahrtenbuch-Eintrag gespeichert!');
                     form.reset();
-                    setTimeout(() => {
-                        setFahrtenbuchCar(null);
-                        setFormSuccess(null);
-                    }, 1500);
+                    setTimeout(() => { setFahrtenbuchCar(null); setFormSuccess(null); }, 1200);
                 }
-            } catch {
-                setFormError('Fehler beim Speichern.');
+            } catch (err: any) {
+                setFormError('Netzwerkfehler');
             }
         });
     };
@@ -164,8 +162,8 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                     body: JSON.stringify({
                         carId: Number(formData.get('carId')),
                         maintenanceType: formData.get('maintenanceType'),
-                        description: formData.get('description'),
                         performedDate: formData.get('performedDate'),
+                        description: formData.get('description'),
                         cost: formData.get('cost') ? Number(formData.get('cost')) : null,
                         mileage: formData.get('mileage') ? Number(formData.get('mileage')) : null,
                         performedBy: formData.get('performedBy') || null,
@@ -179,58 +177,80 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                 } else {
                     setFormSuccess('Wartungseintrag gespeichert!');
                     form.reset();
-                    setTimeout(() => {
-                        setWartungCar(null);
-                        setFormSuccess(null);
-                    }, 1500);
+                    setTimeout(() => { setWartungCar(null); setFormSuccess(null); }, 1200);
                 }
-            } catch {
-                setFormError('Fehler beim Speichern.');
+            } catch (err: any) {
+                setFormError('Netzwerkfehler');
             }
         });
     };
 
     return (
-        <div className="max-w-[1400px] mx-auto space-y-6 pb-10 px-4 sm:px-6">
-            {/* Header Area (Clean SaaS Style) */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-gray-800">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                        <CarIcon className="w-6 h-6 text-gray-400" />
-                        Fahrzeugflotte
-                        <span className="ml-2 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs rounded-md font-medium border border-gray-200 dark:border-gray-700">
+        <div className="max-w-[1440px] mx-auto space-y-8 pb-12 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
+                            Flotte · Fuhrparkverwaltung
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
+                            Fahrzeugflotte
+                        </h1>
+                        <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-[var(--hm-radius-pill)] bg-hm-paper-2 border border-hm-rule text-hm-muted">
                             {filteredCars.length} Fahrzeuge
                         </span>
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Verwalten Sie Ihre Fahrzeuge, Status und Standorte zentral.</p>
+                    </div>
+                    <p className="text-xs font-mono text-hm-muted uppercase tracking-wider">
+                        Zentrales Flottenverzeichnis · Status, Disposition & Standorte
+                    </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                    {/* View Switcher */}
+                    <div className="flex items-center bg-hm-paper-2 rounded-[var(--hm-radius-input)] p-1 border border-hm-rule">
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                            className={clsx(
+                                "p-1.5 rounded-[calc(var(--hm-radius-input)-2px)] transition-all",
+                                viewMode === 'list' 
+                                    ? "bg-hm-paper text-hm-ink shadow-xs border border-hm-rule" 
+                                    : "text-hm-muted hover:text-hm-ink"
+                            )}
+                            title="Listenansicht"
                         >
                             <List className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                            className={clsx(
+                                "p-1.5 rounded-[calc(var(--hm-radius-input)-2px)] transition-all",
+                                viewMode === 'grid' 
+                                    ? "bg-hm-paper text-hm-ink shadow-xs border border-hm-rule" 
+                                    : "text-hm-muted hover:text-hm-ink"
+                            )}
+                            title="Kachelansicht"
                         >
                             <LayoutGrid className="w-4 h-4" />
                         </button>
                     </div>
 
-                    <Link href="/admin/fleet/new" className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-sm font-medium transition-colors shadow-sm hover:bg-gray-800 dark:hover:bg-gray-100">
-                        <PlusIcon className="w-4 h-4" />
+                    <Link 
+                        href="/admin/fleet/new" 
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
                         Neues Fahrzeug
                     </Link>
                     <button
                         type="button"
                         onClick={() => setCategoriesModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
                     >
-                        <Tag className="w-4 h-4" />
+                        <Tag className="w-3.5 h-3.5 text-hm-muted" />
                         Kategorien
                     </button>
                 </div>
@@ -238,28 +258,28 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
 
             <CategoriesModal isOpen={categoriesModalOpen} onClose={() => setCategoriesModalOpen(false)} />
 
-            {/* Filters Area (Clean & Functional) */}
-            <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+            {/* Filters Area */}
+            <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted" />
                         <input
                             type="text"
                             placeholder="Suchen (Kennzeichen, Modell, VIN)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
+                            className="w-full pl-9 pr-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink placeholder:text-hm-muted focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                         />
                     </div>
 
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm transition-all"
+                        className="px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                     >
                         <option value="all">Alle Status</option>
                         <option value="Active">Verfügbar</option>
-                        <option value="NeedsRepair">⚠️ Reparatur erforderlich</option>
+                        <option value="NeedsRepair">Reparatur erforderlich</option>
                         <option value="Maintenance">Wartung</option>
                         <option value="Rented">Vermietet</option>
                         <option value="Reserved">Reserviert</option>
@@ -269,7 +289,7 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                     <select
                         value={brandFilter}
                         onChange={(e) => setBrandFilter(e.target.value)}
-                        className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm transition-all"
+                        className="px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                     >
                         <option value="all">Alle Marken</option>
                         {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
@@ -278,28 +298,30 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                     <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm transition-all"
+                        className="px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                     >
                         <option value="all">Alle Kategorien</option>
                         {categories.map(cat => <option key={cat as string} value={cat as string}>{cat}</option>)}
                     </select>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-hm-rule font-mono text-xs">
                     <div className="flex flex-wrap items-center gap-3">
                         <select
                             value={fuelFilter}
                             onChange={(e) => setFuelFilter(e.target.value)}
-                            className="px-3 py-1.5 bg-transparent border-none text-sm font-medium text-gray-600 dark:text-gray-400 focus:ring-0 outline-none cursor-pointer hover:text-gray-900 dark:hover:text-white"
+                            className="bg-transparent border-none text-hm-muted hover:text-hm-ink transition-colors cursor-pointer"
                         >
                             <option value="all">Alle Kraftstoffe</option>
                             {fuelTypes.map(fuel => <option key={fuel} value={fuel}>{fuel}</option>)}
                         </select>
 
+                        <span className="text-hm-rule">·</span>
+
                         <select
                             value={locationFilter}
                             onChange={(e) => setLocationFilter(e.target.value)}
-                            className="px-3 py-1.5 bg-transparent border-none text-sm font-medium text-gray-600 dark:text-gray-400 focus:ring-0 outline-none cursor-pointer hover:text-gray-900 dark:hover:text-white"
+                            className="bg-transparent border-none text-hm-muted hover:text-hm-ink transition-colors cursor-pointer"
                         >
                             <option value="all">Alle Standorte</option>
                             {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
@@ -315,104 +337,112 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                             setFuelFilter('all');
                             setLocationFilter('all');
                         }}
-                        className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                        className="uppercase tracking-wider text-[11px] text-hm-muted hover:text-hm-accent transition-colors"
                     >
                         Filter zurücksetzen
                     </button>
                 </div>
             </div>
 
-            {/* List View (Clean Table) */}
+            {/* List View */}
             {viewMode === 'list' && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 uppercase tracking-wider">
+                            <thead className="text-[11px] font-mono text-hm-muted bg-hm-paper-2 border-b border-hm-rule uppercase tracking-wider">
                                 <tr>
-                                    <th className="px-6 py-3 font-medium">Fahrzeug</th>
-                                    <th className="px-6 py-3 font-medium">Kennzeichen / VIN</th>
-                                    <th className="px-6 py-3 font-medium">Kategorie & Status</th>
-                                    <th className="px-6 py-3 font-medium">Standort</th>
-                                    <th className="px-6 py-3 font-medium">Technische Daten</th>
-                                    <th className="px-6 py-3 font-medium text-right">Tagespreis</th>
-                                    <th className="px-6 py-3 font-medium text-right">Aktionen</th>
+                                    <th className="px-6 py-3 font-semibold">Fahrzeug</th>
+                                    <th className="px-6 py-3 font-semibold">Kennzeichen / VIN</th>
+                                    <th className="px-6 py-3 font-semibold">Kategorie & Status</th>
+                                    <th className="px-6 py-3 font-semibold">Standort</th>
+                                    <th className="px-6 py-3 font-semibold">Antrieb</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Tagespreis</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Aktionen</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                            <tbody className="divide-y divide-hm-rule">
                                 {filteredCars.map((car) => (
-                                    <tr key={car.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <tr key={car.id} className="hover:bg-hm-paper-2/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <Link href={`/admin/fleet/${car.id}`} className="flex items-center gap-4 group">
-                                                <div className="relative w-12 h-10 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shrink-0">
+                                            <Link href={`/admin/fleet/${car.id}`} className="flex items-center gap-3.5 group">
+                                                <div className="relative w-12 h-10 rounded-[var(--hm-radius-input)] overflow-hidden bg-hm-paper-2 border border-hm-rule shrink-0">
                                                     {car.imageUrl ? (
-                                                        <Image src={car.imageUrl} alt={car.model} fill className="object-cover transition-transform group-hover:scale-110" />
+                                                        <Image src={car.imageUrl} alt={car.model} fill className="object-cover transition-transform group-hover:scale-105" />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                            <CarIcon className="w-5 h-5" />
+                                                        <div className="w-full h-full flex items-center justify-center text-hm-muted">
+                                                            <CarIcon className="w-4 h-4" />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{car.brand} {car.model}</div>
-                                                    <div className="text-xs text-gray-500">{car.year} • {car.color}</div>
+                                                    <div className="font-semibold text-hm-ink group-hover:text-hm-accent transition-colors">
+                                                        {car.brand} {car.model}
+                                                    </div>
+                                                    <div className="text-[11px] font-mono text-hm-muted">
+                                                        {car.year} · {car.color}
+                                                    </div>
                                                 </div>
                                             </Link>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="font-medium text-gray-700 dark:text-gray-300">{car.plate}</div>
-                                            {car.vin && <div className="text-[10px] text-gray-400 font-mono mt-0.5" title={car.vin}>{car.vin.substring(0, 8)}...</div>}
+                                        <td className="px-6 py-4 font-mono">
+                                            <span className="inline-block text-[11px] px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink-2 font-semibold">
+                                                {car.plate}
+                                            </span>
+                                            {car.vin && (
+                                                <div className="text-[10px] text-hm-muted mt-1" title={car.vin}>
+                                                    VIN: {car.vin.substring(0, 8)}...
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="space-y-1.5">
+                                            <div className="space-y-1">
                                                 {car.category && (
-                                                    <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                                                    <div className="text-[10px] font-mono text-hm-muted uppercase tracking-wider">
                                                         {car.category}
                                                     </div>
                                                 )}
-                                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium border ${getStatusColor(car.status)}`}>
-                                                    <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                <span className={clsx(
+                                                    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[var(--hm-radius-pill)] text-[10px] font-mono font-bold uppercase tracking-wider border',
+                                                    getStatusBadge(car.status)
+                                                )}>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
                                                     {getStatusLabel(car.status)}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
-                                                <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                                                <span>{car.currentLocation?.name || car.homeLocation?.name || '–'}</span>
+                                            <div className="flex items-center gap-1.5 text-xs text-hm-ink">
+                                                <MapPin className="w-3.5 h-3.5 text-hm-muted shrink-0" />
+                                                <span className="truncate">{car.currentLocation?.name || car.homeLocation?.name || '–'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="space-y-1 text-xs text-gray-500">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Fuel className="w-3 h-3 text-gray-400" /> {car.fuelType}
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <Settings2 className="w-3 h-3 text-gray-400" /> {car.transmission || '–'}
-                                                </div>
-                                            </div>
+                                        <td className="px-6 py-4 font-mono text-xs text-hm-muted">
+                                            <div>{car.fuelType}</div>
+                                            <div className="text-[11px]">{car.transmission || '–'}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="font-semibold text-gray-900 dark:text-white">
-                                                €{Number(car.dailyRate).toLocaleString('de-AT', { minimumFractionDigits: 2 })}
-                                            </div>
+                                        <td className="px-6 py-4 text-right font-mono font-bold text-hm-ink hm-tnum">
+                                            €{Number(car.dailyRate).toLocaleString('de-AT', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
                                                     onClick={() => { setFahrtenbuchCar(car); setFormError(null); setFormSuccess(null); }}
-                                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                                    className="p-1.5 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
                                                     title="Fahrtenbuch"
                                                 >
                                                     <BookOpen className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => { setWartungCar(car); setFormError(null); setFormSuccess(null); }}
-                                                    className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                                    className="p-1.5 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
                                                     title="Wartung"
                                                 >
                                                     <Wrench className="w-4 h-4" />
                                                 </button>
-                                                <Link href={`/admin/fleet/${car.id}`} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                                                <Link 
+                                                    href={`/admin/fleet/${car.id}`} 
+                                                    className="p-1.5 text-hm-muted hover:text-hm-accent hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
+                                                >
                                                     <Edit2 className="w-4 h-4" />
                                                 </Link>
                                                 <div className="scale-90 origin-right ml-1">
@@ -425,97 +455,105 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                             </tbody>
                         </table>
                         {filteredCars.length === 0 && (
-                            <div className="py-20 text-center text-gray-500">
-                                <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">Keine Fahrzeuge gefunden</p>
-                                <p className="text-xs text-gray-500 mt-1">Versuchen Sie es mit anderen Filter-Einstellungen.</p>
+                            <div className="py-20 text-center text-hm-muted">
+                                <CarIcon className="w-10 h-10 text-hm-muted/40 mx-auto mb-3" />
+                                <p className="text-xs font-mono uppercase tracking-wider">Keine Fahrzeuge gefunden</p>
                             </div>
                         )}
                     </div>
                 </div>
             )}
 
-            {/* Grid View (Clean Cards) */}
+            {/* Grid View */}
             {viewMode === 'grid' && (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredCars.map((car) => (
-                        <div key={car.id} className="group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden hover:border-gray-300 dark:hover:border-gray-700 transition-all">
-                            <Link href={`/admin/fleet/${car.id}`} className="aspect-[16/10] bg-gray-100 dark:bg-gray-800 relative block overflow-hidden">
-                                {car.imageUrl ? (
-                                    <Image
-                                        src={car.imageUrl}
-                                        alt={`${car.brand} ${car.model}`}
-                                        fill
-                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                        <CarIcon className="h-12 w-12" />
+                        <div key={car.id} className="group bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden hover:border-hm-rule-strong transition-colors flex flex-col justify-between">
+                            <div>
+                                <Link href={`/admin/fleet/${car.id}`} className="aspect-[16/10] bg-hm-stage relative block overflow-hidden">
+                                    {car.imageUrl ? (
+                                        <Image
+                                            src={car.imageUrl}
+                                            alt={`${car.brand} ${car.model}`}
+                                            fill
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-hm-muted">
+                                            <CarIcon className="h-10 w-10" />
+                                        </div>
+                                    )}
+                                    <div className="absolute top-2.5 right-2.5">
+                                        <span className={clsx(
+                                            'px-2 py-0.5 rounded-[var(--hm-radius-pill)] text-[9px] font-mono font-bold uppercase tracking-wider border shadow-xs',
+                                            getStatusBadge(car.status)
+                                        )}>
+                                            {getStatusLabel(car.status)}
+                                        </span>
                                     </div>
-                                )}
-                                <div className="absolute top-3 right-3">
-                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border shadow-sm ${getStatusColor(car.status)}`}>
-                                        {getStatusLabel(car.status)}
-                                    </span>
-                                </div>
-                            </Link>
+                                </Link>
 
-                            <div className="p-5">
-                                <div className="flex justify-between items-start mb-4">
-                                    <Link href={`/admin/fleet/${car.id}`} className="group/title">
-                                        <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover/title:text-blue-600 transition-colors">{car.brand} {car.model}</h3>
-                                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{car.plate}</p>
-                                    </Link>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-6">
-                                    <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                        <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                                        <span>{car.year}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                        <Fuel className="h-3.5 w-3.5 text-gray-400" />
-                                        <span>{car.fuelType}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                        <Settings2 className="h-3.5 w-3.5 text-gray-400" />
-                                        <span>{car.transmission || '-'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                        <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                                        <span className="truncate">{car.currentLocation?.name ?? car.homeLocation?.name ?? '–'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                <div className="p-4 space-y-3">
                                     <div>
-                                        <p className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider">Tagespreis</p>
-                                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                            €{Number(car.dailyRate).toLocaleString('de-AT', { minimumFractionDigits: 2 })}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-1">
-                                        <button
-                                            onClick={() => { setFahrtenbuchCar(car); setFormError(null); setFormSuccess(null); }}
-                                            className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                            title="Fahrtenbuch"
-                                        >
-                                            <BookOpen className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => { setWartungCar(car); setFormError(null); setFormSuccess(null); }}
-                                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
-                                            title="Wartung"
-                                        >
-                                            <Wrench className="w-4 h-4" />
-                                        </button>
-                                        <Link
-                                            href={`/admin/fleet/${car.id}`}
-                                            className="flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                        >
-                                            <Edit2 className="w-4 h-4" />
+                                        <Link href={`/admin/fleet/${car.id}`} className="group/title block">
+                                            <h3 className="font-semibold text-hm-ink group-hover/title:text-hm-accent transition-colors truncate">
+                                                {car.brand} {car.model}
+                                            </h3>
+                                            <div className="mt-1 font-mono text-[11px] px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink-2 w-fit">
+                                                {car.plate}
+                                            </div>
                                         </Link>
                                     </div>
+
+                                    <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-hm-muted pt-2 border-t border-hm-rule">
+                                        <div className="flex items-center gap-1.5 truncate">
+                                            <Calendar className="h-3 w-3 shrink-0" />
+                                            <span>{car.year}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 truncate">
+                                            <Fuel className="h-3 w-3 shrink-0" />
+                                            <span className="truncate">{car.fuelType}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 truncate">
+                                            <Settings2 className="h-3 w-3 shrink-0" />
+                                            <span className="truncate">{car.transmission || '-'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 truncate">
+                                            <MapPin className="h-3 w-3 shrink-0" />
+                                            <span className="truncate">{car.currentLocation?.name ?? car.homeLocation?.name ?? '–'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 pt-3 border-t border-hm-rule flex items-center justify-between bg-hm-paper">
+                                <div>
+                                    <p className="text-[10px] font-mono uppercase tracking-wider text-hm-muted">Tagespreis</p>
+                                    <p className="font-mono font-bold text-hm-ink hm-tnum">
+                                        €{Number(car.dailyRate).toLocaleString('de-AT', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => { setFahrtenbuchCar(car); setFormError(null); setFormSuccess(null); }}
+                                        className="p-1.5 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
+                                        title="Fahrtenbuch"
+                                    >
+                                        <BookOpen className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => { setWartungCar(car); setFormError(null); setFormSuccess(null); }}
+                                        className="p-1.5 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
+                                        title="Wartung"
+                                    >
+                                        <Wrench className="w-4 h-4" />
+                                    </button>
+                                    <Link
+                                        href={`/admin/fleet/${car.id}`}
+                                        className="p-1.5 text-hm-muted hover:text-hm-accent hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -523,62 +561,62 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                 </div>
             )}
 
-            {/* ===== FAHRTENBUCH MODAL (Professional Redesign) ===== */}
+            {/* ===== FAHRTENBUCH MODAL ===== */}
             {fahrtenbuchCar && (
-                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setFahrtenbuchCar(null)}>
-                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-lg">
-                                    <BookOpen className="w-5 h-5" />
+                <div className="fixed inset-0 bg-hm-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setFahrtenbuchCar(null)}>
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] shadow-xl w-full max-w-md border border-hm-rule text-hm-ink overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="px-5 py-4 border-b border-hm-rule flex items-center justify-between bg-hm-paper">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 bg-hm-paper-2 border border-hm-rule text-hm-ink rounded-[var(--hm-radius-input)]">
+                                    <BookOpen className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">Fahrtenbuch</h2>
-                                    <p className="text-xs text-gray-500">{fahrtenbuchCar.brand} {fahrtenbuchCar.model} · {fahrtenbuchCar.plate}</p>
+                                    <h2 className="hm-display text-sm font-bold text-hm-ink tracking-tight">Fahrtenbuch</h2>
+                                    <p className="text-[11px] font-mono text-hm-muted">{fahrtenbuchCar.brand} {fahrtenbuchCar.model} · {fahrtenbuchCar.plate}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setFahrtenbuchCar(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X className="w-5 h-5" />
+                            <button onClick={() => setFahrtenbuchCar(null)} className="p-1 text-hm-muted hover:text-hm-ink transition-colors">
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleFahrtenbuchSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleFahrtenbuchSubmit} className="p-5 space-y-4">
                             <input type="hidden" name="carId" value={fahrtenbuchCar.id} />
 
-                            {formError && <p className="text-xs text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-100 dark:border-red-900/30">{formError}</p>}
-                            {formSuccess && <p className="text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-900/30">{formSuccess}</p>}
+                            {formError && <p className="text-xs font-mono text-red-600 bg-red-500/10 px-3 py-2 rounded border border-red-500/20">{formError}</p>}
+                            {formSuccess && <p className="text-xs font-mono text-emerald-600 bg-emerald-500/10 px-3 py-2 rounded border border-emerald-500/20">{formSuccess}</p>}
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Datum</label>
-                                <input name="datum" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" />
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Datum</label>
+                                <input name="datum" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Start km</label>
-                                    <input name="startKm" type="number" required min={0} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Start km</label>
+                                    <input name="startKm" type="number" required min={0} className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ende km</label>
-                                    <input name="endKm" type="number" required min={0} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Ende km</label>
+                                    <input name="endKm" type="number" required min={0} className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Zweck</label>
-                                    <select name="zweck" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all">
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Zweck</label>
+                                    <select name="zweck" className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors">
                                         <option value="DIENSTFAHRT">Dienstfahrt</option>
                                         <option value="PRIVATFAHRT">Privatfahrt</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Fahrtzweck</label>
-                                    <input name="fahrtzweck" type="text" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" placeholder="z.B. Feldkirch – Wien" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Fahrtzweck</label>
+                                    <input name="fahrtzweck" type="text" className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" placeholder="z.B. Feldkirch – Wien" />
                                 </div>
                             </div>
 
-                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition-all shadow-sm">
+                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-hm-accent-ink disabled:opacity-50 transition-colors shadow-xs">
                                 {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Speichern
                             </button>
@@ -587,76 +625,76 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
                 </div>
             )}
 
-            {/* ===== WARTUNG MODAL (Professional Redesign) ===== */}
+            {/* ===== WARTUNG MODAL ===== */}
             {wartungCar && (
-                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setWartungCar(null)}>
-                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 z-10">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 rounded-lg">
-                                    <Wrench className="w-5 h-5" />
+                <div className="fixed inset-0 bg-hm-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => setWartungCar(null)}>
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] shadow-xl w-full max-w-md border border-hm-rule text-hm-ink max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="px-5 py-4 border-b border-hm-rule flex items-center justify-between sticky top-0 bg-hm-paper z-10">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 bg-hm-paper-2 border border-hm-rule text-hm-ink rounded-[var(--hm-radius-input)]">
+                                    <Wrench className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">Wartung eintragen</h2>
-                                    <p className="text-xs text-gray-500">{wartungCar.brand} {wartungCar.model} · {wartungCar.plate}</p>
+                                    <h2 className="hm-display text-sm font-bold text-hm-ink tracking-tight">Wartung eintragen</h2>
+                                    <p className="text-[11px] font-mono text-hm-muted">{wartungCar.brand} {wartungCar.model} · {wartungCar.plate}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setWartungCar(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X className="w-5 h-5" />
+                            <button onClick={() => setWartungCar(null)} className="p-1 text-hm-muted hover:text-hm-ink transition-colors">
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleWartungSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleWartungSubmit} className="p-5 space-y-4">
                             <input type="hidden" name="carId" value={wartungCar.id} />
 
-                            {formError && <p className="text-xs text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-100 dark:border-red-900/30">{formError}</p>}
-                            {formSuccess && <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30">{formSuccess}</p>}
+                            {formError && <p className="text-xs font-mono text-red-600 bg-red-500/10 px-3 py-2 rounded border border-red-500/20">{formError}</p>}
+                            {formSuccess && <p className="text-xs font-mono text-emerald-600 bg-emerald-500/10 px-3 py-2 rounded border border-emerald-500/20">{formSuccess}</p>}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Art der Wartung</label>
-                                    <select name="maintenanceType" required className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all">
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Art der Wartung</label>
+                                    <select name="maintenanceType" required className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors">
                                         <option value="Oil Change">Ölwechsel</option>
                                         <option value="Tire Change">Reifenwechsel</option>
-                                        <option value="Inspection">Inspektion</option>
+                                        <option value="Inspection">Inspektion / TÜV</option>
                                         <option value="Repair">Reparatur</option>
                                         <option value="Service">Service</option>
                                         <option value="Other">Sonstiges</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Datum</label>
-                                    <input name="performedDate" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Datum</label>
+                                    <input name="performedDate" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Beschreibung</label>
-                                <input name="description" type="text" required className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all" placeholder="z.B. Bremsbeläge vorne gewechselt" />
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Beschreibung</label>
+                                <input name="description" type="text" required className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" placeholder="z.B. Bremsbeläge vorne gewechselt" />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kosten (€)</label>
-                                    <input name="cost" type="number" step="0.01" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Kosten (€)</label>
+                                    <input name="cost" type="number" step="0.01" className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kilometerstand</label>
-                                    <input name="mileage" type="number" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Kilometerstand</label>
+                                    <input name="mileage" type="number" className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Durchgeführt von</label>
-                                <input name="performedBy" type="text" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all" placeholder="Werkstatt / Person" />
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Durchgeführt von</label>
+                                <input name="performedBy" type="text" className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors" placeholder="Werkstatt / Person" />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Notizen</label>
-                                <textarea name="notes" rows={2} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all resize-none"></textarea>
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Notizen</label>
+                                <textarea name="notes" rows={2} className="w-full px-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink focus:outline-hidden focus:border-hm-rule-strong transition-colors resize-none"></textarea>
                             </div>
 
-                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 transition-all shadow-sm">
+                            <button type="submit" disabled={isPending} className="w-full flex items-center justify-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-hm-accent-ink disabled:opacity-50 transition-colors shadow-xs">
                                 {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Speichern
                             </button>
@@ -666,13 +704,4 @@ export function FleetManager({ initialCars, globalCategories = [] }: { initialCa
             )}
         </div>
     );
-}
-
-function PlusIcon({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-        </svg>
-    )
 }

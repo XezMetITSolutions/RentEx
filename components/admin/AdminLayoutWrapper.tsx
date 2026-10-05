@@ -15,6 +15,8 @@ interface AdminLayoutWrapperProps {
     staff: any;
 }
 
+import { hmFontVariables } from '@/lib/hmFonts';
+
 export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayoutWrapperProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
@@ -30,7 +32,7 @@ export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayo
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className={`hm-admin flex min-h-screen bg-hm-paper-2 text-hm-ink font-sans ${hmFontVariables}`}>
             {/* Sidebar with mobile toggle logic */}
             <Sidebar
                 activeRentals={stats.activeRentals}
@@ -51,7 +53,7 @@ export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayo
 
             <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
                 <Header onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-gray-50 dark:bg-gray-950">
+                <main className="flex-1 p-5 sm:p-8 overflow-y-auto bg-hm-paper-2 text-hm-ink">
                     {children}
                 </main>
             </div>

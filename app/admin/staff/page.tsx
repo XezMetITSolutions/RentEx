@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css · pre-emit critique: P5 H5 E5 S5 R4 V4 */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,15 +6,16 @@ import {
     Users, Plus, Edit2, Trash2, Shield, Check, X,
     MapPin, Mail, Key, ToggleLeft, ToggleRight, AlertCircle
 } from "lucide-react";
+import { clsx } from "clsx";
 
 const ROLES = ["ADMINISTRATOR", "FILIALLEITER", "MITARBEITER", "FAHRER"] as const;
 type Role = typeof ROLES[number];
 
-const ROLE_COLORS: Record<Role, string> = {
-    ADMINISTRATOR: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    FILIALLEITER: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    MITARBEITER: "bg-green-500/10 text-green-400 border-green-500/20",
-    FAHRER: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+const ROLE_BADGES: Record<Role, string> = {
+    ADMINISTRATOR: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+    FILIALLEITER: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+    MITARBEITER: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+    FAHRER: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
 };
 
 interface StaffMember {
@@ -103,33 +105,38 @@ export default function StaffPage() {
     }
 
     return (
-        <div className="p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-black/50">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <Users className="w-6 h-6 text-red-500" />
+        <div className="max-w-[1440px] mx-auto space-y-8 pb-12 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
+                            System · Benutzer & Rollenrechte
+                        </span>
+                    </div>
+                    <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
                         Mitarbeiterverwaltung
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                        Personal, Rollen und Zugänge verwalten
+                    <p className="text-xs font-mono text-hm-muted uppercase tracking-wider">
+                        Personal, Zugriffsberechtigungen & Standortzuweisungen
                     </p>
                 </div>
                 <button
                     onClick={openNew}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors text-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
                 >
-                    <Plus className="w-4 h-4" />
-                    Mitarbeiter hinzufügen
+                    <Plus className="w-3.5 h-3.5" />
+                    Mitarbeiter anlegen
                 </button>
             </div>
 
-            {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* Role distribution row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {ROLES.map(role => (
-                    <div key={role} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{role}</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div key={role} className="bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-card)] p-4 sm:p-5 flex flex-col justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">{role}</span>
+                        <p className="hm-display text-2xl font-bold text-hm-ink mt-3 hm-tnum">
                             {staff.filter(s => s.role === role).length}
                         </p>
                     </div>
@@ -138,149 +145,160 @@ export default function StaffPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="text-center py-20 text-gray-500">Laden...</div>
+                <div className="text-center py-20 font-mono text-xs text-hm-muted uppercase tracking-wider">Laden...</div>
             ) : (
-                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-200 dark:border-white/10">
-                                <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rolle</th>
-                                <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Standort</th>
-                                <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Letzter Login</th>
-                                <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="p-4"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {staff.map((s) => (
-                                <tr key={s.id} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                    <td className="p-4">
-                                        <div className="font-medium text-gray-900 dark:text-white">{s.name}</div>
-                                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                            <Mail className="w-3 h-3" />
-                                            {s.email}
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${ROLE_COLORS[s.role]}`}>
-                                            <Shield className="w-3 h-3 mr-1" />
-                                            {s.role}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 hidden md:table-cell">
-                                        {s.location ? (
-                                            <span className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                                                <MapPin className="w-3 h-3" />
-                                                {s.location.name}
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs text-gray-400">—</span>
-                                        )}
-                                    </td>
-                                    <td className="p-4 hidden md:table-cell">
-                                        <span className="text-xs text-gray-500">
-                                            {s.lastLoginAt ? new Date(s.lastLoginAt).toLocaleDateString("de-AT") : "Noch nie"}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <button onClick={() => toggleActive(s)} title="Status umschalten">
-                                            {s.isActive ? (
-                                                <ToggleRight className="w-5 h-5 text-green-500" />
-                                            ) : (
-                                                <ToggleLeft className="w-5 h-5 text-gray-400" />
-                                            )}
-                                        </button>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2 justify-end">
-                                            <button onClick={() => openEdit(s)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-                                                <Edit2 className="w-4 h-4 text-gray-500" />
-                                            </button>
-                                            <button onClick={() => deleteStaff(s.id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
-                                                <Trash2 className="w-4 h-4 text-red-500" />
-                                            </button>
-                                        </div>
-                                    </td>
+                <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-hm-paper-2 text-[11px] font-mono text-hm-muted uppercase tracking-wider border-b border-hm-rule">
+                                <tr>
+                                    <th className="px-6 py-3 font-semibold">Name & E-Mail</th>
+                                    <th className="px-6 py-3 font-semibold">Rolle</th>
+                                    <th className="px-6 py-3 font-semibold hidden md:table-cell">Standort</th>
+                                    <th className="px-6 py-3 font-semibold hidden md:table-cell">Letzter Login</th>
+                                    <th className="px-6 py-3 font-semibold">Aktiv</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Aktionen</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {staff.length === 0 && (
-                        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-                            Noch keine Mitarbeiter hinzugefügt.
-                        </div>
-                    )}
+                            </thead>
+                            <tbody className="divide-y divide-hm-rule">
+                                {staff.map((s) => (
+                                    <tr key={s.id} className="hover:bg-hm-paper-2/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-semibold text-hm-ink">{s.name}</div>
+                                            <div className="text-[11px] font-mono text-hm-muted flex items-center gap-1 mt-0.5">
+                                                <Mail className="w-3 h-3 text-hm-muted" />
+                                                {s.email}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={clsx(
+                                                'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[var(--hm-radius-pill)] text-[10px] font-mono font-bold uppercase tracking-wider border',
+                                                ROLE_BADGES[s.role]
+                                            )}>
+                                                <Shield className="w-3 h-3" />
+                                                {s.role}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 hidden md:table-cell text-xs font-mono text-hm-ink">
+                                            {s.location ? (
+                                                <span className="flex items-center gap-1">
+                                                    <MapPin className="w-3.5 h-3.5 text-hm-muted" />
+                                                    {s.location.name}
+                                                </span>
+                                            ) : (
+                                                <span className="text-hm-muted">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 hidden md:table-cell font-mono text-xs text-hm-muted">
+                                            {s.lastLoginAt ? new Date(s.lastLoginAt).toLocaleDateString("de-AT") : "Noch nie"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <button onClick={() => toggleActive(s)} title="Status umschalten" className="transition-opacity">
+                                                {s.isActive ? (
+                                                    <ToggleRight className="w-6 h-6 text-emerald-600" />
+                                                ) : (
+                                                    <ToggleLeft className="w-6 h-6 text-hm-muted" />
+                                                )}
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center gap-1 justify-end">
+                                                <button 
+                                                    onClick={() => openEdit(s)} 
+                                                    className="p-1.5 hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] text-hm-muted hover:text-hm-ink transition-colors"
+                                                    title="Bearbeiten"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={() => deleteStaff(s.id)} 
+                                                    className="p-1.5 hover:bg-red-500/10 rounded-[var(--hm-radius-input)] text-hm-muted hover:text-red-600 transition-colors"
+                                                    title="Löschen"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {staff.length === 0 && (
+                            <div className="text-center py-16 font-mono text-xs text-hm-muted uppercase tracking-wider">
+                                Noch keine Mitarbeiter hinzugefügt.
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
             {/* Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-white/10">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="fixed inset-0 bg-hm-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] shadow-xl w-full max-w-md border border-hm-rule text-hm-ink overflow-hidden">
+                        <div className="flex items-center justify-between p-5 border-b border-hm-rule bg-hm-paper">
+                            <h2 className="hm-display text-sm font-bold text-hm-ink tracking-tight">
                                 {editTarget ? "Mitarbeiter bearbeiten" : "Neuer Mitarbeiter"}
                             </h2>
-                            <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
+                            <button onClick={() => setShowForm(false)} className="p-1 text-hm-muted hover:text-hm-ink transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
                         <form onSubmit={(e) => { e.preventDefault(); save(); }}>
-                            <div className="p-6 space-y-4">
+                            <div className="p-5 space-y-4">
                                 {error && (
-                                    <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm">
-                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-[var(--hm-radius-input)] text-red-600 font-mono text-xs">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
                                         {error}
                                     </div>
                                 )}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Name *</label>
                                     <input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                                         placeholder="Max Mustermann" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail *</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">E-Mail *</label>
                                     <input type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                                         placeholder="max@rent-ex.at" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rolle *</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Rolle *</label>
                                     <select value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value as Role }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors">
                                         {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Standort</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Standort</label>
                                     <select value={formData.locationId} onChange={e => setFormData(p => ({ ...p, locationId: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                                        <option value="">Kein Standort</option>
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors">
+                                        <option value="">Alle Standorte</option>
                                         {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        <Key className="w-3 h-3" />
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                        <Key className="w-3 h-3 text-hm-muted" />
                                         {editTarget ? "Neues Passwort (leer lassen = ungeändert)" : "Passwort *"}
                                     </label>
                                     <input type="password" value={formData.password} onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                                         placeholder="••••••••" autoComplete="new-password" />
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
+                            <div className="flex gap-2.5 p-5 border-t border-hm-rule bg-hm-paper">
                                 <button type="button" onClick={() => setShowForm(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    className="flex-1 px-4 py-2 border border-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider hover:bg-hm-paper-2 transition-colors">
                                     Abbrechen
                                 </button>
                                 <button type="submit" disabled={saving}
-                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                                    {saving ? "Speichern..." : <><Check className="w-4 h-4" />{editTarget ? "Aktualisieren" : "Erstellen"}</>}
+                                    className="flex-1 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover disabled:opacity-50 text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                                    {saving ? "Speichern..." : <><Check className="w-3.5 h-3.5" />{editTarget ? "Aktualisieren" : "Erstellen"}</>}
                                 </button>
                             </div>
                         </form>

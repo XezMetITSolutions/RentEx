@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css · pre-emit critique: P5 H5 E5 S5 R4 V4 */
 'use client';
 
 import { toast } from 'sonner';
@@ -5,16 +6,15 @@ import React, { useState, useEffect } from 'react';
 import {
     Folder,
     Car,
-    CheckCircle2,
     ChevronRight,
     Search,
     RefreshCw,
     Save,
-    LayoutGrid,
     CheckSquare,
     Square
 } from 'lucide-react';
 import { getCheckInFolders, getCarsForMapping, assignTemplateToCars } from '@/app/actions/check-in-setup';
+import { clsx } from 'clsx';
 
 export default function CheckInSetupPage() {
     const [folders, setFolders] = useState<string[]>([]);
@@ -67,180 +67,197 @@ export default function CheckInSetupPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950 p-6 md:p-10 font-sans">
-            <div className="max-w-7xl mx-auto space-y-8">
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-2">
-                            Check-In <span className="text-blue-600 italic">Visuals</span>
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium">Bilderordner mit Fahrzeugmodellen verknüpfen</p>
+        <div className="max-w-[1440px] mx-auto space-y-8 pb-12 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
+                            Operativ · Check-In Konfiguration
+                        </span>
                     </div>
-                    <button
-                        onClick={loadData}
-                        className="p-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl text-gray-400 hover:text-blue-600 transition-all shadow-sm active:rotate-180 duration-500"
-                    >
-                        <RefreshCw className="w-6 h-6" />
-                    </button>
-                </header>
+                    <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
+                        Check-In Visuals
+                    </h1>
+                    <p className="text-xs font-mono text-hm-muted uppercase tracking-wider">
+                        Bilderordner mit Fahrzeugmodellen verknüpfen · Visuelle Prüfschritte
+                    </p>
+                </div>
+                <button
+                    onClick={loadData}
+                    disabled={loading}
+                    className="inline-flex items-center gap-2 p-2.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule text-hm-ink font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                    title="Aktualisieren"
+                >
+                    <RefreshCw className={clsx("w-4 h-4 text-hm-muted", loading && "animate-spin")} />
+                    <span>Aktualisieren</span>
+                </button>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    {/* Folders List */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl shadow-blue-500/5 p-8 border border-gray-50 dark:border-gray-800">
-                            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                                    <Folder className="w-5 h-5 text-blue-600" />
-                                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Folders List (Left Column) */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule p-5">
+                        <div className="flex items-center justify-between pb-4 mb-4 border-b border-hm-rule">
+                            <h2 className="hm-display text-base font-bold text-hm-ink flex items-center gap-2">
+                                <Folder className="w-4 h-4 text-hm-accent" />
                                 Bildervorlagen
                             </h2>
-                            <div className="space-y-3">
-                                {folders.map(folder => (
-                                    <button
-                                        key={folder}
-                                        onClick={() => setSelectedFolder(selectedFolder === folder ? null : folder)}
-                                        className={`w-full flex items-center justify-between p-5 rounded-3xl transition-all border-2 ${selectedFolder === folder
-                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 translate-x-2'
-                                            : 'bg-gray-50 dark:bg-gray-800/50 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-2 rounded-xl ${selectedFolder === folder ? 'bg-white/20' : 'bg-white dark:bg-gray-700 shadow-sm'}`}>
-                                                <Folder className={`w-5 h-5 ${selectedFolder === folder ? 'text-white' : 'text-blue-500'}`} />
-                                            </div>
-                                            <span className="font-extrabold text-sm">{folder}</span>
-                                        </div>
-                                        {selectedFolder === folder && <ChevronRight className="w-5 h-5" />}
-                                    </button>
-                                ))}
-                                {folders.length === 0 && (
-                                    <p className="text-xs text-center text-gray-400 py-10">Keine Ordner in /Check-in gefunden</p>
-                                )}
-                            </div>
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--hm-radius-pill)] bg-hm-paper-2 border border-hm-rule text-hm-muted">
+                                {folders.length} Ordner
+                            </span>
                         </div>
 
-                        {/* Instructions */}
-                        <div className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-600/30 relative overflow-hidden group">
-                            <div className="relative z-10">
-                                <h3 className="text-2xl font-black mb-4">Anleitung</h3>
-                                <ul className="space-y-4 text-blue-100 text-sm font-medium">
-                                    <li className="flex gap-4">
-                                        <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">1</div>
-                                        <span>Wählen Sie links einen Bilderordner aus (z.B. Fiat Ducato).</span>
-                                    </li>
-                                    <li className="flex gap-4">
-                                        <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">2</div>
-                                        <span>Markieren Sie rechts alle Fahrzeuge, die diese Bilder nutzen sollen.</span>
-                                    </li>
-                                    <li className="flex gap-4">
-                                        <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">3</div>
-                                        <span>Klicken Sie auf "Zuweisen", um die Vorschau für den Check-In zu aktivieren.</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <Folder className="absolute -bottom-10 -right-10 w-48 h-48 text-blue-500/20 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
+                        <div className="space-y-2">
+                            {folders.map(folder => {
+                                const isSelected = selectedFolder === folder;
+                                return (
+                                    <button
+                                        key={folder}
+                                        onClick={() => setSelectedFolder(isSelected ? null : folder)}
+                                        className={clsx(
+                                            "w-full flex items-center justify-between p-3 rounded-[var(--hm-radius-input)] transition-colors border text-left",
+                                            isSelected 
+                                                ? "bg-hm-accent text-hm-accent-ink border-hm-accent font-semibold shadow-xs" 
+                                                : "bg-hm-paper hover:bg-hm-paper-2 border-hm-rule text-hm-ink"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2.5 truncate">
+                                            <Folder className={clsx("w-4 h-4 shrink-0", isSelected ? "text-hm-accent-ink" : "text-hm-muted")} />
+                                            <span className="text-xs font-mono font-semibold truncate">{folder}</span>
+                                        </div>
+                                        {isSelected && <ChevronRight className="w-4 h-4 shrink-0" />}
+                                    </button>
+                                );
+                            })}
+                            {folders.length === 0 && (
+                                <p className="text-xs font-mono uppercase tracking-wider text-center text-hm-muted py-8">
+                                    Keine Ordner in /Check-in gefunden
+                                </p>
+                            )}
                         </div>
                     </div>
 
-                    {/* Cars List */}
-                    <div className="lg:col-span-8 flex flex-col h-full">
-                        <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-xl shadow-blue-500/5 border border-gray-50 dark:border-gray-800 flex flex-col h-[700px]">
-                            {/* Header / Search */}
-                            <div className="p-8 border-b border-gray-50 dark:border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
-                                        <Car className="w-6 h-6 text-purple-600" />
-                                    </div>
-                                    Fahrzeugliste
-                                </h2>
-                                <div className="relative group">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                                    <input
-                                        type="text"
-                                        placeholder="Marke, Modell oder Kennzeichen..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-[1.5rem] w-full md:w-80 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                                    />
-                                </div>
-                            </div>
+                    {/* Step-by-step instructions */}
+                    <div className="bg-hm-paper-2 rounded-[var(--hm-radius-card)] p-5 border border-hm-rule text-hm-ink">
+                        <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-hm-ink mb-3">
+                            Arbeitsanweisung
+                        </h3>
+                        <ol className="space-y-2.5 text-xs text-hm-muted">
+                            <li className="flex gap-2">
+                                <span className="font-mono font-bold text-hm-accent shrink-0">01.</span>
+                                <span>Links einen Bilderordner auswählen (z.B. Fiat Ducato).</span>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-mono font-bold text-hm-accent shrink-0">02.</span>
+                                <span>Rechts die gewünschten Fahrzeuge markieren.</span>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-mono font-bold text-hm-accent shrink-0">03.</span>
+                                <span>Auf "Zuweisen" klicken, um die Vorlage zu aktivieren.</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
 
-                            {/* Scrolling List */}
-                            <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-2 hide-scrollbar">
-                                {filteredCars.map(car => (
+                {/* Cars List (Right Column) */}
+                <div className="lg:col-span-8 flex flex-col">
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden flex flex-col h-[720px]">
+                        {/* Search & Header */}
+                        <div className="p-4 sm:p-5 border-b border-hm-rule flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <h2 className="hm-display text-base font-bold text-hm-ink flex items-center gap-2">
+                                <Car className="w-4 h-4 text-hm-accent" />
+                                Fahrzeugliste
+                            </h2>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted" />
+                                <input
+                                    type="text"
+                                    placeholder="Marke, Modell oder Kennzeichen..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-9 pr-3 py-1.5 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] w-full sm:w-64 text-xs font-mono text-hm-ink placeholder:text-hm-muted focus:outline-hidden focus:border-hm-rule-strong transition-colors"
+                                />
+                            </div>
+                        </div>
+
+                        {/* List */}
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2 custom-scrollbar">
+                            {filteredCars.map(car => {
+                                const isSelected = selectedCarIds.includes(car.id);
+                                return (
                                     <button
                                         key={car.id}
                                         onClick={() => toggleCarSelection(car.id)}
-                                        className={`group relative text-left p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 ${selectedCarIds.includes(car.id)
-                                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 shadow-sm'
-                                            : 'bg-white dark:bg-gray-800/30 border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
-                                            }`}
+                                        className={clsx(
+                                            "w-full text-left p-3 rounded-[var(--hm-radius-input)] border transition-colors flex items-center justify-between gap-3",
+                                            isSelected
+                                                ? "bg-hm-paper-2 border-hm-rule-strong shadow-xs"
+                                                : "bg-hm-paper hover:bg-hm-paper-2 border-hm-rule"
+                                        )}
                                     >
-                                        <div className="flex items-center gap-4 flex-1">
-                                            <div className={`p-3 rounded-xl transition-all ${selectedCarIds.includes(car.id)
-                                                ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
-                                                : 'bg-gray-50 dark:bg-gray-800 text-gray-400'
-                                                }`}>
-                                                <Car className="w-5 h-5" />
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <div className="p-2 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                                                <Car className="w-4 h-4" />
                                             </div>
                                             
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-3 mb-0.5">
-                                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{car.brand} {car.model}</h4>
-                                                    <span className="shrink-0 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-mono text-[10px] font-black text-gray-500 border border-transparent">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-semibold text-hm-ink truncate">{car.brand} {car.model}</span>
+                                                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink-2">
                                                         {car.plate}
                                                     </span>
                                                 </div>
                                                 
-                                                {car.checkInTemplate ? (
-                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600">
-                                                        <Folder className="w-3 h-3" />
-                                                        <span>Vorlage: {car.checkInTemplate}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-[10px] text-gray-400 font-medium italic">Keine Vorlage zugewiesen</span>
-                                                )}
+                                                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-mono">
+                                                    {car.checkInTemplate ? (
+                                                        <span className="text-emerald-700 dark:text-emerald-400">
+                                                            Vorlage: {car.checkInTemplate}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-hm-muted italic">
+                                                            Keine Vorlage zugewiesen
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className={`shrink-0 p-1.5 rounded-lg transition-all ${selectedCarIds.includes(car.id)
-                                            ? 'text-purple-500'
-                                            : 'text-gray-200 dark:text-gray-700'
-                                            }`}>
-                                            {selectedCarIds.includes(car.id) ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
+                                        <div className="shrink-0 text-hm-ink">
+                                            {isSelected ? (
+                                                <CheckSquare className="w-5 h-5 text-hm-accent" />
+                                            ) : (
+                                                <Square className="w-5 h-5 text-hm-muted" />
+                                            )}
                                         </div>
                                     </button>
-                                ))}
-                                {filteredCars.length === 0 && (
-                                    <div className="py-20 text-center text-gray-400 font-bold">
-                                        Keine Fahrzeuge gefunden
-                                    </div>
-                                )}
-                            </div>
+                                );
+                            })}
+                            {filteredCars.length === 0 && (
+                                <div className="py-20 text-center text-xs font-mono uppercase tracking-wider text-hm-muted">
+                                    Keine Fahrzeuge gefunden
+                                </div>
+                            )}
+                        </div>
 
-                            {/* Sticky Save Bar */}
-                            <div className="p-8 bg-gray-50/50 dark:bg-gray-900/50 border-t border-gray-50 dark:border-gray-800 rounded-b-[3rem]">
-                                <button
-                                    onClick={handleSave}
-                                    disabled={saving || (selectedCarIds.length === 0)}
-                                    className="w-full py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-3xl shadow-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale"
-                                >
-                                    {saving ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
-                                    {selectedFolder
-                                        ? `ORDNER "${selectedFolder.toUpperCase()}" ZUWEISEN (${selectedCarIds.length} FAHRZEUGE)`
-                                        : `VORLAGE ENTFERNEN`
-                                    }
-                                </button>
-                            </div>
+                        {/* Footer Action Bar */}
+                        <div className="p-4 border-t border-hm-rule bg-hm-paper">
+                            <button
+                                onClick={handleSave}
+                                disabled={saving || (selectedCarIds.length === 0)}
+                                className="w-full py-2.5 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink font-mono text-xs font-bold uppercase tracking-wider rounded-[var(--hm-radius-input)] shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {selectedFolder
+                                    ? `Ordner "${selectedFolder}" zuweisen (${selectedCarIds.length} Fahrzeuge)`
+                                    : `Vorlage für ${selectedCarIds.length} Fahrzeuge entfernen`
+                                }
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style jsx global>{`
-                .hide-scrollbar::-webkit-scrollbar { display: none; }
-                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-            `}</style>
         </div>
     );
 }

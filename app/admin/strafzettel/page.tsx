@@ -1,20 +1,22 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css · pre-emit critique: P5 H5 E5 S5 R4 V4 */
 "use client";
 
 import { useState, useEffect } from "react";
 import {
     AlertTriangle, Plus, Edit2, Check, X, Car, FileText,
-    ExternalLink, Clock, DollarSign, Filter, User, Upload, Trash2, Loader2
+    Clock, DollarSign, Filter, Upload, Trash2, Loader2
 } from "lucide-react";
 import { detectStrafzettelData } from "@/lib/ocr";
 import { toast } from "sonner";
+import { clsx } from "clsx";
 
 type Status = "OPEN" | "FORWARDED" | "PAID" | "DISPUTED";
 
-const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
-    OPEN: { label: "Offen", color: "bg-red-500/10 text-red-400 border-red-500/20" },
-    FORWARDED: { label: "Weitergeleitet", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-    PAID: { label: "Bezahlt", color: "bg-green-500/10 text-green-400 border-green-500/20" },
-    DISPUTED: { label: "Bestritten", color: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
+const STATUS_CONFIG: Record<Status, { label: string; badgeClass: string }> = {
+    OPEN: { label: "Offen", badgeClass: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20" },
+    FORWARDED: { label: "Weitergeleitet", badgeClass: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20" },
+    PAID: { label: "Bezahlt", badgeClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" },
+    DISPUTED: { label: "Bestritten", badgeClass: "bg-hm-paper-2 text-hm-muted border-hm-rule" },
 };
 
 interface StrafzettelRecord {
@@ -93,7 +95,6 @@ export default function StrafzettelPage() {
         }
     }
 
-    // Effect to auto-identify when car, date or time changes
     useEffect(() => {
         if (form.carId && form.issuedDate) {
             const timer = setTimeout(() => {
@@ -168,7 +169,6 @@ export default function StrafzettelPage() {
         try {
             let documentUrl = editTarget?.documentUrl || null;
 
-            // Upload file if selected
             if (selectedFile) {
                 const formData = new FormData();
                 formData.append('file', selectedFile);
@@ -226,150 +226,172 @@ export default function StrafzettelPage() {
     });
 
     return (
-        <div className="p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-black/50">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <AlertTriangle className="w-6 h-6 text-yellow-500" />
+        <div className="max-w-[1440px] mx-auto space-y-8 pb-12 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
+                            Flotte · Bußgeld- & Strafenmanagement
+                        </span>
+                    </div>
+                    <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
                         Strafzettel & Bußgelder
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                        Radar-, Park- und sonstige Strafen verwalten
+                    <p className="text-xs font-mono text-hm-muted uppercase tracking-wider">
+                        Radar-, Park- und Anonymverfügungen mit OCR & Mieterzuordnung
                     </p>
                 </div>
-                <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors text-sm">
-                    <Plus className="w-4 h-4" />
+                <button 
+                    onClick={openNew} 
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
+                >
+                    <Plus className="w-3.5 h-3.5" />
                     Strafzettel erfassen
                 </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { label: "Gesamt", value: records.length, icon: FileText, color: "text-gray-400" },
-                    { label: "Offen", value: records.filter(r => r.status === "OPEN").length, icon: AlertTriangle, color: "text-red-400" },
-                    { label: "Offener Betrag", value: `€ ${totalOpen.toFixed(0)}`, icon: DollarSign, color: "text-red-400" },
-                    { label: "Bezahlt gesamt", value: `€ ${totalPaid.toFixed(0)}`, icon: Check, color: "text-green-400" },
+                    { label: "Gesamte Fälle", value: records.length.toString(), icon: FileText },
+                    { label: "Offene Fälle", value: records.filter(r => r.status === "OPEN").length.toString(), icon: AlertTriangle },
+                    { label: "Offener Betrag", value: `€ ${totalOpen.toFixed(0)}`, icon: DollarSign },
+                    { label: "Bezahlt gesamt", value: `€ ${totalPaid.toFixed(0)}`, icon: Check },
                 ].map(stat => (
-                    <div key={stat.label} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
+                    <div key={stat.label} className="bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-card)] p-4 sm:p-5 flex flex-col justify-between">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">{stat.label}</span>
+                            <stat.icon className="w-4 h-4 text-hm-muted" />
                         </div>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                        <p className="hm-display text-2xl font-bold text-hm-ink mt-3 hm-tnum">{stat.value}</p>
                     </div>
                 ))}
             </div>
 
-            {/* Filter */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-gray-400" />
+            {/* Filter and Search Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-1.5 bg-hm-paper-2 rounded-[var(--hm-radius-input)] p-1 border border-hm-rule">
                     {["ALL", ...Object.keys(STATUS_CONFIG)].map(s => (
-                        <button key={s}
+                        <button 
+                            key={s}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === s ? "bg-red-600 text-white" : "bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10"}`}>
+                            className={clsx(
+                                "px-3 py-1.5 rounded-[calc(var(--hm-radius-input)-2px)] font-mono text-xs font-semibold uppercase tracking-wider transition-all",
+                                statusFilter === s 
+                                    ? "bg-hm-paper text-hm-ink shadow-xs border border-hm-rule" 
+                                    : "text-hm-muted hover:text-hm-ink"
+                            )}
+                        >
                             {s === "ALL" ? "Alle" : STATUS_CONFIG[s as Status].label}
                         </button>
                     ))}
                 </div>
 
-                <div className="relative flex-1 max-w-sm">
-                    <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <div className="relative w-full md:w-80">
+                    <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted" />
                     <input 
                         type="text" 
-                        placeholder="Kennzeichen suchen..." 
+                        placeholder="Kennzeichen, Mieter, Aktenzahl..." 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all dark:text-white"
+                        className="w-full pl-9 pr-3 py-2 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono text-hm-ink placeholder:text-hm-muted focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                     />
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+            <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden">
                 {loading ? (
-                    <div className="text-center py-20 text-gray-500">Laden...</div>
+                    <div className="text-center py-20 font-mono text-xs text-hm-muted uppercase tracking-wider">Laden...</div>
                 ) : (
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-200 dark:border-white/10">
-                                {["Kennzeichen", "Datum", "Ort & Behörde", "Betrag", "Mieter", "Status", ""].map(h => (
-                                    <th key={h} className="text-left p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredRecords.map(r => (
-                                <tr key={r.id} className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <Car className="w-4 h-4 text-gray-400" />
-                                            <div>
-                                                <div className="font-mono text-sm font-semibold text-gray-900 dark:text-white">{r.plate}</div>
-                                                <div className="text-xs text-gray-500">{r.car.brand} {r.car.model}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="text-sm text-gray-900 dark:text-white">{new Date(r.issuedDate).toLocaleDateString("de-AT")}</div>
-                                        {r.issuedTime && <div className="text-xs text-gray-500 flex items-center gap-1"><Clock className="w-3 h-3" />{r.issuedTime}</div>}
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="text-sm text-gray-900 dark:text-white">{r.incidentLocation ?? "—"}</div>
-                                        {r.authority && <div className="text-xs text-gray-500">{r.authority}</div>}
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`font-semibold text-sm ${r.status === "OPEN" ? "text-red-500" : "text-gray-700 dark:text-gray-300"}`}>
-                                            {r.amount != null ? `€ ${Number(r.amount).toFixed(2)}` : "—"}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        {r.rental ? (
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {r.rental.customer.firstName} {r.rental.customer.lastName}
-                                                </div>
-                                                <div className="text-xs text-gray-500">{r.rental.contractNumber ?? `#${r.rental.id}`}</div>
-                                            </div>
-                                        ) : <span className="text-xs text-gray-400">Kein Mieter</span>}
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_CONFIG[r.status].color}`}>
-                                            {STATUS_CONFIG[r.status].label}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-                                            <Edit2 className="w-4 h-4 text-gray-500" />
-                                        </button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-hm-paper-2 text-[11px] font-mono text-hm-muted uppercase tracking-wider border-b border-hm-rule">
+                                <tr>
+                                    <th className="px-6 py-3 font-semibold">Kennzeichen</th>
+                                    <th className="px-6 py-3 font-semibold">Datum & Zeit</th>
+                                    <th className="px-6 py-3 font-semibold">Ort & Behörde</th>
+                                    <th className="px-6 py-3 font-semibold">Mieter</th>
+                                    <th className="px-6 py-3 font-semibold">Status</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Betrag</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Aktion</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-hm-rule">
+                                {filteredRecords.map(r => (
+                                    <tr key={r.id} className="hover:bg-hm-paper-2/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-semibold text-hm-ink font-mono text-xs">{r.plate}</div>
+                                            <div className="text-[11px] text-hm-muted font-mono">{r.car.brand} {r.car.model}</div>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-xs">
+                                            <div className="text-hm-ink">{new Date(r.issuedDate).toLocaleDateString("de-AT")}</div>
+                                            {r.issuedTime && <div className="text-[11px] text-hm-muted flex items-center gap-1 mt-0.5"><Clock className="w-3 h-3" />{r.issuedTime}</div>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs text-hm-ink font-medium">{r.incidentLocation ?? "—"}</div>
+                                            {r.authority && <div className="text-[11px] font-mono text-hm-muted">{r.authority}</div>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {r.rental ? (
+                                                <div>
+                                                    <div className="text-xs font-semibold text-hm-ink">
+                                                        {r.rental.customer.firstName} {r.rental.customer.lastName}
+                                                    </div>
+                                                    <div className="text-[10px] font-mono text-hm-muted">{r.rental.contractNumber ?? `#${r.rental.id}`}</div>
+                                                </div>
+                                            ) : <span className="text-[11px] font-mono text-hm-muted italic">Kein Mieter</span>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={clsx(
+                                                'inline-flex items-center px-2.5 py-0.5 rounded-[var(--hm-radius-pill)] text-[10px] font-mono font-bold uppercase tracking-wider border',
+                                                STATUS_CONFIG[r.status].badgeClass
+                                            )}>
+                                                {STATUS_CONFIG[r.status].label}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono font-bold text-hm-ink text-right hm-tnum">
+                                            {r.amount != null ? `€ ${Number(r.amount).toFixed(2)}` : "—"}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button 
+                                                onClick={() => openEdit(r)} 
+                                                className="p-1.5 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 rounded-[var(--hm-radius-input)] transition-colors"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-                {!loading && records.length === 0 && (
-                    <div className="text-center py-16 text-gray-500">Keine Strafzettel gefunden.</div>
+                {!loading && filteredRecords.length === 0 && (
+                    <div className="text-center py-16 font-mono text-xs text-hm-muted uppercase tracking-wider">
+                        Keine Strafzettel gefunden.
+                    </div>
                 )}
             </div>
 
             {/* Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-white/10 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10 sticky top-0 bg-white dark:bg-zinc-900 z-10">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="fixed inset-0 bg-hm-ink/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+                    <div className="bg-hm-paper rounded-[var(--hm-radius-card)] shadow-xl w-full max-w-lg border border-hm-rule text-hm-ink max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-5 border-b border-hm-rule sticky top-0 bg-hm-paper z-10">
+                            <h2 className="hm-display text-sm font-bold text-hm-ink tracking-tight">
                                 {editTarget ? "Strafzettel bearbeiten" : "Neuer Strafzettel"}
                             </h2>
-                            <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
+                            <button onClick={() => setShowForm(false)} className="p-1 text-hm-muted hover:text-hm-ink transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="p-6 space-y-4">
-                            {/* Car/Plate Selection */}
+                        <div className="p-5 space-y-4">
+                            {/* Car Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fahrzeug (Kennzeichen) *</label>
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Fahrzeug (Kennzeichen) *</label>
                                 <input 
                                     type="text"
                                     list="car-plates"
@@ -380,7 +402,7 @@ export default function StrafzettelPage() {
                                         const car = cars.find(c => c.plate === plate);
                                         setForm(p => ({ ...p, plate, carId: car ? car.id.toString() : "" }));
                                     }}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                    className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors"
                                 />
                                 <datalist id="car-plates">
                                     {cars.map(c => (
@@ -388,63 +410,63 @@ export default function StrafzettelPage() {
                                     ))}
                                 </datalist>
                                 {!form.carId && form.plate.length > 0 && (
-                                    <p className="text-xs text-red-500 mt-1">Fahrzeug nicht gefunden. Bitte aus der Liste wählen.</p>
+                                    <p className="text-[10px] font-mono text-red-600 mt-1">Fahrzeug nicht gefunden. Bitte aus der Liste wählen.</p>
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tatdatum *</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Tatdatum *</label>
                                     <input type="date" value={form.issuedDate}
                                         onChange={e => setForm(p => ({ ...p, issuedDate: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tatzeit</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Tatzeit</label>
                                     <input type="time" value={form.issuedTime}
                                         onChange={e => setForm(p => ({ ...p, issuedTime: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                             </div>
 
-                            {/* Identified Rental Display */}
-                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Identifizierter Mieter</span>
-                                    {identifying && <Clock className="w-3 h-3 animate-spin text-blue-500" />}
+                            {/* Identified Rental */}
+                            <div className="p-3.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-hm-muted">Identifizierter Mieter</span>
+                                    {identifying && <Clock className="w-3 h-3 animate-spin text-hm-muted" />}
                                 </div>
                                 {identifiedRental ? (
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                            <FileText className="w-5 h-5" />
+                                        <div className="w-8 h-8 rounded bg-hm-paper border border-hm-rule flex items-center justify-center text-hm-ink">
+                                            <FileText className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{identifiedRental.customer.firstName} {identifiedRental.customer.lastName}</p>
-                                            <div className="mt-1">
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                            <p className="text-xs font-bold text-hm-ink">{identifiedRental.customer.firstName} {identifiedRental.customer.lastName}</p>
+                                            <div className="mt-0.5">
+                                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-hm-paper border border-hm-rule text-hm-ink-2">
                                                     Vertrag: {identifiedRental.contractNumber ?? `#${identifiedRental.id}`}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-gray-500 italic">
+                                    <p className="text-[11px] font-mono text-hm-muted italic">
                                         {identifying ? "Suche läuft..." : "Kein Mieter für diesen Zeitraum gefunden."}
                                     </p>
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Betrag (€)</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Betrag (€)</label>
                                     <input type="number" value={form.amount}
                                         onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                                    <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">Status</label>
+                                    <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as Status }))}
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors">
                                         {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                                     </select>
                                 </div>
@@ -457,55 +479,63 @@ export default function StrafzettelPage() {
                                 { label: "Notizen", key: "notes", type: "text" },
                             ].map(f => (
                                 <div key={f.key}>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
+                                    <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider mb-1.5">{f.label}</label>
                                     <input type={f.type} value={(form as any)[f.key]}
                                         onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+                                        className="w-full px-3 py-2 border border-hm-rule rounded-[var(--hm-radius-input)] bg-hm-paper-2 text-hm-ink font-mono text-xs focus:outline-hidden focus:border-hm-rule-strong transition-colors" />
                                 </div>
                             ))}
 
                             {/* Service Fee Toggle */}
-                            <div className="p-4 rounded-xl border border-dashed border-gray-200 dark:border-white/10 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                        <DollarSign className="w-4 h-4" />
+                            <div className="p-3.5 rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper-2 flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded bg-hm-paper border border-hm-rule flex items-center justify-center text-hm-ink">
+                                        <DollarSign className="w-3.5 h-3.5" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-gray-900 dark:text-white">Bearbeitungsgebühr (25€)</p>
-                                        <p className="text-[10px] text-gray-500">Diese Gebühr automatisch zur Miete hinzufügen.</p>
+                                        <p className="text-xs font-bold text-hm-ink">Bearbeitungsgebühr (25€)</p>
+                                        <p className="text-[10px] font-mono text-hm-muted">Automatisch zur Miete hinzufügen</p>
                                     </div>
                                 </div>
                                 <button 
                                     type="button"
                                     onClick={() => setForm(p => ({ ...p, addServiceFee: !p.addServiceFee }))}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${form.addServiceFee ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+                                    className={clsx(
+                                        "w-10 h-5 rounded-full transition-colors relative border border-hm-rule",
+                                        form.addServiceFee ? 'bg-hm-accent' : 'bg-hm-paper-3'
+                                    )}
                                 >
-                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${form.addServiceFee ? 'left-7' : 'left-1'}`} />
+                                    <div className={clsx(
+                                        "absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all",
+                                        form.addServiceFee ? 'left-5' : 'left-0.5'
+                                    )} />
                                 </button>
-                                <input type="hidden" name="addServiceFee" value={form.addServiceFee ? "true" : "false"} />
                             </div>
 
                             {/* File Upload Section */}
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Dokument (Foto/Scan)</label>
-                                <div className={`border-2 border-dashed rounded-xl p-6 transition-all ${selectedFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-gray-300 dark:border-white/10 hover:border-red-500/50'}`}>
+                                <label className="block text-[11px] font-mono font-semibold text-hm-muted uppercase tracking-wider">Dokument (Foto / Scan)</label>
+                                <div className={clsx(
+                                    "border border-dashed rounded-[var(--hm-radius-input)] p-4 text-center transition-colors",
+                                    selectedFile ? "border-hm-rule-strong bg-hm-paper-2" : "border-hm-rule hover:border-hm-rule-strong"
+                                )}>
                                     {selectedFile ? (
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <FileText className="w-5 h-5 text-emerald-500" />
-                                                <div>
-                                                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{selectedFile.name}</p>
-                                                    <p className="text-[10px] text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                            <div className="flex items-center gap-2.5 truncate">
+                                                <FileText className="w-4 h-4 text-hm-ink shrink-0" />
+                                                <div className="truncate text-left font-mono">
+                                                    <p className="text-xs font-medium text-hm-ink truncate">{selectedFile.name}</p>
+                                                    <p className="text-[10px] text-hm-muted">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => setSelectedFile(null)} className="p-1 hover:bg-red-500/10 text-red-500 rounded">
+                                            <button onClick={() => setSelectedFile(null)} className="p-1 text-hm-muted hover:text-red-600 transition-colors">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center gap-2 cursor-pointer">
-                                            <Upload className="w-8 h-8 text-gray-400" />
-                                            <p className="text-xs text-gray-500">Klicken zum Hochladen oder Drag & Drop</p>
+                                        <label className="flex flex-col items-center gap-1.5 cursor-pointer py-2">
+                                            <Upload className="w-5 h-5 text-hm-muted" />
+                                            <p className="text-xs font-mono text-hm-muted">Klicken zum Hochladen (PDF / Bild)</p>
                                             <input 
                                                 type="file" 
                                                 className="hidden" 
@@ -520,10 +550,10 @@ export default function StrafzettelPage() {
                                     )}
                                 </div>
                                 {selectedFile && (
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         {uploading && (
-                                            <div className="flex items-center gap-2 text-blue-500 text-xs font-medium p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            <div className="flex items-center gap-2 text-xs font-mono text-hm-ink p-2 bg-hm-paper-2 rounded">
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 Dokument wird analysiert...
                                             </div>
                                         )}
@@ -531,18 +561,27 @@ export default function StrafzettelPage() {
                                             type="button"
                                             onClick={() => analyzeFile()}
                                             disabled={uploading}
-                                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                            className="w-full py-1.5 bg-hm-paper-2 hover:bg-hm-paper-3 text-hm-ink border border-hm-rule rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors"
                                         >
-                                            <FileText className="w-4 h-4" />
-                                            ERNEUT ANALYSIEREN
+                                            Erneut per OCR analysieren
                                         </button>
                                     </div>
                                 )}
                             </div>
                         </div>
-                        <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white/10">
-                            <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Abbrechen</button>
-                            <button onClick={save} disabled={saving} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors">
+
+                        <div className="flex gap-2.5 p-5 border-t border-hm-rule bg-hm-paper">
+                            <button 
+                                onClick={() => setShowForm(false)} 
+                                className="flex-1 px-4 py-2 border border-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider hover:bg-hm-paper-2 transition-colors"
+                            >
+                                Abbrechen
+                            </button>
+                            <button 
+                                onClick={save} 
+                                disabled={saving} 
+                                className="flex-1 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                            >
                                 {saving ? "Speichern..." : "Speichern"}
                             </button>
                         </div>

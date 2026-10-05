@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css · pre-emit critique: P5 H5 E5 S5 R4 V4 */
 'use client';
 
 import { useState } from 'react';
@@ -58,60 +59,55 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
         }
     };
 
-    const getPriorityColor = (priority: string = 'low') => {
-        switch (priority.toLowerCase()) {
-            case 'high': return 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
-            case 'medium': return 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-            default: return 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-        }
-    };
-
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-            <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-5">
+        <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden text-hm-ink">
+            <div className="border-b border-hm-rule px-6 py-4 bg-hm-paper">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                            <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <div className="relative flex h-9 w-9 items-center justify-center rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                            <Bell className="h-4 w-4" />
                             {unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-hm-accent font-mono text-[9px] font-bold text-hm-accent-ink">
                                     {unreadCount}
                                 </span>
                             )}
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Benachrichtigungen</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{unreadCount} ungelesene Nachrichten</p>
+                            <h3 className="hm-display text-base font-bold text-hm-ink tracking-tight">Nachrichtenverlauf</h3>
+                            <p className="text-[11px] font-mono text-hm-muted uppercase tracking-wider">{unreadCount} ungelesene Mitteilungen</p>
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setFilter('all')}
-                            className={clsx(
-                                'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
-                                filter === 'all'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                            )}
-                        >
-                            Alle
-                        </button>
-                        <button
-                            onClick={() => setFilter('unread')}
-                            className={clsx(
-                                'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
-                                filter === 'unread'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                            )}
-                        >
-                            Ungelesen
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-hm-paper-2 rounded-[var(--hm-radius-input)] p-1 border border-hm-rule font-mono text-xs">
+                            <button
+                                onClick={() => setFilter('all')}
+                                className={clsx(
+                                    'px-3 py-1 font-semibold uppercase tracking-wider rounded-[calc(var(--hm-radius-input)-2px)] transition-all',
+                                    filter === 'all'
+                                        ? 'bg-hm-paper text-hm-ink shadow-xs border border-hm-rule'
+                                        : 'text-hm-muted hover:text-hm-ink'
+                                )}
+                            >
+                                Alle
+                            </button>
+                            <button
+                                onClick={() => setFilter('unread')}
+                                className={clsx(
+                                    'px-3 py-1 font-semibold uppercase tracking-wider rounded-[calc(var(--hm-radius-input)-2px)] transition-all',
+                                    filter === 'unread'
+                                        ? 'bg-hm-paper text-hm-ink shadow-xs border border-hm-rule'
+                                        : 'text-hm-muted hover:text-hm-ink'
+                                )}
+                            >
+                                Ungelesen
+                            </button>
+                        </div>
+
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                className="px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted hover:text-hm-accent transition-colors"
                             >
                                 Alle als gelesen markieren
                             </button>
@@ -120,11 +116,11 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
                 </div>
             </div>
 
-            <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-[600px] overflow-y-auto">
+            <div className="divide-y divide-hm-rule max-h-[640px] overflow-y-auto">
                 {filteredNotifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <Bell className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-                        <p className="text-gray-500 dark:text-gray-400">Keine Benachrichtigungen</p>
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <Bell className="h-10 w-10 text-hm-muted/40 mb-3" />
+                        <p className="text-xs font-mono uppercase tracking-wider text-hm-muted">Keine Benachrichtigungen vorhanden</p>
                     </div>
                 ) : (
                     filteredNotifications.map((notification) => {
@@ -135,30 +131,32 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
                             <div
                                 key={notification.id}
                                 className={clsx(
-                                    'px-6 py-4 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors',
-                                    isUnread && 'bg-blue-50/30 dark:bg-blue-900/10'
+                                    'px-6 py-4 hover:bg-hm-paper-2/50 transition-colors',
+                                    isUnread && 'bg-hm-accent/5'
                                 )}
                             >
-                                <div className="flex items-start gap-4">
+                                <div className="flex items-start gap-3.5">
                                     <div className={clsx(
-                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg',
-                                        getPriorityColor(notification.priority)
+                                        'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--hm-radius-input)] border',
+                                        isUnread ? 'bg-hm-accent/10 text-hm-accent border-hm-accent/20' : 'bg-hm-paper-2 text-hm-muted border-hm-rule'
                                     )}>
-                                        <Icon className="h-5 w-5" />
+                                        <Icon className="h-4 w-4" />
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2 mb-1">
-                                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{notification.title || 'Benachrichtigung'}</h4>
+                                            <h4 className="text-xs font-bold text-hm-ink tracking-tight">
+                                                {notification.title || 'Systemnachricht'}
+                                            </h4>
                                             {isUnread && (
-                                                <span className="flex h-2 w-2 rounded-full bg-blue-600 flex-shrink-0 mt-1.5"></span>
+                                                <span className="flex h-2 w-2 rounded-full bg-hm-accent flex-shrink-0 mt-1"></span>
                                             )}
                                         </div>
 
-                                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{notification.message}</p>
+                                        <p className="text-xs text-hm-ink-2 mb-2 leading-relaxed">{notification.message}</p>
 
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                                        <div className="flex items-center justify-between font-mono text-[11px]">
+                                            <div className="flex items-center gap-1.5 text-hm-muted">
                                                 <Clock className="h-3 w-3" />
                                                 <span>{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: de })}</span>
                                             </div>
@@ -167,26 +165,26 @@ export default function NotificationCenter({ initialNotifications = [] }: Notifi
                                                 {notification.actionUrl && (
                                                     <a
                                                         href={notification.actionUrl}
-                                                        className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                                        className="text-hm-muted hover:text-hm-accent uppercase tracking-wider font-semibold transition-colors"
                                                     >
-                                                        Anzeigen →
+                                                        Details →
                                                     </a>
                                                 )}
                                                 {isUnread && (
                                                     <button
                                                         onClick={() => markAsRead(notification.id)}
-                                                        className="p-1 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                                                        className="p-1 text-hm-muted hover:text-emerald-600 transition-colors"
                                                         title="Als gelesen markieren"
                                                     >
-                                                        <Check className="h-4 w-4" />
+                                                        <Check className="h-3.5 w-3.5" />
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => deleteNotification(notification.id)}
-                                                    className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                                    className="p-1 text-hm-muted hover:text-red-600 transition-colors"
                                                     title="Löschen"
                                                 >
-                                                    <X className="h-4 w-4" />
+                                                    <X className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
                                         </div>
