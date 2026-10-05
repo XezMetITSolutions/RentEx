@@ -1,4 +1,4 @@
-/* Hallmark · macrostructure: Catalogue · tone: utilitarian · anchor hue: brand red (28°)
+/* Hallmark · macrostructure: Photographic (showroom stage) · tone: confident, modern · anchor hue: brand red (28°)
  * theme: custom (tuned) · vibe: "Ländle garage, spec sheet, brand red"
  * paper oklch(97.5% 0.006 60) · accent oklch(57% 0.225 28)
  * display: Archivo (wdth 72) · body: Montserrat · mono: JetBrains Mono
@@ -43,8 +43,18 @@
 
   --hm-plate: oklch(99% 0.003 60);
 
-  --hm-radius-card: 6px;
-  --hm-radius-input: 4px;
+  /* Studio stage: always light and equal to the car photos' backdrop (#f9f9f9),
+     so the photos sit seamlessly on it in both themes. */
+  --hm-stage: oklch(98.1% 0 0);
+  --hm-stage-2: oklch(93.5% 0.003 250);
+  --hm-stage-ink: oklch(19% 0.012 30);
+  --hm-stage-muted: oklch(45% 0.012 250);
+  --hm-shadow-float: 0 1px 2px oklch(19% 0.012 30 / 0.06), 0 12px 32px -12px oklch(19% 0.012 30 / 0.22);
+
+  --hm-radius-stage: 28px;
+  --hm-radius-card: 16px;
+  --hm-radius-input: 10px;
+  --hm-radius-pill: 999px;
 }
 
 .dark {
@@ -62,4 +72,5 @@
   --hm-accent-ink: oklch(99% 0.003 60);
   --hm-focus: oklch(70% 0.17 28);
   --hm-error: oklch(70% 0.17 28);
+  --hm-shadow-float: 0 1px 2px oklch(0% 0 0 / 0.4), 0 16px 40px -16px oklch(0% 0 0 / 0.7);
 }

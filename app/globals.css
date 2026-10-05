@@ -95,6 +95,10 @@ body {
   --color-hm-accent-ink: var(--hm-accent-ink);
   --color-hm-focus: var(--hm-focus);
   --color-hm-plate: var(--hm-plate);
+  --color-hm-stage: var(--hm-stage);
+  --color-hm-stage-2: var(--hm-stage-2);
+  --color-hm-stage-ink: var(--hm-stage-ink);
+  --color-hm-stage-muted: var(--hm-stage-muted);
   --font-hm-display: var(--font-hm-archivo), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-hm-body: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-hm-mono: var(--font-hm-jetbrains), ui-monospace, monospace;
@@ -117,6 +121,27 @@ body {
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
   min-width: 0;
+}
+
+.hm-stage {
+  background: var(--hm-stage);
+}
+
+.hm-float {
+  box-shadow: var(--hm-shadow-float);
+}
+
+@keyframes hm-car-in {
+  from { opacity: 0; transform: translateX(6%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hm-car-in {
+  animation: hm-car-in 520ms var(--hm-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-car-in { animation: none; }
 }
 
 .hm-tnum {

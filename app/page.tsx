@@ -1,15 +1,18 @@
-/* Hallmark · genre: modern-minimal · macrostructure: Catalogue · theme: custom (brand red) · enrichment: none · nav: shared Navbar · footer: shared Footer
- * tokens: /tokens.css · pre-emit critique: P4 H5 E4 S5 R4 V4
+/* Hallmark · genre: modern-minimal · macrostructure: Photographic (showroom stage) · theme: custom (brand red) · enrichment: real fleet photography · nav: shared Navbar · footer: shared Footer
+ * replaces: Catalogue (2026-10-05) · tokens: /tokens.css · pre-emit critique: P4 H5 E4 S5 R4 V5
  */
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/home/Navbar";
 import InteractiveFleet from "@/components/home/InteractiveFleet";
+import HeroShowroom, { type ShowcaseItem } from "@/components/home/HeroShowroom";
 import HowItWorks from "@/components/home/HowItWorks";
 import FaqAccordion from "@/components/home/FaqAccordion";
 import NewsletterCta from "@/components/home/NewsletterCta";
 import Footer from "@/components/home/Footer";
 import { getFeaturedCars, getCarCategories } from "@/app/actions";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight, ChevronDown, Phone, ShieldCheck, CalendarRange, MapPin } from "lucide-react";
 import { SITE_URL } from '@/lib/config';
 
 // Live fleet + availability: render per request, never prerender at build (CI has no DB).
@@ -28,7 +31,36 @@ const jetbrains = JetBrains_Mono({
 });
 
 const formatEuro = (value: number) =>
-  value.toLocaleString("de-AT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  value.toLocaleString("de-AT", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+// Branded studio shots that exist in /public/assets/cars but aren't (yet) set as
+// the car's imageUrl in the admin. Keyed by "Brand Model".
+const STUDIO_PHOTOS: Record<string, string> = {
+  "Peugeot Traveller": "/assets/cars/Peugeot Traveller Automatic.png",
+  "Fiat Ducato L3H2": "/assets/cars/Fiat_Ducato_L3H2.png",
+  "Fiat Ducato L3H2 Plus": "/assets/cars/Fiat_Ducato_L3H2.png",
+  "Fiat Ducato L4H2": "/assets/cars/Fiat_Ducato_L4H2.png",
+  "Hyundai Ioniq Elektro": "/assets/cars/Hyundai Ioniq Elektro.png",
+  "VW Golf Kombi": "/assets/cars/VW_Golf_Kombi.png",
+};
+
+// Rent-Ex branded studio shots (1536×672, logo on the door) — preferred for the hero.
+const BRANDED_PHOTOS = new Set([
+  "/assets/cars/Ford_Mustang_MachE_GT.png",
+  "/assets/cars/Peugeot Traveller Automatic.png",
+  "/assets/cars/Fiat_Ducato_L3H2.png",
+  "/assets/cars/Fiat_Ducato_L4H2.png",
+  "/assets/cars/Hyundai Ioniq Elektro.png",
+  "/assets/cars/OpelCorsa.png",
+  "/assets/cars/Seat_Leon_Kombi.png",
+  "/assets/cars/Skoda_Superb_Kombi.png",
+  "/assets/cars/VWPolo.png",
+  "/assets/cars/VW_Golf_Kombi.png",
+]);
+
+function slugify(text: string) {
+  return text.toLowerCase().trim().replace(/s+/g, "-").replace(/[^w-]+/g, "").replace(/--+/g, "-");
+}
 
 export default async function Home() {
   const featuredCarsRaw = await getFeaturedCars();
@@ -39,7 +71,7 @@ export default async function Home() {
     id: car.id,
     brand: car.brand,
     model: car.model,
-    imageUrl: car.imageUrl,
+    imageUrl: STUDIO_PHOTOS[`${car.brand} ${car.model}`] ?? car.imageUrl,
     dailyRate: Number(car.dailyRate),
     fuelType: car.fuelType,
     transmission: car.transmission,
@@ -53,6 +85,31 @@ export default async function Home() {
     .map((cat) => ({ id: cat.id, name: cat.name, sortOrder: cat.sortOrder }));
 
   const lowestRate = featuredCars.length > 0 ? Math.min(...featuredCars.map((car) => car.dailyRate)) : null;
+
+  // One hero car per class: the priciest model with a branded studio photo,
+  // falling back to any .png, then any photo.
+  const showcase: ShowcaseItem[] = [...availableCategories].sort((a, b) =>
+    featuredCars.filter((car) => car.category === b.name).length - featuredCars.filter((car) => car.category === a.name).length
+  ).flatMap((cat) => {
+    const inClass = featuredCars.filter((car) => car.category?.toLowerCase() === cat.name.toLowerCase());
+    const branded = inClass.filter((car) => car.imageUrl && BRANDED_PHOTOS.has(car.imageUrl));
+    const png = inClass.filter((car) => car.imageUrl?.toLowerCase().endsWith(".png"));
+    const pool = branded.length ? branded : png.length ? png : inClass.filter((car) => car.imageUrl);
+    const pick = [...pool].sort((a, b) => b.dailyRate - a.dailyRate)[0];
+    if (!pick?.imageUrl) return [];
+    return [{
+      category: cat.name,
+      count: inClass.length,
+      minRate: Math.min(...inClass.map((car) => car.dailyRate)),
+      car: {
+        name: `${pick.brand} ${pick.model}`,
+        imageUrl: pick.imageUrl,
+        href: `/fleet/${pick.id}/${slugify(`${pick.brand}-${pick.model}`)}`,
+        specs: [pick.transmission || "Automatik", pick.fuelType, `${pick.seats || 5} Sitze`].filter(Boolean).join(" · "),
+        rate: pick.dailyRate,
+      },
+    }];
+  });
 
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrow = new Date();
@@ -137,21 +194,19 @@ export default async function Home() {
     ]
   };
 
-  // Every row is taken from the rental terms / FAQ — no invented figures.
-  const terms = [
-    { label: "Abholung", value: "Illstraße 75a, 6800 Feldkirch", note: "Fahrzeuge im ganzen Ländle" },
-    { label: "Erreichbarkeit", value: "24 / 7", note: "+43 660 9996800" },
-    { label: "Versicherung", value: "Vollkasko & Insassenschutz", note: "bei allen Fahrzeugen" },
-    { label: "Führerschein", value: "mind. 2 Jahre", note: "ununterbrochen gültig" },
-    { label: "Tankregelung", value: "voll / voll", note: "sonst Kosten + 18,00 € Pauschale" },
-    { label: "Mehrkilometer", value: "0,33 – 0,45 € / km", note: "je nach Fahrzeug" },
-    { label: "Mietdauer", value: "Tag · Woche · Monat", note: "flexibel verlängerbar" },
-    { label: "Ausland", value: "nach Genehmigung", note: "bitte vor Mietbeginn melden" },
+  // Every fact below comes from the rental terms / FAQ — no invented figures.
+  const conditions = [
+    { label: "Führerschein", value: "mind. 2 Jahre" },
+    { label: "Tankregelung", value: "voll / voll" },
+    { label: "Mehrkilometer", value: "0,33 – 0,45 € / km" },
+    { label: "Ausland", value: "nach Genehmigung" },
   ];
 
   const fieldClass =
-    "w-full min-h-11 bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] px-3 py-2.5 text-sm text-hm-ink outline-none transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out hover:border-hm-muted focus:border-hm-ink dark:[color-scheme:dark]";
-  const labelClass = "block font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted mb-1.5";
+    "w-full min-h-12 bg-transparent px-0 pt-0.5 text-[15px] font-semibold text-hm-ink outline-none dark:[color-scheme:dark]";
+  const labelClass = "block font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted";
+  const cellClass =
+    "min-w-0 rounded-[var(--hm-radius-input)] px-4 pt-3 pb-1 hover:bg-hm-paper-2 focus-within:bg-hm-paper-2 transition-[background-color] duration-[var(--hm-dur-short)] ease-hm-out";
 
   return (
     <div className={`${archivo.variable} ${jetbrains.variable} hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body selection:bg-hm-accent/25`}>
@@ -165,99 +220,170 @@ export default async function Home() {
       />
       <Navbar />
 
-      <main className="pt-20">
-        {/* Inventory header + booking form */}
-        <section className="border-b border-hm-rule">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-14 pb-12 lg:pt-20 lg:pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-end">
-            <div className="min-w-0">
-              <p className="hm-tnum font-hm-mono text-xs text-hm-muted mb-6">
-                {featuredCars.length} Modelle · {availableCategories.length} Klassen
-                {lowestRate !== null && <> · ab € {formatEuro(lowestRate)} / Tag</>}
-              </p>
-              <h1 className="hm-display text-[length:var(--hm-text-display)] font-[750] leading-[0.92] text-hm-ink">
-                Mietwagen in Feldkirch<span className="text-hm-accent">.</span>
-              </h1>
-              <p className="mt-6 max-w-[34rem] text-base sm:text-lg leading-relaxed text-hm-ink-2">
-                Vom Kleinwagen bis zum Kastenwagen. Datum wählen, Fahrzeug aussuchen,
-                online buchen — abgeholt wird in der Illstraße.
-              </p>
-            </div>
+      <main className="pt-24">
+        {/* Showroom hero + booking bar */}
+        <section className="px-3 sm:px-5 lg:px-6">
+          <div className="max-w-[1480px] mx-auto">
+            <HeroShowroom items={showcase} modelCount={featuredCars.length} lowestRate={lowestRate} />
 
             <form
               action="/fleet"
               method="get"
-              className="min-w-0 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-card)] p-5 sm:p-6"
+              aria-label="Fahrzeugsuche"
+              className="hm-float relative z-10 mx-auto -mt-10 lg:-mt-16 w-[calc(100%-1.5rem)] lg:w-[calc(100%-7rem)] max-w-[1180px] rounded-[calc(var(--hm-radius-input)+8px)] bg-hm-paper border border-hm-rule p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-1 lg:items-stretch"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="hm-pickup" className={labelClass}>Abholung</label>
-                  <input id="hm-pickup" name="pickup" type="date" defaultValue={todayStr} min={todayStr} className={fieldClass} />
-                </div>
-                <div>
-                  <label htmlFor="hm-return" className={labelClass}>Rückgabe</label>
-                  <input id="hm-return" name="return" type="date" defaultValue={tomorrowStr} min={todayStr} className={fieldClass} />
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="hm-category" className={labelClass}>Fahrzeugklasse</label>
-                  <div className="relative">
-                    <select id="hm-category" name="category" defaultValue="" className={`${fieldClass} appearance-none pr-10 cursor-pointer`}>
-                      <option value="">Alle Klassen</option>
-                      {availableCategories.map((cat) => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown aria-hidden className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted pointer-events-none" />
-                  </div>
+              <div className={cellClass}>
+                <label htmlFor="hm-pickup" className={labelClass}>Abholung</label>
+                <input id="hm-pickup" name="pickup" type="date" defaultValue={todayStr} min={todayStr} className={fieldClass} />
+              </div>
+              <div className={cellClass}>
+                <label htmlFor="hm-return" className={labelClass}>Rückgabe</label>
+                <input id="hm-return" name="return" type="date" defaultValue={tomorrowStr} min={todayStr} className={fieldClass} />
+              </div>
+              <div className={`${cellClass} sm:col-span-2 lg:col-span-1`}>
+                <label htmlFor="hm-category" className={labelClass}>Fahrzeugklasse</label>
+                <div className="relative">
+                  <select id="hm-category" name="category" defaultValue="" className={`${fieldClass} appearance-none pr-8 cursor-pointer`}>
+                    <option value="">Alle Klassen</option>
+                    {availableCategories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted pointer-events-none" />
                 </div>
               </div>
               <button
                 type="submit"
-                className="group mt-5 w-full min-h-12 inline-flex items-center justify-center gap-2 whitespace-nowrap bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px text-hm-accent-ink font-semibold text-sm rounded-[var(--hm-radius-input)] transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
+                className="group sm:col-span-2 lg:col-span-1 min-h-14 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px px-7 text-hm-accent-ink font-semibold text-[15px] transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
               >
-                Verfügbare Fahrzeuge zeigen
+                Fahrzeuge finden
                 <ArrowRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
               </button>
             </form>
           </div>
         </section>
 
+        {/* Classes */}
+        {showcase.length > 0 && (
+          <section aria-labelledby="hm-classes-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-20 lg:pt-28">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <h2 id="hm-classes-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[750] leading-[0.95]">
+                Für jede Fahrt die passende Klasse.
+              </h2>
+              <Link href="/fleet" className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-hm-ink-2 hover:text-hm-accent-text transition-[color] duration-[var(--hm-dur-short)]">
+                Alle Fahrzeuge <ArrowRight aria-hidden className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <ul className="mt-10 grid grid-cols-1 md:grid-cols-[repeat(3,minmax(0,1fr))] gap-4">
+              {showcase.map((item) => (
+                <li key={item.category}>
+                  <Link
+                    href={`/fleet?category=${encodeURIComponent(item.category)}`}
+                    className="group hm-stage ring-1 ring-inset ring-hm-rule dark:ring-0 relative flex h-full min-h-[300px] flex-col overflow-hidden rounded-[var(--hm-radius-card)] p-6 text-hm-stage-ink"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="hm-display text-3xl font-[750] leading-none">{item.category}</h3>
+                        <p className="hm-tnum mt-2 text-sm text-hm-stage-muted">
+                          {item.count} {item.count === 1 ? "Modell" : "Modelle"} · ab € {formatEuro(item.minRate)} / Tag
+                        </p>
+                      </div>
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-hm-stage-2 text-hm-stage-ink transition-[background-color,color,transform] duration-[var(--hm-dur-short)] ease-hm-out group-hover:bg-hm-accent group-hover:text-hm-accent-ink group-hover:rotate-45">
+                        <ArrowUpRight aria-hidden className="w-5 h-5" />
+                      </span>
+                    </div>
+                    <div className="relative mt-auto -mx-6 -mb-2 aspect-[16/8]">
+                      <Image
+                        src={item.car.imageUrl}
+                        alt={item.car.name}
+                        fill
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        className="object-contain transition-transform duration-[var(--hm-dur-med)] ease-hm-out group-hover:translate-x-2"
+                      />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* Catalogue */}
-        <section aria-labelledby="hm-fleet-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
+        <section aria-labelledby="hm-fleet-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-20 lg:py-28">
           <InteractiveFleet initialCars={featuredCars} categories={availableCategories} />
         </section>
 
-        {/* Terms spec sheet */}
-        <section aria-labelledby="hm-terms-heading" className="border-t border-hm-rule bg-hm-paper-2">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-10 lg:gap-16">
-            <div className="min-w-0">
-              <h2 id="hm-terms-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
-                Konditionen, ohne Kleingedrucktes.
-              </h2>
-              <p className="mt-5 max-w-sm text-hm-ink-2 leading-relaxed">
-                Was gilt, bevor Sie losfahren. Die vollständigen Bedingungen stehen in den{" "}
-                <a href="/terms" className="text-hm-ink underline decoration-hm-accent decoration-2 underline-offset-4 hover:decoration-hm-ink transition-[text-decoration-color] duration-[var(--hm-dur-short)]">AGB</a>.
-              </p>
-              <a
-                href="tel:+436609996800"
-                className="hm-tnum mt-8 inline-flex items-center gap-2 whitespace-nowrap font-hm-mono text-sm text-hm-ink border-b border-hm-rule-strong pb-1 hover:text-hm-accent-text hover:border-hm-accent transition-[color,border-color] duration-[var(--hm-dur-short)] ease-hm-out"
-              >
-                +43 660 9996800 <ArrowRight aria-hidden className="w-3.5 h-3.5" />
-              </a>
+        {/* Why Rent-Ex — bento */}
+        <section aria-labelledby="hm-why-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pb-20 lg:pb-28">
+          <h2 id="hm-why-heading" className="hm-display max-w-2xl text-[length:var(--hm-text-display-s)] font-[750] leading-[0.95]">
+            Mieten ohne Kleingedrucktes.
+          </h2>
+
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(4,minmax(0,1fr))] gap-4">
+            <div className="md:col-span-2 lg:row-span-2 flex flex-col justify-between gap-10 rounded-[var(--hm-radius-card)] bg-hm-stage-ink p-7 sm:p-9 text-hm-stage">
+              <Phone aria-hidden className="w-7 h-7 text-hm-accent" />
+              <div>
+                <p className="hm-display hm-tnum text-[clamp(4.5rem,9vw,8rem)] font-[800] leading-[0.85]">24/7</p>
+                <p className="mt-4 max-w-sm text-lg text-hm-stage/75">
+                  Erreichbar, wenn Sie uns brauchen — auch am Wochenende und bei Pannen.
+                </p>
+                <a
+                  href="tel:+436609996800"
+                  className="hm-tnum mt-7 inline-flex items-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-pill)] bg-hm-accent px-5 py-3 text-sm font-semibold text-hm-accent-ink hover:bg-hm-accent-hover transition-[background-color] duration-[var(--hm-dur-short)] ease-hm-out"
+                >
+                  +43 660 9996800 <ArrowRight aria-hidden className="w-4 h-4" />
+                </a>
+              </div>
             </div>
 
-            <dl className="min-w-0 border-t border-hm-rule-strong">
-              {terms.map((row) => (
-                <div
-                  key={row.label}
-                  className="grid grid-cols-1 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)] gap-x-6 gap-y-1 py-4 border-b border-hm-rule"
-                >
-                  <dt className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted sm:pt-1">{row.label}</dt>
-                  <dd className="hm-tnum font-semibold text-hm-ink">{row.value}</dd>
-                  <dd className="text-sm text-hm-muted sm:pt-0.5">{row.note}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="flex flex-col gap-8 rounded-[var(--hm-radius-card)] bg-hm-paper-2 p-7">
+              <ShieldCheck aria-hidden className="w-6 h-6 text-hm-accent-text" />
+              <div className="mt-auto">
+                <h3 className="text-xl font-bold">Vollkasko & Insassenschutz</h3>
+                <p className="mt-2 text-sm text-hm-ink-2">Bei jedem Fahrzeug der Flotte.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-8 rounded-[var(--hm-radius-card)] bg-hm-paper-2 p-7">
+              <CalendarRange aria-hidden className="w-6 h-6 text-hm-accent-text" />
+              <div className="mt-auto">
+                <h3 className="text-xl font-bold">Tag, Woche, Monat</h3>
+                <p className="mt-2 text-sm text-hm-ink-2">Flexible Mietdauer, unkompliziert verlängerbar.</p>
+              </div>
+            </div>
+
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Illstra%C3%9Fe+75a+6800+Feldkirch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group md:col-span-2 flex items-end justify-between gap-6 rounded-[var(--hm-radius-card)] border border-hm-rule p-7 hover:border-hm-ink transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out"
+            >
+              <div>
+                <MapPin aria-hidden className="w-6 h-6 text-hm-accent-text" />
+                <h3 className="mt-8 text-xl font-bold">Illstraße 75a, 6800 Feldkirch</h3>
+                <p className="mt-2 text-sm text-hm-ink-2">Abholung & Rückgabe — für ganz Vorarlberg.</p>
+              </div>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-hm-ink">
+                Route <ArrowUpRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </span>
+            </a>
           </div>
+
+          <dl className="mt-4 grid grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto] gap-x-6 gap-y-5 rounded-[var(--hm-radius-card)] border border-hm-rule px-7 py-6 lg:items-center">
+            {conditions.map((row) => (
+              <div key={row.label} className="min-w-0">
+                <dt className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">{row.label}</dt>
+                <dd className="hm-tnum mt-1 font-semibold text-hm-ink">{row.value}</dd>
+              </div>
+            ))}
+            <Link
+              href="/terms"
+              className="col-span-2 lg:col-span-1 inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-hm-ink-2 hover:text-hm-accent-text transition-[color] duration-[var(--hm-dur-short)]"
+            >
+              Alle Bedingungen <ArrowRight aria-hidden className="w-4 h-4" />
+            </Link>
+          </dl>
         </section>
 
         <HowItWorks />
