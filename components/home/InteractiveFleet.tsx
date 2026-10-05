@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fuel, Users, Wind, Heart, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
 interface CarType {
   id: number;
   brand: string;
   model: string;
   imageUrl: string | null;
-  dailyRate: any;
+  dailyRate: number;
   fuelType: string;
   transmission: string | null;
   seats: number | null;
@@ -29,6 +29,8 @@ interface InteractiveFleetProps {
   categories: CategoryType[];
 }
 
+type SortKey = "price-asc" | "price-desc";
+
 function slugify(text: string) {
   return text
     .toString()
@@ -39,125 +41,144 @@ function slugify(text: string) {
     .replace(/\-\-+/g, '-');
 }
 
+const formatEuro = (value: number) =>
+  value.toLocaleString("de-AT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function InteractiveFleet({ initialCars, categories }: InteractiveFleetProps) {
   const [activeTab, setActiveTab] = useState<string>("Alle");
-  const [sortBy, setSortBy] = useState<string>("Beliebteste");
+  const [sortBy, setSortBy] = useState<SortKey>("price-asc");
 
-  // Filter logic
-  const filterCars = () => {
-    let filtered = initialCars;
-    
-    // Filter by category
-    if (activeTab !== "Alle") {
-      filtered = initialCars.filter(
-        (car) => car.category?.toLowerCase() === activeTab.toLowerCase()
-      );
-    }
+  const countFor = (name: string) =>
+    initialCars.filter((car) => car.category?.toLowerCase() === name.toLowerCase()).length;
 
-    // Sort logic
-    if (sortBy === "Preis (Aufsteigend)") {
-      return [...filtered].sort((a, b) => Number(a.dailyRate) - Number(b.dailyRate));
-    } else if (sortBy === "Preis (Absteigend)") {
-      return [...filtered].sort((a, b) => Number(b.dailyRate) - Number(a.dailyRate));
-    }
-    
-    return filtered;
-  };
+  const filtered = activeTab === "Alle"
+    ? initialCars
+    : initialCars.filter((car) => car.category?.toLowerCase() === activeTab.toLowerCase());
 
-  const displayedCars = filterCars();
+  const displayedCars = [...filtered].sort((a, b) =>
+    sortBy === "price-asc" ? a.dailyRate - b.dailyRate : b.dailyRate - a.dailyRate
+  );
+
+  const tabs = [{ name: "Alle", count: initialCars.length }, ...categories.map((cat) => ({ name: cat.name, count: countFor(cat.name) }))];
 
   return (
     <>
-      {/* Category Filters */}
-      <div className="flex flex-wrap items-center gap-3 mt-10">
-        <button
-          onClick={() => setActiveTab("Alle")}
-          className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-            activeTab === "Alle" 
-              ? "bg-red-600 text-white shadow-lg shadow-red-600/30" 
-              : "bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10"
-          }`}
-        >
-          Alle
-        </button>
-        {categories.filter(cat => initialCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveTab(cat.name)}
-            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-              activeTab === cat.name
-                ? "bg-red-600 text-white shadow-lg shadow-red-600/30"
-                : "bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10"
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <h2 id="hm-fleet-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
+          Die Flotte, heute.
+        </h2>
 
-      {/* Sorting */}
-      <div className="flex justify-end items-center gap-3 mt-8">
-        <span className="text-xs text-gray-500 dark:text-zinc-400">Sortieren nach</span>
-        <div className="relative">
-          <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/10 rounded-lg py-2 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 text-sm appearance-none cursor-pointer"
-          >
-            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Beliebteste</option>
-            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Preis (Aufsteigend)</option>
-            <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Preis (Absteigend)</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
+        <div className="flex items-center gap-3">
+          <label htmlFor="hm-sort" className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted whitespace-nowrap">
+            Sortieren
+          </label>
+          <div className="relative">
+            <select
+              id="hm-sort"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortKey)}
+              className="min-h-10 bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] py-2 pl-3 pr-9 text-sm text-hm-ink outline-none appearance-none cursor-pointer hover:border-hm-muted focus:border-hm-ink transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out"
+            >
+              <option value="price-asc">Preis aufsteigend</option>
+              <option value="price-desc">Preis absteigend</option>
+            </select>
+            <ChevronDown aria-hidden className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted pointer-events-none" />
+          </div>
         </div>
       </div>
 
-      {/* Vehicle Grid */}
+      {/* Category filter — text tabs with counts */}
+      <div role="tablist" aria-label="Fahrzeugklasse" className="mt-8 flex gap-x-6 gap-y-2 overflow-x-auto hide-scrollbar border-b border-hm-rule">
+        {tabs.map((tab) => {
+          const active = activeTab === tab.name;
+          return (
+            <button
+              key={tab.name}
+              role="tab"
+              type="button"
+              aria-selected={active}
+              onClick={() => setActiveTab(tab.name)}
+              className={`relative -mb-px shrink-0 whitespace-nowrap py-3 text-sm border-b-2 transition-[color,border-color] duration-[var(--hm-dur-short)] ease-hm-out ${
+                active
+                  ? "border-hm-accent text-hm-ink font-semibold"
+                  : "border-transparent text-hm-muted hover:text-hm-ink hover:border-hm-rule"
+              }`}
+            >
+              {tab.name}
+              <span className="hm-tnum ml-1.5 font-hm-mono text-[11px] text-hm-muted">{tab.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {displayedCars.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-4 mt-4">
-          {displayedCars.map((car) => (
-            <div key={car.id} className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 rounded-2xl p-4 hover:border-gray-300 dark:hover:border-white/10 transition-colors group relative flex flex-col shadow-sm dark:shadow-none">
-              <button className="absolute top-4 right-4 text-gray-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-500 transition-colors z-10">
-                <Heart className="w-5 h-5" />
-              </button>
-              
-              <div className="relative h-32 w-full mb-4">
-                <Image src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"} alt={`${car.brand} ${car.model}`} title={`${car.brand} ${car.model}`} fill className="object-cover rounded-xl" />
-              </div>
-              
-              <div className="flex items-center gap-2 mb-2">
-                <div className="font-bold text-gray-900 dark:text-white text-base truncate">{car.brand} {car.model}</div>
-                <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-[10px] text-gray-500 dark:text-zinc-400">{car.transmission || "Automatik"}</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] text-gray-500 dark:text-zinc-400 mb-6 flex-1">
-                <div className="flex items-center gap-1.5"><Fuel className="w-3.5 h-3.5" /> {car.fuelType || "Diesel"}</div>
-                <div className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {car.seats || 5} Sitze</div>
-                <div className="flex items-center gap-1.5 col-span-2"><Wind className="w-3.5 h-3.5" /> {car.hasAirConditioning ? "Klimaanlage" : "Keine Klima"}</div>
-              </div>
-              
-              <div className="flex items-center justify-between mt-auto">
-                <div>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">€{Number(car.dailyRate).toFixed(2).replace('.', ',')}</span>
-                  <span className="text-[10px] text-gray-500 dark:text-zinc-500"> / Tag</span>
-                </div>
-                <Link href={`/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`} title={`Jetzt ${car.brand} ${car.model} buchen`} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors">
-                  Jetzt Buchen
+        <ul className="mt-10 grid grid-cols-1 sm:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(3,minmax(0,1fr))] 2xl:grid-cols-[repeat(4,minmax(0,1fr))] border-t border-l border-hm-rule">
+          {displayedCars.map((car) => {
+            const href = `/fleet/${car.id}/${slugify(`${car.brand}-${car.model}`)}`;
+            const specs = [
+              car.transmission || "Automatik",
+              car.fuelType || "Diesel",
+              `${car.seats || 5} Sitze`,
+              car.hasAirConditioning ? "Klima" : null,
+            ].filter(Boolean);
+
+            return (
+              <li key={car.id} className="bg-hm-paper border-r border-b border-hm-rule">
+                <Link
+                  href={href}
+                  title={`${car.brand} ${car.model} buchen`}
+                  className="group flex h-full flex-col p-5 outline-offset-[-2px] hover:bg-hm-paper-2 transition-[background-color] duration-[var(--hm-dur-short)] ease-hm-out"
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted truncate">
+                      {car.category || "Fahrzeug"}
+                    </span>
+                  </div>
+
+                  <div className="relative mt-3 aspect-[16/10] w-full overflow-hidden rounded-[var(--hm-radius-input)] bg-hm-plate">
+                    <Image
+                      src={car.imageUrl || "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800"}
+                      alt={`${car.brand} ${car.model}`}
+                      fill
+                      sizes="(min-width: 1536px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      className="object-contain mix-blend-multiply transition-transform duration-[var(--hm-dur-med)] ease-hm-out group-hover:-translate-y-1"
+                    />
+                  </div>
+
+                  <h3 className="mt-4 text-base font-bold leading-snug text-hm-ink">
+                    {car.brand} {car.model}
+                  </h3>
+                  <p className="mt-1 text-xs text-hm-muted">{specs.join(" · ")}</p>
+
+                  <div className="mt-auto pt-5 flex items-end justify-between gap-3 border-t border-transparent">
+                    <p className="hm-tnum">
+                      <span className="text-xs text-hm-muted">ab </span>
+                      <span className="text-xl font-bold text-hm-ink">€ {formatEuro(car.dailyRate)}</span>
+                      <span className="text-xs text-hm-muted"> / Tag</span>
+                    </p>
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-hm-accent-text">
+                      Buchen
+                      <ArrowRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
                 </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+              </li>
+            );
+          })}
+        </ul>
       ) : (
-        <div className="py-20 text-center bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 rounded-2xl mt-4">
-          <p className="text-gray-500 dark:text-zinc-500 font-bold uppercase tracking-wider text-sm">Keine Fahrzeuge in dieser Kategorie gefunden</p>
-        </div>
+        <p className="mt-10 py-16 text-center text-sm text-hm-muted border border-hm-rule rounded-[var(--hm-radius-card)]">
+          In dieser Klasse ist gerade kein Fahrzeug frei.
+        </p>
       )}
 
-      {/* Load More Button */}
-      <div className="flex justify-center mt-6">
-        <Link href="/fleet" title="Gesamte Fahrzeugflotte anzeigen" className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 text-gray-600 dark:text-zinc-300 text-sm rounded-xl transition-all shadow-sm dark:shadow-none">
-          Mehr Fahrzeuge anzeigen <ChevronDown className="w-4 h-4" />
+      <div className="mt-8 flex justify-end">
+        <Link
+          href="/fleet"
+          title="Gesamte Fahrzeugflotte anzeigen"
+          className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-hm-ink border-b border-hm-rule-strong pb-1 hover:text-hm-accent-text hover:border-hm-accent transition-[color,border-color] duration-[var(--hm-dur-short)] ease-hm-out"
+        >
+          Ganze Flotte mit Filtern <ArrowRight aria-hidden className="w-4 h-4" />
         </Link>
       </div>
     </>

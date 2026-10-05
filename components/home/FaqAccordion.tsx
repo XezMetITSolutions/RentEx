@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 const faqs = [
   {
@@ -29,51 +30,58 @@ const faqs = [
 export default function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <section className="py-24 relative z-10 bg-gray-50 dark:bg-[#0a0a0a] border-y border-gray-200 dark:border-white/5 transition-colors">
-      <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4 mb-16">
-          <span className="inline-block text-[10px] font-black px-3 py-1 bg-red-500/10 text-red-500 rounded-full uppercase tracking-widest border border-red-500/20">FAQ</span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-gray-900 dark:text-white">
-            Häufig gestellte Fragen
+    <section aria-labelledby="hm-faq-heading" className="border-t border-hm-rule bg-hm-paper-2">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-10 lg:gap-16">
+        <div className="min-w-0">
+          <h2 id="hm-faq-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
+            Häufige Fragen.
           </h2>
+          <p className="mt-5 max-w-sm text-hm-ink-2 leading-relaxed">
+            Nicht dabei?{" "}
+            <Link href="/faq" className="text-hm-ink underline decoration-hm-accent decoration-2 underline-offset-4 hover:decoration-hm-ink transition-[text-decoration-color] duration-[var(--hm-dur-short)]">
+              Alle Fragen
+            </Link>{" "}
+            oder direkt{" "}
+            <Link href="/contact" className="text-hm-ink underline decoration-hm-accent decoration-2 underline-offset-4 hover:decoration-hm-ink transition-[text-decoration-color] duration-[var(--hm-dur-short)]">
+              Kontakt aufnehmen
+            </Link>.
+          </p>
         </div>
 
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div 
-              key={index}
-              className={`border rounded-2xl transition-colors duration-300 shadow-sm dark:shadow-none ${
-                openIndex === index ? "bg-red-50 dark:bg-[#111] border-red-500/30" : "bg-white dark:bg-[#0f0f0f] border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10"
-              }`}
-            >
-              <button
-                onClick={() => toggle(index)}
-                className="w-full flex items-center justify-between p-6 text-left"
-              >
-                <span className="text-lg font-bold text-gray-900 dark:text-white pr-8">{faq.question}</span>
-                <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                  openIndex === index ? "bg-red-500 text-white" : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-zinc-400"
-                }`}>
-                  {openIndex === index ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                </span>
-              </button>
-              
-              <div 
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  openIndex === index ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="p-6 pt-0 text-gray-500 dark:text-zinc-400 text-sm leading-relaxed">
+        <div className="min-w-0 border-t border-hm-rule-strong">
+          {faqs.map((faq, index) => {
+            const open = openIndex === index;
+            const panelId = `hm-faq-panel-${index}`;
+            return (
+              <div key={faq.question} className="border-b border-hm-rule">
+                <h3>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={panelId}
+                    onClick={() => setOpenIndex(open ? null : index)}
+                    className="group w-full flex items-start justify-between gap-6 py-5 text-left"
+                  >
+                    <span className={`text-base sm:text-lg font-semibold transition-[color] duration-[var(--hm-dur-short)] ${open ? "text-hm-ink" : "text-hm-ink-2 group-hover:text-hm-ink"}`}>
+                      {faq.question}
+                    </span>
+                    <Plus
+                      aria-hidden
+                      className={`mt-1 w-5 h-5 shrink-0 text-hm-muted transition-transform duration-[var(--hm-dur-med)] ease-hm-out ${open ? "rotate-45 text-hm-accent-text" : ""}`}
+                    />
+                  </button>
+                </h3>
+                <div
+                  id={panelId}
+                  hidden={!open}
+                  className="pb-6 pr-10 max-w-2xl text-sm leading-relaxed text-hm-ink-2"
+                >
                   {faq.answer}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -1,3 +1,7 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Catalogue · theme: custom (brand red) · enrichment: none · nav: shared Navbar · footer: shared Footer
+ * tokens: /tokens.css · pre-emit critique: P4 H5 E4 S5 R4 V4
+ */
+import { Archivo, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/home/Navbar";
 import InteractiveFleet from "@/components/home/InteractiveFleet";
 import HowItWorks from "@/components/home/HowItWorks";
@@ -5,14 +9,47 @@ import FaqAccordion from "@/components/home/FaqAccordion";
 import NewsletterCta from "@/components/home/NewsletterCta";
 import Footer from "@/components/home/Footer";
 import { getFeaturedCars, getCarCategories } from "@/app/actions";
-import { Calendar, Car, MapPin, Search, Phone, ShieldCheck, Clock, CheckCircle, Heart, Settings, Fuel, Users, Wind, ChevronDown, Tag } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { SITE_URL } from '@/lib/config';
 
+const archivo = Archivo({
+  variable: "--font-hm-archivo",
+  subsets: ["latin"],
+  axes: ["wdth"],
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-hm-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
+const formatEuro = (value: number) =>
+  value.toLocaleString("de-AT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default async function Home() {
-  const featuredCars = await getFeaturedCars();
+  const featuredCarsRaw = await getFeaturedCars();
   const categories = await getCarCategories();
+
+  // Plain objects only: Prisma Decimal can't cross into client components.
+  const featuredCars = featuredCarsRaw.map((car) => ({
+    id: car.id,
+    brand: car.brand,
+    model: car.model,
+    imageUrl: car.imageUrl,
+    dailyRate: Number(car.dailyRate),
+    fuelType: car.fuelType,
+    transmission: car.transmission,
+    seats: car.seats,
+    category: car.category,
+    hasAirConditioning: car.hasAirConditioning,
+  }));
+
+  const availableCategories = categories
+    .filter((cat) => featuredCars.some((car) => car.category?.toLowerCase() === cat.name.toLowerCase()))
+    .map((cat) => ({ id: cat.id, name: cat.name, sortOrder: cat.sortOrder }));
+
+  const lowestRate = featuredCars.length > 0 ? Math.min(...featuredCars.map((car) => car.dailyRate)) : null;
 
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrow = new Date();
@@ -97,8 +134,24 @@ export default async function Home() {
     ]
   };
 
+  // Every row is taken from the rental terms / FAQ — no invented figures.
+  const terms = [
+    { label: "Abholung", value: "Illstraße 75a, 6800 Feldkirch", note: "Fahrzeuge im ganzen Ländle" },
+    { label: "Erreichbarkeit", value: "24 / 7", note: "+43 660 9996800" },
+    { label: "Versicherung", value: "Vollkasko & Insassenschutz", note: "bei allen Fahrzeugen" },
+    { label: "Führerschein", value: "mind. 2 Jahre", note: "ununterbrochen gültig" },
+    { label: "Tankregelung", value: "voll / voll", note: "sonst Kosten + 18,00 € Pauschale" },
+    { label: "Mehrkilometer", value: "0,33 – 0,45 € / km", note: "je nach Fahrzeug" },
+    { label: "Mietdauer", value: "Tag · Woche · Monat", note: "flexibel verlängerbar" },
+    { label: "Ausland", value: "nach Genehmigung", note: "bitte vor Mietbeginn melden" },
+  ];
+
+  const fieldClass =
+    "w-full min-h-11 bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] px-3 py-2.5 text-sm text-hm-ink outline-none transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out hover:border-hm-muted focus:border-hm-ink dark:[color-scheme:dark]";
+  const labelClass = "block font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted mb-1.5";
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-red-500/30 font-sans overflow-x-hidden transition-colors">
+    <div className={`${archivo.variable} ${jetbrains.variable} hm-home min-h-screen bg-hm-paper text-hm-ink font-hm-body selection:bg-hm-accent/25`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -109,210 +162,106 @@ export default async function Home() {
       />
       <Navbar />
 
-      <main className="pt-28 pb-16 max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col xl:flex-row gap-6 items-start mt-4">
-          
-          {/* Left Sidebar (Fahrzeugsuche) */}
-          <aside className="w-full xl:w-[320px] shrink-0 space-y-4">
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-[1.5rem] shadow-xl transition-colors">
-              <div className="text-lg font-bold text-gray-900 dark:text-white mb-6">Fahrzeugsuche</div>
+      <main className="pt-20">
+        {/* Inventory header + booking form */}
+        <section className="border-b border-hm-rule">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-14 pb-12 lg:pt-20 lg:pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-end">
+            <div className="min-w-0">
+              <p className="hm-tnum font-hm-mono text-xs text-hm-muted mb-6">
+                {featuredCars.length} Modelle · {availableCategories.length} Klassen
+                {lowestRate !== null && <> · ab € {formatEuro(lowestRate)} / Tag</>}
+              </p>
+              <h1 className="hm-display text-[length:var(--hm-text-display)] font-[750] leading-[0.92] text-hm-ink">
+                Mietwagen in Feldkirch<span className="text-hm-accent">.</span>
+              </h1>
+              <p className="mt-6 max-w-[34rem] text-base sm:text-lg leading-relaxed text-hm-ink-2">
+                Vom Kleinwagen bis zum Kastenwagen. Datum wählen, Fahrzeug aussuchen,
+                online buchen — abgeholt wird in der Illstraße.
+              </p>
+            </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 ml-1">Abholort</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Stadt oder Adresse"
-                      className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-colors text-sm placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                    />
-                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-                  </div>
+            <form
+              action="/fleet"
+              method="get"
+              className="min-w-0 bg-hm-paper-2 border border-hm-rule rounded-[var(--hm-radius-card)] p-5 sm:p-6"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="hm-pickup" className={labelClass}>Abholung</label>
+                  <input id="hm-pickup" name="pickup" type="date" defaultValue={todayStr} min={todayStr} className={fieldClass} />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 ml-1">Abholdatum</label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      defaultValue={todayStr}
-                      className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-colors text-sm dark:[color-scheme:dark]"
-                    />
-                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
-                  </div>
+                <div>
+                  <label htmlFor="hm-return" className={labelClass}>Rückgabe</label>
+                  <input id="hm-return" name="return" type="date" defaultValue={tomorrowStr} min={todayStr} className={fieldClass} />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 ml-1">Rückgabedatum</label>
+                <div className="sm:col-span-2">
+                  <label htmlFor="hm-category" className={labelClass}>Fahrzeugklasse</label>
                   <div className="relative">
-                    <input
-                      type="date"
-                      defaultValue={tomorrowStr}
-                      className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-colors text-sm dark:[color-scheme:dark]"
-                    />
-                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 ml-1">Fahrzeugtyp</label>
-                  <div className="relative">
-                    <select className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-10 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-colors text-sm appearance-none cursor-pointer">
-                      <option className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">Alle Fahrzeugtypen</option>
-                      {categories.filter(cat => featuredCars.some(car => car.category?.toLowerCase() === cat.name.toLowerCase())).map((cat) => (
-                        <option key={cat.id} className="bg-white dark:bg-[#0f0f0f] text-gray-900 dark:text-white">{cat.name}</option>
+                    <select id="hm-category" name="category" defaultValue="" className={`${fieldClass} appearance-none pr-10 cursor-pointer`}>
+                      <option value="">Alle Klassen</option>
+                      {availableCategories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 pointer-events-none" />
+                    <ChevronDown aria-hidden className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hm-muted pointer-events-none" />
                   </div>
                 </div>
-
-                <button className="w-full py-3.5 bg-[#e50914] hover:bg-red-700 text-white font-semibold text-sm rounded-xl transition-all mt-6 shadow-[0_4px_14px_rgba(229,9,20,0.4)]">
-                  Fahrzeuge finden
-                </button>
               </div>
-            </div>
-
-            {/* Support Box */}
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-[1.5rem] flex items-center gap-4 transition-colors">
-              <div className="text-red-500">
-                <Phone className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-gray-900 dark:text-white">Benötigen Sie Hilfe?</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">Unser Team ist 24/7 für Sie da.</p>
-                <a href="tel:+436609996800" title="Rufen Sie uns an unter +43 660 9996800" className="text-sm font-bold text-red-500 mt-1 hover:underline transition-all block">+43 660 9996800</a>
-              </div>
-            </div>
-          </aside>
-
-          {/* Center Column (Hero & Fleet) */}
-          <section className="flex-1 min-w-0 flex flex-col gap-8">
-            
-            {/* Hero Top */}
-            <div className="relative bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 lg:p-12 overflow-hidden min-h-[360px] flex items-center transition-colors">
-              {/* Glow Behind Car */}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/20 blur-[100px] rounded-full mix-blend-screen dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
-              
-              {/* Text Content */}
-              <div className="relative z-10 max-w-xl">
-                <span className="text-red-500 text-xs font-bold tracking-widest uppercase mb-4 block">Sofort Verfügbar</span>
-                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 dark:text-white leading-[1.1] mb-4">
-                  Finden Sie Ihr <br /> perfektes Fahrzeug
-                </h1>
-                <p className="text-gray-500 dark:text-zinc-400 text-lg">Premium Fahrzeuge. Top Service. Beste Preise.</p>
-                
-              </div>
-
-              {/* Dark/Light BMW Image */}
-              <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 w-[55%] h-[120%] pointer-events-none hidden md:block">
-                <div className="relative w-full h-full">
-                  <Image 
-                    src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=1200" 
-                    alt="Premium BMW" 
-                    title="Premium BMW Mietwagen"
-                    fill 
-                    className="object-cover object-center rounded-l-[100px] mask-image-[linear-gradient(to_left,black,transparent)] opacity-90 dark:mix-blend-lighten mix-blend-darken"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-transparent dark:from-[#0f0f0f]" />
-                </div>
-              </div>
-            </div>
-
-            {/* Interactive Fleet Component */}
-            <div className="mt-8">
-              <InteractiveFleet initialCars={featuredCars} categories={categories} />
-            </div>
-
-          </section>
-
-          {/* Right Sidebar (Advantages) */}
-          <aside className="w-full xl:w-[280px] shrink-0 space-y-4">
-            
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 group hover:border-red-500/30 transition-colors">
-              <div className="text-red-500">
-                <ShieldCheck className="w-7 h-7 stroke-[1.5]" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-gray-900 dark:text-white">Versicherte Fahrzeuge</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Vollkasko & Insassenschutz</p>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 group hover:border-red-500/30 transition-colors">
-              <div className="text-red-500">
-                <Phone className="w-7 h-7 stroke-[1.5]" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-gray-900 dark:text-white">24/7 Support</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Wir sind jederzeit für Sie da</p>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 group hover:border-red-500/30 transition-colors">
-              <div className="text-red-500">
-                <CheckCircle className="w-7 h-7 stroke-[1.5]" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-gray-900 dark:text-white">Schnelle Buchung</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">In nur wenigen Schritten</p>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 group hover:border-red-500/30 transition-colors">
-              <div className="text-red-500">
-                <Tag className="w-7 h-7 stroke-[1.5]" />
-              </div>
-              <div>
-                <div className="font-bold text-sm text-gray-900 dark:text-white">Faire Preise</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-0.5">Transparente & keine versteckten Kosten</p>
-              </div>
-            </div>
-
-          </aside>
-        </div>
-
-        {/* Bottom Trust Badges */}
-        <div className="mt-16 bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 rounded-2xl p-8 transition-colors">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8 divide-y sm:divide-y-0 sm:divide-x divide-gray-200 dark:divide-white/5">
-            <div className="flex items-center gap-4 px-4">
-              <Car className="w-8 h-8 text-red-500 shrink-0" />
-              <div>
-                <div className="text-base font-bold text-gray-900 dark:text-white">20+ Fahrzeuge</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500">Für jeden Bedarf das Richtige</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 px-4">
-              <MapPin className="w-8 h-8 text-red-500 shrink-0" />
-              <div>
-                <div className="text-base font-bold text-gray-900 dark:text-white">Im ganzen Ländle</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500">
-                  Für Sie in <a href="https://www.vorarlberg.travel" target="_blank" rel="noopener noreferrer" title="Offizielles Tourismusportal Vorarlberg" className="hover:underline hover:text-red-500 transition-colors">Vorarlberg</a>
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 px-4">
-              <Heart className="w-8 h-8 text-red-500 shrink-0" />
-              <div>
-                <div className="text-base font-bold text-gray-900 dark:text-white">Beste Bewertungen</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500">4,9/5 Sterne von Kunden</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 px-4">
-              <Calendar className="w-8 h-8 text-red-500 shrink-0" />
-              <div>
-                <div className="text-base font-bold text-gray-900 dark:text-white">Flexible Mietdauer</div>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-500">Täglich, wöchentlich, monatlich</p>
-              </div>
-            </div>
+              <button
+                type="submit"
+                className="group mt-5 w-full min-h-12 inline-flex items-center justify-center gap-2 whitespace-nowrap bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px text-hm-accent-ink font-semibold text-sm rounded-[var(--hm-radius-input)] transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
+              >
+                Verfügbare Fahrzeuge zeigen
+                <ArrowRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
+              </button>
+            </form>
           </div>
-        </div>
+        </section>
+
+        {/* Catalogue */}
+        <section aria-labelledby="hm-fleet-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
+          <InteractiveFleet initialCars={featuredCars} categories={availableCategories} />
+        </section>
+
+        {/* Terms spec sheet */}
+        <section aria-labelledby="hm-terms-heading" className="border-t border-hm-rule bg-hm-paper-2">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-10 lg:gap-16">
+            <div className="min-w-0">
+              <h2 id="hm-terms-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
+                Konditionen, ohne Kleingedrucktes.
+              </h2>
+              <p className="mt-5 max-w-sm text-hm-ink-2 leading-relaxed">
+                Was gilt, bevor Sie losfahren. Die vollständigen Bedingungen stehen in den{" "}
+                <a href="/terms" className="text-hm-ink underline decoration-hm-accent decoration-2 underline-offset-4 hover:decoration-hm-ink transition-[text-decoration-color] duration-[var(--hm-dur-short)]">AGB</a>.
+              </p>
+              <a
+                href="tel:+436609996800"
+                className="hm-tnum mt-8 inline-flex items-center gap-2 whitespace-nowrap font-hm-mono text-sm text-hm-ink border-b border-hm-rule-strong pb-1 hover:text-hm-accent-text hover:border-hm-accent transition-[color,border-color] duration-[var(--hm-dur-short)] ease-hm-out"
+              >
+                +43 660 9996800 <ArrowRight aria-hidden className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            <dl className="min-w-0 border-t border-hm-rule-strong">
+              {terms.map((row) => (
+                <div
+                  key={row.label}
+                  className="grid grid-cols-1 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)] gap-x-6 gap-y-1 py-4 border-b border-hm-rule"
+                >
+                  <dt className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted sm:pt-1">{row.label}</dt>
+                  <dd className="hm-tnum font-semibold text-hm-ink">{row.value}</dd>
+                  <dd className="text-sm text-hm-muted sm:pt-0.5">{row.note}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
 
         <HowItWorks />
+        <FaqAccordion />
+        <NewsletterCta />
       </main>
 
-      <FaqAccordion />
-      <NewsletterCta />
       <Footer />
     </div>
   );

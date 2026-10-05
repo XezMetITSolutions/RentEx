@@ -1,0 +1,65 @@
+/* Hallmark · macrostructure: Catalogue · tone: utilitarian · anchor hue: brand red (28°)
+ * theme: custom (tuned) · vibe: "Ländle garage, spec sheet, brand red"
+ * paper oklch(97.5% 0.006 60) · accent oklch(57% 0.225 28)
+ * display: Archivo (wdth 72) · body: Montserrat · mono: JetBrains Mono
+ * axes: light / display-condensed / warm
+ * pre-emit critique: P4 H5 E4 S5 R4 V4
+ */
+
+:root {
+  --hm-paper: oklch(97.5% 0.006 60);
+  --hm-paper-2: oklch(94.5% 0.008 60);
+  --hm-paper-3: oklch(91% 0.01 60);
+  --hm-ink: oklch(19% 0.012 30);
+  --hm-ink-2: oklch(36% 0.012 30);
+  --hm-muted: oklch(50% 0.012 40);
+  --hm-rule: oklch(87% 0.009 50);
+  --hm-rule-strong: oklch(19% 0.012 30);
+  --hm-accent: oklch(57% 0.225 28);
+  --hm-accent-hover: oklch(50% 0.21 28);
+  --hm-accent-text: oklch(50% 0.2 28);
+  --hm-accent-ink: oklch(99% 0.003 60);
+  --hm-focus: oklch(57% 0.225 28);
+  --hm-error: oklch(50% 0.2 28);
+
+  --hm-space-3xs: 0.25rem;
+  --hm-space-2xs: 0.5rem;
+  --hm-space-xs: 0.75rem;
+  --hm-space-sm: 1rem;
+  --hm-space-md: 1.5rem;
+  --hm-space-lg: 2rem;
+  --hm-space-xl: 3rem;
+  --hm-space-2xl: 4.5rem;
+  --hm-space-3xl: 7rem;
+
+  --hm-text-display: clamp(2.75rem, 6vw + 0.5rem, 6rem);
+  --hm-text-display-s: clamp(2.25rem, 3.5vw + 0.75rem, 3.75rem);
+
+  --hm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --hm-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --hm-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --hm-dur-short: 180ms;
+  --hm-dur-med: 280ms;
+
+  --hm-plate: oklch(99% 0.003 60);
+
+  --hm-radius-card: 6px;
+  --hm-radius-input: 4px;
+}
+
+.dark {
+  --hm-paper: oklch(15% 0.006 30);
+  --hm-paper-2: oklch(19% 0.008 30);
+  --hm-paper-3: oklch(23% 0.009 30);
+  --hm-ink: oklch(96% 0.006 60);
+  --hm-ink-2: oklch(82% 0.008 60);
+  --hm-muted: oklch(67% 0.01 50);
+  --hm-rule: oklch(29% 0.008 30);
+  --hm-rule-strong: oklch(96% 0.006 60);
+  --hm-accent: oklch(58% 0.225 28);
+  --hm-accent-hover: oklch(64% 0.21 28);
+  --hm-accent-text: oklch(70% 0.17 28);
+  --hm-accent-ink: oklch(99% 0.003 60);
+  --hm-focus: oklch(70% 0.17 28);
+  --hm-error: oklch(70% 0.17 28);
+}

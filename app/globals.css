@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../tokens.css";
 
 @theme {
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
@@ -76,4 +77,55 @@ body {
 @keyframes shimmer {
   0% { transform: translateX(-150%); }
   100% { transform: translateX(150%); }
+}
+
+/* Hallmark homepage tokens → Tailwind utilities (bg-hm-paper, text-hm-ink, …) */
+@theme inline {
+  --color-hm-paper: var(--hm-paper);
+  --color-hm-paper-2: var(--hm-paper-2);
+  --color-hm-paper-3: var(--hm-paper-3);
+  --color-hm-ink: var(--hm-ink);
+  --color-hm-ink-2: var(--hm-ink-2);
+  --color-hm-muted: var(--hm-muted);
+  --color-hm-rule: var(--hm-rule);
+  --color-hm-rule-strong: var(--hm-rule-strong);
+  --color-hm-accent: var(--hm-accent);
+  --color-hm-accent-hover: var(--hm-accent-hover);
+  --color-hm-accent-text: var(--hm-accent-text);
+  --color-hm-accent-ink: var(--hm-accent-ink);
+  --color-hm-focus: var(--hm-focus);
+  --color-hm-plate: var(--hm-plate);
+  --font-hm-display: var(--font-hm-archivo), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-hm-body: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-hm-mono: var(--font-hm-jetbrains), ui-monospace, monospace;
+  --ease-hm-out: var(--hm-ease-out);
+}
+
+.hm-home {
+  overflow-x: clip;
+}
+
+.hm-home :focus-visible {
+  outline: 2px solid var(--hm-focus);
+  outline-offset: 2px;
+}
+
+.hm-display {
+  font-family: var(--font-hm-archivo), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  font-variation-settings: "wdth" 72;
+  font-style: normal;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.hm-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-home * {
+    transition-duration: 120ms !important;
+    transition-property: opacity, color, background-color, border-color !important;
+  }
 }

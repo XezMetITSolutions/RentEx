@@ -1,48 +1,38 @@
-import { Car, CreditCard, Key } from "lucide-react";
+const steps = [
+  {
+    stage: "1.0",
+    title: "Fahrzeug wählen.",
+    description: "Zeitraum eingeben und aus den freien Fahrzeugen das passende aussuchen.",
+  },
+  {
+    stage: "2.0",
+    title: "Online buchen.",
+    description: "Reservierung und Zahlung in wenigen Schritten — die Bestätigung kommt per E-Mail.",
+  },
+  {
+    stage: "3.0",
+    title: "Abholen & losfahren.",
+    description: "Schlüssel in der Illstraße 75a in Feldkirch abholen. Voll getankt zurückbringen.",
+  },
+];
 
 export default function HowItWorks() {
-  const steps = [
-    {
-      icon: <Car className="w-8 h-8 text-red-500" />,
-      title: "1. Fahrzeug wählen",
-      description: "Finden Sie das perfekte Fahrzeug aus unserer exklusiven Premium-Flotte."
-    },
-    {
-      icon: <CreditCard className="w-8 h-8 text-red-500" />,
-      title: "2. Online buchen",
-      description: "Reservieren Sie Ihr Fahrzeug schnell und sicher in nur wenigen Klicks."
-    },
-    {
-      icon: <Key className="w-8 h-8 text-red-500" />,
-      title: "3. Einsteigen & Losfahren",
-      description: "Holen Sie den Schlüssel ab und genießen Sie die Fahrt ohne Limits."
-    }
-  ];
-
   return (
-    <section className="py-24 relative z-10 transition-colors">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-          <span className="inline-block text-[10px] font-black px-3 py-1 bg-red-500/10 text-red-500 rounded-full uppercase tracking-widest border border-red-500/20">So einfach geht's</span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-gray-900 dark:text-white">
-            In 3 Schritten zum Ziel
-          </h2>
-        </div>
+    <section aria-labelledby="hm-steps-heading" className="border-t border-hm-rule">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
+        <h2 id="hm-steps-heading" className="hm-display max-w-3xl text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
+          Drei Schritte bis zum Schlüssel.
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Connecting Line (Desktop) */}
-          <div className="hidden md:block absolute top-1/2 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-red-500/0 via-red-500/30 to-red-500/0 -translate-y-1/2 z-0" />
-
-          {steps.map((step, idx) => (
-            <div key={idx} className="relative z-10 flex flex-col items-center text-center group">
-              <div className="w-20 h-20 rounded-2xl bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 flex items-center justify-center mb-6 group-hover:border-red-500/50 group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] transition-all duration-500 shadow-sm dark:shadow-none">
-                {step.icon}
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{step.title}</h3>
-              <p className="text-gray-500 dark:text-zinc-400 text-sm max-w-[280px] leading-relaxed">{step.description}</p>
-            </div>
+        <ol className="mt-12 grid grid-cols-1 md:grid-cols-[repeat(3,minmax(0,1fr))] border-t border-hm-rule-strong">
+          {steps.map((step) => (
+            <li key={step.stage} className="py-6 md:py-8 md:pr-10 border-b md:border-b-0 border-hm-rule">
+              <span className="hm-tnum font-hm-mono text-sm text-hm-accent-text">{step.stage}</span>
+              <h3 className="mt-4 text-xl font-bold text-hm-ink">{step.title}</h3>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-hm-ink-2">{step.description}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

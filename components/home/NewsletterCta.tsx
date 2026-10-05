@@ -1,47 +1,38 @@
-import { Mail, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function NewsletterCta() {
   return (
-    <section className="py-24 relative z-10 overflow-hidden transition-colors">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 md:p-16 overflow-hidden shadow-sm dark:shadow-none transition-colors">
-          {/* Background Glows */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-900/10 blur-[80px] rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
-            <div className="flex-1 space-y-6 text-center md:text-left">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-500/10 text-red-500 mb-2">
-                <Mail className="w-6 h-6" />
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-gray-900 dark:text-white">
-                Bleiben Sie auf dem Laufenden
-              </h2>
-              <p className="text-gray-500 dark:text-zinc-400 text-sm md:text-base max-w-md">
-                Abonnieren Sie unseren Newsletter für exklusive Angebote, neue Fahrzeuge in der Flotte und spezielle Rabatte.
-              </p>
-            </div>
+    <section aria-labelledby="hm-newsletter-heading" className="border-t border-hm-rule">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-8 lg:gap-16 items-end">
+        <div className="min-w-0">
+          <h2 id="hm-newsletter-heading" className="hm-display text-[length:var(--hm-text-display-s)] font-[700] leading-[0.95]">
+            Neue Fahrzeuge zuerst erfahren.
+          </h2>
+          <p className="mt-5 max-w-md text-hm-ink-2 leading-relaxed">
+            Angebote, Neuzugänge in der Flotte und saisonale Rabatte — selten, aber lohnend.
+          </p>
+        </div>
 
-            <div className="w-full md:w-[400px]">
-              <form className="relative flex items-center group">
-                <input 
-                  type="email" 
-                  placeholder="Ihre E-Mail Adresse" 
-                  className="w-full bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-6 pr-16 text-gray-900 dark:text-white outline-none focus:border-red-500 transition-all font-medium text-sm placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                  required
-                />
-                <button 
-                  type="submit"
-                  className="absolute right-2 top-2 bottom-2 w-12 bg-red-600 hover:bg-red-700 rounded-xl flex items-center justify-center text-white transition-colors"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </form>
-              <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-3 text-center md:text-left">
-                Wir respektieren Ihre Privatsphäre. Kein Spam.
-              </p>
-            </div>
-          </div>
+        <div className="min-w-0">
+          <form className="grid grid-cols-[minmax(0,1fr)_auto] items-center border-b-2 border-hm-rule-strong focus-within:border-hm-accent transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out">
+            <label htmlFor="hm-newsletter-email" className="sr-only">E-Mail-Adresse</label>
+            <input
+              id="hm-newsletter-email"
+              type="email"
+              placeholder="name@beispiel.at"
+              autoComplete="email"
+              required
+              className="min-h-12 bg-transparent py-3 text-base text-hm-ink outline-none placeholder:text-hm-muted"
+            />
+            <button
+              type="submit"
+              className="group inline-flex items-center gap-2 whitespace-nowrap py-3 pl-4 text-sm font-semibold text-hm-ink hover:text-hm-accent-text transition-[color] duration-[var(--hm-dur-short)] ease-hm-out"
+            >
+              Anmelden
+              <ArrowRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:translate-x-0.5" />
+            </button>
+          </form>
+          <p className="mt-3 text-xs text-hm-muted">Kein Spam. Abmeldung jederzeit.</p>
         </div>
       </div>
     </section>
