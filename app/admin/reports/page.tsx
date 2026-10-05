@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export default async function ReportsPage() {
     // 1. Car Stats
     const cars = await prisma.car.findMany({
-        select: { status: true }
+        select: { id: true, status: true, brand: true, model: true, plate: true }
     });
 
     const carStats = {
@@ -16,21 +16,21 @@ export default async function ReportsPage() {
         maintenance: cars.filter(c => c.status === 'Maintenance').length
     };
 
-    // 2. Upcoming Maintenance (Next 30 days or future)
+    // 2. Upcoming Maintenance (Next 60 days or future)
     const upcomingMaintenance = await prisma.maintenanceRecord.findMany({
         where: { nextDueDate: { gte: new Date() } },
-        take: 5,
-        include: { car: { select: { brand: true, model: true, plate: true } } },
+        take: 6,
+        include: { car: { select: { id: true, brand: true, model: true, plate: true } } },
         orderBy: { nextDueDate: 'asc' }
     });
 
     // 3. Recent Rentals
     const recentRentals = await prisma.rental.findMany({
-        take: 5,
+        take: 6,
         orderBy: { createdAt: 'desc' },
         include: {
-            car: { select: { brand: true, model: true } },
-            customer: { select: { firstName: true, lastName: true } }
+            car: { select: { id: true, brand: true, model: true, plate: true } },
+            customer: { select: { firstName: true, lastName: true, email: true } }
         }
     });
 
@@ -39,28 +39,46 @@ export default async function ReportsPage() {
         by: ['carId'],
         _count: { carId: true },
         orderBy: { _count: { carId: 'desc' } },
-        take: 5
+        take: 6
     });
 
     const popularCars = [];
     for (const item of popularRaw) {
         const car = await prisma.car.findUnique({
             where: { id: item.carId },
-            select: { brand: true, model: true }
+            select: { id: true, brand: true, model: true, plate: true }
         });
         if (car) {
             popularCars.push({
+                id: car.id,
                 name: `${car.brand} ${car.model}`,
+                plate: car.plate,
                 count: item._count.carId
             });
         }
     }
 
-    // Serialize dates for Client Component
+    // Serialize for Client Component
     const data = {
         carStats,
-        upcomingMaintenance: JSON.parse(JSON.stringify(upcomingMaintenance)),
-        recentRentals: JSON.parse(JSON.stringify(recentRentals)),
+        upcomingMaintenance: upcomingMaintenance.map(m => ({
+            id: m.id,
+            carId: m.carId,
+            maintenanceType: m.maintenanceType,
+            description: m.description,
+            nextDueDate: m.nextDueDate ? m.nextDueDate.toISOString() : null,
+            car: m.car
+        })),
+        recentRentals: recentRentals.map(r => ({
+            id: r.id,
+            contractNumber: r.contractNumber || String(r.id),
+            startDate: r.startDate.toISOString(),
+            endDate: r.endDate.toISOString(),
+            status: r.status,
+            totalAmount: Number(r.totalAmount || 0),
+            car: r.car,
+            customer: r.customer
+        })),
         popularCars
     };
 

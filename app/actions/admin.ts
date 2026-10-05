@@ -308,6 +308,15 @@ export async function createFahrtenbuchEntry(formData: FormData) {
     redirect('/admin/fahrtenbuch');
 }
 
+/** Fahrtenbuch-Eintrag löschen */
+export async function deleteFahrtenbuchEntry(id: number) {
+    await requireAdminModule('Fahrtenbuch');
+    await prisma.fahrtenbuchEntry.delete({
+        where: { id },
+    });
+    revalidatePath('/admin/fahrtenbuch');
+}
+
 /** Nächste Rechnungsnummer (RE-JJJJ-NNNNN) */
 async function getNextInvoiceNumber(): Promise<string> {
     const year = new Date().getFullYear();
@@ -468,8 +477,55 @@ export async function updateTask(taskId: number, data: {
     }
 }
 
+export async function deleteTask(taskId: number) {
+    await requireAdminModule('Aufgaben');
+    try {
+        await prisma.task.delete({
+            where: { id: taskId }
+        });
+        revalidatePath('/admin/tasks');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to delete task:', error);
+        return { error: 'Fehler beim Löschen der Aufgabe' };
+    }
+}
 
+export async function createQuickTask(data: {
+    title: string;
+    description?: string | null;
+    priority?: string;
+    status?: string;
+    dueDate?: string | null;
+    assignedTo?: string | null;
+    relatedCarId?: number | null;
+}) {
+    await requireAdminModule('Aufgaben');
+    const title = data.title?.trim();
+    if (!title) {
+        return { error: 'Titel ist erforderlich.' };
+    }
 
+    try {
+        const task = await prisma.task.create({
+            data: {
+                title,
+                description: data.description?.trim() || null,
+                priority: data.priority || 'medium',
+                status: data.status || 'todo',
+                dueDate: data.dueDate ? new Date(data.dueDate) : null,
+                assignedTo: data.assignedTo?.trim() || null,
+                relatedCarId: data.relatedCarId != null && !Number.isNaN(data.relatedCarId) ? data.relatedCarId : undefined,
+            },
+            include: { car: true }
+        });
+        revalidatePath('/admin/tasks');
+        return { success: true, task };
+    } catch (error) {
+        console.error('Failed to create quick task:', error);
+        return { error: 'Fehler beim Erstellen der Aufgabe' };
+    }
+}
 export async function markNotificationAsRead(id: number) {
     await requireAdminModule('Benachrichtigungen');
     try {

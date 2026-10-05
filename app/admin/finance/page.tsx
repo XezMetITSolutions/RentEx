@@ -6,34 +6,74 @@ import { de } from 'date-fns/locale';
 export const dynamic = 'force-dynamic';
 
 export default async function FinancePage() {
-    // Fetch rental data
-    const rentals = await prisma.rental.findMany({
-        where: {
-            status: { not: 'Cancelled' }
-        },
-        select: {
-            totalAmount: true,
-            status: true,
-            paymentStatus: true,
-            startDate: true
-        }
-    });
+    // 1. Fetch rentals with customer and car info
+    const [rentals, maintenanceRecords] = await Promise.all([
+        prisma.rental.findMany({
+            where: {
+                status: { not: 'Cancelled' }
+            },
+            select: {
+                id: true,
+                contractNumber: true,
+                totalAmount: true,
+                status: true,
+                paymentStatus: true,
+                startDate: true,
+                endDate: true,
+                createdAt: true,
+                customer: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                },
+                car: {
+                    select: {
+                        brand: true,
+                        model: true,
+                        plate: true
+                    }
+                },
+                payments: {
+                    select: {
+                        paymentMethod: true,
+                        amount: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        }),
+        prisma.maintenanceRecord.findMany({
+            select: {
+                cost: true,
+                performedDate: true,
+                createdAt: true
+            }
+        })
+    ]);
 
-    // 1. Total Revenue (Paid)
-    const totalRevenue = rentals
-        .filter(r => r.paymentStatus === 'Paid')
-        .reduce((sum, r) => sum + Number(r.totalAmount), 0);
+    // 2. Revenue calculations
+    const paidRentals = rentals.filter(r => r.paymentStatus === 'Paid');
+    const totalRevenue = paidRentals.reduce((sum, r) => sum + Number(r.totalAmount), 0);
 
-    // 2. Pending Revenue (Active or Pending payment)
     const pendingRevenue = rentals
         .filter(r => r.paymentStatus === 'Pending' || r.paymentStatus === 'Partial')
         .reduce((sum, r) => sum + Number(r.totalAmount), 0);
 
-    // 3. Average Rental Value
-    const paidRentalsCount = rentals.filter(r => r.paymentStatus === 'Paid').length;
-    const averageRentalValue = paidRentalsCount > 0
-        ? totalRevenue / paidRentalsCount
+    const averageRentalValue = paidRentals.length > 0
+        ? totalRevenue / paidRentals.length
         : 0;
+
+    // Austrian USt (20% standard rate for car rental)
+    const netRevenue = Math.round((totalRevenue / 1.2) * 100) / 100;
+    const vatAmount = Math.round((totalRevenue - netRevenue) * 100) / 100;
+
+    // 3. Maintenance Expenses
+    const totalExpenses = maintenanceRecords.reduce((sum, m) => sum + Number(m.cost || 0), 0);
+    const netProfit = totalRevenue - totalExpenses;
 
     // 4. Monthly Revenue (Last 6 months)
     const monthlyRevenue = [];
@@ -69,12 +109,34 @@ export default async function FinancePage() {
         growth = 100;
     }
 
+    // 6. Recent Transactions serialization
+    const transactions = rentals.slice(0, 30).map(r => ({
+        id: r.id,
+        contractNumber: r.contractNumber || String(r.id),
+        customerName: `${r.customer.firstName} ${r.customer.lastName}`,
+        customerEmail: r.customer.email,
+        carName: `${r.car.brand} ${r.car.model}`,
+        plate: r.car.plate,
+        startDate: r.startDate.toISOString(),
+        endDate: r.endDate.toISOString(),
+        createdAt: r.createdAt.toISOString(),
+        totalAmount: Number(r.totalAmount),
+        paymentStatus: r.paymentStatus,
+        status: r.status,
+        paymentMethod: r.payments?.[0]?.paymentMethod || 'Stripe / Karte'
+    }));
+
     const stats = {
         totalRevenue,
+        netRevenue,
+        vatAmount,
         pendingRevenue,
+        totalExpenses,
+        netProfit,
         monthlyRevenue,
         averageRentalValue,
-        growth: Number(growth.toFixed(1))
+        growth: Number(growth.toFixed(1)),
+        transactions
     };
 
     return <FinanceView stats={stats} />;

@@ -1,17 +1,35 @@
-
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css */
 'use client';
 
-
 import { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, Clock, ArrowRight, CheckCircle, PlayCircle, Circle, Edit2 } from 'lucide-react';
+import Link from 'next/link';
+import {
+    MoreHorizontal,
+    Clock,
+    CheckCircle,
+    PlayCircle,
+    Circle,
+    Edit2,
+    Trash2,
+    Car,
+    AlertCircle,
+    ArrowUpRight
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { updateTaskStatus } from '@/app/actions/admin';
+import { updateTaskStatus, deleteTask } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import EditTaskModal from './EditTaskModal';
+import { clsx } from 'clsx';
 
-export default function TaskCard({ task }: { task: any }) {
+interface TaskCardProps {
+    task: any;
+    onTaskDeleted?: (taskId: number) => void;
+    onTaskUpdated?: (updatedTask: any) => void;
+}
+
+export default function TaskCard({ task, onTaskDeleted, onTaskUpdated }: TaskCardProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -24,9 +42,9 @@ export default function TaskCard({ task }: { task: any }) {
                 setIsMenuOpen(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
@@ -36,128 +54,245 @@ export default function TaskCard({ task }: { task: any }) {
         setIsLoading(true);
         setIsMenuOpen(false);
         try {
-            await updateTaskStatus(task.id, newStatus);
+            const res = await updateTaskStatus(task.id, newStatus);
+            if (res && 'error' in res && res.error) {
+                throw new Error(res.error);
+            }
+            if (onTaskUpdated) {
+                onTaskUpdated({ ...task, status: newStatus });
+            }
             router.refresh();
-        } catch (error) {
-            console.error('Failed to update task status:', error);
-            toast.error('Fehler beim Aktualisieren des Status');
+        } catch (error: any) {
+            toast.error(error.message || 'Fehler beim Aktualisieren des Status');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm(`Möchten Sie die Aufgabe "${task.title}" wirklich löschen?`)) {
+            return;
+        }
+
+        setIsLoading(true);
+        setIsMenuOpen(false);
+        try {
+            const res = await deleteTask(task.id);
+            if (res && 'error' in res && res.error) {
+                throw new Error(res.error);
+            }
+            toast.success('Aufgabe gelöscht');
+            if (onTaskDeleted) {
+                onTaskDeleted(task.id);
+            }
+            router.refresh();
+        } catch (error: any) {
+            toast.error(error.message || 'Fehler beim Löschen der Aufgabe');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+
+    const getPriorityBadge = (priority: string) => {
+        switch (priority) {
+            case 'urgent':
+                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
+            case 'high':
+                return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20';
+            case 'low':
+                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+            default:
+                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+        }
+    };
+
+    const getPriorityLabel = (priority: string) => {
+        switch (priority) {
+            case 'urgent': return 'Dringend 🚨';
+            case 'high': return 'Hoch';
+            case 'low': return 'Gering';
+            default: return 'Mittel';
         }
     };
 
     return (
         <>
             <div 
-                onDoubleClick={() => setIsEditModalOpen(true)}
-                className={`bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-4 hover:shadow-xl hover:scale-[1.01] transition-all group relative cursor-pointer select-none active:scale-[0.99] ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
+                onClick={() => setIsEditModalOpen(true)}
+                className={clsx(
+                    "bg-hm-paper p-4 sm:p-5 rounded-[var(--hm-radius-card)] shadow-xs border border-hm-rule mb-3 hover:shadow-md hover:border-hm-muted transition-all group relative cursor-pointer select-none active:scale-[0.99]",
+                    isLoading && "opacity-60 pointer-events-none"
+                )}
             >
-                {/* Edit Icon on Hover */}
-                <div className="absolute right-4 top-13 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-400 hover:text-indigo-600">
-                    <Edit2 className="w-3 h-3" />
+                {/* Header: Priority & Quick Actions */}
+                <div className="flex justify-between items-center mb-2.5">
+                    <span className={clsx(
+                        "px-2.5 py-0.5 text-[10px] font-semibold rounded-full border uppercase tracking-wider",
+                        getPriorityBadge(task.priority)
+                    )}>
+                        {getPriorityLabel(task.priority)}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                        {/* Hover Quick Edit Button */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditModalOpen(true);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2"
+                            title="Bearbeiten"
+                        >
+                            <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* 3-dots Context Menu */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMenuOpen(!isMenuOpen);
+                            }}
+                            className="text-hm-muted hover:text-hm-ink transition-colors p-1.5 rounded-md hover:bg-hm-paper-2"
+                            title="Optionen"
+                        >
+                            <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Menu */}
+                {/* Dropdown Menu */}
                 {isMenuOpen && (
-                    <div ref={menuRef} className="absolute right-2 top-10 z-20 w-48 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 text-sm overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 dark:border-gray-800 mb-1">
+                    <div 
+                        ref={menuRef} 
+                        className="absolute right-2 top-10 z-30 w-48 bg-hm-paper rounded-[var(--hm-radius-input)] shadow-xl border border-hm-rule py-1.5 text-xs overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-3 py-1.5 text-[10px] font-mono text-hm-muted uppercase tracking-wider border-b border-hm-rule mb-1">
                             Status ändern
                         </div>
 
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange('todo'); }}
-                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors"
+                            onClick={() => handleStatusChange('todo')}
+                            className="w-full text-left px-3 py-1.5 hover:bg-hm-paper-2 flex items-center gap-2.5 text-xs font-medium text-hm-ink transition-colors"
                         >
-                            <Circle className="h-4 w-4 text-slate-400" />
-                            Zu erledigen
+                            <Circle className="h-3.5 w-3.5 text-slate-400" />
+                            <span>Zu erledigen</span>
                         </button>
 
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange('in_progress'); }}
-                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors"
+                            onClick={() => handleStatusChange('in_progress')}
+                            className="w-full text-left px-3 py-1.5 hover:bg-hm-paper-2 flex items-center gap-2.5 text-xs font-medium text-hm-ink transition-colors"
                         >
-                            <PlayCircle className="h-4 w-4 text-blue-500" />
-                            In Bearbeitung
+                            <PlayCircle className="h-3.5 w-3.5 text-blue-500" />
+                            <span>In Bearbeitung</span>
                         </button>
 
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange('done'); }}
-                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors"
+                            onClick={() => handleStatusChange('done')}
+                            className="w-full text-left px-3 py-1.5 hover:bg-hm-paper-2 flex items-center gap-2.5 text-xs font-medium text-hm-ink transition-colors"
                         >
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            Erledigt
+                            <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                            <span>Erledigt</span>
                         </button>
 
-                        <div className="border-t border-gray-50 dark:border-gray-800 mt-1">
+                        <div className="border-t border-hm-rule mt-1 pt-1">
                             <button
-                                onClick={(e) => { e.stopPropagation(); setIsEditModalOpen(true); setIsMenuOpen(false); }}
-                                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 text-xs font-bold text-indigo-600 transition-colors"
+                                onClick={() => {
+                                    setIsEditModalOpen(true);
+                                    setIsMenuOpen(false);
+                                }}
+                                className="w-full text-left px-3 py-1.5 hover:bg-hm-paper-2 flex items-center gap-2.5 text-xs font-medium text-hm-ink transition-colors"
                             >
-                                <Edit2 className="h-4 w-4" />
-                                Bearbeiten
+                                <Edit2 className="h-3.5 w-3.5 text-hm-muted" />
+                                <span>Bearbeiten</span>
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="w-full text-left px-3 py-1.5 hover:bg-red-500/10 flex items-center gap-2.5 text-xs font-medium text-red-600 transition-colors"
+                            >
+                                <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                <span>Aufgabe löschen</span>
                             </button>
                         </div>
                     </div>
                 )}
 
-                <div className="flex justify-between items-start mb-3">
-                    <span className={`px-2.5 py-0.5 text-[8px] font-black rounded-full uppercase tracking-widest ${task.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                        task.priority === 'high' ? 'bg-orange-100 text-orange-700' :
-                            'bg-blue-100 text-blue-700'
-                        }`}>
-                        {task.priority || 'Normal'}
-                    </span>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-                        className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                        <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                </div>
-
-                <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1.5 leading-tight">{task.title}</h4>
-                <p className="text-[11px] font-medium text-gray-400 line-clamp-2 mb-4 leading-relaxed">{task.description}</p>
-
-                {task.car && (
-                    <div className="flex items-center gap-2 text-[10px] text-indigo-600 dark:text-indigo-400 mb-4 bg-indigo-50/50 dark:bg-indigo-900/20 px-3 py-2 rounded-xl font-black uppercase tracking-tighter">
-                        <span className="flex-1 truncate">{task.car.brand} {task.car.model}</span>
-                        <span className="opacity-50 tracking-widest text-[9px]">{task.car.plate}</span>
-                    </div>
+                {/* Title & Description */}
+                <h4 className="font-bold text-hm-ink text-sm mb-1 leading-snug">{task.title}</h4>
+                {task.description && (
+                    <p className="text-xs text-hm-muted line-clamp-2 mb-3 leading-relaxed">
+                        {task.description}
+                    </p>
                 )}
 
-                <div className="flex items-center justify-between text-[10px] font-black text-gray-400 border-t border-gray-50 dark:border-gray-800 pt-4">
+                {/* Car Badge (Clickable) */}
+                {task.car && (
+                    <Link
+                        href={`/admin/fleet/${task.car.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-2 text-xs text-hm-ink hover:text-hm-accent bg-hm-paper-2 px-2.5 py-1.5 rounded-[var(--hm-radius-input)] border border-hm-rule mb-3 transition-colors group/car"
+                        title="Fahrzeugdetails aufrufen"
+                    >
+                        <Car className="w-3.5 h-3.5 text-hm-muted group-hover/car:text-hm-accent" />
+                        <span className="flex-1 truncate font-medium">{task.car.brand} {task.car.model}</span>
+                        <span className="font-mono text-[10px] text-hm-muted tracking-wider">{task.car.plate}</span>
+                        <ArrowUpRight className="w-3 h-3 text-hm-muted opacity-0 group-hover/car:opacity-100 transition-opacity" />
+                    </Link>
+                )}
+
+                {/* Footer: Assignee & Due Date */}
+                <div className="flex items-center justify-between text-xs border-t border-hm-rule pt-3 mt-1">
                     <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[9px] font-black shadow-lg shadow-indigo-500/20">
-                            {task.assignedTo ? task.assignedTo.substring(0, 2).toUpperCase() : '??'}
+                        <div className="h-5 w-5 rounded-full bg-hm-paper-2 border border-hm-rule flex items-center justify-center text-hm-ink text-[10px] font-bold">
+                            {task.assignedTo ? task.assignedTo.substring(0, 2).toUpperCase() : '?'}
                         </div>
-                        <span className="text-gray-900 dark:text-gray-200">{task.assignedTo || 'Unzugewiesen'}</span>
+                        <span className="text-hm-ink font-medium text-[11px] truncate max-w-[120px]">
+                            {task.assignedTo || 'Unzugewiesen'}
+                        </span>
                     </div>
+
                     {task.dueDate && (
-                        <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 opacity-50" />
-                            <span className={new Date(task.dueDate) < new Date() ? 'text-red-500' : 'uppercase tracking-widest'}>
+                        <div className={clsx(
+                            "flex items-center gap-1.5 text-[11px] font-medium font-mono",
+                            isOverdue
+                                ? "text-red-600 dark:text-red-400 font-bold"
+                                : "text-hm-muted"
+                        )}>
+                            {isOverdue && <AlertCircle className="w-3 h-3 text-red-500 animate-pulse" />}
+                            <Clock className="w-3 h-3 opacity-60" />
+                            <span>
                                 {format(new Date(task.dueDate), 'dd. MMM', { locale: de })}
                             </span>
                         </div>
                     )}
                 </div>
 
-                {/* Single Quick Action (Simplified) */}
-                <div className="absolute right-4 bottom-14 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                {/* Single Quick Status Advance Icon on Card */}
+                <div className="absolute right-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
                     {task.status === 'todo' && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange('in_progress'); }}
-                            className="bg-indigo-600 text-white p-2 rounded-xl shadow-xl shadow-indigo-500/30 hover:bg-indigo-700 transition-all scale-90 group/btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange('in_progress');
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg shadow-sm transition-all"
+                            title="In Bearbeitung verschieben"
                         >
-                            <PlayCircle className="w-4 h-4" />
+                            <PlayCircle className="w-3.5 h-3.5" />
                         </button>
                     )}
                     {task.status === 'in_progress' && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange('done'); }}
-                            className="bg-green-600 text-white p-2 rounded-xl shadow-xl shadow-green-500/30 hover:bg-green-700 transition-all scale-90"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange('done');
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg shadow-sm transition-all"
+                            title="Als erledigt markieren"
                         >
-                            <CheckCircle className="w-4 h-4" />
+                            <CheckCircle className="w-3.5 h-3.5" />
                         </button>
                     )}
                 </div>
@@ -166,10 +301,11 @@ export default function TaskCard({ task }: { task: any }) {
             {isEditModalOpen && (
                 <EditTaskModal 
                     task={task} 
-                    onClose={() => setIsEditModalOpen(false)} 
+                    onClose={() => setIsEditModalOpen(false)}
+                    onTaskDeleted={onTaskDeleted}
+                    onTaskUpdated={onTaskUpdated}
                 />
             )}
         </>
     );
 }
-

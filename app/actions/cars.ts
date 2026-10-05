@@ -239,14 +239,74 @@ export async function updateCar(id: number, formData: FormData) {
     redirect(`/admin/fleet/${id}`);
 }
 
+export async function updateCarQuickStatus(id: number, newStatus: string) {
+    await requireAdminModule('Fahrzeugflotte');
+    try {
+        const isActive = newStatus !== 'Inactive';
+        await prisma.car.update({
+            where: { id },
+            data: {
+                status: newStatus,
+                isActive
+            }
+        });
+        revalidatePath('/admin/fleet');
+        revalidatePath(`/admin/fleet/${id}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating car status:', error);
+        return { success: false, error: 'Status konnte nicht aktualisiert werden' };
+    }
+}
+
+export async function archiveCar(id: number) {
+    await requireAdminModule('Fahrzeugflotte');
+    try {
+        await prisma.car.update({
+            where: { id },
+            data: {
+                status: 'Inactive',
+                isActive: false
+            }
+        });
+        revalidatePath('/admin/fleet');
+        revalidatePath(`/admin/fleet/${id}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error archiving car:', error);
+        return { success: false, error: 'Fahrzeug konnte nicht archiviert werden' };
+    }
+}
+
+export async function checkCarDeletable(id: number) {
+    await requireAdminModule('Fahrzeugflotte');
+    try {
+        const rentalCount = await prisma.rental.count({ where: { carId: id } });
+        const maintenanceCount = await prisma.maintenanceRecord.count({ where: { carId: id } });
+        const damageCount = await prisma.damageRecord.count({ where: { carId: id } });
+
+        const hasHistory = rentalCount > 0 || maintenanceCount > 0 || damageCount > 0;
+        return {
+            success: true,
+            canDelete: !hasHistory,
+            rentalCount,
+            maintenanceCount,
+            damageCount
+        };
+    } catch (error) {
+        return { success: false, canDelete: false, rentalCount: 0, maintenanceCount: 0, damageCount: 0 };
+    }
+}
+
 export async function deleteCar(id: number) {
     await requireAdminModule('Fahrzeugflotte');
     try {
         await prisma.car.delete({ where: { id } });
         revalidatePath('/admin/fleet');
         return { success: true };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting car:', error);
-        return { success: false, error: 'Failed to delete vehicle' };
+        return { success: false, error: error?.message || 'Fehler beim Löschen des Fahrzeugs' };
     }
 }
+

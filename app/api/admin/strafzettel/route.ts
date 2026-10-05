@@ -25,7 +25,21 @@ export async function GET(req: NextRequest) {
                 select: {
                     id: true,
                     contractNumber: true,
-                    customer: { select: { id: true, firstName: true, lastName: true, email: true } },
+                    customer: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phone: true,
+                            address: true,
+                            city: true,
+                            postalCode: true,
+                            country: true,
+                            licenseNumber: true,
+                            dateOfBirth: true,
+                        }
+                    },
                 },
             },
         },

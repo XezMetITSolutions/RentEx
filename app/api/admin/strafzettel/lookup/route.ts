@@ -17,10 +17,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "carId and date are required" }, { status: 400 });
         }
 
-        // We use the date and time to create a timestamp. 
-        // Note: We should be careful about the timezone. 
-        // Assuming the DB stores UTC and we are in a specific region.
-        // For simplicity, we'll construct the date string.
+        // We use the date and time to create a timestamp.
         const dateTimeStr = time ? `${date}T${time}` : `${date}T12:00:00`;
         const targetDate = new Date(dateTimeStr);
 
@@ -38,12 +35,19 @@ export async function GET(req: NextRequest) {
                         id: true,
                         firstName: true,
                         lastName: true,
-                        email: true
+                        email: true,
+                        phone: true,
+                        address: true,
+                        city: true,
+                        postalCode: true,
+                        country: true,
+                        licenseNumber: true,
+                        dateOfBirth: true,
                     }
                 }
             },
             orderBy: {
-                createdAt: 'desc' // In case of overlapping (shouldn't happen but just in case)
+                createdAt: 'desc'
             }
         });
 

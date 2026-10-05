@@ -11,6 +11,9 @@ export {
     createCar,
     updateCar,
     deleteCar,
+    updateCarQuickStatus,
+    archiveCar,
+    checkCarDeletable,
 } from './actions/cars';
 
 export {
@@ -19,7 +22,13 @@ export {
 } from './actions/customers';
 
 export { createRental } from './actions/rentals';
-export { createMaintenance } from './actions/maintenance';
+export {
+    createMaintenance,
+    addMaintenanceRecord,
+    updateMaintenanceRecord,
+    deleteMaintenanceRecord,
+    releaseCarFromMaintenance
+} from './actions/maintenance';
 
 export {
     createOption,
