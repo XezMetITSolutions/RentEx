@@ -6,9 +6,8 @@ import {
     ALL_ADMIN_MODULES,
     CONFIGURABLE_ROLES,
     DEFAULT_ROLE_PERMISSIONS,
-    getRolePermissions,
-    saveRolePermissions
 } from "@/lib/rolePermissions";
+import { getRolePermissions, saveRolePermissions } from "@/lib/rolePermissions.server";
 
 // GET /api/admin/permissions — Get current permissions and all modules
 export async function GET() {

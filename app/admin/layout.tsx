@@ -1,7 +1,8 @@
 import { getSidebarStats } from '@/lib/adminStats';
 import AdminLayoutWrapper from '@/components/admin/AdminLayoutWrapper';
 import { getAdminSession } from '@/lib/adminAuth';
-import { getRolePermissions, staffCanAccessAdminPath } from '@/lib/rolePermissions';
+import { staffCanAccessAdminPath } from '@/lib/rolePermissions';
+import { getRolePermissions } from '@/lib/rolePermissions.server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 

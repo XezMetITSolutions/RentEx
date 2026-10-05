@@ -1,6 +1,7 @@
 import { getAdminSession } from '@/lib/adminAuth';
 import { redirect } from 'next/navigation';
-import { ALL_ADMIN_MODULES, getRolePermissions } from '@/lib/rolePermissions';
+import { ALL_ADMIN_MODULES } from '@/lib/rolePermissions';
+import { getRolePermissions } from '@/lib/rolePermissions.server';
 import PermissionsManager from '@/components/admin/PermissionsManager';
 
 export const dynamic = 'force-dynamic';

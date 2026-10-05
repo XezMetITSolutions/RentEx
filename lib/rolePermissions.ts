@@ -1,5 +1,3 @@
-import prisma from '@/lib/prisma';
-
 export interface AdminModuleItem {
     id: string;
     name: string;
@@ -155,10 +153,8 @@ export function staffCanAccessAdminPath(
     return staffCanAccessModule(staff, permissions, moduleId);
 }
 
-const SETTINGS_KEY = 'role_permissions';
-
 /** Append newly shipped modules from code defaults without revoking custom saves. */
-function mergeNewModulesFromDefaults(permissions: Record<string, string[]>): Record<string, string[]> {
+export function mergeNewModulesFromDefaults(permissions: Record<string, string[]>): Record<string, string[]> {
     const out = { ...permissions };
     for (const { role } of CONFIGURABLE_ROLES) {
         const list = out[role];
@@ -168,49 +164,4 @@ function mergeNewModulesFromDefaults(permissions: Record<string, string[]>): Rec
         if (missing.length) out[role] = [...list, ...missing];
     }
     return out;
-}
-
-export async function getRolePermissions(): Promise<Record<string, string[]>> {
-    try {
-        const row = await prisma.systemSettings.findUnique({
-            where: { key: SETTINGS_KEY }
-        });
-        if (row && row.value) {
-            const parsed = JSON.parse(row.value);
-            return mergeNewModulesFromDefaults({
-                ...DEFAULT_ROLE_PERMISSIONS,
-                ...parsed,
-                'SUPERADMIN': ['all'],
-                'ADMINISTRATOR': ['all'],
-            });
-        }
-    } catch (e) {
-        console.error('Error fetching role permissions from SystemSettings:', e);
-    }
-    return DEFAULT_ROLE_PERMISSIONS;
-}
-
-export async function saveRolePermissions(permissions: Record<string, string[]>, updatedBy?: string) {
-    // Ensure Superadmin and Administrator cannot be restricted
-    const sanitized = {
-        ...permissions,
-        'SUPERADMIN': ['all'],
-        'ADMINISTRATOR': ['all'],
-    };
-
-    const value = JSON.stringify(sanitized);
-
-    await prisma.systemSettings.upsert({
-        where: { key: SETTINGS_KEY },
-        update: { value, updatedBy },
-        create: {
-            key: SETTINGS_KEY,
-            value,
-            category: 'SECURITY',
-            description: 'Rollenberechtigungen für Admin-Sidebar und Module',
-            updatedBy
-        }
-    });
-
-    return sanitized;
 }

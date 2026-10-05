@@ -1,9 +1,7 @@
 import { getAdminSession, requireAdmin } from '@/lib/adminAuth';
 import { apiForbidden, apiUnauthorized } from '@/lib/apiResponse';
-import {
-    getRolePermissions,
-    staffCanAccessModule,
-} from '@/lib/rolePermissions';
+import { staffCanAccessModule } from '@/lib/rolePermissions';
+import { getRolePermissions } from '@/lib/rolePermissions.server';
 import type { NextResponse } from 'next/server';
 
 type StaffSession = NonNullable<Awaited<ReturnType<typeof getAdminSession>>>;
