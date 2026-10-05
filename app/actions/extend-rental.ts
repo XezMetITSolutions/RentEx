@@ -1,11 +1,11 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function extendRental(rentalId: number, newEndDate: string, additionalCost: number) {
-    await requireAdmin();
+    await requireAdminModule('Reservierungen');
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId }
     });

@@ -23,74 +23,53 @@ import {
     Tag,
     X,
     ClipboardCheck,
-    ShieldCheck,
     AlertTriangle,
     Zap,
     Radio,
     LineChart,
     Building2,
-    Shield
+    Shield,
+    PackageCheck,
+    type LucideIcon,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { DEFAULT_ROLE_PERMISSIONS } from '@/lib/rolePermissions';
+import {
+    DEFAULT_ROLE_PERMISSIONS,
+    getAdminMenuGroups,
+    staffCanAccessModule,
+    type AdminModuleItem,
+} from '@/lib/rolePermissions';
 
-const menuGroups = [
-    {
-        title: 'Hauptmenü',
-        items: [
-            { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-            { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
-            { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
-            { name: 'Aktivitätsprotokoll', icon: FileText, href: '/admin/activity' },
-        ]
-    },
-    {
-        title: 'Operativ',
-        items: [
-            { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
-            { name: 'Kunden', icon: Users, href: '/admin/customers' },
-            { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
-            { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
-        ]
-    },
-    {
-        title: 'Flotte',
-        items: [
-            { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
-            { name: 'GPS Tracking', icon: Radio, href: '/admin/tracking', badgeKey: 'live' },
-            { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
-            { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
-            { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
-        ]
-    },
-    {
-        title: 'Preise & Marketing',
-        items: [
-            { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
-            { name: 'Preise & Marktanalyse', icon: LineChart, href: '/admin/pricing' },
-            { name: 'Mitbewerber', icon: Building2, href: '/admin/competitor-pricing' },
-            { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
-        ]
-    },
-    {
-        title: 'Finanzen & Berichte',
-        items: [
-            { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
-            { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
-            { name: 'Fahrtenbuch', icon: BookOpen, href: '/admin/fahrtenbuch' },
-            { name: 'Berichte', icon: BarChart3, href: '/admin/reports' },
-        ]
-    },
-    {
-        title: 'System & Recht',
-        items: [
-            { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
-            { name: 'Berechtigungen', icon: Shield, href: '/admin/permissions' },
-            { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
-            { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
-        ]
-    }
-];
+const MODULE_ICONS: Record<string, LucideIcon> = {
+    Dashboard: LayoutDashboard,
+    Aufgaben: Activity,
+    Benachrichtigungen: Bell,
+    Aktivitätsprotokoll: FileText,
+    Reservierungen: CalendarDays,
+    Kunden: Users,
+    'Check-In': ClipboardCheck,
+    'Check-Out': PackageCheck,
+    Standorte: MapPin,
+    Fahrzeugflotte: Car,
+    'GPS Tracking': Radio,
+    Wartung: Wrench,
+    'KM Transfer': Zap,
+    Strafzettel: AlertTriangle,
+    Marketing: TrendingUp,
+    'Preise & Marktanalyse': LineChart,
+    Mitbewerber: Building2,
+    Zusatzoptionen: Tag,
+    Finanzen: Wallet,
+    Rechnungen: Receipt,
+    Fahrtenbuch: BookOpen,
+    Berichte: BarChart3,
+    Mitarbeiter: Users,
+    Berechtigungen: Shield,
+    'AGB Versionen': FileText,
+    Einstellungen: Settings,
+};
+
+const menuGroups = getAdminMenuGroups();
 
 interface SidebarProps {
     activeRentals: number;
@@ -98,31 +77,32 @@ interface SidebarProps {
     pendingNotifications: number;
     isOpen?: boolean;
     onClose?: () => void;
-    staff: any;
+    staff: { name?: string; role?: string; location?: { name: string } | null } | null;
     permissions?: Record<string, string[]>;
 }
-
-const rolePermissions: Record<string, string[]> = DEFAULT_ROLE_PERMISSIONS;
 
 const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 };
 
+function isNavItemActive(pathname: string, href: string) {
+    if (href === '/admin') return pathname === '/admin';
+    return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff, permissions }: SidebarProps) {
     const pathname = usePathname();
+    const activePermissions = permissions ?? DEFAULT_ROLE_PERMISSIONS;
 
-    const getBadge = (item: any) => {
+    const getBadge = (item: AdminModuleItem) => {
         if (item.badgeKey === 'live') return 'Live';
         if (item.badgeKey === 'notifications' && pendingNotifications > 0) return String(pendingNotifications);
         return null;
     };
 
-    const isItemAllowed = (name: string) => {
-        if (!staff) return false;
-        if (staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR') return true;
-        const activePerms = permissions || rolePermissions;
-        const perms = activePerms[staff.role] || [];
-        return perms.includes('all') || perms.includes(name);
+    const isItemAllowed = (moduleId: string) => {
+        if (!staff?.role) return false;
+        return staffCanAccessModule({ role: staff.role }, activePermissions, moduleId);
     };
 
     return (
@@ -130,7 +110,6 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
             "fixed inset-y-0 left-0 z-50 w-64 bg-hm-paper text-hm-ink transition-transform duration-[var(--hm-dur-med)] ease-hm-out lg:static lg:inset-0 flex flex-col border-r border-hm-rule shadow-sm",
             isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}>
-            {/* Logo Area */}
             <div className="flex items-center justify-between h-20 border-b border-hm-rule px-5 bg-hm-paper">
                 <Link href="/admin" className="flex items-center gap-3 group">
                     <div className="w-fit rounded-[var(--hm-radius-input)] bg-hm-stage-ink px-2.5 py-1.5 shadow-sm">
@@ -152,10 +131,9 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                 </button>
             </div>
 
-            {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-5 space-y-6 px-3">
                 {menuGroups.map((group) => {
-                    const filteredItems = group.items.filter(i => isItemAllowed(i.name));
+                    const filteredItems = group.items.filter((i) => isItemAllowed(i.id));
                     if (filteredItems.length === 0) return null;
 
                     return (
@@ -164,7 +142,8 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                                 {group.title}
                             </h4>
                             {filteredItems.map((item) => {
-                                const isActive = pathname === item.href;
+                                const Icon = MODULE_ICONS[item.id] ?? FileText;
+                                const isActive = isNavItemActive(pathname, item.href);
                                 return (
                                     <Link
                                         key={item.href}
@@ -176,16 +155,16 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                                                 : 'text-hm-ink-2 hover:bg-hm-paper-2 hover:text-hm-ink'
                                         )}
                                     >
-                                        <div className="flex items-center">
-                                            <item.icon className={clsx(
+                                        <div className="flex items-center min-w-0">
+                                            <Icon className={clsx(
                                                 'mr-2.5 h-4 w-4 shrink-0 transition-colors',
                                                 isActive ? 'text-hm-accent-ink' : 'text-hm-muted group-hover:text-hm-ink'
                                             )} />
-                                            <span>{item.name}</span>
+                                            <span className="truncate">{item.name}</span>
                                         </div>
                                         {getBadge(item) && (
                                             <span className={clsx(
-                                                'px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full',
+                                                'px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full shrink-0 ml-1',
                                                 isActive
                                                     ? 'bg-hm-accent-ink text-hm-accent'
                                                     : 'bg-hm-accent/15 text-hm-accent-text border border-hm-accent/20'
@@ -201,7 +180,6 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                 })}
             </nav>
 
-            {/* Quick Stats - from DB */}
             <div className="px-4 py-3 border-t border-hm-rule bg-hm-paper-2/60">
                 <div className="grid grid-cols-2 gap-2 mb-2">
                     <div className="bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] p-2.5 text-center">
@@ -225,7 +203,6 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
                 )}
             </div>
 
-            {/* User / Footer */}
             <div className="p-3 border-t border-hm-rule bg-hm-paper">
                 <div className="flex items-center gap-2.5 mb-2 px-1">
                     <div className="h-8 w-8 rounded-[var(--hm-radius-input)] bg-hm-stage-ink flex items-center justify-center text-hm-stage-ink text-white font-mono text-xs font-bold shrink-0">

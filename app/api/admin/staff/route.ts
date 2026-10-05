@@ -1,14 +1,15 @@
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { hashPassword } from "@/lib/auth";
 import { apiOk, apiUnauthorized, apiValidation, apiError, apiInternal, ERROR_CODES } from "@/lib/apiResponse";
 import { auditLog } from "@/lib/audit";
 
 // GET /api/admin/staff
 export async function GET() {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
+    const auth = await requireAdminApiModule('Mitarbeiter');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const staff = await prisma.staff.findMany({
@@ -24,8 +25,9 @@ export async function GET() {
 
 // POST /api/admin/staff — Create new staff member
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
+    const auth = await requireAdminApiModule('Mitarbeiter');
+    if (auth.response) return auth.response;
+    const session = auth.session;
     
     // Only SUPERADMIN or ADMINISTRATOR can create staff
     if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {

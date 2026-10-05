@@ -1,12 +1,11 @@
 'use server';
 
 import prisma from "@/lib/prisma";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminModule } from '@/lib/adminAccess';
 import { revalidatePath } from "next/cache";
 
 export async function updateRentalStatus(id: number, status: string, returnMileageOrFormData?: number | FormData) {
-    const session = await getAdminSession();
-    if (!session) throw new Error("Unauthorized");
+    const session = await requireAdminModule('Reservierungen');
 
     let returnMileage: number | undefined;
     if (typeof returnMileageOrFormData === 'number') {
@@ -75,8 +74,7 @@ export async function updateRentalStatus(id: number, status: string, returnMilea
 }
 
 export async function updatePaymentStatus(id: number, paymentStatus: string) {
-    const session = await getAdminSession();
-    if (!session) throw new Error("Unauthorized");
+    const session = await requireAdminModule('Reservierungen');
     await prisma.rental.update({
         where: { id },
         data: { paymentStatus }

@@ -1,10 +1,11 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminApiModule } from '@/lib/adminAccess';
 
 export async function GET() {
-    const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdminApiModule('Strafzettel');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const cars = await prisma.car.findMany({

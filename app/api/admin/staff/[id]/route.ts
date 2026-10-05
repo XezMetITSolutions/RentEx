@@ -1,14 +1,15 @@
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { hashPassword } from "@/lib/auth";
 import { apiOk, apiUnauthorized, apiNotFound, apiValidation, apiInternal, apiError } from "@/lib/apiResponse";
 import { auditLog } from "@/lib/audit";
 
 // GET /api/admin/staff/[id]
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
+    const auth = await requireAdminApiModule('Mitarbeiter');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     const { id } = await params;
     const staff = await prisma.staff.findUnique({
@@ -22,8 +23,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
 // PUT /api/admin/staff/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
+    const auth = await requireAdminApiModule('Mitarbeiter');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     // Only SUPERADMIN or ADMINISTRATOR can update staff
     if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
@@ -68,8 +70,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/admin/staff/[id]
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
+    const auth = await requireAdminApiModule('Mitarbeiter');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     // Only SUPERADMIN or ADMINISTRATOR can delete staff
     if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {

@@ -98,8 +98,13 @@ async function getRecentRentals(locationId?: number | null) {
     return rentals;
 }
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+    searchParams,
+}: {
+    searchParams: Promise<{ access?: string }>;
+}) {
     const staff = await getAdminSession();
+    const params = await searchParams;
     
     if (!staff) {
         redirect('/admin/login');
@@ -116,6 +121,14 @@ export default async function AdminDashboard() {
 
     return (
         <div className="max-w-[1440px] mx-auto space-y-8 pb-12 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {params.access === 'denied' && (
+                <div
+                    role="alert"
+                    className="rounded-[var(--hm-radius-input)] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900"
+                >
+                    Kein Zugriff auf dieses Modul. Bitte wenden Sie sich an einen Administrator, wenn Sie Berechtigungen benötigen.
+                </div>
+            )}
             
             {/* Header Area (Workbench style) */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">

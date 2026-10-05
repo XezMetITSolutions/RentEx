@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -145,7 +145,7 @@ export async function getFeaturedCars() {
 }
 
 export async function createCar(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     try {
         const rawData = extractCarData(formData);
         const optionIds = formData.getAll('options').map((id) => Number(id));
@@ -187,7 +187,7 @@ export async function createCar(formData: FormData) {
 }
 
 export async function updateCar(id: number, formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     try {
         const rawData = extractCarData(formData);
         const submittedOptionIds = formData.getAll('options').map((oid) => Number(oid));
@@ -240,7 +240,7 @@ export async function updateCar(id: number, formData: FormData) {
 }
 
 export async function deleteCar(id: number) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     try {
         await prisma.car.delete({ where: { id } });
         revalidatePath('/admin/fleet');

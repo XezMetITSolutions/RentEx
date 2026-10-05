@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
@@ -50,7 +50,7 @@ export async function getCarCategories() {
 }
 
 export async function createCarCategory(name: string) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     const maxOrder = await prisma.carCategory.aggregate({ _max: { sortOrder: true } });
     await prisma.carCategory.create({
         data: { name: name.trim(), sortOrder: (maxOrder._max.sortOrder ?? -1) + 1 },
@@ -59,13 +59,13 @@ export async function createCarCategory(name: string) {
 }
 
 export async function updateCarCategory(id: number, name: string) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     await prisma.carCategory.update({ where: { id }, data: { name: name.trim() } });
     revalidatePath('/admin/fleet');
 }
 
 export async function deleteCarCategory(id: number) {
-    await requireAdmin();
+    await requireAdminModule('Fahrzeugflotte');
     await prisma.carCategory.delete({ where: { id } });
     revalidatePath('/admin/fleet');
 }

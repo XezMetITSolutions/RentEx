@@ -1,11 +1,12 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminApiModule } from '@/lib/adminAccess';
 
 // GET /api/admin/km-transfer?customerId=X — Get balance + history
 export async function GET(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdminApiModule('KM Transfer');
+    if (auth.response) return auth.response;
+    const session = auth.session;
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get("customerId");
 
@@ -37,8 +38,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/km-transfer — Execute a transfer between customers
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdminApiModule('KM Transfer');
+    if (auth.response) return auth.response;
+    const session = auth.session;
     try {
         const body = await req.json();
         const { fromId, toId, amount, note } = body;

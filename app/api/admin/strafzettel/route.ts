@@ -1,15 +1,14 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { FEES_CONFIG } from "@/lib/config";
 import { ApiErrorHandler } from "@/lib/errors";
 
 // GET /api/admin/strafzettel
 export async function GET(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) {
-        return ApiErrorHandler.unauthorized("Nicht autorisiert");
-    }
+    const auth = await requireAdminApiModule('Strafzettel');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -37,10 +36,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/strafzettel — Create new fine record
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) {
-        return ApiErrorHandler.unauthorized("Nicht autorisiert");
-    }
+    const auth = await requireAdminApiModule('Strafzettel');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const body = await req.json();

@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
@@ -20,7 +20,7 @@ export async function performCheckIn(rentalId: number, data: {
         yPosition: number;
     }[];
 }) {
-    await requireAdmin();
+    await requireAdminModule('Check-In');
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
         select: { carId: true }

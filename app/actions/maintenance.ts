@@ -1,12 +1,12 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function createMaintenance(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Wartung');
     try {
         const carId = Number(formData.get('carId'));
         const data = {

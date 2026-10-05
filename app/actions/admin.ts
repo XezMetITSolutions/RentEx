@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -10,7 +10,7 @@ import crypto from 'crypto';
 import { startOfDay, endOfDay, differenceInDays, addDays } from 'date-fns';
 
 export async function getActivityLogs() {
-    await requireAdmin();
+    await requireAdminModule('Aktivitätsprotokoll');
     const logs = await prisma.activityLog.findMany({
         take: 20,
         orderBy: { createdAt: 'desc' }
@@ -28,7 +28,7 @@ export async function getActivityLogs() {
 }
 
 export async function getTodayEvents() {
-    await requireAdmin();
+    await requireAdminModule('Dashboard');
     const today = new Date();
     const startDay = startOfDay(today);
     const endDay = endOfDay(today);
@@ -84,7 +84,7 @@ export async function getTodayEvents() {
 }
 
 export async function getMaintenanceAlerts() {
-    await requireAdmin();
+    await requireAdminModule('Wartung');
     interface MaintenanceAlert {
         id: number;
         car: string;
@@ -181,7 +181,7 @@ export async function getMaintenanceAlerts() {
 
 /** Tüm araçları "Rent-Ex Feldkirch" standortuna atar (locationId + homeLocationId). Plakalar değiştirilmez. */
 export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message: string; count?: number }> {
-    await requireAdmin();
+    await requireAdminModule('UNKNOWN');
     const feldkirch = await prisma.location.findFirst({
         where: {
             OR: [
@@ -208,7 +208,7 @@ export async function assignAllCarsToFeldkirch(): Promise<{ ok: boolean; message
 }
 
 export async function createTask(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Aufgaben');
     const title = (formData.get('title') as string)?.trim();
     if (!title) {
         return { error: 'Titel ist erforderlich.' };
@@ -238,7 +238,7 @@ export async function createTask(formData: FormData) {
 }
 
 export async function createCoupon(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Marketing');
     const code = (formData.get('code') as string)?.trim().toUpperCase();
     if (!code) {
         return { error: 'Gutscheincode ist erforderlich.' };
@@ -279,7 +279,7 @@ export async function createCoupon(formData: FormData) {
 
 /** Fahrtenbuch-Eintrag anlegen (Finanzamt) */
 export async function createFahrtenbuchEntry(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Fahrtenbuch');
     const carId = parseInt(formData.get('carId') as string);
     const datum = new Date(formData.get('datum') as string);
     const startKm = parseInt(formData.get('startKm') as string);
@@ -325,7 +325,7 @@ async function getNextInvoiceNumber(): Promise<string> {
 
 /** Rechnung erstellen (aus Formular: rentalId im FormData) */
 export async function createInvoiceFormAction(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Rechnungen');
     const rentalId = parseInt(formData.get('rentalId') as string);
     if (Number.isNaN(rentalId)) {
         redirect('/admin/rechnungen?error=invalid');
@@ -336,7 +336,7 @@ export async function createInvoiceFormAction(formData: FormData) {
 
 /** Rechnung für eine Miete erstellen (Registrierkassa-ready) */
 export async function createInvoiceForRental(rentalId: number) {
-    await requireAdmin();
+    await requireAdminModule('Rechnungen');
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
         include: { car: true, customer: true },
@@ -379,7 +379,7 @@ export async function createInvoiceForRental(rentalId: number) {
 
 /** Registrierkasse bei FinanzOnline (BMF) anmelden */
 export async function registerKasseWithBMF() {
-    await requireAdmin();
+    await requireAdminModule('Finanzen');
     const tid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_tid' } });
     const benid = await prisma.systemSettings.findUnique({ where: { key: 'bmf_benid' } });
     const pin = await prisma.systemSettings.findUnique({ where: { key: 'bmf_pin' } });
@@ -422,7 +422,7 @@ export async function registerKasseWithBMF() {
 }
 
 export async function updateTaskStatus(taskId: number, newStatus: string) {
-    await requireAdmin();
+    await requireAdminModule('Aufgaben');
     if (!['todo', 'in_progress', 'done'].includes(newStatus)) {
         return { error: 'Ungültiger Status' };
     }
@@ -447,7 +447,7 @@ export async function updateTask(taskId: number, data: {
     dueDate?: string | null;
     assignedTo?: string | null;
 }) {
-    await requireAdmin();
+    await requireAdminModule('Aufgaben');
     try {
         await prisma.task.update({
             where: { id: taskId },
@@ -471,7 +471,7 @@ export async function updateTask(taskId: number, data: {
 
 
 export async function markNotificationAsRead(id: number) {
-    await requireAdmin();
+    await requireAdminModule('Benachrichtigungen');
     try {
         await prisma.notification.update({
             where: { id },
@@ -485,7 +485,7 @@ export async function markNotificationAsRead(id: number) {
 }
 
 export async function markAllNotificationsAsRead() {
-    await requireAdmin();
+    await requireAdminModule('Benachrichtigungen');
     try {
         await prisma.notification.updateMany({
             where: { status: 'Pending' },
@@ -499,7 +499,7 @@ export async function markAllNotificationsAsRead() {
 }
 
 export async function deleteNotification(id: number) {
-    await requireAdmin();
+    await requireAdminModule('Benachrichtigungen');
     try {
         await prisma.notification.delete({
             where: { id }

@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAdmin } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -8,7 +8,7 @@ import { differenceInDays } from 'date-fns';
 import { rentalSchema, safeValidate } from '@/lib/schemas';
 
 export async function createRental(formData: FormData) {
-    await requireAdmin();
+    await requireAdminModule('Reservierungen');
     // Build a typed object from FormData. `options` may appear multiple
     // times so we collect it via getAll().
     const raw = {

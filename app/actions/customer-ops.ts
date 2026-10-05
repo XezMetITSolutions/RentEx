@@ -2,13 +2,17 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { getAdminSession } from '@/lib/adminAuth';
+import { requireAdminModule } from '@/lib/adminAccess';
 import { auditLog } from '@/lib/audit';
 import { hashPassword } from '@/lib/auth';
 
 export async function toggleCustomerBlacklist(customerId: number, reason?: string) {
-    const session = await getAdminSession();
-    if (!session) return { success: false, error: 'Unauthorized' };
+    let session;
+    try {
+        session = await requireAdminModule('Kunden');
+    } catch {
+        return { success: false, error: 'Unauthorized' };
+    }
 
     try {
         const customer = await prisma.customer.findUnique({
@@ -47,8 +51,12 @@ export async function toggleCustomerBlacklist(customerId: number, reason?: strin
 }
 
 export async function resetCustomerPassword(customerId: number, newPassword?: string) {
-    const session = await getAdminSession();
-    if (!session) return { success: false, error: 'Unauthorized' };
+    let session;
+    try {
+        session = await requireAdminModule('Kunden');
+    } catch {
+        return { success: false, error: 'Unauthorized' };
+    }
 
     try {
         const customer = await prisma.customer.findUnique({

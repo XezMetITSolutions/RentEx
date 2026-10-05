@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getAdminSession } from '@/lib/adminAuth';
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { refundRental } from '@/lib/refunds';
 import { apiOk, apiUnauthorized, apiValidation, apiError, ERROR_CODES } from '@/lib/apiResponse';
 import { auditLog } from '@/lib/audit';
@@ -9,10 +9,9 @@ export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getAdminSession();
-  if (!session) {
-    return apiUnauthorized();
-  }
+  const auth = await requireAdminApiModule('Finanzen');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
   // RBAC: Only SUPERADMIN/ADMINISTRATOR and MANAGER/FILIALLEITER can process refunds
   const allowedRefundRoles = ['SUPERADMIN', 'ADMINISTRATOR', 'MANAGER', 'FILIALLEITER'];

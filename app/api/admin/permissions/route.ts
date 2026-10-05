@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { getAdminSession } from "@/lib/adminAuth";
-import { apiError, apiOk, apiUnauthorized } from "@/lib/apiResponse";
+import { requireAdminApiModule } from '@/lib/adminAccess';
+import { apiError, apiOk } from "@/lib/apiResponse";
 import { auditLog } from "@/lib/audit";
 import {
     ALL_ADMIN_MODULES,
@@ -12,12 +12,8 @@ import {
 
 // GET /api/admin/permissions — Get current permissions and all modules
 export async function GET() {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
-
-    if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
-        return apiError("Keine Berechtigung", 403);
-    }
+    const auth = await requireAdminApiModule('Berechtigungen');
+    if (auth.response) return auth.response;
 
     try {
         const permissions = await getRolePermissions();
@@ -34,12 +30,9 @@ export async function GET() {
 
 // POST /api/admin/permissions — Update role permissions matrix
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) return apiUnauthorized();
-
-    if (session.role !== 'SUPERADMIN' && session.role !== 'ADMINISTRATOR') {
-        return apiError("Nur Administratoren können Rollenberechtigungen anpassen", 403);
-    }
+    const auth = await requireAdminApiModule('Berechtigungen');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const body = await req.json();

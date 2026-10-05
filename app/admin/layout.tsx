@@ -1,7 +1,7 @@
 import { getSidebarStats } from '@/lib/adminStats';
 import AdminLayoutWrapper from '@/components/admin/AdminLayoutWrapper';
 import { getAdminSession } from '@/lib/adminAuth';
-import { getRolePermissions } from '@/lib/rolePermissions';
+import { getRolePermissions, staffCanAccessAdminPath } from '@/lib/rolePermissions';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 
@@ -25,6 +25,10 @@ export default async function AdminLayout({
         getSidebarStats(),
         getRolePermissions()
     ]);
+
+    if (!isLoginPage && !staffCanAccessAdminPath(pathname, staff, permissions)) {
+        redirect('/admin?access=denied');
+    }
 
     return (
         <AdminLayoutWrapper stats={stats} staff={staff} permissions={permissions}>

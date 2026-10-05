@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, DAMAGE_REPORT_TEMPLATE_KEY } from '@/lib/s3';
-import { getAdminSession } from '@/lib/adminAuth';
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) {
-        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
-    }
+    const auth = await requireAdminApiModule('Einstellungen');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const formData = await request.formData();

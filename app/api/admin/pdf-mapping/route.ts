@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPdfMapping, savePdfMapping, PdfFieldMapping } from '@/lib/pdfMapping';
-import { getAdminSession } from '@/lib/adminAuth';
+import { requireAdminApiModule } from '@/lib/adminAccess';
 
 export async function GET() {
-    const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await requireAdminApiModule('Einstellungen');
+    if (auth.response) return auth.response;
+    const session = auth.session;
     const mapping = await getPdfMapping();
     return NextResponse.json(mapping);
 }
 
 export async function POST(request: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await requireAdminApiModule('Einstellungen');
+    if (auth.response) return auth.response;
+    const session = auth.session;
     try {
         const body = await request.json();
         if (!Array.isArray(body)) {

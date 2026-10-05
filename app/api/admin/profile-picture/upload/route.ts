@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/adminAuth';
+import { requireAdminApiModule } from '@/lib/adminAccess';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import prisma from '@/lib/prisma';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
 
 export async function POST(req: NextRequest) {
-    const session = await getAdminSession();
-    if (!session) {
-        return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
-    }
+    const auth = await requireAdminApiModule('Dashboard');
+    if (auth.response) return auth.response;
+    const session = auth.session;
 
     try {
         const formData = await req.formData();

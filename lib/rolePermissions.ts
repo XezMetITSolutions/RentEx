@@ -6,24 +6,35 @@ export interface AdminModuleItem {
     category: string;
     href: string;
     description: string;
+    badgeKey?: 'notifications' | 'live';
 }
+
+export const ADMIN_CATEGORY_ORDER = [
+    'Hauptmenü',
+    'Operativ',
+    'Flotte',
+    'Preise & Marketing',
+    'Finanzen & Berichte',
+    'System & Recht',
+] as const;
 
 export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     // Hauptmenü
     { id: 'Dashboard', name: 'Dashboard', category: 'Hauptmenü', href: '/admin', description: 'Übersicht, Metriken und Schnellzugriff' },
     { id: 'Aufgaben', name: 'Aufgaben', category: 'Hauptmenü', href: '/admin/tasks', description: 'Operatives Aufgaben- & To-Do-Board' },
-    { id: 'Benachrichtigungen', name: 'Benachrichtigungen', category: 'Hauptmenü', href: '/admin/notifications', description: 'System- und Kundenbenachrichtigungen' },
+    { id: 'Benachrichtigungen', name: 'Benachrichtigungen', category: 'Hauptmenü', href: '/admin/notifications', description: 'System- und Kundenbenachrichtigungen', badgeKey: 'notifications' },
     { id: 'Aktivitätsprotokoll', name: 'Aktivitätsprotokoll', category: 'Hauptmenü', href: '/admin/activity', description: 'Audit-Logs und Systemaktivitäten' },
 
     // Operativ
     { id: 'Reservierungen', name: 'Reservierungen', category: 'Operativ', href: '/admin/reservations', description: 'Buchungsübersicht, Kalender und Detailansicht' },
     { id: 'Kunden', name: 'Kunden', category: 'Operativ', href: '/admin/customers', description: 'Kundenkartei, Verifizierung und Historie' },
     { id: 'Check-In', name: 'Check-In', category: 'Operativ', href: '/admin/check-in-setup', description: 'Übergabeprotokolle und Check-In Prozess' },
+    { id: 'Check-Out', name: 'Check-Out', category: 'Operativ', href: '/admin/check-out', description: 'Anstehende und überfällige Fahrzeugrückgaben' },
     { id: 'Standorte', name: 'Standorte', category: 'Operativ', href: '/admin/locations', description: 'Filialverwaltung und Standortübersicht' },
 
     // Flotte
     { id: 'Fahrzeugflotte', name: 'Fahrzeugflotte', category: 'Flotte', href: '/admin/fleet', description: 'Fahrzeugbestand, Tarife und Status' },
-    { id: 'GPS Tracking', name: 'GPS Tracking', category: 'Flotte', href: '/admin/tracking', description: 'Live-Telemetrie und Fahrzeugpositionen' },
+    { id: 'GPS Tracking', name: 'GPS Tracking', category: 'Flotte', href: '/admin/tracking', description: 'Live-Telemetrie und Fahrzeugpositionen', badgeKey: 'live' },
     { id: 'Wartung', name: 'Wartung', category: 'Flotte', href: '/admin/maintenance', description: 'Inspektionen, TÜV und Werkstatttermine' },
     { id: 'KM Transfer', name: 'KM Transfer', category: 'Flotte', href: '/admin/km-transfer', description: 'Kilometer-Kontingente übertragen' },
     { id: 'Strafzettel', name: 'Strafzettel', category: 'Flotte', href: '/admin/strafzettel', description: 'Bußgelder und Behördenanfragen' },
@@ -58,22 +69,106 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
         'Dashboard', 'Aufgaben', 'Benachrichtigungen',
-        'Reservierungen', 'Kunden', 'Check-In', 'Standorte',
+        'Reservierungen', 'Kunden', 'Check-In', 'Check-Out', 'Standorte',
         'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'KM Transfer', 'Strafzettel',
         'Zusatzoptionen',
         'Finanzen', 'Rechnungen', 'Fahrtenbuch', 'Berichte'
     ],
     'MITARBEITER': [
         'Dashboard', 'Aufgaben', 'Benachrichtigungen',
-        'Reservierungen', 'Kunden', 'Check-In',
+        'Reservierungen', 'Kunden', 'Check-In', 'Check-Out',
         'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'Rechnungen'
     ],
     'FAHRER': [
-        'Dashboard', 'Aufgaben', 'Fahrzeugflotte', 'Check-In'
+        'Dashboard', 'Aufgaben', 'Reservierungen', 'Fahrzeugflotte', 'Check-In', 'Check-Out'
     ]
 };
 
+const MODULES_BY_HREF_LENGTH = [...ALL_ADMIN_MODULES].sort(
+    (a, b) => b.href.length - a.href.length
+);
+
+export function getAdminMenuGroups(): Array<{ title: string; items: AdminModuleItem[] }> {
+    const byCategory = new Map<string, AdminModuleItem[]>();
+    for (const mod of ALL_ADMIN_MODULES) {
+        const list = byCategory.get(mod.category) ?? [];
+        list.push(mod);
+        byCategory.set(mod.category, list);
+    }
+    return ADMIN_CATEGORY_ORDER.filter((cat) => byCategory.has(cat)).map((title) => ({
+        title,
+        items: byCategory.get(title)!,
+    }));
+}
+
+/** Resolve sidebar module id from pathname (ignores query string). */
+export function resolveAdminModuleIdFromPath(pathname: string): string | null {
+    if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
+        return null;
+    }
+    if (!pathname.startsWith('/admin')) {
+        return null;
+    }
+
+    for (const mod of MODULES_BY_HREF_LENGTH) {
+        if (mod.href === '/admin') {
+            if (pathname === '/admin') return mod.id;
+            continue;
+        }
+        if (pathname === mod.href || pathname.startsWith(`${mod.href}/`)) {
+            return mod.id;
+        }
+    }
+
+    return 'UNKNOWN';
+}
+
+export function staffCanAccessModule(
+    staff: { role: string },
+    permissions: Record<string, string[]>,
+    moduleId: string
+): boolean {
+    if (moduleId === 'Berechtigungen') {
+        return staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR';
+    }
+
+    if (moduleId === 'UNKNOWN') {
+        return staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR';
+    }
+
+    if (staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR') {
+        return true;
+    }
+
+    const perms = permissions[staff.role] ?? [];
+    if (perms.includes('all')) return true;
+    return perms.includes(moduleId);
+}
+
+export function staffCanAccessAdminPath(
+    pathname: string,
+    staff: { role: string },
+    permissions: Record<string, string[]>
+): boolean {
+    const moduleId = resolveAdminModuleIdFromPath(pathname);
+    if (moduleId === null) return true;
+    return staffCanAccessModule(staff, permissions, moduleId);
+}
+
 const SETTINGS_KEY = 'role_permissions';
+
+/** Append newly shipped modules from code defaults without revoking custom saves. */
+function mergeNewModulesFromDefaults(permissions: Record<string, string[]>): Record<string, string[]> {
+    const out = { ...permissions };
+    for (const { role } of CONFIGURABLE_ROLES) {
+        const list = out[role];
+        if (!list || list.includes('all')) continue;
+        const defaults = DEFAULT_ROLE_PERMISSIONS[role] ?? [];
+        const missing = defaults.filter((id) => !list.includes(id));
+        if (missing.length) out[role] = [...list, ...missing];
+    }
+    return out;
+}
 
 export async function getRolePermissions(): Promise<Record<string, string[]>> {
     try {
@@ -82,13 +177,12 @@ export async function getRolePermissions(): Promise<Record<string, string[]>> {
         });
         if (row && row.value) {
             const parsed = JSON.parse(row.value);
-            return {
+            return mergeNewModulesFromDefaults({
                 ...DEFAULT_ROLE_PERMISSIONS,
                 ...parsed,
-                // Superadmin and Administrator ALWAYS have all permissions
                 'SUPERADMIN': ['all'],
                 'ADMINISTRATOR': ['all'],
-            };
+            });
         }
     } catch (e) {
         console.error('Error fetching role permissions from SystemSettings:', e);
