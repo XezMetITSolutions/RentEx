@@ -13,11 +13,12 @@ interface AdminLayoutWrapperProps {
         pendingNotifications: number;
     };
     staff: any;
+    permissions?: Record<string, string[]>;
 }
 
 import { hmFontVariables } from '@/lib/hmFonts';
 
-export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayoutWrapperProps) {
+export default function AdminLayoutWrapper({ children, stats, staff, permissions }: AdminLayoutWrapperProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
     const isLoginPage = pathname === '/admin/login' || pathname.startsWith('/admin/login/');
@@ -41,6 +42,7 @@ export default function AdminLayoutWrapper({ children, stats, staff }: AdminLayo
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 staff={staff}
+                permissions={permissions}
             />
 
             {/* Mobile Backdrop */}

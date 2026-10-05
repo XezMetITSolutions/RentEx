@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
     Users, Plus, Edit2, Trash2, Shield, Check, X,
     MapPin, Mail, Key, ToggleLeft, ToggleRight, AlertCircle
@@ -123,13 +124,22 @@ export default function StaffPage() {
                         Personal, Zugriffsberechtigungen & Standortzuweisungen
                     </p>
                 </div>
-                <button
-                    onClick={openNew}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
-                >
-                    <Plus className="w-3.5 h-3.5" />
-                    Mitarbeiter anlegen
-                </button>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href="/admin/permissions"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-hm-paper border border-hm-rule hover:bg-hm-paper-2 text-hm-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
+                    >
+                        <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        Berechtigungsmatrix
+                    </Link>
+                    <button
+                        onClick={openNew}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        Mitarbeiter anlegen
+                    </button>
+                </div>
             </div>
 
             {/* Role distribution row */}

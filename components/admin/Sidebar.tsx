@@ -25,16 +25,23 @@ import {
     ClipboardCheck,
     ShieldCheck,
     AlertTriangle,
-    Zap
+    Zap,
+    Radio,
+    LineChart,
+    Building2,
+    Shield
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { DEFAULT_ROLE_PERMISSIONS } from '@/lib/rolePermissions';
 
 const menuGroups = [
     {
         title: 'Hauptmenü',
         items: [
             { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+            { name: 'Aufgaben', icon: Activity, href: '/admin/tasks' },
             { name: 'Benachrichtigungen', icon: Bell, href: '/admin/notifications', badgeKey: 'notifications' },
+            { name: 'Aktivitätsprotokoll', icon: FileText, href: '/admin/activity' },
         ]
     },
     {
@@ -43,18 +50,30 @@ const menuGroups = [
             { name: 'Reservierungen', icon: CalendarDays, href: '/admin/reservations' },
             { name: 'Kunden', icon: Users, href: '/admin/customers' },
             { name: 'Check-In', icon: ClipboardCheck, href: '/admin/check-in-setup' },
+            { name: 'Standorte', icon: MapPin, href: '/admin/locations' },
         ]
     },
     {
         title: 'Flotte',
         items: [
             { name: 'Fahrzeugflotte', icon: Car, href: '/admin/fleet' },
+            { name: 'GPS Tracking', icon: Radio, href: '/admin/tracking', badgeKey: 'live' },
             { name: 'Wartung', icon: Wrench, href: '/admin/maintenance' },
+            { name: 'KM Transfer', icon: Zap, href: '/admin/km-transfer' },
             { name: 'Strafzettel', icon: AlertTriangle, href: '/admin/strafzettel' },
         ]
     },
     {
-        title: 'Finanzen & Analyse',
+        title: 'Preise & Marketing',
+        items: [
+            { name: 'Marketing', icon: TrendingUp, href: '/admin/marketing' },
+            { name: 'Preise & Marktanalyse', icon: LineChart, href: '/admin/pricing' },
+            { name: 'Mitbewerber', icon: Building2, href: '/admin/competitor-pricing' },
+            { name: 'Zusatzoptionen', icon: Tag, href: '/admin/options' },
+        ]
+    },
+    {
+        title: 'Finanzen & Berichte',
         items: [
             { name: 'Finanzen', icon: Wallet, href: '/admin/finance' },
             { name: 'Rechnungen', icon: Receipt, href: '/admin/rechnungen' },
@@ -63,9 +82,11 @@ const menuGroups = [
         ]
     },
     {
-        title: 'System',
+        title: 'System & Recht',
         items: [
             { name: 'Mitarbeiter', icon: ShieldCheck, href: '/admin/staff' },
+            { name: 'Berechtigungen', icon: Shield, href: '/admin/permissions' },
+            { name: 'AGB Versionen', icon: FileText, href: '/admin/agb' },
             { name: 'Einstellungen', icon: Settings, href: '/admin/settings' },
         ]
     }
@@ -78,30 +99,16 @@ interface SidebarProps {
     isOpen?: boolean;
     onClose?: () => void;
     staff: any;
+    permissions?: Record<string, string[]>;
 }
 
-const rolePermissions: Record<string, string[]> = {
-    'SUPERADMIN': ['all'],
-    'ADMINISTRATOR': ['all'],
-    'FILIALLEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 
-        'Reservierungen', 'Kunden', 'Wartung', 'Fahrtenbuch', 'Rechnungen', 
-        'Berichte', 'Check-In', 'Finanzen', 'Strafzettel'
-    ],
-    'MITARBEITER': [
-        'Dashboard', 'Fahrzeugflotte', 'GPS Tracking', 'Aufgaben', 
-        'Reservierungen', 'Kunden', 'Check-In', 'Rechnungen'
-    ],
-    'FAHRER': [
-        'Dashboard', 'Aufgaben', 'Fahrzeugflotte'
-    ]
-};
+const rolePermissions: Record<string, string[]> = DEFAULT_ROLE_PERMISSIONS;
 
 const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 };
 
-export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff }: SidebarProps) {
+export default function Sidebar({ activeRentals, todayRevenue, pendingNotifications, isOpen, onClose, staff, permissions }: SidebarProps) {
     const pathname = usePathname();
 
     const getBadge = (item: any) => {
@@ -112,7 +119,9 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
 
     const isItemAllowed = (name: string) => {
         if (!staff) return false;
-        const perms = rolePermissions[staff.role] || [];
+        if (staff.role === 'SUPERADMIN' || staff.role === 'ADMINISTRATOR') return true;
+        const activePerms = permissions || rolePermissions;
+        const perms = activePerms[staff.role] || [];
         return perms.includes('all') || perms.includes(name);
     };
 

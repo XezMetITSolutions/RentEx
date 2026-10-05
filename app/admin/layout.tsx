@@ -1,6 +1,7 @@
 import { getSidebarStats } from '@/lib/adminStats';
 import AdminLayoutWrapper from '@/components/admin/AdminLayoutWrapper';
 import { getAdminSession } from '@/lib/adminAuth';
+import { getRolePermissions } from '@/lib/rolePermissions';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 
@@ -20,10 +21,13 @@ export default async function AdminLayout({
         return <AdminLayoutWrapper stats={EMPTY_STATS} staff={null}>{children}</AdminLayoutWrapper>;
     }
 
-    const stats = await getSidebarStats();
+    const [stats, permissions] = await Promise.all([
+        getSidebarStats(),
+        getRolePermissions()
+    ]);
 
     return (
-        <AdminLayoutWrapper stats={stats} staff={staff}>
+        <AdminLayoutWrapper stats={stats} staff={staff} permissions={permissions}>
             {children}
         </AdminLayoutWrapper>
     );
