@@ -5,6 +5,10 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import { SITE_URL } from '@/lib/config';
 
+// The app is database-driven end to end. Render every route per request so
+// `next build` (CI, no DATABASE_URL) never runs Prisma queries while prerendering.
+export const dynamic = "force-dynamic";
+
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
