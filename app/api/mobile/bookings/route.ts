@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { isCarAvailable, lockCarForBooking } from '@/lib/availability';
+import { CAR_BUSY_MESSAGE, isBookableCar, isCarAvailable, lockCarForBooking } from '@/lib/availability';
+import { quoteBooking } from '@/lib/bookingPrice';
+import { chargeableDaysBetween } from '@/lib/bookingUtils';
+import { bookingRejectedReason } from '@/lib/rentalGuards';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 
 function parseFeatures(features: string | null): string[] | null {
@@ -94,22 +97,22 @@ export async function POST(req: NextRequest) {
     }
 
     const car = await prisma.car.findUnique({ where: { id: carId } });
-    if (!car) {
+    if (!car || !isBookableCar(car)) {
       return NextResponse.json({ error: 'Fahrzeug nicht gefunden.' }, { status: 404 });
     }
 
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = Math.max(1, Math.ceil((+endDate - +startDate) / msPerDay));
-    const dailyRate = Number(car.dailyRate);
-    const subtotal = dailyRate * totalDays;
-    const serviceFee = subtotal * 0.05;
-    const totalAmount = subtotal + serviceFee;
+    const totalDays = chargeableDaysBetween(startDate, endDate);
+    const rejected = bookingRejectedReason(car, endDate, totalDays);
+    if (rejected) {
+      return NextResponse.json({ error: rejected }, { status: 400 });
+    }
+    const quote = quoteBooking(car, [], totalDays, null, startDate);
 
     // Lock the car row so two concurrent requests cannot both pass the overlap check.
     const rental = await prisma.$transaction(async (tx) => {
       await lockCarForBooking(tx, carId);
       if (!(await isCarAvailable(carId, startDate, endDate, tx))) return null;
-      return tx.rental.create({
+      const created = await tx.rental.create({
         data: {
           carId,
           customerId,
@@ -117,20 +120,28 @@ export async function POST(req: NextRequest) {
           endDate,
           dailyRate: car.dailyRate,
           totalDays,
-          totalAmount,
+          totalAmount: quote.total,
+          includedKm: quote.includedKm,
           status: 'Pending',
           paymentStatus: 'Pending',
+          pickupLocationId: car.locationId,
+          returnLocationId: car.locationId,
         },
+      });
+      const withNumber = await tx.rental.update({
+        where: { id: created.id },
+        data: { contractNumber: `RNT-${new Date().getFullYear()}-${String(created.id).padStart(7, '0')}` },
         include: {
           car: true,
           pickupLocation: true,
           returnLocation: true,
         },
       });
+      return withNumber;
     });
     if (!rental) {
       return NextResponse.json(
-        { error: 'Fahrzeug ist in diesem Zeitraum bereits gebucht.' },
+        { error: CAR_BUSY_MESSAGE },
         { status: 409 }
       );
     }

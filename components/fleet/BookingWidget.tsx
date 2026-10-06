@@ -3,16 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Users, Zap, Baby, Calendar, Clock } from "lucide-react";
-import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import { calculateChargeableDays, isOutsideOpeningHours, parseBookingDateTime } from "@/lib/bookingUtils";
+import { quoteBooking, resolveSelection, type PriceOption } from "@/lib/bookingPrice";
+import { checkBookingAvailability } from "@/app/actions/booking";
+import { BUSINESS } from "@/lib/config";
 
-type Option = {
-    id: number;
-    name: string;
-    description: string | null;
-    price: number; // serialization creates number usually
-    type: string | null;
-    isPerDay: boolean;
-};
+type Option = PriceOption;
 
 type BookingWidgetProps = {
     car: any; // We can improve typing later
@@ -42,63 +38,47 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
 
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [totalDays, setTotalDays] = useState<number>(1);
-    const [isAvailable, setIsAvailable] = useState<boolean>(true);
+    const [rateNote, setRateNote] = useState('Tagespreis');
+    const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
     const isPickupOutside = isOutsideOpeningHours(startDate, pickupTime);
     const isReturnOutside = isOutsideOpeningHours(endDate, returnTime);
     const needsSelfCheckin = isPickupOutside || isReturnOutside;
 
-    // Check availability
     useEffect(() => {
-        if (!car.rentals) return;
+        let cancelled = false;
+        setIsAvailable(null);
+        const t = setTimeout(async () => {
+            const res = await checkBookingAvailability(Number(car.id), startDate, pickupTime, endDate, returnTime);
+            if (!cancelled) setIsAvailable(res.available);
+        }, 300);
+        return () => {
+            cancelled = true;
+            clearTimeout(t);
+        };
+    }, [car.id, startDate, pickupTime, endDate, returnTime]);
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        // Reset hours to compare dates only
-        start.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
-
-        const hasOverlap = car.rentals.some((rental: any) => {
-            const rentalStart = new Date(rental.startDate);
-            const rentalEnd = new Date(rental.endDate);
-            rentalStart.setHours(0, 0, 0, 0);
-            rentalEnd.setHours(0, 0, 0, 0);
-
-            // Check overlap
-            return (start < rentalEnd && end > rentalStart);
-        });
-
-        setIsAvailable(!hasOverlap);
-    }, [startDate, endDate, car.rentals]);
-
-    // Calculate Price
     useEffect(() => {
         const validDays = calculateChargeableDays(startDate, pickupTime, endDate, returnTime);
         setTotalDays(validDays);
-
-        let total = validDays * Number(car.dailyRate);
-
-        // Add options
-        selectedOptions.forEach(optId => {
-            const opt = options.find(o => o.id === optId);
-            if (opt) {
-                if (opt.isPerDay) {
-                    total += Number(opt.price) * validDays;
-                } else {
-                    total += Number(opt.price);
-                }
-            }
-        });
-
-        setTotalPrice(total);
-    }, [startDate, endDate, pickupTime, returnTime, selectedOptions, car.dailyRate, options]);
+        const selected = resolveSelection(options, selectedOptions);
+        const quote = quoteBooking(car, selected, validDays, null, parseBookingDateTime(startDate, pickupTime));
+        setTotalPrice(quote.total);
+        setRateNote(quote.rateNote);
+    }, [startDate, endDate, pickupTime, returnTime, selectedOptions, car, options]);
 
 
     const handleOptionToggle = (id: number) => {
-        setSelectedOptions(prev =>
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        );
+        const opt = options.find((o) => o.id === id);
+        if (opt?.isMandatory) return;
+        setSelectedOptions((prev) => {
+            if (prev.includes(id)) return prev.filter((x) => x !== id);
+            const sameKind = (otherId: number) => options.find((o) => o.id === otherId)?.type === opt?.type;
+            if (opt?.type === 'insurance' || opt?.type === 'package') {
+                return [...prev.filter((x) => !sameKind(x)), id];
+            }
+            return [...prev, id];
+        });
     };
 
     const getOptionIcon = (type: string | null) => {
@@ -138,7 +118,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                         <p className="text-4xl font-bold text-gray-900 dark:text-white">
                             {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(totalPrice)}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">für {totalDays} Tage</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">für {totalDays} Tage{rateNote !== 'Tagespreis' ? ` · ${rateNote}` : ''}</p>
                     </div>
                 </div>
 
@@ -222,9 +202,9 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                     <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs flex items-start gap-2.5 animate-in fade-in duration-300">
                         <span className="text-base leading-none">🔑</span>
                         <div>
-                            <p className="font-bold mb-0.5">Self-Check-in/Check-out aktiv</p>
+                            <p className="font-bold mb-0.5">Außerhalb der Öffnungszeiten</p>
                             <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Die von Ihnen gewählte Abhol- oder Rückgabezeit liegt außerhalb unserer regulären Öffnungszeiten. Sie erhalten alle Details zur schlüssellosen Fahrzeugübergabe vor Mietbeginn.
+                                Die Übergabe stimmen wir telefonisch ab ({BUSINESS.PHONE}). Bitte bezahlen Sie online. Eine automatische Schlüsselübergabe gibt es nicht.
                             </p>
                         </div>
                     </div>
@@ -232,7 +212,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
 
                 <button
                     onClick={handleBooking}
-                    disabled={!isAvailable || isPending}
+                    disabled={isAvailable !== true || isPending}
                     className={`w-full py-4 font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${isAvailable
                         ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
                         : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 dark:text-zinc-500 cursor-not-allowed shadow-none"
@@ -243,6 +223,8 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                             <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                             Wird vorbereitet...
                         </>
+                    ) : isAvailable === null ? (
+                        "Verfügbarkeit wird geprüft…"
                     ) : isAvailable ? (
                         "Jetzt Reservieren"
                     ) : (
@@ -250,7 +232,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                     )}
                 </button>
                 <p className="text-center text-xs text-gray-500 mt-3">
-                    Keine Kreditkarte für Reservierung erforderlich
+                    {needsSelfCheckin ? 'Außerhalb der Öffnungszeiten nur mit Online-Zahlung' : 'Zahlung online oder bei Abholung'}
                 </p>
             </div>
 
@@ -265,7 +247,8 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                                 <input
                                     type="checkbox"
                                     className="mt-1 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 text-red-600 focus:ring-red-600"
-                                    checked={selectedOptions.includes(option.id)}
+                                    checked={option.isMandatory || selectedOptions.includes(option.id)}
+                                    disabled={option.isMandatory}
                                     onChange={() => handleOptionToggle(option.id)}
                                 />
                                 <div className="flex-1">

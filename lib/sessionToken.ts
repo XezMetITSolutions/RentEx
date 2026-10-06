@@ -9,20 +9,21 @@
  * Uses Web Crypto only, so it runs in both the Node runtime and middleware.
  */
 
-export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa';
+export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa' | 'booking-view';
 
 const DEV_FALLBACK_SECRET = 'dev-secret-only-for-local';
 
 function getSecret(purpose: SessionPurpose): string {
-    const secret = purpose === 'customer'
-        ? process.env.SESSION_SECRET || process.env.JWT_SECRET
-        : process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET;
+    const isAdmin = purpose === 'admin' || purpose === 'admin-2fa';
+    const secret = isAdmin
+        ? process.env.ADMIN_SESSION_SECRET || process.env.JWT_SECRET
+        : process.env.SESSION_SECRET || process.env.JWT_SECRET;
     if (secret) return secret;
     if (process.env.NODE_ENV === 'production') {
         throw new Error(
-            purpose === 'customer'
-                ? 'SESSION_SECRET (or JWT_SECRET) must be set in production'
-                : 'ADMIN_SESSION_SECRET (or JWT_SECRET) must be set in production'
+            isAdmin
+                ? 'ADMIN_SESSION_SECRET (or JWT_SECRET) must be set in production'
+                : 'SESSION_SECRET (or JWT_SECRET) must be set in production'
         );
     }
     return DEV_FALLBACK_SECRET;

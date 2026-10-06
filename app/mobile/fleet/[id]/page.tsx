@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { blockingRentalWhere } from "@/lib/availability";
+import { blockingRentalWhere, calendarBlocks } from "@/lib/availability";
 import MobileCarDetailClient from "./MobileCarDetailClient";
 
 export default async function MobileVehicleDetails({ params }: { params: Promise<{ id: string }> }) {
@@ -13,7 +13,7 @@ export default async function MobileVehicleDetails({ params }: { params: Promise
     include: {
       rentals: {
         where: blockingRentalWhere(),
-        select: { startDate: true, endDate: true },
+        select: { startDate: true, endDate: true, status: true, actualReturnDate: true },
       }
     }
   });
@@ -25,8 +25,8 @@ export default async function MobileVehicleDetails({ params }: { params: Promise
     ...car,
     dailyRate: Number(car.dailyRate),
     extraKmCost: car.extraKmCost ? Number(car.extraKmCost) : null,
-    rentals: car.rentals.map(rental => ({
-      startDate: rental.startDate.toISOString(), // safe string serialization
+    rentals: calendarBlocks(car.rentals).map(rental => ({
+      startDate: rental.startDate.toISOString(),
       endDate: rental.endDate.toISOString(),
     }))
   };

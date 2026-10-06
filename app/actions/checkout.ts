@@ -6,6 +6,9 @@ import { getRolePermissions } from "@/lib/rolePermissions.server";
 import { staffCanAccessModule } from "@/lib/rolePermissions";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { RENTAL_TERMS } from "@/lib/config";
+import { settleReturnMileage } from "@/lib/returnSettlement";
+import { assertReturnMileage } from "@/lib/rentalGuards";
 
 export interface CheckOutInput {
     returnMileage: number;
@@ -36,37 +39,18 @@ export async function performCheckOut(rentalId: number, data: CheckOutInput) {
     if (!rental) {
         throw new Error("Mietvertrag nicht gefunden");
     }
+    if (rental.status === 'Completed') {
+        throw new Error('Diese Miete wurde bereits zurückgenommen.');
+    }
+    if (rental.status !== 'Active') {
+        throw new Error('Nur eine laufende Miete kann zurückgenommen werden.');
+    }
 
-    const returnKm = Math.round(Number(data.returnMileage));
     const pickupKm = Math.round(Number(rental.pickupMileage || rental.car.currentMileage || 0));
+    const returnKm = assertReturnMileage(Number(data.returnMileage), pickupKm, rental.totalDays);
 
-    if (returnKm < pickupKm) {
-        throw new Error(
-            `Der Rückgabe-Kilometerstand (${returnKm.toLocaleString('de-DE')} km) darf nicht geringer sein als der Start-Kilometerstand (${pickupKm.toLocaleString('de-DE')} km).`
-        );
-    }
-
-    const usedKm = returnKm - pickupKm;
-    const includedKm = Number(rental.includedKm || 0);
-    const surplusKm = includedKm > 0 ? includedKm - usedKm : 0;
-
-    // KM bonus calculation if surplus
-    if (surplusKm > 0) {
-        await prisma.kmBalance.upsert({
-            where: { customerId: rental.customerId },
-            update: { balance: { increment: surplusKm } },
-            create: { customerId: rental.customerId, balance: surplusKm }
-        });
-
-        await prisma.kmTransfer.create({
-            data: {
-                fromId: rental.customerId,
-                toId: rental.customerId,
-                amount: surplusKm,
-                note: `Automatische Rückgabe-Gutschrift aus Vertrag #${rental.contractNumber || rental.id} (${includedKm} km inkludiert - ${usedKm} km gefahren)`
-            }
-        });
-    }
+    const settlement = await settleReturnMileage(rental, returnKm);
+    const { usedKm, surplusKm } = settlement;
 
     // Damage record if notes provided
     if (data.damageNotes && data.damageNotes.trim()) {
@@ -94,6 +78,22 @@ export async function performCheckOut(rentalId: number, data: CheckOutInput) {
         ? `${existingNotes}[Rückgabe-Notiz]: ${data.notes.trim()}`
         : rental.notes;
 
+    const notFull = !!data.fuelLevelReturn && data.fuelLevelReturn !== '100%' && data.fuelLevelReturn.toLowerCase() !== 'full';
+    const fuelCharge = data.fuelCharge != null
+        ? data.fuelCharge
+        : notFull ? RENTAL_TERMS.REFUEL_FEE_EUR : 0;
+    const kmMarker = `rental:${rental.id}:km`;
+    const kmAlreadyBilled = (rental.extraChargesNote || '').includes(kmMarker);
+    const kmCharge = kmAlreadyBilled ? 0 : settlement.kmCharge;
+    const staffExtras = data.extraCharges ?? 0;
+    const extraCharges = Number(rental.extraCharges || 0) + staffExtras + kmCharge;
+    const kmNote = kmCharge > 0
+        ? `${kmMarker} Mehrkilometer: ${settlement.overKm} km, davon ${settlement.balanceUsed} aus Guthaben, €${kmCharge.toFixed(2)}`
+        : '';
+    const extraChargesNote = [rental.extraChargesNote, data.extraChargesNote, kmNote].filter(Boolean).join('\n') || undefined;
+    const moneyDue = kmCharge + (fuelCharge || 0) + staffExtras;
+    const paymentStatus = moneyDue > 0 && rental.paymentStatus === 'Paid' ? 'Partial' : rental.paymentStatus;
+
     // Update rental to Completed
     await prisma.rental.update({
         where: { id: rentalId },
@@ -101,20 +101,24 @@ export async function performCheckOut(rentalId: number, data: CheckOutInput) {
             status: 'Completed',
             returnMileage: returnKm,
             fuelLevelReturn: data.fuelLevelReturn || undefined,
-            fuelCharge: data.fuelCharge ? new Prisma.Decimal(data.fuelCharge) : undefined,
-            extraCharges: data.extraCharges ? new Prisma.Decimal(data.extraCharges) : undefined,
-            extraChargesNote: data.extraChargesNote || undefined,
+            fuelCharge: fuelCharge ? new Prisma.Decimal(fuelCharge) : undefined,
+            extraCharges: extraCharges ? new Prisma.Decimal(extraCharges) : undefined,
+            extraChargesNote,
             damageReport: updatedDamageReport,
             notes: updatedNotes,
             actualReturnDate: new Date(),
+            isOverdue: false,
+            paymentStatus,
         }
     });
 
-    // Update car status to 'Active' (Available) and update currentMileage
+    const stillOut = await prisma.rental.count({
+        where: { carId: rental.carId, status: 'Active', id: { not: rentalId } },
+    });
     await prisma.car.update({
         where: { id: rental.carId },
         data: {
-            status: 'Active',
+            status: stillOut > 0 ? 'Rented' : 'Active',
             currentMileage: returnKm
         }
     });
@@ -128,6 +132,10 @@ export async function performCheckOut(rentalId: number, data: CheckOutInput) {
     return {
         success: true,
         usedKm,
-        surplusKm
+        surplusKm,
+        overKm: settlement.overKm,
+        kmCharge,
+        balanceUsed: settlement.balanceUsed,
+        fuelCharge,
     };
 }

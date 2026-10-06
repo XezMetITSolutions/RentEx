@@ -40,7 +40,10 @@ interface RentalData {
         startDate: Date;
         endDate: Date;
         pickupLocation?: string;
+        returnLocation?: string;
         totalAmount: number;
+        handoverNote?: string;
+        depositNote?: string;
     };
 }
 
@@ -103,9 +106,42 @@ export function wrapHtmlLayout(title: string, subtitle: string, contentHtml: str
     `.trim();
 }
 
+function esc(value: unknown): string {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function safeRental(data: RentalData): RentalData {
+    return {
+        ...data,
+        contractNumber: esc(data.contractNumber),
+        customer: {
+            firstName: esc(data.customer.firstName),
+            lastName: esc(data.customer.lastName),
+            email: esc(data.customer.email),
+        },
+        car: {
+            brand: esc(data.car.brand),
+            model: esc(data.car.model),
+            plate: esc(data.car.plate),
+        },
+        rental: {
+            ...data.rental,
+            pickupLocation: data.rental.pickupLocation ? esc(data.rental.pickupLocation) : undefined,
+            returnLocation: data.rental.returnLocation ? esc(data.rental.returnLocation) : undefined,
+            handoverNote: data.rental.handoverNote ? esc(data.rental.handoverNote) : undefined,
+            depositNote: data.rental.depositNote ? esc(data.rental.depositNote) : undefined,
+        },
+    };
+}
+
 export const emailTemplates = {
     // Booking Confirmation
-    bookingConfirmation: (data: RentalData): EmailTemplate => {
+    bookingConfirmation: (raw: RentalData): EmailTemplate => {
+        const data = safeRental(raw);
         const title = "BUCHUNG BESTÄTIGT";
         const subtitle = `VERT-NR: ${data.contractNumber}`;
         const contentHtml = `
@@ -136,13 +172,23 @@ export const emailTemplates = {
                                 <td width="50%" style="vertical-align: top;">
                                     <span style="color: #a1a1aa; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px;">Rückgabe</span>
                                     <strong style="color: #f4f4f5; font-size: 14px; display: block;">${fmt(data.rental.endDate, 'dd.MM.yyyy HH:mm')}</strong>
-                                    <span style="color: #a1a1aa; font-size: 12px; display: block; margin-top: 2px;">${data.rental.pickupLocation || DEFAULT_BRANCH}</span>
+                                    <span style="color: #a1a1aa; font-size: 12px; display: block; margin-top: 2px;">${data.rental.returnLocation || data.rental.pickupLocation || DEFAULT_BRANCH}</span>
                                 </td>
                             </tr>
                         </table>
                     </td>
                 </tr>
             </table>
+
+            ${data.rental.handoverNote ? `
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; margin-bottom: 25px;">
+                <tr>
+                    <td style="padding: 15px; font-size: 14px; line-height: 1.5; color: #e4e4e7;">
+                        <strong style="color: #eab308; display: block; margin-bottom: 4px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Übergabe außerhalb der Öffnungszeiten</strong>
+                        ${data.rental.handoverNote}
+                    </td>
+                </tr>
+            </table>` : ''}
 
             <!-- Fuel Policy Badge -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; margin-bottom: 25px;">
@@ -163,6 +209,7 @@ export const emailTemplates = {
                                 <td style="color: #a1a1aa; font-size: 14px; padding-bottom: 8px;">Gesamtbetrag (inkl. MwSt.)</td>
                                 <td align="right" style="color: #ffffff; font-size: 20px; font-weight: bold; padding-bottom: 8px;">€${data.rental.totalAmount.toFixed(2)}</td>
                             </tr>
+                            ${data.rental.depositNote ? `<tr><td colspan="2" style="color: #a1a1aa; font-size: 13px; padding-top: 6px;">${data.rental.depositNote}</td></tr>` : ''}
                         </table>
                     </td>
                 </tr>
@@ -194,7 +241,8 @@ export const emailTemplates = {
     },
 
     // Pickup Reminder
-    pickupReminder: (data: RentalData): EmailTemplate => {
+    pickupReminder: (raw: RentalData): EmailTemplate => {
+        const data = safeRental(raw);
         const title = "ABHOLERINNERUNG";
         const subtitle = `VERT-NR: ${data.contractNumber}`;
         const contentHtml = `
@@ -238,7 +286,8 @@ export const emailTemplates = {
     },
 
     // Return Reminder
-    returnReminder: (data: RentalData): EmailTemplate => {
+    returnReminder: (raw: RentalData): EmailTemplate => {
+        const data = safeRental(raw);
         const title = "RÜCKGABEERINNERUNG";
         const subtitle = `VERT-NR: ${data.contractNumber}`;
         const contentHtml = `
@@ -252,7 +301,7 @@ export const emailTemplates = {
                     <td style="padding: 20px;">
                         <p style="margin: 0 0 6px 0; font-size: 15px; color: #f4f4f5;"><strong>Fahrzeug:</strong> ${data.car.brand} ${data.car.model} (${data.car.plate})</p>
                         <p style="margin: 0 0 6px 0; font-size: 15px; color: #f4f4f5;"><strong>Rückgabezeitpunkt:</strong> ${fmt(data.rental.endDate, 'dd.MM.yyyy HH:mm')}</p>
-                        <p style="margin: 0; font-size: 15px; color: #f4f4f5;"><strong>Rückgabeort:</strong> ${data.rental.pickupLocation || DEFAULT_BRANCH}</p>
+                        <p style="margin: 0; font-size: 15px; color: #f4f4f5;"><strong>Rückgabeort:</strong> ${data.rental.returnLocation || data.rental.pickupLocation || DEFAULT_BRANCH}</p>
                     </td>
                 </tr>
             </table>
@@ -282,7 +331,8 @@ export const emailTemplates = {
     },
 
     // Payment Confirmation
-    paymentConfirmation: (data: RentalData): EmailTemplate => {
+    paymentConfirmation: (raw: RentalData): EmailTemplate => {
+        const data = safeRental(raw);
         const title = "ZAHLUNGSBESTÄTIGUNG";
         const subtitle = `VERT-NR: ${data.contractNumber}`;
         const contentHtml = `
@@ -314,7 +364,8 @@ export const emailTemplates = {
     },
 
     // Cancellation Confirmation
-    cancellationConfirmation: (data: RentalData): EmailTemplate => {
+    cancellationConfirmation: (raw: RentalData): EmailTemplate => {
+        const data = safeRental(raw);
         const title = "STORNIERUNGSBESTÄTIGUNG";
         const subtitle = `VERT-NR: ${data.contractNumber}`;
         const contentHtml = `

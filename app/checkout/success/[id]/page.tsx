@@ -6,12 +6,13 @@ import Footer from "@/components/home/Footer";
 import { CheckCircle, Calendar, MapPin, Car, Zap } from "lucide-react";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
+import { getBookingView, getSession } from "@/lib/auth";
 
 export default async function SuccessPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const resolvedParams = await params;
     const resolvedSearch = await searchParams;
     const rentalId = parseInt(resolvedParams.id);
-    const sessionId = resolvedSearch.session_id;
+    const sessionId = typeof resolvedSearch.session_id === 'string' ? resolvedSearch.session_id : undefined;
 
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
@@ -21,18 +22,28 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
         }
     });
 
-    if (!rental) {
+    const [ownerId, viewId] = await Promise.all([getSession(), getBookingView()]);
+    const allowed = !!rental && (
+        ownerId === rental.customerId
+        || viewId === rental.id
+        || (!!sessionId && sessionId === rental.stripeSessionId)
+    );
+
+    if (!rental || !allowed) {
         return (
             <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Buchung nicht gefunden</h1>
-                    <Link href="/" className="text-red-500 hover:text-red-400">Zurück zur Startseite</Link>
+                    <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{rental ? 'Bitte anmelden' : 'Buchung nicht gefunden'}</h1>
+                    {rental && <p className="text-gray-500 mb-4">Die Buchungsdetails sind nur für Ihr Konto sichtbar.</p>}
+                    {rental && <Link href={`/login?from=/dashboard/rentals/${rental.id}`} className="text-red-500 hover:text-red-400">Anmelden</Link>}
+                    {!rental && <Link href="/" className="text-red-500 hover:text-red-400">Zurück zur Startseite</Link>}
                 </div>
             </div>
         );
     }
 
-    const isPaid = rental.paymentStatus === 'Paid' || !!sessionId;
+    const isPaid = rental.paymentStatus === 'Paid' || rental.paymentStatus === 'Refunded';
+    const paymentPending = !!sessionId && rental.paymentStatus !== 'Paid' && rental.status !== 'Cancelled';
 
     return (
         <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">
@@ -48,10 +59,14 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                     </div>
 
                     <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                        {isPaid ? 'Zahlung & Buchung erfolgreich!' : 'Buchung bestätigt!'}
+                        {isPaid ? 'Zahlung und Buchung erfolgreich!' : paymentPending ? 'Zahlung erhalten' : 'Buchung bestätigt!'}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
-                        Vielen Dank, {rental.customer.firstName}. {isPaid ? 'Ihre Zahlung wurde bestätigt ve Ihre Reservierung ist abgeschlossen.' : 'Ihre Reservierung wurde erfolgreich entgegengenommen.'}
+                        Vielen Dank, {rental.customer.firstName}. {isPaid
+                            ? 'Ihre Zahlung ist bestätigt und das Fahrzeug ist für Sie reserviert.'
+                            : paymentPending
+                                ? 'Ihre Zahlung ist eingegangen. Die Bestätigung folgt in Kürze per E-Mail.'
+                                : 'Ihre Reservierung wurde entgegengenommen. Der Betrag wird bei der Abholung fällig.'}
                     </p>
 
                     <div className="bg-gray-50 dark:bg-black/30 rounded-2xl p-6 border border-gray-200 dark:border-white/10 text-left mb-8">
@@ -77,12 +92,12 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">Abholung</p>
                                     <p className="text-gray-900 dark:text-white font-medium">{formatInTimeZone(rental.startDate, BUSINESS.TIME_ZONE, "dd.MM.yyyy, HH:mm 'Uhr'")}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{BUSINESS.PICKUP_ADDRESS}, {BUSINESS.PICKUP_CITY}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-500 mb-1">Rückgabe</p>
                                     <p className="text-gray-900 dark:text-white font-medium">{formatInTimeZone(rental.endDate, BUSINESS.TIME_ZONE, "dd.MM.yyyy, HH:mm 'Uhr'")}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{BUSINESS.PICKUP_ADDRESS}, {BUSINESS.PICKUP_CITY}</p>
                                 </div>
                             </div>
                         </div>

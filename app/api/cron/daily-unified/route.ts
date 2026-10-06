@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { emailTemplates, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
 import crypto from "crypto";
-import { cancelStaleUnpaidRentals } from "@/lib/availability";
+import { cancelNoShowRentals, cancelStaleUnpaidRentals, closeLapsedRentals } from "@/lib/availability";
+import { BUSINESS } from "@/lib/config";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
 export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
@@ -27,10 +29,14 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(resendApiKey);
 
     const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
+    const viennaDay = (offset: number) => {
+        const base = formatInTimeZone(today, BUSINESS.TIME_ZONE, 'yyyy-MM-dd');
+        const [y, m, d] = base.split('-').map(Number);
+        const shifted = new Date(Date.UTC(y, (m || 1) - 1, (d || 1) + offset));
+        return shifted.toISOString().slice(0, 10);
+    };
+    const tomorrow = fromZonedTime(`${viennaDay(1)}T00:00:00`, BUSINESS.TIME_ZONE);
+    const dayAfter = fromZonedTime(`${viennaDay(2)}T00:00:00`, BUSINESS.TIME_ZONE);
 
     const results: any = {
         pickupReminders: null,
@@ -47,18 +53,27 @@ export async function POST(req: NextRequest) {
                 status: { in: ["Confirmed", "Pending"] },
                 startDate: { gte: tomorrow, lt: dayAfter },
             },
-            include: { customer: true, car: true, pickupLocation: true },
+            include: { customer: true, car: true, pickupLocation: true, returnLocation: true },
         });
         let pickupSent = 0;
         for (const rental of upcoming) {
             if (!rental.customer || !rental.car || !rental.contractNumber) continue;
+            const already = await prisma.notification.findFirst({
+                where: { type: 'PickupReminder', relatedType: 'Rental', relatedId: rental.id, status: 'Sent' },
+            });
+            if (already) continue;
             const sent = await sendEmail(rental.customer.email, emailTemplates.pickupReminder({
                 contractNumber: rental.contractNumber,
                 customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
                 car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
-                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, totalAmount: Number(rental.totalAmount) },
+                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, returnLocation: rental.returnLocation?.name, totalAmount: Number(rental.totalAmount) },
             }));
-            if (sent) pickupSent++;
+            if (sent) {
+                pickupSent++;
+                await prisma.notification.create({
+                    data: { type: 'PickupReminder', recipient: rental.customer.email, subject: rental.contractNumber, message: 'Abholerinnerung', status: 'Sent', sentAt: new Date(), relatedType: 'Rental', relatedId: rental.id },
+                });
+            }
         }
         results.pickupReminders = { sent: pickupSent };
     } catch (e: any) {
@@ -72,18 +87,27 @@ export async function POST(req: NextRequest) {
                 status: "Active",
                 endDate: { gte: tomorrow, lt: dayAfter },
             },
-            include: { customer: true, car: true, pickupLocation: true },
+            include: { customer: true, car: true, pickupLocation: true, returnLocation: true },
         });
         let returnSent = 0;
         for (const rental of returning) {
             if (!rental.customer || !rental.car || !rental.contractNumber) continue;
+            const already = await prisma.notification.findFirst({
+                where: { type: 'ReturnReminder', relatedType: 'Rental', relatedId: rental.id, status: 'Sent' },
+            });
+            if (already) continue;
             const sent = await sendEmail(rental.customer.email, emailTemplates.returnReminder({
                 contractNumber: rental.contractNumber,
                 customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
                 car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
-                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, totalAmount: Number(rental.totalAmount) },
+                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, returnLocation: rental.returnLocation?.name, totalAmount: Number(rental.totalAmount) },
             }));
-            if (sent) returnSent++;
+            if (sent) {
+                returnSent++;
+                await prisma.notification.create({
+                    data: { type: 'ReturnReminder', recipient: rental.customer.email, subject: rental.contractNumber, message: 'Rückgabeerinnerung', status: 'Sent', sentAt: new Date(), relatedType: 'Rental', relatedId: rental.id },
+                });
+            }
         }
         results.returnReminders = { sent: returnSent };
     } catch (e: any) {
@@ -105,11 +129,12 @@ export async function POST(req: NextRequest) {
 
         let birthdayProcessed = 0;
         for (const customer of birthdayCustomers) {
+            const safeName = customer.firstName.replace(/[&<>"'\r\n]/g, '');
             const code = `BDAY-${customer.id}-${today.getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
             await prisma.discountCoupon.create({
                 data: {
                     code,
-                    description: `Geburtstags-Gutschein fÃ¼r ${customer.firstName} ${customer.lastName}`,
+                    description: `Geburtstags-Gutschein für ${customer.firstName} ${customer.lastName}`,
                     discountType: "PERCENTAGE",
                     discountValue: 10,
                     validFrom: today,
@@ -122,13 +147,13 @@ export async function POST(req: NextRequest) {
                 }
             });
             await sendEmail(customer.email, {
-                subject: `🎂 Alles Gute zum Geburtstag, ${customer.firstName}! Ihr Geschenk wartet.`,
+                subject: `🎂 Alles Gute zum Geburtstag, ${safeName}! Ihr Geschenk wartet.`,
                 body: `Alles Gute zum Geburtstag! Ihr 10% Rabattcode lautet: ${code}. Gilt für 30 Tage.`,
                 html: wrapHtmlLayout(
                     "ALLES GUTE ZUM GEBURTSTAG",
                     "IHR GESCHENK IST DA",
                     `
-                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${customer.firstName},</h2>
+                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${safeName},</h2>
                     <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
                         wir wünschen Ihnen von Herzen alles Gute zum Geburtstag! 🎉
                     </p>
@@ -165,20 +190,22 @@ export async function POST(req: NextRequest) {
                 status: { in: ["Completed", "Active"] },
                 endDate: { lt: today }
             },
-            include: { customer: true, car: true }
+            include: { customer: true, car: true, payments: true }
         });
 
         let m1 = 0, m2 = 0, m3 = 0;
         for (const rental of overdue) {
             const daysPast = Math.floor((today.getTime() - new Date(rental.endDate).getTime()) / (1000 * 60 * 60 * 24));
-            const totalOwed = Number(rental.totalAmount) - Number(rental.depositPaid ?? 0);
+            const paid = rental.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+            const totalOwed = Number(rental.totalAmount) + Number(rental.extraCharges ?? 0) + Number(rental.fuelCharge ?? 0) - paid;
+            if (totalOwed <= 0) continue;
             
             const sendM = async (level: 1 | 2 | 3) => {
                 await resend.emails.send({
                     from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
                     to: rental.customer.email,
                     subject: `Mahnung ${level} - Rechnung ${rental.contractNumber ?? rental.id}`,
-                    html: `<p>Sehr geehrte/r ${rental.customer.firstName}, bitte zahlen Sie â‚¬ ${totalOwed.toFixed(2)}.</p>`
+                    html: `<p>Sehr geehrte/r ${rental.customer.firstName.replace(/[<>&]/g, '')}, bitte zahlen Sie €${totalOwed.toFixed(2)} für Vertrag ${String(rental.contractNumber ?? rental.id).replace(/[<>&]/g, '')}.</p>`
                 });
                 await prisma.mahnungRecord.create({
                     data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }
@@ -210,6 +237,8 @@ export async function POST(req: NextRequest) {
     // 6. Abandoned online checkouts (backstop for missed Stripe "expired" webhooks)
     try {
         results.staleOnlineBookings = { cancelled: await cancelStaleUnpaidRentals() };
+        results.noShows = { cancelled: await cancelNoShowRentals() };
+        results.lapsed = await closeLapsedRentals();
     } catch (e: any) {
         results.staleOnlineBookings = { error: e.message };
     }

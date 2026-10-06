@@ -4,7 +4,8 @@ import CarDetailClient from "@/components/fleet/CarDetailClient";
 import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Metadata } from "next";
-import { blockingRentalWhere } from "@/lib/availability";
+import { blockingRentalWhere, calendarBlocks } from "@/lib/availability";
+import { bookableOptions } from "@/lib/bookingPrice";
 
 async function getCar(id: number) {
     return prisma.car.findUnique({
@@ -15,7 +16,7 @@ async function getCar(id: number) {
             // about other customers' bookings.
             rentals: {
                 where: blockingRentalWhere(),
-                select: { startDate: true, endDate: true },
+                select: { startDate: true, endDate: true, status: true, actualReturnDate: true },
             }
         }
     });
@@ -80,14 +81,28 @@ export default async function CarDetailPage({ params }: PageProps) {
         redirect(`/fleet/${carId}/${expectedSlug}`);
     }
 
-    const options = (car.options || []).map(opt => ({
-        ...opt,
-        price: Number(opt.price)
-    }));
+    const rawOptions = await prisma.option.findMany({
+        where: { status: 'active', OR: [{ carId: null }, { carId }] },
+    });
+    const options = bookableOptions(rawOptions.map((opt) => ({
+        id: opt.id,
+        name: opt.name,
+        description: opt.description,
+        price: Number(opt.price),
+        type: opt.type,
+        isPerDay: opt.isPerDay,
+        maxPrice: opt.maxPrice != null ? Number(opt.maxPrice) : null,
+        maxDays: opt.maxDays,
+        isMandatory: opt.isMandatory,
+        carId: opt.carId,
+    })), car.id);
 
     const featuresList = car.features ? car.features.split(',').map(f => f.trim()) : [];
 
-    const serializedCar = JSON.parse(JSON.stringify(car));
+    const serializedCar = JSON.parse(JSON.stringify({
+        ...car,
+        rentals: calendarBlocks(car.rentals),
+    }));
 
     return (
         <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0A0A0A] text-foreground selection:bg-red-500/30">

@@ -38,6 +38,28 @@ export interface RefundErr {
 }
 export type RefundResult = RefundOk | RefundErr;
 
+async function refundOnlineCharge(
+    transactionId: string,
+    metadata: { rentalId: string; actor: string; actorId: string },
+): Promise<string | null> {
+    const paymentIntentId = transactionId.startsWith('pi_')
+        ? transactionId
+        : await checkoutPaymentIntent(transactionId);
+    if (!paymentIntentId) return null;
+    const refund = await stripe.refunds.create({
+        payment_intent: paymentIntentId,
+        reason: 'requested_by_customer',
+        metadata,
+    });
+    return refund.id;
+}
+
+async function checkoutPaymentIntent(sessionId: string): Promise<string | null> {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (typeof session.payment_intent === 'string') return session.payment_intent;
+    return session.payment_intent?.id ?? null;
+}
+
 export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
     const rental = await prisma.rental.findUnique({
         where: { id: opts.rentalId },
@@ -56,38 +78,25 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
         return { ok: true, stripeRefundId: null, amount: 0 };
     }
 
-    const stripePayment = rental.payments.find(
-        (p) => p.paymentMethod === 'Online' && p.transactionId
+    const onlineCharges = rental.payments.filter(
+        (p) => p.paymentMethod === 'Online' && p.transactionId && Number(p.amount) > 0
     );
 
-    let stripeRefundId: string | null = null;
-    if (stripePayment?.transactionId) {
+    const refundIds: string[] = [];
+    for (const charge of onlineCharges) {
         try {
-            const checkoutSession = await stripe.checkout.sessions.retrieve(
-                stripePayment.transactionId
-            );
-            const paymentIntentId =
-                typeof checkoutSession.payment_intent === 'string'
-                    ? checkoutSession.payment_intent
-                    : checkoutSession.payment_intent?.id ?? null;
-
-            if (paymentIntentId) {
-                const refund = await stripe.refunds.create({
-                    payment_intent: paymentIntentId,
-                    reason: 'requested_by_customer',
-                    metadata: {
-                        rentalId: String(opts.rentalId),
-                        actor: opts.actor.kind,
-                        actorId:
-                            opts.actor.kind === 'admin'
-                                ? String(opts.actor.staffId)
-                                : String(opts.actor.customerId),
-                    },
-                });
-                stripeRefundId = refund.id;
-            }
+            const refundId = await refundOnlineCharge(charge.transactionId!, {
+                rentalId: String(opts.rentalId),
+                actor: opts.actor.kind,
+                actorId:
+                    opts.actor.kind === 'admin'
+                        ? String(opts.actor.staffId)
+                        : String(opts.actor.customerId),
+            });
+            if (refundId) refundIds.push(refundId);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Unbekannter Fehler';
+            if (/already been refunded|charge_already_refunded/i.test(message)) continue;
             console.error('[refundRental] Stripe refund failed:', message);
             return {
                 ok: false,
@@ -96,6 +105,7 @@ export async function refundRental(opts: RefundOptions): Promise<RefundResult> {
             };
         }
     }
+    const stripeRefundId = refundIds[0] ?? null;
 
     const totalPaid = rental.payments.reduce((sum, p) => sum + Number(p.amount), 0);
 

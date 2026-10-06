@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import { Car, Calendar, MapPin, ArrowLeft } from 'lucide-react';
-import { cancelReservation } from '@/app/actions/dashboard';
 import CancelReservationButton from './CancelReservationButton';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { de } from 'date-fns/locale';
 import { notFound } from 'next/navigation';
+import { BUSINESS } from '@/lib/config';
+import { cancellationBlockReason } from '@/lib/cancellation';
 
 const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(amount);
@@ -28,6 +29,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
             pickupLocation: true,
             returnLocation: true,
             payments: true,
+            invoices: true,
         },
     });
 
@@ -36,8 +38,18 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
     const statusLabels: Record<string, string> = {
         Active: 'Aktiv',
         Pending: 'Ausstehend',
+        Confirmed: 'Bestätigt',
         Completed: 'Abgeschlossen',
         Cancelled: 'Storniert',
+        NoShow: 'Nicht übernommen',
+    };
+    const when = (d: Date) => formatInTimeZone(new Date(d), BUSINESS.TIME_ZONE, "EEEE, dd. MMMM yyyy, HH:mm 'Uhr'", { locale: de });
+    const cancelBlock = cancellationBlockReason(rental);
+    const paymentLabels: Record<string, string> = {
+        Pending: 'Offen',
+        Partial: 'Teilweise bezahlt',
+        Paid: 'Bezahlt',
+        Refunded: 'Erstattet',
     };
 
     return (
@@ -68,7 +80,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                                 </p>
                                 <span className={`inline-block mt-2 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                     rental.status === 'Active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
-                                    rental.status === 'Pending' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' :
+                                    rental.status === 'Pending' || rental.status === 'Confirmed' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' :
                                     rental.status === 'Cancelled' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
                                     'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300'
                                 }`}>
@@ -89,17 +101,38 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                             <Calendar className="h-4 w-4" />
                             Abholung
                         </h3>
-                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{format(new Date(rental.startDate), 'EEEE, dd. MMMM yyyy', { locale: de })}</p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">{rental.pickupLocation?.name ?? '–'}</p>
+                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{when(rental.startDate)}</p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">{rental.pickupLocation?.name ?? 'Feldkirch'}</p>
+                        <p className="text-sm text-zinc-500">{BUSINESS.PICKUP_ADDRESS}, {BUSINESS.PICKUP_POSTAL_CODE} {BUSINESS.PICKUP_CITY}</p>
                     </div>
                     <div className="p-6">
                         <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
                             Rückgabe
                         </h3>
-                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{format(new Date(rental.endDate), 'EEEE, dd. MMMM yyyy', { locale: de })}</p>
+                        <p className="mt-1 font-medium text-zinc-900 dark:text-zinc-50">{when(rental.endDate)}</p>
                         <p className="text-sm text-zinc-600 dark:text-zinc-400">{rental.returnLocation?.name ?? '–'}</p>
                     </div>
+                </div>
+
+                <div className="border-t border-zinc-200 dark:border-zinc-800 p-6 grid sm:grid-cols-2 gap-4 text-sm">
+                    <p><span className="text-zinc-500">Zahlung: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{paymentLabels[rental.paymentStatus] ?? rental.paymentStatus}</span></p>
+                    <p><span className="text-zinc-500">Inklusive: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{(rental.includedKm ?? 0).toLocaleString('de-AT')} km</span></p>
+                    {rental.car.depositAmount != null && (
+                        <p><span className="text-zinc-500">Kaution bei Abholung: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(Number(rental.car.depositAmount))}</span></p>
+                    )}
+                    {Number(rental.extraCharges || 0) > 0 && (
+                        <p><span className="text-zinc-500">Zusatzkosten: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(Number(rental.extraCharges))}{rental.extraChargesNote ? ` · ${rental.extraChargesNote}` : ''}</span></p>
+                    )}
+                    {Number(rental.fuelCharge || 0) > 0 && (
+                        <p><span className="text-zinc-500">Tank: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{formatCurrency(Number(rental.fuelCharge))}</span></p>
+                    )}
+                    {rental.invoices && (
+                        <p><span className="text-zinc-500">Rechnung: </span><span className="font-medium text-zinc-900 dark:text-zinc-50">{rental.invoices.invoiceNumber}</span></p>
+                    )}
+                    {rental.status === 'Active' && (
+                        <p><Link href="/dashboard/damage-report" className="font-medium text-red-600 hover:underline">Schaden melden</Link></p>
+                    )}
                 </div>
 
                 {rental.payments.length > 0 && (
@@ -108,7 +141,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                         <ul className="space-y-2">
                             {rental.payments.map((p) => (
                                 <li key={p.id} className="flex justify-between text-sm">
-                                    <span>{p.paymentMethod} – {format(new Date(p.paymentDate), 'dd.MM.yyyy', { locale: de })}</span>
+                                    <span>{p.paymentMethod} – {formatInTimeZone(new Date(p.paymentDate), BUSINESS.TIME_ZONE, 'dd.MM.yyyy', { locale: de })}</span>
                                     <span className="font-medium">{formatCurrency(Number(p.amount))}</span>
                                 </li>
                             ))}
@@ -116,9 +149,13 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                     </div>
                 )}
 
-                {rental.status === 'Pending' && (
+                {(rental.status === 'Pending' || rental.status === 'Confirmed') && (
                     <div className="border-t border-zinc-200 dark:border-zinc-800 p-6">
-                        <CancelReservationButton rentalId={rental.id} />
+                        {cancelBlock ? (
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">{cancelBlock}</p>
+                        ) : (
+                            <CancelReservationButton rentalId={rental.id} />
+                        )}
                     </div>
                 )}
             </div>

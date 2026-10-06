@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ArrowRight, Building2, Check, CheckCircle2, KeyRound, Loader2, User, X } from "lucide-react";
 import { createBooking, previewCoupon, checkBookingAvailability } from "@/app/actions/booking";
-import { calculateChargeableDays, getOpeningHours, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import { calculateChargeableDays, getOpeningHours, isOutsideOpeningHours, parseBookingDateTime } from "@/lib/bookingUtils";
 import { quoteBooking, resolveSelection, type CouponTerms, type PriceOption } from "@/lib/bookingPrice";
 import { BUSINESS, RENTAL_TERMS } from "@/lib/config";
 import CustomDatePicker from "@/components/ui/CustomDatePicker";
@@ -19,6 +19,13 @@ export interface CheckoutCar {
     dailyRate: number;
     maxMileagePerDay: number | null;
     depositAmount: number | null;
+    weeklyRate?: number | null;
+    monthlyRate?: number | null;
+    longTermRate?: number | null;
+    minDaysForLongTerm?: number | null;
+    promoPrice?: number | null;
+    promoStartDate?: string | null;
+    promoEndDate?: string | null;
     extraKmCost: number | null;
     fuelPolicy: string | null;
     transmission: string | null;
@@ -170,7 +177,7 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
 
     // --- Price (same function the server charges with) ---
     const selected = useMemo(() => resolveSelection(options, optionIds), [options, optionIds]);
-    const quote = quoteBooking({ dailyRate: car.dailyRate, maxMileagePerDay: car.maxMileagePerDay }, selected, days, coupon);
+    const quote = quoteBooking(car, selected, days, coupon, parseBookingDateTime(startDate, pickupTime));
 
     const baseKm = (car.maxMileagePerDay || 0) * days;
     const insurance = options.filter((o) => o.type === 'insurance');
@@ -572,7 +579,7 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
                             {isPickupOutside ? (
                                 <p className="rounded-[var(--hm-radius-input)] bg-hm-paper-2 px-4 py-3 text-sm text-hm-ink-2">
                                     <KeyRound aria-hidden className="mr-1.5 inline h-4 w-4 align-[-3px]" />
-                                    Abholung außerhalb der Öffnungszeiten (Self-Check-in) — bitte online bezahlen.
+                                    Abholung außerhalb der Öffnungszeiten — bitte online bezahlen und uns unter {BUSINESS.PHONE} anrufen, damit wir die Übergabe abstimmen.
                                 </p>
                             ) : (
                                 <PaymentRow value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')}
@@ -675,20 +682,20 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
                                 <span className="font-semibold">Gesamt</span>
                                 <span className="hm-tnum text-3xl font-bold">{eur(quote.total)}</span>
                             </div>
-                            <p className="text-right text-xs text-hm-muted">inkl. MwSt.</p>
+                            <p className="text-right text-xs text-hm-muted">inkl. MwSt.{quote.rateNote !== 'Tagespreis' ? ` · ${quote.rateNote}` : ''}</p>
 
                             {/* Terms at a glance */}
                             <dl className="mt-5 space-y-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 p-4 text-xs">
                                 <TermRow label="Inklusive" value={`${quote.includedKm.toLocaleString('de-AT')} km`} />
                                 <TermRow label="Mehrkilometer" value={car.extraKmCost != null ? `${eur(car.extraKmCost)} / km` : RENTAL_TERMS.EXTRA_KM_RANGE} />
-                                {car.depositAmount != null && <TermRow label="Kaution" value={eur(car.depositAmount)} />}
+                                {car.depositAmount != null && <TermRow label="Kaution bei Abholung" value={`${eur(car.depositAmount)} · nicht im Gesamtpreis`} />}
                                 <TermRow label="Tank" value={car.fuelPolicy || `${RENTAL_TERMS.FUEL_POLICY} (sonst Kosten + ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)})`} />
                                 <TermRow label="Abholung" value={`${BUSINESS.PICKUP_ADDRESS}, ${BUSINESS.PICKUP_POSTAL_CODE} ${BUSINESS.PICKUP_CITY}`} />
-                                <TermRow label="Stornierung" value={<Link href="/terms" target="_blank" className="underline underline-offset-2">laut AGB</Link>} />
+                                <TermRow label="Stornierung" value="Kostenlos bis 24 Std. vor Abholung" />
                             </dl>
 
                             <label className="mt-6 flex cursor-pointer items-start gap-3 text-xs text-hm-ink-2">
-                                <input type="checkbox" required checked={agbAccepted} onChange={(e) => setAgbAccepted(e.target.checked)}
+                                <input type="checkbox" name="agbAccepted" value="yes" required checked={agbAccepted} onChange={(e) => setAgbAccepted(e.target.checked)}
                                     className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--hm-accent)]" />
                                 <span>
                                     Ich habe die <Link href="/terms" target="_blank" className="font-semibold text-hm-ink underline underline-offset-2">AGB</Link> und

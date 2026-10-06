@@ -204,6 +204,12 @@ export default function CheckOutManager({ rentals: initialRentals, completedToda
                 if (result.surplusKm && result.surplusKm > 0) {
                     toast.info(`${result.surplusKm} km wurden dem Kundenkonto automatisch gutgeschrieben.`);
                 }
+                if (result.kmCharge && result.kmCharge > 0) {
+                    toast.info(`Mehrkilometer: €${result.kmCharge.toFixed(2)} (Guthaben verrechnet: ${result.balanceUsed ?? 0} km).`);
+                }
+                if (result.fuelCharge && result.fuelCharge > 0 && !fuelCharge) {
+                    toast.info(`Tankgebühr €${result.fuelCharge.toFixed(2)} wurde angesetzt.`);
+                }
                 handleCloseReturnModal();
                 router.refresh();
             }

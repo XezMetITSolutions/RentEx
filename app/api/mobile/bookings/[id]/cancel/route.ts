@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
 import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
+import { cancelRentalForCustomer } from '@/lib/cancellation';
 
 function parseFeatures(features: string | null): string[] | null {
   if (!features) return null;
@@ -59,23 +60,23 @@ export async function POST(
       return NextResponse.json({ error: 'Ungültige ID.' }, { status: 400 });
     }
 
-    const rental = await prisma.rental.findUnique({ where: { id: bookingId } });
-    if (!rental || rental.customerId !== customerId) {
-      return NextResponse.json({ error: 'Buchung nicht gefunden.' }, { status: 404 });
+    const cancelled = await cancelRentalForCustomer({
+      rentalId: bookingId,
+      customerId,
+      actor: { kind: 'customer', customerId },
+    });
+    if (!cancelled.ok) {
+      const status = cancelled.error === 'Reservierung nicht gefunden.' ? 404 : 400;
+      return NextResponse.json({ error: cancelled.error }, { status });
     }
 
-    if (rental.status !== 'Pending' && rental.status !== 'Confirmed') {
-      return NextResponse.json(
-        { error: 'Diese Buchung kann nicht mehr storniert werden.' },
-        { status: 400 }
-      );
-    }
-
-    const updated = await prisma.rental.update({
+    const updated = await prisma.rental.findUnique({
       where: { id: bookingId },
-      data: { status: 'Cancelled' },
       include: { car: true, customer: true, pickupLocation: true, returnLocation: true },
     });
+    if (!updated) {
+      return NextResponse.json({ error: 'Buchung nicht gefunden.' }, { status: 404 });
+    }
 
     // Send cancellation confirmation email (best-effort)
     if (updated.customer && updated.car && updated.contractNumber) {

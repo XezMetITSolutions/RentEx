@@ -10,6 +10,7 @@ import CheckoutForm, { type CheckoutCar, type CheckoutCustomer } from "@/compone
 import { getSession } from "@/lib/auth";
 import { hmFontVariables } from "@/lib/hmFonts";
 import { carPhoto } from "@/lib/carPhotos";
+import { isBookableCar } from "@/lib/availability";
 import { bookableOptions, type PriceOption } from "@/lib/bookingPrice";
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         prisma.option.findMany({ where: { status: 'active', OR: [{ carId: null }, { carId }] } }),
         getSession(),
     ]);
-    if (!car || car.status !== 'Active' || !car.isActive) notFound();
+    if (!car || !isBookableCar(car)) notFound();
 
     // Only what the form needs — never the password hash or internal fields.
     const customer = customerId
@@ -75,6 +76,13 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         category: car.category,
         imageUrl: carPhoto(car.brand, car.model, car.imageUrl),
         dailyRate: Number(car.dailyRate),
+        weeklyRate: car.weeklyRate != null ? Number(car.weeklyRate) : null,
+        monthlyRate: car.monthlyRate != null ? Number(car.monthlyRate) : null,
+        longTermRate: car.longTermRate != null ? Number(car.longTermRate) : null,
+        minDaysForLongTerm: car.minDaysForLongTerm,
+        promoPrice: car.promoPrice != null ? Number(car.promoPrice) : null,
+        promoStartDate: car.promoStartDate ? car.promoStartDate.toISOString() : null,
+        promoEndDate: car.promoEndDate ? car.promoEndDate.toISOString() : null,
         maxMileagePerDay: car.maxMileagePerDay,
         depositAmount: car.depositAmount != null ? Number(car.depositAmount) : null,
         extraKmCost: car.extraKmCost != null ? Number(car.extraKmCost) : null,

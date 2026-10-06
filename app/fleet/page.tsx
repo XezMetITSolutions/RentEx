@@ -8,7 +8,7 @@ import FleetSidebar from "@/components/fleet/FleetSidebar";
 import CarCard, { type CarCardData } from "@/components/fleet/CarCard";
 import { hmFontVariables } from "@/lib/hmFonts";
 import { carPhoto, carSlug } from "@/lib/carPhotos";
-import { blockingRentalWhere } from "@/lib/availability";
+import { overlapWhere } from "@/lib/availability";
 import { parseBookingDateTime } from "@/lib/bookingUtils";
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
@@ -50,11 +50,7 @@ async function getCars(filters: FilterParams) {
             if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                 // Find rentals that overlap with the selected period
                 const overlappingRentals = await prisma.rental.findMany({
-                    where: {
-                        ...blockingRentalWhere(),
-                        startDate: { lte: end },
-                        endDate: { gte: start },
-                    },
+                    where: overlapWhere(start, end),
                     select: {
                         carId: true
                     }
@@ -70,7 +66,7 @@ async function getCars(filters: FilterParams) {
 
     const cars = await prisma.car.findMany({
         where: {
-            status: 'Active',
+            status: { in: ['Active', 'Rented'] },
             isActive: true,
             ...(excludedCarIds.length > 0 && { id: { notIn: excludedCarIds } }),
             ...(categories.length > 0 && { category: { in: categories } }),

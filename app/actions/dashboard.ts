@@ -3,13 +3,12 @@
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { cancelRentalForCustomer } from '@/lib/cancellation';
 import path from 'path';
 import crypto from 'crypto';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/s3';
 import { validateUpload, UPLOAD_PRESETS } from '@/lib/fileValidation';
-import { refundRental } from '@/lib/refunds';
-
 export async function updateProfile(formData: FormData) {
     const customerId = await getSession();
     if (customerId == null) return { error: 'Nicht angemeldet.' };
@@ -49,31 +48,13 @@ export async function cancelReservation(formData: FormData) {
     const rentalId = Number(formData.get('rentalId'));
     if (Number.isNaN(rentalId)) return { error: 'Ungültige Anfrage.' };
 
-    const rental = await prisma.rental.findFirst({
-        where: { id: rentalId, customerId },
+    const result = await cancelRentalForCustomer({
+        rentalId,
+        customerId,
+        actor: { kind: 'customer', customerId },
     });
-
-    if (!rental) return { error: 'Reservierung nicht gefunden.' };
-    if (rental.status !== 'Pending') return { error: 'Nur ausstehende Reservierungen können storniert werden.' };
-
-    // If the rental was already paid, refund through Stripe before cancelling.
-    let refundedAmount = 0;
-    if (rental.paymentStatus === 'Paid') {
-        const refund = await refundRental({
-            rentalId,
-            reason: 'Stornierung durch Kunden',
-            actor: { kind: 'customer', customerId },
-        });
-        if (!refund.ok) {
-            return { error: refund.error };
-        }
-        refundedAmount = refund.amount;
-    }
-
-    await prisma.rental.update({
-        where: { id: rentalId },
-        data: { status: 'Cancelled' },
-    });
+    if (!result.ok) return { error: result.error };
+    const refundedAmount = result.refundedAmount;
 
     revalidatePath('/dashboard/rentals');
     revalidatePath('/dashboard/rentals/[id]');

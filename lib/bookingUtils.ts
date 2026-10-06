@@ -11,21 +11,19 @@ export function parseBookingDateTime(dateStr: string, timeStr: string): Date {
     return fromZonedTime(`${dateStr}T${time}:00`, BUSINESS.TIME_ZONE);
 }
 
-export function calculateChargeableDays(startDateStr: string, startTimeStr: string, endDateStr: string, endTimeStr: string): number {
-    const start = parseBookingDateTime(startDateStr, startTimeStr);
-    const end = parseBookingDateTime(endDateStr, endTimeStr);
+/** 2 hours past a full day still count as that day; anything more is another day. Minimum 1. */
+export function chargeableDaysBetween(start: Date, end: Date): number {
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
-
     const diffMs = end.getTime() - start.getTime();
     if (diffMs <= 0) return 1;
-
     const totalHours = diffMs / (1000 * 60 * 60);
     const fullDays = Math.floor(totalHours / 24);
     const extraHours = totalHours % 24;
+    return Math.max(1, extraHours > 2 ? fullDays + 1 : fullDays);
+}
 
-    // Grace period of 2 hours
-    const chargeableDays = extraHours > 2 ? fullDays + 1 : fullDays;
-    return Math.max(1, chargeableDays);
+export function calculateChargeableDays(startDateStr: string, startTimeStr: string, endDateStr: string, endTimeStr: string): number {
+    return chargeableDaysBetween(parseBookingDateTime(startDateStr, startTimeStr), parseBookingDateTime(endDateStr, endTimeStr));
 }
 
 /** Weekday (0 = Sunday) of a "YYYY-MM-DD" date, independent of the runtime's zone. */

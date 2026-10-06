@@ -4,15 +4,16 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatInTimeZone } from "date-fns-tz";
 import { stripe } from "@/lib/stripe";
-import { hashPassword, setSession, getSession } from "@/lib/auth";
+import { hashPassword, setSession, getSession, grantBookingView } from "@/lib/auth";
 import { getAdminSession } from "@/lib/adminAuth";
 import { auditLog } from "@/lib/audit";
 import path from 'path';
-import { calculateChargeableDays, parseBookingDateTime } from "@/lib/bookingUtils";
+import { calculateChargeableDays, isOutsideOpeningHours, parseBookingDateTime } from "@/lib/bookingUtils";
 import { BUSINESS, PENDING_PAYMENT_TTL_MINUTES, RENTAL_TERMS, SITE_URL } from "@/lib/config";
-import { blockingRentalWhere, isCarAvailable, lockCarForBooking, UNPAID_ONLINE } from "@/lib/availability";
+import { CAR_BUSY_MESSAGE, isBookableCar, isCarAvailable, lockCarForBooking, overlapWhere, UNPAID_ONLINE } from "@/lib/availability";
+import { bookingRejectedReason, onlineAmountRejected } from "@/lib/rentalGuards";
 import { bookableOptions, quoteBooking, resolveSelection, type PriceOption } from "@/lib/bookingPrice";
-import { findUsableCoupon } from "@/lib/coupons";
+import { findUsableCoupon, releaseCouponUse } from "@/lib/coupons";
 import { rateLimit, getClientIpFromHeaders, rateLimitErrorMessage } from "@/lib/rateLimit";
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -135,6 +136,9 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     const password = (formData.get('password') as string | null) ?? '';
     const passwordRepeat = formData.get('passwordRepeat') as string | null;
 
+    if (text(formData, 'agbAccepted') !== 'yes') {
+        return { success: false, error: 'Bitte akzeptieren Sie die AGB und die Datenschutzerklärung.' };
+    }
     if (!firstName || !lastName || !address || !city || !postalCode) {
         return { success: false, error: 'Bitte füllen Sie alle Pflichtfelder aus.' };
     }
@@ -146,6 +150,14 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     }
     if (customerType === 'Business' && !company) {
         return { success: false, error: 'Bitte geben Sie den Firmennamen an.' };
+    }
+    if (isOutsideOpeningHours(startDateStr, pickupTimeStr) && paymentMethod !== 'online') {
+        return { success: false, error: 'Außerhalb der Öffnungszeiten ist nur die Online-Zahlung möglich. Die Übergabe stimmen wir telefonisch ab.' };
+    }
+    if (!adminSession) {
+        const ip = await getClientIpFromHeaders();
+        const rl = rateLimit(`booking:${ip}`, { limit: 8, windowSeconds: 60 * 10 });
+        if (!rl.allowed) return { success: false, error: rateLimitErrorMessage(rl, 'Buchung') };
     }
 
     const existing = await prisma.customer.findFirst({
@@ -203,34 +215,66 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     }
 
     // 3. Car, options, price
-    const car = await prisma.car.findUnique({ where: { id: carId } });
-    if (!car || car.status !== 'Active' || !car.isActive) {
+    const car = await prisma.car.findUnique({
+        where: { id: carId },
+        include: { currentLocation: true },
+    });
+    if (!car || !isBookableCar(car)) {
         return { success: false, error: 'Dieses Fahrzeug ist nicht buchbar.' };
     }
 
     const days = calculateChargeableDays(startDateStr, pickupTimeStr, endDateStr, returnTimeStr);
+    const rejected = bookingRejectedReason(car, endDate, days);
+    if (rejected) return { success: false, error: rejected };
     const selectedOptions = resolveSelection(await loadBookableOptions(carId), optionIds);
 
     let coupon: Awaited<ReturnType<typeof findUsableCoupon>> | null = null;
     if (couponCode) {
-        coupon = await findUsableCoupon(couponCode);
+        coupon = await findUsableCoupon(couponCode, { customerId: existing?.id ?? null });
         if (!coupon.ok) return { success: false, error: coupon.error };
     }
     const usableCoupon = coupon?.ok ? coupon : null;
 
-    const quote = quoteBooking(
-        { dailyRate: Number(car.dailyRate), maxMileagePerDay: car.maxMileagePerDay },
-        selectedOptions,
-        days,
-        usableCoupon,
-    );
+    const quote = quoteBooking(car, selectedOptions, days, usableCoupon, startDate);
+    if (paymentMethod === 'online') {
+        const tooSmall = onlineAmountRejected(quote.total);
+        if (tooSmall) return { success: false, error: tooSmall };
+    }
+    if (usableCoupon?.minOrderAmount != null && quote.baseTotal < usableCoupon.minOrderAmount) {
+        return { success: false, error: `Dieser Gutschein gilt ab einem Mietpreis von €${usableCoupon.minOrderAmount.toFixed(2)}.` };
+    }
+    if (paymentMethod !== 'online' && existing) {
+        const openArrival = await prisma.rental.count({
+            where: {
+                customerId: existing.id,
+                status: 'Pending',
+                paymentStatus: { notIn: ['Paid', 'Refunded'] },
+                paymentMethod: { in: ['arrival', 'Cash', 'Bar'] },
+            },
+        });
+        if (openArrival >= 1) {
+            return { success: false, error: 'Sie haben bereits eine offene Reservierung zur Zahlung bei Abholung. Bitte schließen Sie diese ab oder bezahlen Sie online.' };
+        }
+    }
+    if (existing && !adminSession) {
+        const openUnpaid = await prisma.rental.count({
+            where: {
+                customerId: existing.id,
+                status: 'Pending',
+                paymentStatus: { notIn: ['Paid', 'Refunded'] },
+            },
+        });
+        if (openUnpaid >= 2) {
+            return { success: false, error: 'Sie haben bereits zwei offene, unbezahlte Reservierungen. Bitte schließen Sie eine davon ab.' };
+        }
+    }
 
     // 4. A customer retrying after abandoning Stripe must not be blocked by
     //    their own unpaid checkout for the same car.
     if (existing) {
         const abandoned = await prisma.rental.findMany({
             where: { ...UNPAID_ONLINE, customerId: existing.id, carId },
-            select: { id: true, stripeSessionId: true },
+            select: { id: true, stripeSessionId: true, discountReason: true },
         });
         for (const rental of abandoned) {
             if (rental.stripeSessionId) {
@@ -240,17 +284,18 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                     // Already expired or completed; the status update below is conditional anyway.
                 }
             }
-            await prisma.rental.updateMany({
+            const released = await prisma.rental.updateMany({
                 where: { id: rental.id, ...UNPAID_ONLINE },
                 data: { status: 'Cancelled', notes: 'Storniert: Kunde hat die Buchung neu gestartet.' },
             });
+            if (released.count > 0) await releaseCouponUse(rental.discountReason);
         }
     }
 
     // Early, unlocked check so we fail before creating/updating the customer.
     // The authoritative check runs again under a row lock when the rental is created.
     if (!(await isCarAvailable(carId, startDate, endDate))) {
-        return { success: false, error: 'Das Fahrzeug ist in diesem Zeitraum leider bereits gebucht.' };
+        return { success: false, error: CAR_BUSY_MESSAGE };
     }
 
     // 5. License photo (validated above)
@@ -277,6 +322,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                 licenseExpiryDate: licenseExpiry,
                 licensePhotoUrl,
                 passwordHash: wantsAccount ? hashPassword(password) : undefined,
+                agbAcceptedAt: new Date(),
             }
         });
         if (wantsAccount) await setSession(customer.id);
@@ -300,6 +346,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                 licenseCountry: licenseCountry || undefined,
                 licensePhotoUrl: licensePhotoUrl || undefined,
                 licenseExpiryDate: licenseExpiry,
+                agbAcceptedAt: existing.agbAcceptedAt ?? new Date(),
             }
         });
     } else {
@@ -322,6 +369,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                 licenseCountry: licenseCountry || undefined,
                 licenseExpiryDate: licenseExpiry,
                 licensePhotoUrl: licensePhotoUrl || undefined,
+                agbAcceptedAt: existing.agbAcceptedAt ?? new Date(),
             }
         });
     }
@@ -332,23 +380,19 @@ export async function createBooking(prevState: BookingState, formData: FormData)
         rental = await prisma.$transaction(async (tx) => {
             await lockCarForBooking(tx, carId);
             if (!(await isCarAvailable(carId, startDate, endDate, tx))) {
-                throw new BookingConflictError('Das Fahrzeug ist in diesem Zeitraum leider bereits gebucht.');
+                throw new BookingConflictError(CAR_BUSY_MESSAGE);
             }
 
             if (usableCoupon) {
                 // Atomic claim: only succeeds while the coupon is still under its usage limit.
-                const claimed = await tx.discountCoupon.updateMany({
-                    where: {
-                        id: usableCoupon.id,
-                        isActive: true,
-                        OR: [
-                            { usageLimit: null },
-                            { usedCount: { lt: prisma.discountCoupon.fields.usageLimit } },
-                        ],
-                    },
-                    data: { usedCount: { increment: 1 } },
-                });
-                if (claimed.count === 0) {
+                const claimed = await tx.$executeRaw`
+                    UPDATE "DiscountCoupon"
+                    SET "usedCount" = "usedCount" + 1
+                    WHERE "id" = ${usableCoupon.id}
+                      AND "isActive" = true
+                      AND ("usageLimit" IS NULL OR "usedCount" < "usageLimit")
+                `;
+                if (claimed === 0) {
                     throw new BookingConflictError('Der Gutschein ist nicht mehr verfügbar.');
                 }
             }
@@ -480,15 +524,19 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                 where: { id: rental.id },
                 data: { status: 'Cancelled', notes: 'Storniert: Stripe-Zahlung konnte nicht gestartet werden.' },
             });
+            await releaseCouponUse(rental.discountReason);
             return { success: false, error: 'Die Online-Zahlung konnte nicht gestartet werden. Bitte erneut versuchen oder „Bezahlung bei Abholung“ wählen.' };
         }
 
         if (sessionUrl) {
+            await grantBookingView(rental.id);
             redirect(sessionUrl);
         }
     } else {
         // Send booking confirmation email for Pay-on-Arrival
         try {
+            const outsideHours = isOutsideOpeningHours(startDateStr, pickupTimeStr) || isOutsideOpeningHours(endDateStr, returnTimeStr);
+            const place = car.currentLocation?.name;
             const templateData = {
                 contractNumber,
                 customer: {
@@ -505,6 +553,14 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                     startDate,
                     endDate,
                     totalAmount: quote.total,
+                    pickupLocation: place,
+                    returnLocation: place,
+                    handoverNote: outsideHours
+                        ? `Abholung oder Rückgabe liegt außerhalb der Öffnungszeiten. Bitte rufen Sie uns unter ${BUSINESS.PHONE} an, damit wir die Übergabe abstimmen.`
+                        : undefined,
+                    depositNote: car.depositAmount != null
+                        ? `Kaution €${Number(car.depositAmount).toFixed(2)} wird bei Abholung hinterlegt und ist nicht im Gesamtbetrag enthalten.`
+                        : undefined,
                 },
             };
             await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
@@ -517,6 +573,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
         }
     }
 
+    await grantBookingView(rental.id);
     if (isMobile) {
         redirect(`/mobile/payment/success?rentalId=${rental.id}`);
     } else {
@@ -531,7 +588,7 @@ export async function previewCoupon(code: string) {
     const rl = rateLimit(`coupon-preview:${ip}`, { limit: 10, windowSeconds: 60 * 10 });
     if (!rl.allowed) return { ok: false as const, error: rateLimitErrorMessage(rl) };
 
-    const result = await findUsableCoupon(code);
+    const result = await findUsableCoupon(code, { customerId: await getSession() });
     if (!result.ok) return result;
     return { ok: true as const, code: result.code, discountType: result.discountType, discountValue: result.discountValue };
 }
@@ -552,15 +609,13 @@ export async function checkBookingAvailability(carId: number, startDate: string,
     const conflicts = await prisma.rental.count({
         where: {
             carId,
-            startDate: { lte: end },
-            endDate: { gte: start },
             AND: [
-                blockingRentalWhere(),
+                overlapWhere(start, end),
                 ...(customerId ? [{ NOT: { ...UNPAID_ONLINE, customerId } }] : []),
             ],
         },
     });
     return conflicts === 0
         ? { available: true as const }
-        : { available: false as const, reason: 'Das Fahrzeug ist in diesem Zeitraum leider bereits gebucht.' };
+        : { available: false as const, reason: CAR_BUSY_MESSAGE };
 }

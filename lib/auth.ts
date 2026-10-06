@@ -40,4 +40,23 @@ export async function clearSession() {
     c.delete(COOKIE_NAME);
 }
 
+const BOOKING_VIEW_COOKIE = 'rentex_booking_view';
+
+/** Lets the success page show this booking to the browser that just created it. */
+export async function grantBookingView(rentalId: number) {
+    const c = await cookies();
+    c.set(BOOKING_VIEW_COOKIE, await createSessionToken('booking-view', rentalId, 60 * 60 * 6), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 6,
+        path: '/',
+    });
+}
+
+export async function getBookingView(): Promise<number | null> {
+    const c = await cookies();
+    return verifySessionToken('booking-view', c.get(BOOKING_VIEW_COOKIE)?.value);
+}
+
 export { hashPassword };
