@@ -84,7 +84,7 @@ export default function HeroShowroom({
           <div className="relative flex min-h-[320px] flex-col justify-end pb-16 sm:min-h-[420px] lg:block lg:min-h-0 lg:pb-0">
             <div
               key={current.car.imageUrl}
-              className="hm-car-in absolute inset-x-[-4%] top-0 bottom-[132px] lg:inset-x-auto lg:left-[-6%] lg:right-[-4%] lg:top-[6%] lg:bottom-[24%]"
+              className="hm-car-in absolute inset-x-6 top-0 bottom-[132px] overflow-hidden rounded-[calc(var(--hm-radius-stage)-10px)] sm:inset-x-10 lg:left-0 lg:right-14 lg:top-14 lg:bottom-48"
             >
               <Image
                 src={current.car.imageUrl}
@@ -92,17 +92,12 @@ export default function HeroShowroom({
                 fill
                 priority
                 sizes="(min-width: 1024px) 62vw, 100vw"
-                className="object-contain object-center"
+                className="object-cover object-center"
               />
             </div>
-            {/* floor shadow */}
-            <div
-              aria-hidden
-              className="hidden lg:block absolute left-[14%] right-[10%] bottom-[25%] h-5 rounded-[50%] bg-hm-stage-ink/10 blur-xl"
-            />
 
             {/* Caption */}
-            <div className="relative mx-6 sm:mx-10 lg:absolute lg:mx-0 lg:left-10 lg:right-14 lg:bottom-28 flex items-end justify-between gap-4">
+            <div className="relative mx-6 sm:mx-10 lg:absolute lg:mx-0 lg:left-0 lg:right-14 lg:bottom-28 flex items-end justify-between gap-4">
               <div className="min-w-0">
                 <p className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-stage-muted">{current.category}</p>
                 <p className="mt-1 text-lg sm:text-xl font-bold leading-tight lg:truncate">{current.car.name}</p>

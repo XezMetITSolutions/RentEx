@@ -217,6 +217,14 @@ export default function PrivacyPage() {
                                     Wir haben auf unserer Website Kartenausschnitte des Online-Kartentools „OpenStreetMap“ eingebunden. Angeboten wird diese Funktion von OpenStreetMap Foundation, St John’s Innovation Centre, Cowley Road, Cambridge, CB4 0WS, United Kingdom. Durch die Verwendung dieser Kartenfunktion wird Ihre IP-Adresse an OpenStreetMap weitergeleitet.
                                 </p>
                             </div>
+
+                            {/* Photon address search */}
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Adressvervollständigung (Photon)</h3>
+                                <p>
+                                    Bei der Eingabe Ihrer Anschrift im Buchungsformular schlagen wir passende Adressen vor. Dazu wird der eingegebene Text zusammen mit Ihrer IP-Adresse an den Geocoding-Dienst „Photon“ übermittelt, der von der komoot GmbH (Deutschland) auf Basis von OpenStreetMap-Daten betrieben wird. Die Abfrage erfolgt erst, nachdem Sie mindestens vier Zeichen eingegeben haben. Sie können die Vorschläge ignorieren und die Adresse vollständig selbst eingeben.
+                                </p>
+                            </div>
                         </div>
                     </section>
 

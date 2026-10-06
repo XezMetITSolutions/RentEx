@@ -1,34 +1,45 @@
+import { fromZonedTime } from 'date-fns-tz';
+import { BUSINESS, OPENING_HOURS } from './config';
+
+/**
+ * Turns a booking date ("2026-11-10") and time ("10:00") into the instant they
+ * mean in Feldkirch. Plain `new Date("…T10:00")` would use the runtime's zone,
+ * which is UTC on Cloudflare Workers and shifts every booking by 1–2 hours.
+ */
+export function parseBookingDateTime(dateStr: string, timeStr: string): Date {
+    const time = /^\d{2}:\d{2}$/.test(timeStr) ? timeStr : '10:00';
+    return fromZonedTime(`${dateStr}T${time}:00`, BUSINESS.TIME_ZONE);
+}
+
 export function calculateChargeableDays(startDateStr: string, startTimeStr: string, endDateStr: string, endTimeStr: string): number {
-    const start = new Date(`${startDateStr}T${startTimeStr}:00`);
-    const end = new Date(`${endDateStr}T${endTimeStr}:00`);
+    const start = parseBookingDateTime(startDateStr, startTimeStr);
+    const end = parseBookingDateTime(endDateStr, endTimeStr);
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
-    
+
     const diffMs = end.getTime() - start.getTime();
     if (diffMs <= 0) return 1;
-    
+
     const totalHours = diffMs / (1000 * 60 * 60);
     const fullDays = Math.floor(totalHours / 24);
     const extraHours = totalHours % 24;
-    
+
     // Grace period of 2 hours
     const chargeableDays = extraHours > 2 ? fullDays + 1 : fullDays;
     return Math.max(1, chargeableDays);
 }
 
+/** Weekday (0 = Sunday) of a "YYYY-MM-DD" date, independent of the runtime's zone. */
+function weekdayOf(dateStr: string): number {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).getUTCDay();
+}
+
+export function getOpeningHours(dateStr: string) {
+    return OPENING_HOURS[weekdayOf(dateStr)] ?? null;
+}
+
 export function isOutsideOpeningHours(dateStr: string, timeStr: string): boolean {
-    const date = new Date(dateStr);
-    const day = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const [hour, minute] = timeStr.split(':').map(Number);
-    const timeVal = hour + minute / 60;
-    
-    if (day === 0) {
-        // Sunday is closed
-        return true;
-    } else if (day === 6) {
-        // Saturday: 09:00 - 15:00
-        return timeVal < 9 || timeVal > 15;
-    } else {
-        // Monday - Friday: 08:00 - 18:00
-        return timeVal < 8 || timeVal > 18;
-    }
+    const hours = getOpeningHours(dateStr);
+    if (!hours) return true;
+    return timeStr < hours.open || timeStr > hours.close;
 }

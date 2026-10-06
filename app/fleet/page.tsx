@@ -8,6 +8,8 @@ import FleetSidebar from "@/components/fleet/FleetSidebar";
 import CarCard, { type CarCardData } from "@/components/fleet/CarCard";
 import { hmFontVariables } from "@/lib/hmFonts";
 import { carPhoto, carSlug } from "@/lib/carPhotos";
+import { blockingRentalWhere } from "@/lib/availability";
+import { parseBookingDateTime } from "@/lib/bookingUtils";
 
 type VehicleType = "pkw" | "kastenwagen" | "all";
 
@@ -40,42 +42,18 @@ async function getCars(filters: FilterParams) {
     let excludedCarIds: number[] = [];
     if (pickupDate && returnDate) {
         try {
-            const start = new Date(pickupDate);
-            const end = new Date(returnDate);
+            // Whole days in Feldkirch time: the car must be free from opening to closing.
+            const start = parseBookingDateTime(pickupDate, '00:00');
+            const end = parseBookingDateTime(returnDate, '23:59');
 
             // Validate dates
             if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                 // Find rentals that overlap with the selected period
                 const overlappingRentals = await prisma.rental.findMany({
                     where: {
-                        status: {
-                            in: ['Active', 'Pending']
-                        },
-                        OR: [
-                            {
-                                // Rental starts during our period
-                                startDate: {
-                                    gte: start,
-                                    lte: end
-                                }
-                            },
-                            {
-                                // Rental ends during our period
-                                endDate: {
-                                    gte: start,
-                                    lte: end
-                                }
-                            },
-                            {
-                                // Rental covers our entire period
-                                startDate: {
-                                    lte: start
-                                },
-                                endDate: {
-                                    gte: end
-                                }
-                            }
-                        ]
+                        ...blockingRentalWhere(),
+                        startDate: { lte: end },
+                        endDate: { gte: start },
                     },
                     select: {
                         carId: true

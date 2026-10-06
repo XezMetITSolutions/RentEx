@@ -42,14 +42,14 @@ export default function AdminLoginPage() {
                             <Image src="/assets/logo.png" alt="Rent-Ex" fill priority className="object-contain" sizes="128px" />
                         </div>
                     </div>
-                    <div className="relative -mr-12 aspect-[16/7]">
+                    <div className="relative aspect-[16/9] overflow-hidden rounded-[var(--hm-radius-card)]">
                         <Image
                             src="/assets/cars/Ford_Mustang_MachE_GT.png"
                             alt=""
                             fill
                             priority
                             sizes="55vw"
-                            className="object-contain"
+                            className="object-cover"
                         />
                     </div>
                     <p className="max-w-sm text-sm text-hm-stage-muted">

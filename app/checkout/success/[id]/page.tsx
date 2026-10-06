@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { formatInTimeZone } from "date-fns-tz";
+import { BUSINESS } from "@/lib/config";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { CheckCircle, Calendar, MapPin, Car, Zap } from "lucide-react";
@@ -74,12 +76,12 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">Abholung</p>
-                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.startDate).toLocaleDateString()}</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{formatInTimeZone(rental.startDate, BUSINESS.TIME_ZONE, "dd.MM.yyyy, HH:mm 'Uhr'")}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-500 mb-1">Rückgabe</p>
-                                    <p className="text-gray-900 dark:text-white font-medium">{new Date(rental.endDate).toLocaleDateString()}</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{formatInTimeZone(rental.endDate, BUSINESS.TIME_ZONE, "dd.MM.yyyy, HH:mm 'Uhr'")}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">10:00 Uhr</p>
                                 </div>
                             </div>

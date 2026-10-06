@@ -4,16 +4,18 @@ import CarDetailClient from "@/components/fleet/CarDetailClient";
 import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Metadata } from "next";
+import { blockingRentalWhere } from "@/lib/availability";
 
 async function getCar(id: number) {
     return prisma.car.findUnique({
         where: { id },
         include: {
             options: true,
+            // Only the dates leave the server: the calendar needs nothing else
+            // about other customers' bookings.
             rentals: {
-                where: {
-                    status: { in: ['Active', 'Pending'] }
-                }
+                where: blockingRentalWhere(),
+                select: { startDate: true, endDate: true },
             }
         }
     });

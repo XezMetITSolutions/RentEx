@@ -1,45 +1,85 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Calendar, MapPin, ShieldCheck, Zap, Users, Baby, CheckCircle, Building2, User, X } from "lucide-react";
-import { createBooking } from "@/app/actions/booking";
-import { useEffect, useRef } from "react";
-import { calculateChargeableDays, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import Link from "next/link";
+import { AlertCircle, ArrowRight, Building2, Check, CheckCircle2, KeyRound, Loader2, User, X } from "lucide-react";
+import { createBooking, previewCoupon, checkBookingAvailability } from "@/app/actions/booking";
+import { calculateChargeableDays, getOpeningHours, isOutsideOpeningHours } from "@/lib/bookingUtils";
+import { quoteBooking, resolveSelection, type CouponTerms, type PriceOption } from "@/lib/bookingPrice";
+import { BUSINESS, RENTAL_TERMS } from "@/lib/config";
 import CustomDatePicker from "@/components/ui/CustomDatePicker";
 
+export interface CheckoutCar {
+    id: number;
+    brand: string;
+    model: string;
+    category: string | null;
+    imageUrl: string | null;
+    dailyRate: number;
+    maxMileagePerDay: number | null;
+    depositAmount: number | null;
+    extraKmCost: number | null;
+    fuelPolicy: string | null;
+    transmission: string | null;
+    fuelType: string | null;
+    seats: number | null;
+}
+
+export interface CheckoutCustomer {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+    address: string | null;
+    city: string | null;
+    postalCode: string | null;
+    country: string | null;
+    customerType: string | null;
+    company: string | null;
+    taxId: string | null;
+    dateOfBirth: string; // YYYY-MM-DD or ""
+    licenseNumber: string | null;
+    licenseCountry: string | null;
+    licenseExpiryDate: string; // YYYY-MM-DD or ""
+    licensePhotoUrl: string | null;
+}
+
 type Props = {
-    car: any;
-    options: any[];
-    initialCustomer: any | null;
-    searchParams: {
+    car: CheckoutCar;
+    options: PriceOption[];
+    initialCustomer: CheckoutCustomer | null;
+    initial: {
         startDate: string;
         endDate: string;
         pickupTime: string;
         returnTime: string;
-        options: string;
+        optionIds: number[];
+        couponCode: string;
     };
 };
 
-const COUNTRIES = [
-    "Österreich", "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
+// Neighbouring countries first — almost every customer is from here.
+const TOP_COUNTRIES = ["Österreich", "Deutschland", "Schweiz", "Liechtenstein", "Italien"];
+const OTHER_COUNTRIES = [
+    "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
     "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
     "Bangladesch", "Barbados", "Belgien", "Belize", "Benin", "Bhutan", "Bolivien", "Bosnien und Herzegowina",
     "Botswana", "Brasilien", "Brunei Darussalam", "Bulgarien", "Burkina Faso", "Burundi", "Chile", "China",
-    "Costa Rica", "Dänemark", "Deutschland", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
+    "Costa Rica", "Dänemark", "Dominica", "Dominikanische Republik", "Dschibuti", "Ecuador",
     "Elfenbeinküste", "El Salvador", "Eritrea", "Estland", "Eswatini", "Fidschi", "Finnland", "Frankreich",
     "Gabun", "Gambia", "Georgien", "Ghana", "Grenada", "Griechenland", "Guatemala", "Guinea", "Guinea-Bissau",
     "Guyana", "Haiti", "Honduras", "Indien", "Indonesien", "Irak", "Iran", "Irland", "Island", "Israel",
-    "Italien", "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
+    "Jamaika", "Japan", "Jemen", "Jordanien", "Kambodscha", "Kamerun", "Kanada", "Kap Verde",
     "Kasachstan", "Katar", "Kenia", "Kirgisistan", "Kiribati", "Kolumbien", "Komoren", "Kongo (Demokratische Republik)",
     "Kongo (Republik)", "Nordkorea", "Südkorea", "Kosovo", "Kroatien", "Kuba", "Kuwait", "Laos", "Lesotho",
-    "Lettland", "Libanon", "Liberia", "Libyen", "Liechtenstein", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
+    "Lettland", "Libanon", "Liberia", "Libyen", "Litauen", "Luxemburg", "Madagaskar", "Malawi",
     "Malaysia", "Malediven", "Mali", "Malta", "Marokko", "Marshallinseln", "Mauretanien", "Mauritius", "Mexiko",
     "Mikronesien", "Moldau", "Monaco", "Mongolei", "Montenegro", "Mosambik", "Myanmar", "Namibia", "Nauru",
     "Nepal", "Neuseeland", "Nicaragua", "Niederlande", "Niger", "Nigeria", "Nordmazedonien", "Norwegen", "Oman",
     "Osttimor (Timor-Leste)", "Pakistan", "Palau", "Palästina", "Panama", "Papua-Neuguinea", "Paraguay", "Peru",
     "Philippinen", "Polen", "Portugal", "Ruanda", "Rumänien", "Russland", "Salomonen", "Sambia", "Samoa",
-    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Schweiz", "Senegal", "Serbien",
+    "San Marino", "São Tomé und Príncipe", "Saudi-Arabien", "Schweden", "Senegal", "Serbien",
     "Seychellen", "Sierra Leone", "Simbabwe", "Singapur", "Slowakei", "Slowenien", "Somalia", "Spanien",
     "Sri Lanka", "St. Kitts und Nevis", "St. Lucia", "St. Vincent und die Grenadinen", "Südafrika", "Sudan",
     "Südsudan", "Suriname", "Syrien", "Tadschikistan", "Tansania", "Thailand", "Togo", "Tonga", "Trinidad und Tobago",
@@ -49,106 +89,209 @@ const COUNTRIES = [
     "Westsahara (umstritten)", "Zentralafrikanische Republik", "Zypern"
 ];
 
-const timeOptions = Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2).toString().padStart(2, '0');
-    const minute = (i % 2 === 0 ? '00' : '30');
-    return `${hour}:${minute}`;
-});
-
-const formatDateOfBirth = (dateVal: any) => {
-    if (!dateVal) return '';
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return '';
-    const day = d.getDate().toString().padStart(2, '0');
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const year = d.getFullYear().toString();
-    return `${day}/${month}/${year}`;
+type PhotonFeature = {
+    properties: { name?: string; street?: string; housenumber?: string; postcode?: string; city?: string; country?: string };
 };
 
-export default function CheckoutForm({ car, options, initialCustomer, searchParams }: Props) {
-    const [startDate, setStartDate] = useState(searchParams.startDate);
-    const [endDate, setEndDate] = useState(searchParams.endDate);
-    const [pickupTime, setPickupTime] = useState(searchParams.pickupTime || "10:00");
-    const [returnTime, setReturnTime] = useState(searchParams.returnTime || "10:00");
+const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2).toString().padStart(2, '0');
+    return `${hour}:${i % 2 === 0 ? '00' : '30'}`;
+});
+
+const eur = (n: number) => new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(n);
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const toIso = (d: Date) => d.toISOString().slice(0, 10);
+
+const inputClass =
+    "w-full min-h-12 rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper px-4 text-[15px] text-hm-ink outline-none placeholder:text-hm-muted hover:border-hm-muted focus:border-hm-ink transition-[border-color] duration-[var(--hm-dur-short)] ease-hm-out dark:[color-scheme:dark]";
+const labelClass = "block text-sm font-semibold text-hm-ink";
+const hintClass = "mt-1.5 text-xs text-hm-muted";
+
+function Section({ step, title, children }: { step: number; title: string; children: React.ReactNode }) {
+    return (
+        <section className="rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper p-6 sm:p-8">
+            <h2 className="flex items-center gap-3 text-xl font-bold">
+                <span className="hm-tnum grid h-7 w-7 shrink-0 place-items-center rounded-full bg-hm-ink text-xs font-semibold text-hm-paper">{step}</span>
+                {title}
+            </h2>
+            <div className="mt-6">{children}</div>
+        </section>
+    );
+}
+
+function CountrySelect({ name, value, onChange, id }: { name: string; value: string; onChange: (v: string) => void; id: string }) {
+    return (
+        <select id={id} name={name} value={value} onChange={(e) => onChange(e.target.value)} className={`${inputClass} mt-2 appearance-none cursor-pointer`}>
+            {TOP_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option disabled>──────────</option>
+            {OTHER_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+    );
+}
+
+export default function CheckoutForm({ car, options, initialCustomer, initial }: Props) {
+    const [startDate, setStartDate] = useState(initial.startDate);
+    const [endDate, setEndDate] = useState(initial.endDate);
+    const [pickupTime, setPickupTime] = useState(initial.pickupTime);
+    const [returnTime, setReturnTime] = useState(initial.returnTime);
+    const [optionIds, setOptionIds] = useState<number[]>(initial.optionIds);
 
     const days = calculateChargeableDays(startDate, pickupTime, endDate, returnTime);
-
     const isPickupOutside = isOutsideOpeningHours(startDate, pickupTime);
     const isReturnOutside = isOutsideOpeningHours(endDate, returnTime);
-    const needsSelfCheckin = isPickupOutside || isReturnOutside;
 
-    const selectedOptionIds = searchParams.options ? searchParams.options.split(',').map(Number) : [];
-    const selectedOptions = options.filter(o => selectedOptionIds.includes(o.id));
-
-    let total = days * (Number(car.dailyRate) || 0);
-    selectedOptions.forEach(opt => {
-        if (opt.isPerDay) {
-            total += (Number(opt.price) || 0) * days;
+    // --- Coupon ---
+    const [couponInput, setCouponInput] = useState(initial.couponCode);
+    const [coupon, setCoupon] = useState<(CouponTerms & { code: string }) | null>(null);
+    const [couponError, setCouponError] = useState('');
+    const [couponPending, setCouponPending] = useState(false);
+    const applyCoupon = async (code = couponInput) => {
+        if (!code.trim()) return;
+        setCouponPending(true);
+        setCouponError('');
+        const res = await previewCoupon(code);
+        setCouponPending(false);
+        if (res.ok) {
+            setCoupon({ code: res.code, discountType: res.discountType, discountValue: res.discountValue });
+            setCouponInput(res.code);
         } else {
-            total += (Number(opt.price) || 0);
+            setCoupon(null);
+            setCouponError(res.error);
         }
-    });
-
-    // useActionState generic typing: [state, dispatch]
-    // Initial state null or object
-    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>(isPickupOutside ? 'online' : 'arrival');
-    const [customerType, setCustomerType] = useState<'Private' | 'Business'>(initialCustomer?.customerType || 'Private');
-    const [agbAccepted, setAgbAccepted] = useState(false);
-    const [state, formAction, isPending] = useActionState(createBooking, null);
-
+    };
+    const didAutoApply = useRef(false);
     useEffect(() => {
-        if (isPickupOutside) {
-            setPaymentMethod('online');
+        if (initial.couponCode && !didAutoApply.current) {
+            didAutoApply.current = true;
+            applyCoupon(initial.couponCode);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // --- Price (same function the server charges with) ---
+    const selected = useMemo(() => resolveSelection(options, optionIds), [options, optionIds]);
+    const quote = quoteBooking({ dailyRate: car.dailyRate, maxMileagePerDay: car.maxMileagePerDay }, selected, days, coupon);
+
+    const baseKm = (car.maxMileagePerDay || 0) * days;
+    const insurance = options.filter((o) => o.type === 'insurance');
+    const kmPackages = options.filter((o) => o.type === 'package');
+    const otherExtras = options.filter((o) => o.type !== 'insurance' && o.type !== 'package');
+    const selectedPackageId = kmPackages.find((o) => optionIds.includes(o.id))?.id ?? 0;
+    const toggleOption = (id: number) =>
+        setOptionIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    const selectPackage = (id: number) =>
+        setOptionIds((prev) => [...prev.filter((x) => !kmPackages.some((p) => p.id === x)), ...(id ? [id] : [])]);
+
+    // --- Live availability ---
+    const [availability, setAvailability] = useState<{ state: 'checking' | 'ok' | 'conflict'; reason?: string }>({ state: 'ok' });
+    useEffect(() => {
+        setAvailability({ state: 'checking' });
+        const t = setTimeout(async () => {
+            const res = await checkBookingAvailability(car.id, startDate, pickupTime, endDate, returnTime);
+            setAvailability(res.available ? { state: 'ok' } : { state: 'conflict', reason: res.reason });
+        }, 400);
+        return () => clearTimeout(t);
+    }, [car.id, startDate, pickupTime, endDate, returnTime]);
+
+    // --- Customer ---
+    const [customerType, setCustomerType] = useState<'Private' | 'Business'>(initialCustomer?.customerType === 'Business' ? 'Business' : 'Private');
+    const [paymentMethod, setPaymentMethod] = useState<'arrival' | 'online'>(isPickupOutside ? 'online' : 'arrival');
+    useEffect(() => {
+        if (isPickupOutside) setPaymentMethod('online');
     }, [isPickupOutside]);
 
-    // Address Autofill Logic
-    const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
-    const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [postalCode, setPostalCode] = useState(initialCustomer?.postalCode || '');
-    const [city, setCity] = useState(initialCustomer?.city || '');
-    const suggestionRef = useRef<HTMLDivElement>(null);
-
-    const [emailExists, setEmailExists] = useState(false);
     const [emailValue, setEmailValue] = useState(initialCustomer?.email || '');
-
+    const [emailExists, setEmailExists] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(!!initialCustomer);
     const [firstName, setFirstName] = useState(initialCustomer?.firstName || '');
     const [lastName, setLastName] = useState(initialCustomer?.lastName || '');
-    const [phone, setPhone] = useState(initialCustomer?.phone || '+43 ');
-    const [dateOfBirth, setDateOfBirth] = useState(initialCustomer?.dateOfBirth ? formatDateOfBirth(initialCustomer.dateOfBirth) : '');
+    const [phone, setPhone] = useState(initialCustomer?.phone || '');
+    const [dateOfBirth, setDateOfBirth] = useState(initialCustomer?.dateOfBirth || '');
     const [licenseNumber, setLicenseNumber] = useState(initialCustomer?.licenseNumber || '');
     const [licenseCountry, setLicenseCountry] = useState(initialCustomer?.licenseCountry || 'Österreich');
     const [licensePhotoUrl, setLicensePhotoUrl] = useState(initialCustomer?.licensePhotoUrl || '');
-    const [licenseExpiryDate, setLicenseExpiryDate] = useState(initialCustomer?.licenseExpiryDate ? formatDateOfBirth(initialCustomer.licenseExpiryDate) : '');
-    const [selectedCountry, setSelectedCountry] = useState(initialCustomer?.country || 'Österreich');
+    const [licenseExpiryDate, setLicenseExpiryDate] = useState(initialCustomer?.licenseExpiryDate || '');
+    const [country, setCountry] = useState(initialCustomer?.country || 'Österreich');
     const [company, setCompany] = useState(initialCustomer?.company || '');
     const [taxId, setTaxId] = useState(initialCustomer?.taxId || '');
-
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [loginPassword, setLoginPassword] = useState('');
-    const [loginError, setLoginError] = useState('');
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [addressQuery, setAddressQuery] = useState(initialCustomer?.address || '');
+    const [postalCode, setPostalCode] = useState(initialCustomer?.postalCode || '');
+    const [city, setCity] = useState(initialCustomer?.city || '');
 
     const checkEmail = async (email: string) => {
-        if (!email || email.indexOf('@') === -1) {
-            setEmailExists(false);
-            return;
-        }
-        if (initialCustomer && initialCustomer.email === email) {
+        const value = email.trim();
+        if (!value.includes('@') || (initialCustomer && initialCustomer.email === value)) {
             setEmailExists(false);
             return;
         }
         try {
-            const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email.trim())}`);
+            const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(value)}`);
             const data = await res.json();
-            setEmailExists(data.exists);
-        } catch (e) {
-            console.error("Failed to check email", e);
+            setEmailExists(!!data.exists);
+        } catch {
+            setEmailExists(false);
         }
     };
 
+    // The licence must still be valid when the car comes back.
+    const licenseValidForRental = !!licenseExpiryDate && licenseExpiryDate >= endDate;
+    const hasStoredLicense = isLoggedIn && !!licenseNumber && !!licensePhotoUrl && licenseValidForRental;
+    const minLicenseExpiry = endDate;
+    const maxBirthDate = useMemo(() => {
+        const d = new Date(`${startDate}T12:00:00Z`);
+        d.setUTCFullYear(d.getUTCFullYear() - RENTAL_TERMS.MIN_DRIVER_AGE);
+        return toIso(d);
+    }, [startDate]);
+
+    // --- Address autocomplete (debounced; sent to the Photon geocoder) ---
+    const [suggestions, setSuggestions] = useState<PhotonFeature[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const suggestionRef = useRef<HTMLDivElement>(null);
+    const addressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const addressAbort = useRef<AbortController | null>(null);
+    const onAddressChange = (query: string) => {
+        setAddressQuery(query);
+        if (addressTimer.current) clearTimeout(addressTimer.current);
+        if (query.trim().length < 4) {
+            setSuggestions([]);
+            return;
+        }
+        addressTimer.current = setTimeout(async () => {
+            addressAbort.current?.abort();
+            const controller = new AbortController();
+            addressAbort.current = controller;
+            try {
+                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.24&lon=9.6&lang=de`, { signal: controller.signal });
+                if (!res.ok) return;
+                const data = await res.json();
+                setSuggestions(data.features || []);
+                setShowSuggestions(true);
+            } catch {
+                // aborted or offline — typing still works
+            }
+        }, 350);
+    };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) setShowSuggestions(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    const handleSelectSuggestion = (feature: PhotonFeature) => {
+        const { name, housenumber, postcode, city: cityName, street, country: featureCountry } = feature.properties;
+        setAddressQuery(housenumber ? `${street || name} ${housenumber}` : (street || name || ''));
+        setPostalCode(postcode || '');
+        setCity(cityName || '');
+        if (featureCountry && [...TOP_COUNTRIES, ...OTHER_COUNTRIES].includes(featureCountry)) setCountry(featureCountry);
+        setShowSuggestions(false);
+    };
+
+    // --- Sign-in modal for existing accounts ---
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginPassword, setLoginPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const handleModalLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoggingIn(true);
@@ -157,563 +300,473 @@ export default function CheckoutForm({ car, options, initialCustomer, searchPara
             const res = await fetch('/api/auth/checkout-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailValue, password: loginPassword })
+                body: JSON.stringify({ email: emailValue, password: loginPassword }),
             });
             const data = await res.json();
             if (data.success) {
-                const cust = data.customer;
-                setFirstName(cust.firstName || '');
-                setLastName(cust.lastName || '');
-                setPhone(cust.phone || '');
-                setAddressQuery(cust.address || '');
-                setCity(cust.city || '');
-                setPostalCode(cust.postalCode || '');
-                setSelectedCountry(cust.country || 'Österreich');
-                setCustomerType(cust.customerType || 'Private');
-                setCompany(cust.company || '');
-                setTaxId(cust.taxId || '');
-                setDateOfBirth(cust.dateOfBirth ? formatDateOfBirth(cust.dateOfBirth) : '');
-                setLicenseNumber(cust.licenseNumber || '');
-                setLicenseCountry(cust.licenseCountry || 'Österreich');
-                setLicensePhotoUrl(cust.licensePhotoUrl || '');
-                setLicenseExpiryDate(cust.licenseExpiryDate ? formatDateOfBirth(cust.licenseExpiryDate) : '');
+                const c = data.customer;
+                const iso = (v: string | null) => (v ? String(v).slice(0, 10) : '');
+                setFirstName(c.firstName || '');
+                setLastName(c.lastName || '');
+                setPhone(c.phone || '');
+                setAddressQuery(c.address || '');
+                setCity(c.city || '');
+                setPostalCode(c.postalCode || '');
+                setCountry(c.country || 'Österreich');
+                setCustomerType(c.customerType === 'Business' ? 'Business' : 'Private');
+                setCompany(c.company || '');
+                setTaxId(c.taxId || '');
+                setDateOfBirth(iso(c.dateOfBirth));
+                setLicenseNumber(c.licenseNumber || '');
+                setLicenseCountry(c.licenseCountry || 'Österreich');
+                setLicensePhotoUrl(c.licensePhotoUrl || '');
+                setLicenseExpiryDate(iso(c.licenseExpiryDate));
                 setIsLoggedIn(true);
                 setShowLoginModal(false);
                 setEmailExists(false);
             } else {
-                setLoginError(data.error || 'Login fehlgeschlagen.');
+                setLoginError(data.error || 'Anmeldung fehlgeschlagen.');
             }
-        } catch (err) {
+        } catch {
             setLoginError('Serverfehler beim Anmelden.');
         } finally {
             setIsLoggingIn(false);
         }
     };
-    const isExpiryStringExpired = (dateStr: string) => {
-        if (!dateStr) return false;
-        const normalized = dateStr.replace(/[\.\-]/g, '/').trim();
-        const parts = normalized.split('/');
-        if (parts.length !== 3) return false;
-        let day = parseInt(parts[0], 10);
-        let month = parseInt(parts[1], 10) - 1;
-        let year = parseInt(parts[2], 10);
-        if (year < 100) year += 2000;
-        const d = new Date(year, month, day);
-        return !isNaN(d.getTime()) && d.getTime() < new Date().setHours(0,0,0,0);
-    };
 
-    const isExpired = isExpiryStringExpired(licenseExpiryDate);
-    const showLicenseInput = !licenseNumber || isExpired;
-
+    const [agbAccepted, setAgbAccepted] = useState(false);
+    const [state, formAction, isPending] = useActionState(createBooking, null);
+    const errorRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
-                setShowSuggestions(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        if (state?.error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [state]);
 
-    const fetchSuggestions = async (query: string) => {
-        setAddressQuery(query);
-        if (query.length < 3) {
-            setSuggestions([]);
-            return;
-        }
-        try {
-            const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lat=47.5162&lon=14.5501`);
-            if (!res.ok) {
-                setSuggestions([]);
-                return;
-            }
-            const data = await res.json();
-            setSuggestions(data.features || []);
-            setShowSuggestions(true);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    const canSubmit = agbAccepted && availability.state === 'ok' && !isPending;
+    const hours = getOpeningHours(startDate);
+    const returnHours = getOpeningHours(endDate);
+    const hoursLabel = (h: ReturnType<typeof getOpeningHours>) => (h ? `${h.open}–${h.close} Uhr` : 'geschlossen');
+    const timeLabel = (date: string, t: string) => `${t}${isOutsideOpeningHours(date, t) ? ' · Self-Check-in' : ' Uhr'}`;
 
-    const handleSelectSuggestion = (feature: any) => {
-        const { name, housenumber, postcode, city: cityName, street } = feature.properties;
-        const fullAddress = housenumber ? `${street || name} ${housenumber}` : (street || name);
-        setAddressQuery(fullAddress);
-        setPostalCode(postcode || '');
-        setCity(cityName || '');
-        setShowSuggestions(false);
-    };
+    const optionPriceLabel = (o: PriceOption) =>
+        o.isPerDay ? `${eur(o.price)} / Tag` : `${eur(o.price)} pauschal`;
 
     return (
         <>
-        <form action={formAction} encType="multipart/form-data" className="grid lg:grid-cols-3 gap-12">
-            
-            {state?.error && (
-                <div className="lg:col-span-3 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 font-medium">
-                    {state.error}
-                </div>
-            )}
+            <form action={formAction} encType="multipart/form-data" className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-8 items-start">
+                <input type="hidden" name="carId" value={car.id} />
+                <input type="hidden" name="startDate" value={startDate} />
+                <input type="hidden" name="endDate" value={endDate} />
+                <input type="hidden" name="pickupTime" value={pickupTime} />
+                <input type="hidden" name="returnTime" value={returnTime} />
+                <input type="hidden" name="options" value={selected.map((o) => o.id).join(',')} />
+                <input type="hidden" name="couponCode" value={coupon?.code ?? ''} />
 
-            {/* Hidden Fields for Server Action */}
-            <input type="hidden" name="carId" value={car.id} />
-            <input type="hidden" name="startDate" value={startDate} />
-            <input type="hidden" name="endDate" value={endDate} />
-            <input type="hidden" name="options" value={searchParams.options} />
-            <input type="hidden" name="totalAmount" value={total} />
-            <input type="hidden" name="pickupTime" value={pickupTime} />
-            <input type="hidden" name="returnTime" value={returnTime} />
-
-
-            {/* LEFT: Customer Form */}
-            <div className="lg:col-span-2 space-y-8">
-
-                {/* Customer Type */}
-                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Buchungstyp</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Private' ? 'bg-red-500/10 border-red-500/50 text-red-600 dark:text-white' : 'bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'}`}>
-                            <input type="radio" name="customerType" value="Private" checked={customerType === 'Private'} onChange={() => setCustomerType('Private')} className="sr-only" />
-                            <User className="w-5 h-5" />
-                            <span className="font-medium">Privat</span>
-                        </label>
-                        <label className={`flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border ${customerType === 'Business' ? 'bg-red-500/10 border-red-500/50 text-red-600 dark:text-white' : 'bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-white/5 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'}`}>
-                            <input type="radio" name="customerType" value="Business" checked={customerType === 'Business'} onChange={() => setCustomerType('Business')} className="sr-only" />
-                            <Building2 className="w-5 h-5" />
-                            <span className="font-medium">Geschäftlich</span>
-                        </label>
-                    </div>
-
-                    {customerType === 'Business' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-150 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Firmenname</label>
-                                <input required name="company" type="text" value={company} onChange={e => setCompany(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Beispiel GmbH" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">USt-IdNr.</label>
-                                <input name="taxId" type="text" value={taxId} onChange={e => setTaxId(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="ATU12345678" />
-                            </div>
+                <div className="min-w-0 space-y-6">
+                    {state?.error && (
+                        <div ref={errorRef} role="alert" className="flex items-start gap-3 rounded-[var(--hm-radius-input)] border border-hm-accent/30 bg-hm-accent/10 px-4 py-3 text-sm text-hm-accent-text">
+                            <AlertCircle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+                            {state.error}
                         </div>
                     )}
-                </div>
 
-                {/* Personal Info */}
-                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Persönliche Daten</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Vorname</label>
-                            <input required name="firstName" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Max" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Nachname</label>
-                            <input required name="lastName" type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Mustermann" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">E-Mail Adresse</label>
-                            <input
-                                required
-                                name="email"
-                                type="email"
-                                value={emailValue}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setEmailValue(val);
-                                    checkEmail(val);
-                                }}
-                                onBlur={(e) => checkEmail(e.target.value)}
-                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
-                                placeholder="max@beispiel.com"
-                            />
-                            {emailExists && (
-                                <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center justify-between animate-in fade-in duration-300">
-                                    <span>⚠️ Ein Konto mit dieser E-Mail existiert bereits.</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setLoginError(''); setShowLoginModal(true); }}
-                                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all text-[10px]"
-                                    >
-                                        Jetzt anmelden
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefonnummer</label>
-                            <input required name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="+43 660 ..." />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Geburtsdatum *</label>
-                            <input
-                                required
-                                name="dateOfBirth"
-                                type="text"
-                                value={dateOfBirth}
-                                onChange={e => setDateOfBirth(e.target.value)}
-                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
-                                placeholder="TT/MM/JJJJ (z.B. 15/08/1990)"
-                                pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
-                                title="Bitte im Format TT/MM/JJJJ eingeben (z.B. 15/08/1990)"
-                            />
-                        </div>
-                        {/* Driver's License Info - Only visible if not already supplied by logged-in user or if expired */}
-                        {showLicenseInput ? (
-                            <>
-                                {licenseNumber && isExpired && (
-                                    <div className="md:col-span-2 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl text-xs animate-in fade-in duration-300">
-                                        ⚠️ Ihr hinterlegter Führerschein ({licenseNumber}) ist am {licenseExpiryDate} abgelaufen. Bitte tragen Sie die neuen Daten ein und laden Sie das neue Dokument hoch.
-                                    </div>
-                                )}
-                                <div className="space-y-2 animate-in fade-in duration-300">
-                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerscheinnummer *</label>
-                                    <input required name="licenseNumber" type="text" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="z.B. A1234567" />
-                                </div>
-                                <div className="space-y-2 animate-in fade-in duration-300">
-                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ausstellungsland *</label>
-                                    <select required name="licenseCountry" value={licenseCountry} onChange={e => setLicenseCountry(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
-                                        {COUNTRIES.map(c => (
-                                            <option key={c} value={c}>{c}</option>
+                    {/* 1 · Extras */}
+                    {options.length > 0 && (
+                        <Section step={1} title="Extras & Schutz">
+                            <div className="space-y-6">
+                                {insurance.length > 0 && (
+                                    <fieldset className="min-w-0 space-y-2">
+                                        <legend className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">Schutz</legend>
+                                        {insurance.map((o) => (
+                                            <OptionRow key={o.id} option={o} checked={o.isMandatory || optionIds.includes(o.id)} disabled={o.isMandatory}
+                                                onChange={() => toggleOption(o.id)} price={optionPriceLabel(o)} type="checkbox" />
                                         ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-2 animate-in fade-in duration-300">
-                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Ablaufdatum *</label>
-                                    <input required name="licenseExpiryDate" type="text" value={licenseExpiryDate} onChange={e => setLicenseExpiryDate(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="TT/MM/JJJJ" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" title="Bitte im Format TT/MM/JJJJ eingeben (z.B. 15/08/2030)" />
-                                </div>
-                                <div className="space-y-2 animate-in fade-in duration-300">
-                                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Führerschein Foto hochladen (Vorderseite) *</label>
-                                    <input required={!licensePhotoUrl || isExpired} name="licensePhoto" type="file" accept="image/*" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-950 dark:text-white focus:border-red-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-500/10 file:text-red-500 hover:file:bg-red-500/20" />
-                                </div>
-                            </>
-                        ) : (
-                            <div className="md:col-span-2 p-4 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 rounded-2xl text-xs flex items-center gap-3 animate-in fade-in duration-300">
-                                <span className="text-lg">✓</span>
-                                <div>
-                                    <p className="font-bold">Führerscheindaten verifiziert</p>
-                                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                                        Führerscheinnummer {licenseNumber} ({licenseCountry}) läuft am {licenseExpiryDate} ab und ist bereits in Ihrem Profil hinterlegt.
-                                    </p>
-                                </div>
+                                    </fieldset>
+                                )}
+                                {kmPackages.length > 0 && (
+                                    <fieldset className="min-w-0 space-y-2">
+                                        <legend className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">
+                                            Kilometer · {baseKm.toLocaleString('de-AT')} km inklusive
+                                        </legend>
+                                        <OptionRow option={{ id: 0, name: 'Kein Zusatzpaket', price: 0 } as PriceOption} checked={selectedPackageId === 0}
+                                            onChange={() => selectPackage(0)} price="" type="radio" groupName="km-package" />
+                                        {kmPackages.map((o) => (
+                                            <OptionRow key={o.id} option={o} checked={selectedPackageId === o.id} onChange={() => selectPackage(o.id)}
+                                                price={optionPriceLabel(o)} type="radio" groupName="km-package" />
+                                        ))}
+                                    </fieldset>
+                                )}
+                                {otherExtras.length > 0 && (
+                                    <fieldset className="min-w-0 space-y-2">
+                                        <legend className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">Weitere Extras</legend>
+                                        {otherExtras.map((o) => (
+                                            <OptionRow key={o.id} option={o} checked={o.isMandatory || optionIds.includes(o.id)} disabled={o.isMandatory}
+                                                onChange={() => toggleOption(o.id)} price={optionPriceLabel(o)} type="checkbox" />
+                                        ))}
+                                    </fieldset>
+                                )}
                             </div>
-                        )}
-                        {!initialCustomer && (
-                            <div className="space-y-2 md:col-span-2 pt-4 mt-4 border-t border-gray-150 dark:border-white/5">
-                                <label className="text-sm font-medium text-red-500">Konto erstellen (optional)</label>
-                                <div className="relative">
-                                    <input name="password" type="password" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Passwort vergeben (min. 6 Zeichen)" />
-                                </div>
-                                <p className="text-[10px] text-gray-500 italic">Wenn Sie ein Passwort angeben, wird automatisch ein Kundenkonto für Sie erstellt, damit Sie Ihre Buchungen verwalten können.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                        </Section>
+                    )}
 
-                {/* Address */}
-                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Anschrift</h2>
-                    <div className="space-y-6">
-                        <div className="space-y-2 relative" ref={suggestionRef}>
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Straẞe & Hausnummer</label>
-                            <input
-                                required
-                                name="address"
-                                type="text"
-                                value={addressQuery}
-                                onChange={(e) => fetchSuggestions(e.target.value)}
-                                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
-                                placeholder="Hauptstraẞe 1"
-                                autoComplete="off"
-                            />
-                            {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
-                                    {suggestions.map((f, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            onClick={() => handleSelectSuggestion(f)}
-                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-950 hover:dark:text-white transition-colors border-b border-gray-100 dark:border-white/5 last:border-0"
-                                        >
-                                            <span className="font-medium">{f.properties.name} {f.properties.housenumber}</span>
-                                            <span className="block text-xs text-gray-500">
-                                                {f.properties.postcode} {f.properties.city}, {f.properties.country}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
+                    {/* 2 · Personal */}
+                    <Section step={options.length > 0 ? 2 : 1} title="Ihre Daten">
+                        <div role="radiogroup" aria-label="Buchungstyp" className="grid grid-cols-2 gap-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 p-1">
+                            {([['Private', 'Privat', User], ['Business', 'Geschäftlich', Building2]] as const).map(([value, label, Icon]) => (
+                                <label key={value} className={`flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[calc(var(--hm-radius-input)-3px)] text-sm font-semibold transition-[background-color,color] duration-[var(--hm-dur-short)] ${customerType === value ? 'bg-hm-paper text-hm-ink shadow-sm' : 'text-hm-ink-2 hover:text-hm-ink'}`}>
+                                    <input type="radio" name="customerType" value={value} checked={customerType === value} onChange={() => setCustomerType(value)} className="sr-only" />
+                                    <Icon aria-hidden className="h-4 w-4" />
+                                    {label}
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {customerType === 'Business' && (
+                                <>
+                                    <div>
+                                        <label htmlFor="co-company" className={labelClass}>Firmenname</label>
+                                        <input id="co-company" required name="company" value={company} onChange={(e) => setCompany(e.target.value)} autoComplete="organization" className={`${inputClass} mt-2`} placeholder="Beispiel GmbH" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="co-tax" className={labelClass}>USt-IdNr. <span className="font-normal text-hm-muted">(optional)</span></label>
+                                        <input id="co-tax" name="taxId" value={taxId} onChange={(e) => setTaxId(e.target.value)} className={`${inputClass} mt-2`} placeholder="ATU12345678" />
+                                    </div>
+                                </>
                             )}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">PLZ</label>
-                                <input required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="6800" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Stadt</label>
-                                <input required name="city" value={city} onChange={(e) => setCity(e.target.value)} type="text" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none" placeholder="Feldkirch" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Land</label>
-                            <select name="country" value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none appearance-none">
-                                {COUNTRIES.map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Payment Method */}
-                <div className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Zahlungsmethode</h2>
-                    <div className="space-y-4">
-                        {!isPickupOutside ? (
-                            <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'arrival' ? 'bg-red-500/10 border-red-500/50' : 'bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20'}`}>
-                                <input type="radio" name="paymentMethod" value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-white dark:bg-black border-gray-300 dark:border-gray-600" />
-                                <div className="flex-1">
-                                    <span className="block font-medium text-gray-900 dark:text-white">Bezahlung bei Abholung</span>
-                                    <span className="block text-sm text-gray-500 dark:text-gray-400">Zahlen Sie bequem bar oder mit Karte vor Ort.</span>
-                                </div>
-                                {paymentMethod === 'arrival' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
-                            </label>
-                        ) : (
-                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs">
-                                🔑 <strong>Online-Zahlung erforderlich:</strong> Da Ihre Abholzeit außerhalb der Öffnungszeiten liegt (Self-Check-in), ist die Bezahlung bei Abholung vor Ort nicht möglich.
-                            </div>
-                        )}
-
-                        <label className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border ${paymentMethod === 'online' ? 'bg-red-500/10 border-red-500/50' : 'bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/20'}`}>
-                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-5 h-5 text-red-600 focus:ring-red-500 bg-white dark:bg-black border-gray-300 dark:border-gray-600" />
-                            <div className="flex-1">
-                                <span className="block font-medium text-gray-900 dark:text-white">Online Überweisung / Karte</span>
-                                <span className="block text-sm text-gray-500 dark:text-gray-400">Sicher online bezahlen (Stripe, Klarna, Kreditkarte).</span>
-                            </div>
-                            {paymentMethod === 'online' && <CheckCircle className="w-6 h-6 text-red-500 invisible sm:visible" />}
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-
-
-            {/* RIGHT: Summary */}
-            <div className="lg:col-span-1">
-                <div className="sticky top-24 space-y-6">
-                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl shadow-black/5">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Zusammenfassung</h3>
-
-                        {/* Car Info */}
-                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-white/10">
-                            <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800">
-                                {car.imageUrl && <Image src={car.imageUrl} alt={car.model} fill className="object-cover" />}
+                            <div>
+                                <label htmlFor="co-first" className={labelClass}>Vorname</label>
+                                <input id="co-first" required name="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" className={`${inputClass} mt-2`} />
                             </div>
                             <div>
-                                <p className="font-bold text-gray-900 dark:text-white">{car.brand} {car.model}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{car.category}</p>
+                                <label htmlFor="co-last" className={labelClass}>Nachname</label>
+                                <input id="co-last" required name="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" className={`${inputClass} mt-2`} />
+                            </div>
+                            <div>
+                                <label htmlFor="co-email" className={labelClass}>E-Mail</label>
+                                <input id="co-email" required name="email" type="email" value={emailValue} readOnly={isLoggedIn && !!initialCustomer}
+                                    onChange={(e) => { setEmailValue(e.target.value); setEmailExists(false); }}
+                                    onBlur={(e) => checkEmail(e.target.value)} autoComplete="email" className={`${inputClass} mt-2`} placeholder="name@beispiel.at" />
+                                {emailExists && !isLoggedIn && (
+                                    <div className="mt-2 flex items-center justify-between gap-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 px-3 py-2 text-xs text-hm-ink-2">
+                                        <span>Für diese E-Mail gibt es ein Kundenkonto.</span>
+                                        <button type="button" onClick={() => { setLoginError(''); setShowLoginModal(true); }} className="whitespace-nowrap rounded-[var(--hm-radius-pill)] bg-hm-ink px-3 py-1.5 font-semibold text-hm-paper hover:bg-hm-accent hover:text-hm-accent-ink">
+                                            Anmelden
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <label htmlFor="co-phone" className={labelClass}>Telefon</label>
+                                <input id="co-phone" required name="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" className={`${inputClass} mt-2`} placeholder="+43 660 1234567" />
+                            </div>
+                            <div>
+                                <label htmlFor="co-dob" className={labelClass}>Geburtsdatum</label>
+                                <input id="co-dob" required name="dateOfBirth" type="date" value={dateOfBirth} max={maxBirthDate} min="1920-01-01" onChange={(e) => setDateOfBirth(e.target.value)} autoComplete="bday" className={`${inputClass} mt-2`} />
+                                <p className={hintClass}>Mindestalter {RENTAL_TERMS.MIN_DRIVER_AGE} Jahre bei Mietbeginn.</p>
                             </div>
                         </div>
 
-                        {/* Dates */}
-                        <div className="space-y-4 mb-6 pb-6 border-b border-gray-200 dark:border-white/10">
-                            {/* Abholung Date & Time */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-1.5">
-                                    <Calendar className="w-3.5 h-3.5 text-red-500" /> Abholzeitpunkt
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <CustomDatePicker
-                                        value={startDate}
-                                        min={new Date().toISOString().split('T')[0]}
-                                        onChange={(newStart) => {
-                                            setStartDate(newStart);
-                                            if (endDate < newStart) {
-                                                setEndDate(newStart);
-                                            }
-                                        }}
-                                        inputClassName="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-xs text-gray-950 dark:text-white outline-none cursor-pointer flex items-center justify-between select-none"
-                                    />
-                                    <select
-                                        value={pickupTime}
-                                        onChange={(e) => setPickupTime(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none appearance-none cursor-pointer"
-                                    >
-                                        {timeOptions.map(t => (
-                                            <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
+                        {!isLoggedIn && !emailExists && (
+                            <details className="group mt-6 rounded-[var(--hm-radius-input)] border border-hm-rule px-4 py-3">
+                                <summary className="cursor-pointer list-none text-sm font-semibold text-hm-ink">
+                                    Kundenkonto anlegen <span className="font-normal text-hm-muted">(optional — Buchungen später einsehen)</span>
+                                </summary>
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label htmlFor="co-pw" className={labelClass}>Passwort</label>
+                                        <input id="co-pw" name="password" type="password" minLength={8} autoComplete="new-password" className={`${inputClass} mt-2`} />
+                                        <p className={hintClass}>Mindestens 8 Zeichen.</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="co-pw2" className={labelClass}>Passwort wiederholen</label>
+                                        <input id="co-pw2" name="passwordRepeat" type="password" minLength={8} autoComplete="new-password" className={`${inputClass} mt-2`} />
+                                    </div>
+                                </div>
+                            </details>
+                        )}
+                    </Section>
+
+                    {/* 3 · Licence */}
+                    <Section step={options.length > 0 ? 3 : 2} title="Führerschein">
+                        {hasStoredLicense ? (
+                            <div className="flex items-start gap-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 px-4 py-3 text-sm">
+                                <CheckCircle2 aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-hm-accent-text" />
+                                <div>
+                                    <p className="font-semibold">Führerschein hinterlegt</p>
+                                    <p className="mt-0.5 text-hm-ink-2">{licenseNumber} ({licenseCountry}), gültig bis {new Date(licenseExpiryDate).toLocaleDateString('de-AT')}.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {isLoggedIn && licenseNumber && !licenseValidForRental && (
+                                    <p className="mb-5 rounded-[var(--hm-radius-input)] bg-hm-accent/10 px-4 py-3 text-sm text-hm-accent-text">
+                                        Ihr hinterlegter Führerschein ist nicht bis zum Mietende gültig. Bitte die neuen Daten eintragen.
+                                    </p>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label htmlFor="co-lic" className={labelClass}>Führerscheinnummer</label>
+                                        <input id="co-lic" required name="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className={`${inputClass} mt-2`} placeholder="z. B. 12345678" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="co-lic-country" className={labelClass}>Ausstellungsland</label>
+                                        <CountrySelect id="co-lic-country" name="licenseCountry" value={licenseCountry} onChange={setLicenseCountry} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="co-lic-exp" className={labelClass}>Gültig bis</label>
+                                        <input id="co-lic-exp" required name="licenseExpiryDate" type="date" min={minLicenseExpiry} value={licenseExpiryDate} onChange={(e) => setLicenseExpiryDate(e.target.value)} className={`${inputClass} mt-2`} />
+                                        <p className={hintClass}>Muss bis zum Mietende gültig sein.</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="co-lic-photo" className={labelClass}>Foto der Vorderseite</label>
+                                        <input id="co-lic-photo" required={!licensePhotoUrl || !licenseValidForRental} name="licensePhoto" type="file" accept="image/*,application/pdf"
+                                            className={`${inputClass} mt-2 py-2.5 file:mr-3 file:rounded-[var(--hm-radius-pill)] file:border-0 file:bg-hm-paper-2 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-hm-ink`} />
+                                        <p className={hintClass}>Bild oder PDF, max. 10 MB.</p>
+                                    </div>
+                                </div>
+                                <p className={`${hintClass} mt-5`}>Voraussetzung: seit mindestens zwei Jahren gültige Lenkerberechtigung. Das Original wird bei Abholung geprüft.</p>
+                            </>
+                        )}
+                    </Section>
+
+                    {/* 4 · Address */}
+                    <Section step={options.length > 0 ? 4 : 3} title="Anschrift">
+                        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-5">
+                            <div className="relative md:col-span-2" ref={suggestionRef}>
+                                <label htmlFor="co-address" className={labelClass}>Straße & Hausnummer</label>
+                                <input id="co-address" required name="address" value={addressQuery} onChange={(e) => onAddressChange(e.target.value)}
+                                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)} autoComplete="street-address" className={`${inputClass} mt-2`} placeholder="Hauptstraße 1" />
+                                {showSuggestions && suggestions.length > 0 && (
+                                    <ul className="hm-float absolute z-50 mt-2 w-full overflow-hidden rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper">
+                                        {suggestions.map((f, i) => (
+                                            <li key={i}>
+                                                <button type="button" onClick={() => handleSelectSuggestion(f)} className="w-full px-4 py-3 text-left text-sm hover:bg-hm-paper-2">
+                                                    <span className="font-medium">{f.properties.street || f.properties.name} {f.properties.housenumber}</span>
+                                                    <span className="block text-xs text-hm-muted">{f.properties.postcode} {f.properties.city}, {f.properties.country}</span>
+                                                </button>
+                                            </li>
                                         ))}
-                                    </select>
+                                    </ul>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5 md:col-span-2">
+                                <div>
+                                    <label htmlFor="co-plz" className={labelClass}>PLZ</label>
+                                    <input id="co-plz" required name="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} autoComplete="postal-code" className={`${inputClass} mt-2`} />
+                                </div>
+                                <div>
+                                    <label htmlFor="co-city" className={labelClass}>Ort</label>
+                                    <input id="co-city" required name="city" value={city} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" className={`${inputClass} mt-2`} />
                                 </div>
                             </div>
-
-                            {/* Rückgabe Date & Time */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-semibold flex items-center gap-1.5">
-                                    <Calendar className="w-3.5 h-3.5 text-red-500" /> Rückgabezeitpunkt
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <CustomDatePicker
-                                        value={endDate}
-                                        min={startDate}
-                                        onChange={(newEnd) => setEndDate(newEnd)}
-                                        inputClassName="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-2.5 text-xs text-gray-950 dark:text-white outline-none cursor-pointer flex items-center justify-between select-none"
-                                    />
-                                    <select
-                                        value={returnTime}
-                                        onChange={(e) => setReturnTime(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-2 py-2 text-xs text-gray-950 dark:text-white focus:border-red-500 outline-none appearance-none cursor-pointer"
-                                    >
-                                        {timeOptions.map(t => (
-                                            <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            <div className="md:col-span-2">
+                                <label htmlFor="co-country" className={labelClass}>Land</label>
+                                <CountrySelect id="co-country" name="country" value={country} onChange={setCountry} />
                             </div>
-
-                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 pt-1">
-                                <span>Berechnete Dauer:</span>
-                                <span className="text-gray-900 dark:text-white font-bold text-xs bg-red-500/10 px-2 py-0.5 rounded-lg">{days} Tage</span>
-                            </div>
-                            {needsSelfCheckin && (
-                                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-[11px] leading-relaxed">
-                                    🔑 <strong>Self-Check-in/Out aktiv:</strong> Abholung/Rückgabe erfolgt schlüssellos außerhalb der Öffnungszeiten.
-                                </div>
-                            )}
                         </div>
+                    </Section>
 
-                        {/* Price Breakdown */}
-                        <div className="space-y-3 mb-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500 dark:text-gray-400">Fahrzeugmiete</span>
-                                <span className="text-gray-900 dark:text-white">{new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(days * (Number(car.dailyRate) || 0))}</span>
-                            </div>
+                    {/* 5 · Payment */}
+                    <Section step={options.length > 0 ? 5 : 4} title="Bezahlung">
+                        <div className="space-y-2">
+                            {isPickupOutside ? (
+                                <p className="rounded-[var(--hm-radius-input)] bg-hm-paper-2 px-4 py-3 text-sm text-hm-ink-2">
+                                    <KeyRound aria-hidden className="mr-1.5 inline h-4 w-4 align-[-3px]" />
+                                    Abholung außerhalb der Öffnungszeiten (Self-Check-in) — bitte online bezahlen.
+                                </p>
+                            ) : (
+                                <PaymentRow value="arrival" checked={paymentMethod === 'arrival'} onChange={() => setPaymentMethod('arrival')}
+                                    title="Bei Abholung bezahlen" text="Bar oder mit Karte vor Ort." />
+                            )}
+                            <PaymentRow value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')}
+                                title="Jetzt online bezahlen" text="Kreditkarte über Stripe. Das Fahrzeug ist 30 Minuten für die Zahlung reserviert." />
+                        </div>
+                    </Section>
+                </div>
 
-                            {/* Packages (Kilometer) */}
-                            {selectedOptions.filter(o => o.type === 'package').length > 0 && (
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Kilometer-Pakete</p>
-                                    {selectedOptions.filter(o => o.type === 'package').map(opt => (
-                                        <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
-                                            <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                                {opt.name}
-                                                {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
-                                            </span>
-                                            <span className="text-gray-900 dark:text-white">
-                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
-                                            </span>
+                {/* Summary */}
+                <aside className="min-w-0 lg:sticky lg:top-24">
+                    <div className="overflow-hidden rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper">
+                        <div className="hm-stage relative aspect-[16/8]">
+                            {car.imageUrl && <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill sizes="400px" className="object-cover" priority />}
+                        </div>
+                        <div className="p-6">
+                            <p className="font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">{car.category}</p>
+                            <h2 className="mt-1 text-xl font-bold">{car.brand} {car.model}</h2>
+                            <p className="mt-0.5 text-xs text-hm-muted">{[car.transmission, car.fuelType, car.seats ? `${car.seats} Sitze` : null].filter(Boolean).join(' · ')}</p>
+
+                            {/* Period */}
+                            <div className="mt-6 space-y-4 border-t border-hm-rule pt-5">
+                                {([
+                                    ['Abholung', startDate, pickupTime, setPickupTime, todayIso(), (v: string) => { setStartDate(v); if (endDate < v) setEndDate(v); }, hours],
+                                    ['Rückgabe', endDate, returnTime, setReturnTime, startDate, setEndDate, returnHours],
+                                ] as const).map(([label, date, time, setTime, min, setDate, h]) => (
+                                    <div key={label}>
+                                        <p className="flex items-baseline justify-between font-hm-mono text-[11px] uppercase tracking-[0.08em] text-hm-muted">
+                                            {label}
+                                            <span className="normal-case tracking-normal">Öffnungszeit {hoursLabel(h)}</span>
+                                        </p>
+                                        <div className="mt-2 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2">
+                                            <CustomDatePicker value={date} min={min} onChange={setDate}
+                                                inputClassName="flex min-h-11 w-full cursor-pointer select-none items-center justify-between rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper px-3 text-sm text-hm-ink hover:border-hm-muted" />
+                                            <select aria-label={`${label} Uhrzeit`} value={time} onChange={(e) => setTime(e.target.value)}
+                                                className="min-h-11 w-full cursor-pointer appearance-none rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper px-3 text-sm text-hm-ink outline-none hover:border-hm-muted focus:border-hm-ink">
+                                                {timeOptions.map((t) => <option key={t} value={t}>{timeLabel(date, t)}</option>)}
+                                            </select>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Other Extras */}
-                            {selectedOptions.filter(o => o.type !== 'package').length > 0 && (
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Zusatzoptionen</p>
-                                    {selectedOptions.filter(o => o.type !== 'package').map(opt => (
-                                        <div key={opt.id} className="flex justify-between text-sm mb-1.5 pl-2">
-                                            <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                                {opt.name}
-                                                {opt.isPerDay && <span className="text-[10px] opacity-70">({days}x)</span>}
-                                            </span>
-                                            <span className="text-gray-900 dark:text-white">
-                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(opt.isPerDay ? ((Number(opt.price) || 0) * days) : (Number(opt.price) || 0))}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-white/10">
-                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Gutscheincode</label>
-                            <input name="couponCode" type="text" placeholder="Code eingeben" className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:border-red-500 outline-none" />
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-200 dark:border-white/10">
-                            <div className="flex justify-between items-end">
-                                <span className="text-gray-500 dark:text-gray-400 font-medium">Gesamtbetrag</span>
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white text-right">
-                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(total)}
-                                </span>
+                                    </div>
+                                ))}
+                                {(isPickupOutside || isReturnOutside) && (
+                                    <p className="text-xs text-hm-ink-2">
+                                        <KeyRound aria-hidden className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
+                                        Außerhalb der Öffnungszeiten: schlüssellose Übergabe (Self-Check-in/-out).
+                                    </p>
+                                )}
+                                <p aria-live="polite" className={`flex items-center gap-2 text-sm ${availability.state === 'conflict' ? 'text-hm-accent-text font-semibold' : 'text-hm-ink-2'}`}>
+                                    {availability.state === 'checking' && <><Loader2 aria-hidden className="h-4 w-4 animate-spin" /> Verfügbarkeit wird geprüft …</>}
+                                    {availability.state === 'ok' && <><Check aria-hidden className="h-4 w-4 text-hm-accent-text" /> Verfügbar · {days} {days === 1 ? 'Miettag' : 'Miettage'}</>}
+                                    {availability.state === 'conflict' && <><AlertCircle aria-hidden className="h-4 w-4" /> {availability.reason}</>}
+                                </p>
                             </div>
-                            <p className="text-xs text-right text-gray-400 dark:text-gray-500 mt-1">inkl. MwSt.</p>
-                        </div>
 
-                        <div className="mt-8 space-y-4">
-                            <label className="flex items-start gap-3 cursor-pointer group">
-                                <div className="relative flex items-center mt-1">
-                                    <input
-                                        type="checkbox"
-                                        required
-                                        checked={agbAccepted}
-                                        onChange={(e) => setAgbAccepted(e.target.checked)}
-                                        className="peer sr-only"
-                                    />
-                                    <div className="w-5 h-5 border-2 border-gray-350 dark:border-white/10 rounded group-hover:border-red-500/50 peer-checked:border-red-600 peer-checked:bg-red-600 transition-all"></div>
-                                    <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 left-0.5 transition-opacity" />
+                            {/* Price */}
+                            <dl className="hm-tnum mt-5 space-y-2 border-t border-hm-rule pt-5 text-sm">
+                                <div className="flex justify-between gap-4">
+                                    <dt className="text-hm-ink-2">Miete · {days} × {eur(car.dailyRate)}</dt>
+                                    <dd>{eur(quote.rent)}</dd>
                                 </div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    Ich habe die <a href="/agb" target="_blank" className="text-red-500 hover:underline">Allgemeinen Geschäftsbedingungen</a> sowie die <a href="/datenschutz" target="_blank" className="text-red-500 hover:underline">Datenschutzerklärung</a> gelesen und akzeptiere diese.
+                                {quote.lines.map(({ option, cost }) => (
+                                    <div key={option.id} className="flex justify-between gap-4">
+                                        <dt className="text-hm-ink-2">{option.name}{option.isPerDay ? ` · ${days} Tage` : ''}</dt>
+                                        <dd>{eur(cost)}</dd>
+                                    </div>
+                                ))}
+                                {quote.discount > 0 && coupon && (
+                                    <div className="flex justify-between gap-4 text-hm-accent-text">
+                                        <dt>Gutschein {coupon.code}</dt>
+                                        <dd>− {eur(quote.discount)}</dd>
+                                    </div>
+                                )}
+                            </dl>
+
+                            {/* Coupon */}
+                            <div className="mt-4">
+                                {coupon ? (
+                                    <p className="flex items-center justify-between rounded-[var(--hm-radius-input)] bg-hm-paper-2 px-3 py-2 text-sm">
+                                        <span><Check aria-hidden className="mr-1 inline h-4 w-4 text-hm-accent-text" /> {coupon.code} eingelöst</span>
+                                        <button type="button" onClick={() => { setCoupon(null); setCouponInput(''); }} className="text-xs font-semibold text-hm-ink-2 hover:text-hm-ink">Entfernen</button>
+                                    </p>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <label htmlFor="co-coupon" className="sr-only">Gutscheincode</label>
+                                        <input id="co-coupon" value={couponInput} onChange={(e) => setCouponInput(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                                            placeholder="Gutscheincode" className="min-h-10 min-w-0 flex-1 rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper px-3 text-sm uppercase outline-none placeholder:normal-case placeholder:text-hm-muted focus:border-hm-ink" />
+                                        <button type="button" onClick={() => applyCoupon()} disabled={!couponInput.trim() || couponPending}
+                                            className="min-h-10 whitespace-nowrap rounded-[var(--hm-radius-input)] border border-hm-ink px-4 text-sm font-semibold hover:bg-hm-ink hover:text-hm-paper disabled:opacity-50">
+                                            {couponPending ? '…' : 'Einlösen'}
+                                        </button>
+                                    </div>
+                                )}
+                                {couponError && <p className="mt-1.5 text-xs text-hm-accent-text">{couponError}</p>}
+                            </div>
+
+                            <div className="mt-5 flex items-end justify-between border-t border-hm-rule pt-5">
+                                <span className="font-semibold">Gesamt</span>
+                                <span className="hm-tnum text-3xl font-bold">{eur(quote.total)}</span>
+                            </div>
+                            <p className="text-right text-xs text-hm-muted">inkl. MwSt.</p>
+
+                            {/* Terms at a glance */}
+                            <dl className="mt-5 space-y-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 p-4 text-xs">
+                                <TermRow label="Inklusive" value={`${quote.includedKm.toLocaleString('de-AT')} km`} />
+                                <TermRow label="Mehrkilometer" value={car.extraKmCost != null ? `${eur(car.extraKmCost)} / km` : RENTAL_TERMS.EXTRA_KM_RANGE} />
+                                {car.depositAmount != null && <TermRow label="Kaution" value={eur(car.depositAmount)} />}
+                                <TermRow label="Tank" value={car.fuelPolicy || `${RENTAL_TERMS.FUEL_POLICY} (sonst Kosten + ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)})`} />
+                                <TermRow label="Abholung" value={`${BUSINESS.PICKUP_ADDRESS}, ${BUSINESS.PICKUP_POSTAL_CODE} ${BUSINESS.PICKUP_CITY}`} />
+                                <TermRow label="Stornierung" value={<Link href="/terms" target="_blank" className="underline underline-offset-2">laut AGB</Link>} />
+                            </dl>
+
+                            <label className="mt-6 flex cursor-pointer items-start gap-3 text-xs text-hm-ink-2">
+                                <input type="checkbox" required checked={agbAccepted} onChange={(e) => setAgbAccepted(e.target.checked)}
+                                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--hm-accent)]" />
+                                <span>
+                                    Ich habe die <Link href="/terms" target="_blank" className="font-semibold text-hm-ink underline underline-offset-2">AGB</Link> und
+                                    die <Link href="/privacy" target="_blank" className="font-semibold text-hm-ink underline underline-offset-2">Datenschutzerklärung</Link> gelesen und akzeptiere sie.
                                 </span>
                             </label>
-                        </div>
 
-                        <button
-                            disabled={isPending || !agbAccepted}
-                            type="submit"
-                            className="w-full py-4 mt-6 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98]"
-                        >
-                            {isPending ? 'Wird verarbeitet...' : 'Kostenpflichtig buchen'}
+                            <button type="submit" disabled={!canSubmit}
+                                className="group mt-5 inline-flex min-h-14 w-full items-center justify-center gap-2 whitespace-nowrap rounded-[var(--hm-radius-input)] bg-hm-accent text-[15px] font-semibold text-hm-accent-ink hover:bg-hm-accent-hover active:translate-y-px disabled:pointer-events-none disabled:opacity-50 transition-[background-color,transform,opacity] duration-[var(--hm-dur-short)] ease-hm-out">
+                                {isPending ? (
+                                    <><Loader2 aria-hidden className="h-4 w-4 animate-spin" /> Wird gebucht …</>
+                                ) : (
+                                    <>{paymentMethod === 'online' ? 'Kostenpflichtig buchen & bezahlen' : 'Kostenpflichtig buchen'} <ArrowRight aria-hidden className="h-4 w-4" /></>
+                                )}
+                            </button>
+                            {!agbAccepted && <p className="mt-2 text-center text-xs text-hm-muted">Bitte zuerst AGB & Datenschutz bestätigen.</p>}
+                        </div>
+                    </div>
+                </aside>
+            </form>
+
+            {showLoginModal && (
+                <div role="dialog" aria-modal="true" aria-labelledby="co-login-title" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+                    <div className="hm-float relative w-full max-w-md rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper p-8">
+                        <button type="button" aria-label="Schließen" onClick={() => setShowLoginModal(false)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full text-hm-muted hover:bg-hm-paper-2 hover:text-hm-ink">
+                            <X aria-hidden className="h-5 w-5" />
                         </button>
+                        <h3 id="co-login-title" className="text-2xl font-bold">Anmelden</h3>
+                        <p className="mt-2 text-sm text-hm-ink-2">Passwort für <strong className="text-hm-ink">{emailValue}</strong> eingeben, um Ihre Daten zu übernehmen.</p>
+                        {loginError && <p role="alert" className="mt-4 rounded-[var(--hm-radius-input)] bg-hm-accent/10 px-3 py-2 text-sm text-hm-accent-text">{loginError}</p>}
+                        <form onSubmit={handleModalLogin} className="mt-6 space-y-4">
+                            <div>
+                                <label htmlFor="co-login-pw" className={labelClass}>Passwort</label>
+                                <input id="co-login-pw" required type="password" autoComplete="current-password" autoFocus value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className={`${inputClass} mt-2`} />
+                            </div>
+                            <button type="submit" disabled={isLoggingIn} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-accent font-semibold text-hm-accent-ink hover:bg-hm-accent-hover disabled:opacity-60">
+                                {isLoggingIn ? <><Loader2 aria-hidden className="h-4 w-4 animate-spin" /> Anmelden …</> : 'Anmelden & Daten übernehmen'}
+                            </button>
+                        </form>
                     </div>
                 </div>
-            </div>
-        </form>
-        {showLoginModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-                    <button
-                        type="button"
-                        onClick={() => setShowLoginModal(false)}
-                        className="absolute top-6 right-6 p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                    
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Anmelden</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Geben Sie das Passwort für <strong>{emailValue}</strong> ein, um fortzufahren.</p>
-                    
-                    {loginError && (
-                        <div className="mb-4 p-3.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs animate-shake">
-                            ⚠️ {loginError}
-                        </div>
-                    )}
-                    
-                    <form onSubmit={handleModalLogin} className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Passwort</label>
-                            <input
-                                required
-                                type="password"
-                                value={loginPassword}
-                                onChange={e => setLoginPassword(e.target.value)}
-                                placeholder="••••••"
-                                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:border-red-500 outline-none"
-                            />
-                        </div>
-                        
-                        <button
-                            type="submit"
-                            disabled={isLoggingIn}
-                            className="w-full py-3.5 mt-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20"
-                        >
-                            {isLoggingIn ? 'Wird angemeldet...' : 'Anmelden & Daten laden'}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        )}
+            )}
         </>
     );
 }
 
+function TermRow({ label, value }: { label: string; value: React.ReactNode }) {
+    return (
+        <div className="flex justify-between gap-4">
+            <dt className="text-hm-muted">{label}</dt>
+            <dd className="text-right text-hm-ink">{value}</dd>
+        </div>
+    );
+}
+
+function OptionRow({ option, checked, disabled, onChange, price, type, groupName }: {
+    option: PriceOption; checked: boolean; disabled?: boolean; onChange: () => void; price: string; type: 'checkbox' | 'radio'; groupName?: string;
+}) {
+    return (
+        <label className={`flex min-h-14 cursor-pointer items-center gap-4 rounded-[var(--hm-radius-input)] border px-4 py-3 transition-[border-color,background-color] duration-[var(--hm-dur-short)] ${checked ? 'border-hm-ink bg-hm-paper-2' : 'border-hm-rule hover:border-hm-muted'} ${disabled ? 'cursor-default' : ''}`}>
+            <input type={type} name={groupName} checked={checked} disabled={disabled} onChange={onChange} className="h-4 w-4 shrink-0 accent-[var(--hm-accent)]" />
+            <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">{option.name}{option.isMandatory ? ' · inklusive' : ''}</span>
+                {option.description && <span className="block text-xs text-hm-muted">{option.description}</span>}
+            </span>
+            {price && <span className="hm-tnum whitespace-nowrap text-sm text-hm-ink-2">{price}</span>}
+        </label>
+    );
+}
+
+function PaymentRow({ value, checked, onChange, title, text }: { value: string; checked: boolean; onChange: () => void; title: string; text: string }) {
+    return (
+        <label className={`flex cursor-pointer items-center gap-4 rounded-[var(--hm-radius-input)] border px-4 py-4 transition-[border-color,background-color] duration-[var(--hm-dur-short)] ${checked ? 'border-hm-ink bg-hm-paper-2' : 'border-hm-rule hover:border-hm-muted'}`}>
+            <input type="radio" name="paymentMethod" value={value} checked={checked} onChange={onChange} className="h-4 w-4 shrink-0 accent-[var(--hm-accent)]" />
+            <span>
+                <span className="block font-semibold">{title}</span>
+                <span className="block text-sm text-hm-ink-2">{text}</span>
+            </span>
+        </label>
+    );
+}

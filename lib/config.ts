@@ -11,6 +11,41 @@ export const AUTH_CONFIG = {
     PASSWORD_SCRYPT_OPTS: { N: 16384, r: 8, p: 1 },
 };
 
+/** The rental business. Booking times are wall-clock times in this time zone. */
+export const BUSINESS = {
+    TIME_ZONE: 'Europe/Vienna',
+    PHONE: '+43 660 9996800',
+    PHONE_TEL: '+436609996800',
+    PICKUP_ADDRESS: 'Illstraße 75a',
+    PICKUP_POSTAL_CODE: '6800',
+    PICKUP_CITY: 'Feldkirch',
+} as const;
+
+/**
+ * Staffed opening hours per weekday (0 = Sunday). `null` = closed. Pickups and
+ * returns outside these hours are handled as keyless self check-in/out.
+ */
+export const OPENING_HOURS: Record<number, { open: string; close: string } | null> = {
+    0: null,
+    1: { open: '08:00', close: '18:00' },
+    2: { open: '08:00', close: '18:00' },
+    3: { open: '08:00', close: '18:00' },
+    4: { open: '08:00', close: '18:00' },
+    5: { open: '08:00', close: '18:00' },
+    6: { open: '09:00', close: '15:00' },
+};
+
+/** Unpaid online bookings release the car after this many minutes. Stripe requires ≥ 30. */
+export const PENDING_PAYMENT_TTL_MINUTES = 30;
+
+/** Fallback rental terms (from the AGB/FAQ) for cars without their own values. */
+export const RENTAL_TERMS = {
+    FUEL_POLICY: 'voll / voll',
+    REFUEL_FEE_EUR: 18,
+    EXTRA_KM_RANGE: '0,33 – 0,45 € / km',
+    MIN_DRIVER_AGE: 18,
+} as const;
+
 export const FEES_CONFIG = {
     STRAFZETTEL_PROCESSING_FEE: 25.00,
 };

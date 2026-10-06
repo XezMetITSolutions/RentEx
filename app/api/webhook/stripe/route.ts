@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 import { emailTemplates, sendEmail, COMPANY_EMAIL } from '@/lib/notificationTemplates';
 import { notifyCustomer } from '@/lib/pushNotifications';
+import { UNPAID_ONLINE } from '@/lib/availability';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -66,6 +67,23 @@ export async function POST(req: Request) {
                 include: { customer: true, car: true },
             });
 
+            // Paid after the booking was released (expired window or restarted
+            // checkout): the car may be rebooked, so staff must refund or rebook manually.
+            if (rental.status === 'Cancelled') {
+                console.warn(`[stripe-webhook] Payment received for cancelled rental ${id}.`);
+                await prisma.notification.create({
+                    data: {
+                        type: 'System',
+                        subject: 'Zahlung für stornierte Buchung',
+                        message: `Für die bereits stornierte Buchung ${rental.contractNumber ?? id} ist eine Online-Zahlung eingegangen. Bitte Verfügbarkeit prüfen und erstatten oder neu bestätigen.`,
+                        status: 'Pending',
+                        relatedType: 'Rental',
+                        relatedId: id,
+                        recipient: 'Admin',
+                    },
+                });
+            }
+
             const expectedCents = Math.round(Number(rental.totalAmount) * 100);
             if (session.amount_total !== expectedCents) {
                 console.warn(`[stripe-webhook] Amount mismatch for rental ${id}: paid ${session.amount_total}, expected ${expectedCents}.`);
@@ -107,6 +125,24 @@ export async function POST(req: Request) {
             }
 
             console.log(`Rental ${rentalId} marked as Paid.`);
+        }
+    }
+
+    // Checkout window closed without payment: release the car.
+    if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const id = session.metadata?.rentalId ? parseInt(session.metadata.rentalId, 10) : NaN;
+        if (Number.isInteger(id)) {
+            const released = await prisma.rental.updateMany({
+                where: { id, ...UNPAID_ONLINE },
+                data: {
+                    status: 'Cancelled',
+                    notes: event.type === 'checkout.session.expired'
+                        ? 'Automatisch storniert: Stripe-Checkout abgelaufen.'
+                        : 'Automatisch storniert: Zahlung fehlgeschlagen.',
+                },
+            });
+            if (released.count > 0) console.log(`[stripe-webhook] Rental ${id} released (${event.type}).`);
         }
     }
 

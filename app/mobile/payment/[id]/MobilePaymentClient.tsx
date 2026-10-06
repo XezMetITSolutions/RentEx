@@ -391,7 +391,7 @@ export default function MobilePaymentClient({ car, customer, options = [], searc
             {!customer && (
               <div className="space-y-2 pt-4 mt-2 border-t border-gray-200 dark:border-white/5">
                 <label className="text-[12px] font-medium text-red-500 ml-1">Konto erstellen (optional)</label>
-                <input name="password" type="password" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Passwort vergeben (min. 6 Zeichen)" />
+                <input name="password" type="password" className="w-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 rounded-[1rem] py-4 px-4 text-[14px] text-gray-900 dark:text-white outline-none focus:border-[#E53935] mt-1 transition-colors" placeholder="Passwort vergeben (min. 8 Zeichen)" />
                 <p className="text-[10px] text-gray-500 italic ml-1">Optional: Wenn Sie ein Passwort vergeben, wird automatisch ein Konto für Sie erstellt.</p>
               </div>
             )}

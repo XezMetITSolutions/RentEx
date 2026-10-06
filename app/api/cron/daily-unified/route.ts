@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { emailTemplates, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
 import crypto from "crypto";
+import { cancelStaleUnpaidRentals } from "@/lib/availability";
 
 export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
@@ -204,6 +205,13 @@ export async function POST(req: NextRequest) {
         results.cartCleanup = { cleaned: cleanup.count };
     } catch (e: any) {
         results.cartCleanup = { error: e.message };
+    }
+
+    // 6. Abandoned online checkouts (backstop for missed Stripe "expired" webhooks)
+    try {
+        results.staleOnlineBookings = { cancelled: await cancelStaleUnpaidRentals() };
+    } catch (e: any) {
+        results.staleOnlineBookings = { error: e.message };
     }
 
     return NextResponse.json(results);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { setSession, verifyPassword } from "@/lib/auth";
+import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
     try {
@@ -12,7 +13,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "E-Mail und Passwort eingeben." }, { status: 400 });
         }
 
-        const customer = await prisma.customer.findUnique({ where: { email } });
+        const rl = rateLimit(`checkout-login:${getClientIp(request)}:${email}`, RATE_LIMITS.AUTH_LOGIN);
+        if (!rl.allowed) {
+            return NextResponse.json({ error: rateLimitErrorMessage(rl) }, { status: 429 });
+        }
+
+        const customer = await prisma.customer.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
         if (!customer || !customer.passwordHash) {
             return NextResponse.json({ error: "Ungültige Anmeldedaten." }, { status: 400 });
         }

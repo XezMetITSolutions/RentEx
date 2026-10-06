@@ -91,20 +91,21 @@ export default async function Home() {
       "postalCode": "6800",
       "addressCountry": "AT"
     },
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-      ],
-      "opens": "00:00",
-      "closes": "23:59"
-    }
+    // Staffed hours (lib/config OPENING_HOURS); phone support is separate.
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "18:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "09:00",
+        "closes": "15:00"
+      }
+    ]
   };
 
   const faqSchema = {
@@ -253,13 +254,13 @@ export default async function Home() {
                         <ArrowUpRight aria-hidden className="w-5 h-5" />
                       </span>
                     </div>
-                    <div className="relative mt-auto -mx-6 -mb-2 aspect-[16/8]">
+                    <div className="relative mt-6 aspect-[16/9] overflow-hidden rounded-[calc(var(--hm-radius-card)-6px)]">
                       <Image
                         src={item.car.imageUrl}
                         alt={item.car.name}
                         fill
                         sizes="(min-width: 768px) 33vw, 100vw"
-                        className="object-contain transition-transform duration-[var(--hm-dur-med)] ease-hm-out group-hover:translate-x-2"
+                        className="object-cover transition-transform duration-[var(--hm-dur-med)] ease-hm-out group-hover:scale-[1.04]"
                       />
                     </div>
                   </Link>

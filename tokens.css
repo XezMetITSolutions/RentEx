@@ -43,8 +43,7 @@
 
   --hm-plate: oklch(99% 0.003 60);
 
-  /* Studio stage: always light and equal to the car photos' backdrop (#f9f9f9),
-     so the photos sit seamlessly on it in both themes. */
+  /* Studio stage: a light panel in both themes; the car photos sit on it in rounded frames. */
   --hm-stage: oklch(98.1% 0 0);
   --hm-stage-2: oklch(93.5% 0.003 250);
   --hm-stage-ink: oklch(19% 0.012 30);
