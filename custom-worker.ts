@@ -1,4 +1,11 @@
 /**
+ * Polyfill for esbuild __name helper in Cloudflare Workers
+ */
+if (typeof globalThis !== 'undefined' && !(globalThis as any).__name) {
+    (globalThis as any).__name = (target: any, value: string) => Object.defineProperty(target, 'name', { value, configurable: true });
+}
+
+/**
  * Cloudflare Worker entry point: wraps the OpenNext-generated worker to add a
  * `scheduled` handler, because Cloudflare Cron Triggers invoke the worker
  * directly instead of calling an HTTP path.

@@ -61,6 +61,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de-AT" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(typeof globalThis!=='undefined'&&!globalThis.__name){globalThis.__name=function(target,value){return Object.defineProperty(target,'name',{value:value,configurable:true});}};`
+          }}
+        />
+      </head>
       <body
         className={`${montserrat.variable} font-sans antialiased`}
       >
