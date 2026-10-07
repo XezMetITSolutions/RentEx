@@ -225,6 +225,25 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
     const [postalCode, setPostalCode] = useState(initialCustomer?.postalCode || '');
     const [city, setCity] = useState(initialCustomer?.city || '');
 
+    const fillTestData = () => {
+        setCustomerType('Private');
+        setFirstName('Test');
+        setLastName('Tester');
+        setEmailValue(`test+${Date.now()}@xezmet.at`);
+        setEmailExists(false);
+        setPhone('+436601234567');
+        setDateOfBirth('1990-01-01');
+        setLicenseNumber('123456789');
+        setLicenseCountry('Österreich');
+        setLicenseExpiryDate('2030-01-01');
+        setLicensePhotoUrl('dummy.jpg');
+        setAddressQuery('Hauptstraße 1');
+        setPostalCode('1010');
+        setCity('Wien');
+        setCountry('Österreich');
+        setAgbAccepted(true);
+    };
+
     const checkEmail = async (email: string) => {
         const value = email.trim();
         if (!value.includes('@') || (initialCustomer && initialCustomer.email === value)) {
@@ -343,6 +362,17 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
 
     const [agbAccepted, setAgbAccepted] = useState(false);
     const [state, formAction, isPending] = useActionState(createBooking, null);
+    
+    const handleSubmit = (formData: FormData) => {
+        if (emailValue.startsWith('test+') && licensePhotoUrl === 'dummy.jpg') {
+            const fileInput = document.getElementById('co-lic-photo') as HTMLInputElement;
+            if (fileInput && fileInput.files?.length === 0) {
+                formData.set('licensePhoto', new File(["dummy content"], "dummy.jpg", { type: "image/jpeg" }));
+            }
+        }
+        formAction(formData);
+    };
+
     const errorRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (state?.error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -359,7 +389,7 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
 
     return (
         <>
-            <form action={formAction} encType="multipart/form-data" className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-8 items-start">
+            <form action={handleSubmit} encType="multipart/form-data" className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-8 items-start">
                 <input type="hidden" name="carId" value={car.id} />
                 <input type="hidden" name="startDate" value={startDate} />
                 <input type="hidden" name="endDate" value={endDate} />
@@ -417,6 +447,11 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
 
                     {/* 2 · Personal */}
                     <Section step={options.length > 0 ? 2 : 1} title="Ihre Daten">
+                        <div className="mb-4">
+                            <button type="button" onClick={fillTestData} className="text-xs font-semibold bg-hm-accent/10 text-hm-accent-text hover:bg-hm-accent/20 px-3 py-1.5 rounded-[var(--hm-radius-pill)] transition-colors">
+                                ⚡ Testdaten ausfüllen
+                            </button>
+                        </div>
                         <div role="radiogroup" aria-label="Buchungstyp" className="grid grid-cols-2 gap-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 p-1">
                             {([['Private', 'Privat', User], ['Business', 'Geschäftlich', Building2]] as const).map(([value, label, Icon]) => (
                                 <label key={value} className={`flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[calc(var(--hm-radius-input)-3px)] text-sm font-semibold transition-[background-color,color] duration-[var(--hm-dur-short)] ${customerType === value ? 'bg-hm-paper text-hm-ink shadow-sm' : 'text-hm-ink-2 hover:text-hm-ink'}`}>
