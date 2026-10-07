@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-import { emailTemplates, sendEmail, wrapHtmlLayout } from "@/lib/notificationTemplates";
+import { emailTemplates, sendEmail } from "@/lib/notificationTemplates";
+import { loadMailRental, sendRentalMail } from "@/lib/rentalMail";
 import crypto from "crypto";
 import { cancelNoShowRentals, cancelStaleUnpaidRentals, closeLapsedRentals } from "@/lib/availability";
 import { BUSINESS } from "@/lib/config";
@@ -21,12 +21,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-        return NextResponse.json({ error: "E-Mail-Dienst nicht konfiguriert" }, { status: 500 });
-    }
-    const resend = new Resend(resendApiKey);
 
     const today = new Date();
     const viennaDay = (offset: number) => {
@@ -62,12 +56,7 @@ export async function POST(req: NextRequest) {
                 where: { type: 'PickupReminder', relatedType: 'Rental', relatedId: rental.id, status: 'Sent' },
             });
             if (already) continue;
-            const sent = await sendEmail(rental.customer.email, emailTemplates.pickupReminder({
-                contractNumber: rental.contractNumber,
-                customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
-                car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
-                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, returnLocation: rental.returnLocation?.name, totalAmount: Number(rental.totalAmount) },
-            }));
+            const sent = await sendRentalMail(rental.id, { type: 'pickupReminder' });
             if (sent) {
                 pickupSent++;
                 await prisma.notification.create({
@@ -96,12 +85,7 @@ export async function POST(req: NextRequest) {
                 where: { type: 'ReturnReminder', relatedType: 'Rental', relatedId: rental.id, status: 'Sent' },
             });
             if (already) continue;
-            const sent = await sendEmail(rental.customer.email, emailTemplates.returnReminder({
-                contractNumber: rental.contractNumber,
-                customer: { firstName: rental.customer.firstName, lastName: rental.customer.lastName, email: rental.customer.email },
-                car: { brand: rental.car.brand, model: rental.car.model, plate: rental.car.plate },
-                rental: { startDate: rental.startDate, endDate: rental.endDate, pickupLocation: rental.pickupLocation?.name, returnLocation: rental.returnLocation?.name, totalAmount: Number(rental.totalAmount) },
-            }));
+            const sent = await sendRentalMail(rental.id, { type: 'returnReminder' });
             if (sent) {
                 returnSent++;
                 await prisma.notification.create({
@@ -129,7 +113,6 @@ export async function POST(req: NextRequest) {
 
         let birthdayProcessed = 0;
         for (const customer of birthdayCustomers) {
-            const safeName = customer.firstName.replace(/[&<>"'\r\n]/g, '');
             const code = `BDAY-${customer.id}-${today.getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
             await prisma.discountCoupon.create({
                 data: {
@@ -146,34 +129,8 @@ export async function POST(req: NextRequest) {
                     triggerType: "BIRTHDAY"
                 }
             });
-            await sendEmail(customer.email, {
-                subject: `🎂 Alles Gute zum Geburtstag, ${safeName}! Ihr Geschenk wartet.`,
-                body: `Alles Gute zum Geburtstag! Ihr 10% Rabattcode lautet: ${code}. Gilt für 30 Tage.`,
-                html: wrapHtmlLayout(
-                    "ALLES GUTE ZUM GEBURTSTAG",
-                    "IHR GESCHENK IST DA",
-                    `
-                    <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 15px;">Hallo ${safeName},</h2>
-                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
-                        wir wünschen Ihnen von Herzen alles Gute zum Geburtstag! 🎉
-                    </p>
-                    <p style="color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 25px;">
-                        Als kleines Geschenk erhalten Sie einen <strong>10% Rabattgutschein</strong> für Ihre nächste Fahrzeugmiete bei uns.
-                    </p>
-
-                    <!-- Coupon Code Card -->
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #27272a; border-radius: 12px; margin-bottom: 25px;">
-                        <tr>
-                            <td align="center" style="padding: 25px;">
-                                <span style="color: #dc2626; font-size: 12px; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 6px;">Ihr exklusiver Geburtstagscode:</span>
-                                <strong style="color: #ffffff; font-size: 22px; letter-spacing: 2px; font-family: monospace; display: block; background-color: #09090b; padding: 10px 20px; border-radius: 8px; width: fit-content; margin: 0 auto;">${code}</strong>
-                                <span style="color: #a1a1aa; font-size: 11px; display: block; margin-top: 10px;">Gültig für 30 Tage ab heute.</span>
-                            </td>
-                        </tr>
-                    </table>
-                    `
-                )
-            });
+            const validUntil = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+            await sendEmail(customer.email, emailTemplates.birthday(customer, { code, percent: 10, validUntil }));
             birthdayProcessed++;
         }
         results.birthday = { processed: birthdayProcessed };
@@ -201,12 +158,16 @@ export async function POST(req: NextRequest) {
             if (totalOwed <= 0) continue;
             
             const sendM = async (level: 1 | 2 | 3) => {
-                await resend.emails.send({
-                    from: process.env.EMAIL_FROM || "noreply@rent-ex.at",
-                    to: rental.customer.email,
-                    subject: `Mahnung ${level} - Rechnung ${rental.contractNumber ?? rental.id}`,
-                    html: `<p>Sehr geehrte/r ${rental.customer.firstName.replace(/[<>&]/g, '')}, bitte zahlen Sie €${totalOwed.toFixed(2)} für Vertrag ${String(rental.contractNumber ?? rental.id).replace(/[<>&]/g, '')}.</p>`
-                });
+                const mailRental = await loadMailRental(rental.id);
+                if (!mailRental) return;
+                const dueDate = new Date(today.getTime() + (level === 3 ? 7 : 10) * 24 * 60 * 60 * 1000);
+                const sent = await sendEmail(rental.customer.email, emailTemplates.dunning(mailRental, {
+                    level,
+                    owed: totalOwed,
+                    dueDate,
+                    iban: process.env.COMPANY_IBAN || null,
+                }));
+                if (!sent) return;
                 await prisma.mahnungRecord.create({
                     data: { rentalId: rental.id, level, amount: totalOwed, dueDate: new Date(rental.endDate) }
                 });
@@ -224,7 +185,36 @@ export async function POST(req: NextRequest) {
         results.mahnwesen = { error: e.message };
     }
 
-    // 5. Cart Cleanup
+    // 5. Review requests: once, the day after the car came back. Only with a review link configured.
+    const reviewUrl = process.env.GOOGLE_REVIEW_URL;
+    if (reviewUrl) {
+        try {
+            const yesterday = fromZonedTime(`${viennaDay(-1)}T00:00:00`, BUSINESS.TIME_ZONE);
+            const startOfToday = fromZonedTime(`${viennaDay(0)}T00:00:00`, BUSINESS.TIME_ZONE);
+            const returned = await prisma.rental.findMany({
+                where: { status: 'Completed', actualReturnDate: { gte: yesterday, lt: startOfToday } },
+                select: { id: true, customer: { select: { email: true } } },
+            });
+            let reviewSent = 0;
+            for (const rental of returned) {
+                const already = await prisma.notification.findFirst({
+                    where: { type: 'ReviewRequest', relatedType: 'Rental', relatedId: rental.id },
+                });
+                if (already) continue;
+                if (await sendRentalMail(rental.id, { type: 'reviewRequest', reviewUrl })) {
+                    reviewSent++;
+                    await prisma.notification.create({
+                        data: { type: 'ReviewRequest', recipient: rental.customer.email, subject: 'Bewertungsanfrage', message: 'Bewertungsanfrage', status: 'Sent', sentAt: new Date(), relatedType: 'Rental', relatedId: rental.id },
+                    });
+                }
+            }
+            results.reviewRequests = { sent: reviewSent };
+        } catch (e: any) {
+            results.reviewRequests = { error: e.message };
+        }
+    }
+
+    // 6. Cart Cleanup
     try {
         const cleanup = await prisma.cartSession.deleteMany({
             where: { expiresAt: { lte: today } }
@@ -234,7 +224,7 @@ export async function POST(req: NextRequest) {
         results.cartCleanup = { error: e.message };
     }
 
-    // 6. Abandoned online checkouts (backstop for missed Stripe "expired" webhooks)
+    // 7. Abandoned online checkouts (backstop for missed Stripe "expired" webhooks)
     try {
         results.staleOnlineBookings = { cancelled: await cancelStaleUnpaidRentals() };
         results.noShows = { cancelled: await cancelNoShowRentals() };

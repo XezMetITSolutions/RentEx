@@ -9,7 +9,7 @@
  * Uses Web Crypto only, so it runs in both the Node runtime and middleware.
  */
 
-export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa' | 'booking-view';
+export type SessionPurpose = 'customer' | 'admin' | 'admin-2fa' | 'booking-view' | 'password-reset';
 
 const DEV_FALLBACK_SECRET = 'dev-secret-only-for-local';
 
@@ -50,20 +50,27 @@ function constantTimeEqual(a: string, b: string): boolean {
     return diff === 0;
 }
 
+/** `binding` ties the token to server-side state (e.g. the current password hash) so it dies when that changes. */
+function macInput(purpose: SessionPurpose, id: string | number, exp: string | number, binding?: string): string {
+    return binding ? `${purpose}|${id}|${exp}|${binding}` : `${purpose}|${id}|${exp}`;
+}
+
 export async function createSessionToken(
     purpose: SessionPurpose,
     id: number,
-    ttlSeconds: number
+    ttlSeconds: number,
+    binding?: string
 ): Promise<string> {
     const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
-    const sig = await hmacHex(getSecret(purpose), `${purpose}|${id}|${exp}`);
+    const sig = await hmacHex(getSecret(purpose), macInput(purpose, id, exp, binding));
     return `${id}.${exp}.${sig}`;
 }
 
 /** Returns the id if the token is authentic, unexpired and for `purpose`. */
 export async function verifySessionToken(
     purpose: SessionPurpose,
-    token: string | undefined | null
+    token: string | undefined | null,
+    binding?: string
 ): Promise<number | null> {
     if (!token) return null;
     const parts = token.split('.');
@@ -74,7 +81,7 @@ export async function verifySessionToken(
     const exp = Number(expStr);
     if (exp < Math.floor(Date.now() / 1000)) return null;
 
-    const expected = await hmacHex(getSecret(purpose), `${purpose}|${idStr}|${expStr}`);
+    const expected = await hmacHex(getSecret(purpose), macInput(purpose, idStr, expStr, binding));
     if (!constantTimeEqual(sig, expected)) return null;
 
     const id = Number(idStr);

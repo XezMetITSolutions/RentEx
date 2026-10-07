@@ -9,6 +9,7 @@ import { isBookableCar, isCarAvailable, lockCarForBooking } from '@/lib/availabi
 import { quoteBooking } from '@/lib/bookingPrice';
 import { chargeableDaysBetween } from '@/lib/bookingUtils';
 import { bookingRejectedReason } from '@/lib/rentalGuards';
+import { sendRentalMail } from '@/lib/rentalMail';
 
 export async function createRental(formData: FormData) {
     await requireAdminModule('Reservierungen');
@@ -33,6 +34,7 @@ export async function createRental(formData: FormData) {
     if (!parsed.ok) return { success: false, error: parsed.error };
     const data = parsed.data;
 
+    let createdId: number;
     try {
         const car = await prisma.car.findUnique({ where: { id: data.carId } });
         if (!car) throw new Error('Fahrzeug nicht gefunden');
@@ -93,6 +95,7 @@ export async function createRental(formData: FormData) {
                 where: { id: created.id },
                 data: { contractNumber: `REX-${year}-${String(created.id).padStart(5, '0')}` },
             });
+            createdId = created.id;
         });
     } catch (error) {
         console.error('Error creating rental:', error);
@@ -101,6 +104,8 @@ export async function createRental(formData: FormData) {
         }
         return { success: false, error: 'Fehler beim Erstellen der Miete' };
     }
+
+    await sendRentalMail(createdId!, { type: 'confirmed', staff: false });
 
     revalidatePath('/admin/reservations');
     revalidatePath('/admin/fleet');

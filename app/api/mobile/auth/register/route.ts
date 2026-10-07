@@ -6,6 +6,7 @@ import { validateName } from '@/lib/nameValidation';
 import { rateLimit, getClientIp, RATE_LIMITS, rateLimitErrorMessage } from '@/lib/rateLimit';
 import { apiOk, apiValidation, apiInternal, apiRateLimited, apiError, ERROR_CODES } from '@/lib/apiResponse';
 import { registerMobileSchema, safeValidate } from '@/lib/schemas';
+import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +35,8 @@ export async function POST(req: NextRequest) {
     const customer = await prisma.customer.create({
       data: { firstName, lastName, email, phone, passwordHash },
     });
+
+    await sendEmail(customer.email, emailTemplates.welcome(customer));
 
     const token = signToken(customer.id, 'customer');
     return apiOk({

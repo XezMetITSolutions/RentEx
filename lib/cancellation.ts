@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { RENTAL_TERMS } from '@/lib/config';
 import { releaseCouponUse } from '@/lib/coupons';
 import { refundRental, type RefundActor } from '@/lib/refunds';
+import { sendRentalMail } from '@/lib/rentalMail';
 
 export function cancellationBlockReason(rental: {
     status: string;
@@ -54,6 +55,7 @@ export async function cancelRentalForCustomer(opts: {
         where: { id: rental.id },
         data: { status: 'Cancelled' },
     });
+    await sendRentalMail(rental.id, { type: 'cancelled', by: 'customer', refundedAmount });
 
     return { ok: true, refundedAmount };
 }

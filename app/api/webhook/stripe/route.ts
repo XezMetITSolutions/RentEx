@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
-import { emailTemplates, sendEmail, COMPANY_EMAIL } from '@/lib/notificationTemplates';
+import { sendRentalMail } from '@/lib/rentalMail';
 import { notifyCustomer } from '@/lib/pushNotifications';
 import { UNPAID_ONLINE } from '@/lib/availability';
 import { releaseCouponUse } from '@/lib/coupons';
@@ -106,6 +106,13 @@ export async function POST(req: Request) {
                     actor: { kind: 'admin', staffId: 0, staffName: 'Stripe-Webhook' },
                 });
                 if (!refund.ok) console.error(`[stripe-webhook] Auto-refund failed for rental ${id}: ${refund.error}`);
+                else if (refund.amount > 0) {
+                    await sendRentalMail(id, {
+                        type: 'refunded',
+                        amount: refund.amount,
+                        reason: 'Die Zahlung ging erst nach Ablauf der Reservierung ein.',
+                    });
+                }
                 await prisma.notification.create({
                     data: {
                         type: 'System',
@@ -138,32 +145,9 @@ export async function POST(req: Request) {
                 });
             }
 
-            // Send payment confirmation email. A cancelled booking is refunded above.
-            if (!firstDelivery.short && rental.status !== 'Cancelled' && rental.customer && rental.car && rental.contractNumber) {
-                const templateData = {
-                    contractNumber: rental.contractNumber,
-                    customer: {
-                        firstName: rental.customer.firstName,
-                        lastName: rental.customer.lastName,
-                        email: rental.customer.email,
-                    },
-                    car: {
-                        brand: rental.car.brand,
-                        model: rental.car.model,
-                        plate: rental.car.plate,
-                    },
-                    rental: {
-                        startDate: rental.startDate,
-                        endDate: rental.endDate,
-                        totalAmount: Number(rental.totalAmount),
-                    },
-                };
-                await sendEmail(rental.customer.email, emailTemplates.paymentConfirmation(templateData));
-                // Send a copy to the company email address
-                await sendEmail(COMPANY_EMAIL, {
-                    ...emailTemplates.paymentConfirmation(templateData),
-                    subject: `[ZAHLUNG ERHALTEN] ${templateData.contractNumber} - ${templateData.customer.firstName} ${templateData.customer.lastName}`
-                });
+            // Confirmation to customer + office. A cancelled booking is refunded above.
+            if (!firstDelivery.short && rental.status !== 'Cancelled') {
+                await sendRentalMail(id, { type: 'paid' });
 
                 // Push notification (best effort — never blocks)
                 notifyCustomer(rental.customer.id, {
@@ -197,6 +181,7 @@ export async function POST(req: Request) {
             });
             if (released.count > 0) {
                 await releaseCouponUse(existing?.discountReason);
+                await sendRentalMail(id, { type: 'paymentExpired' });
                 console.log(`[stripe-webhook] Rental ${id} released (${event.type}).`);
             }
         }

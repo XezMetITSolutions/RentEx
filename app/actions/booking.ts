@@ -18,7 +18,7 @@ import { rateLimit, getClientIpFromHeaders, rateLimitErrorMessage } from "@/lib/
 import { r2, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
-import { sendEmail, emailTemplates, COMPANY_EMAIL } from "@/lib/notificationTemplates";
+import { sendRentalMail } from "@/lib/rentalMail";
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_LICENSE_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -533,44 +533,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
             redirect(sessionUrl);
         }
     } else {
-        // Send booking confirmation email for Pay-on-Arrival
-        try {
-            const outsideHours = isOutsideOpeningHours(startDateStr, pickupTimeStr) || isOutsideOpeningHours(endDateStr, returnTimeStr);
-            const place = car.currentLocation?.name;
-            const templateData = {
-                contractNumber,
-                customer: {
-                    firstName: customer.firstName,
-                    lastName: customer.lastName,
-                    email: customer.email,
-                },
-                car: {
-                    brand: car.brand,
-                    model: car.model,
-                    plate: car.plate,
-                },
-                rental: {
-                    startDate,
-                    endDate,
-                    totalAmount: quote.total,
-                    pickupLocation: place,
-                    returnLocation: place,
-                    handoverNote: outsideHours
-                        ? `Abholung oder Rückgabe liegt außerhalb der Öffnungszeiten. Bitte rufen Sie uns unter ${BUSINESS.PHONE} an, damit wir die Übergabe abstimmen.`
-                        : undefined,
-                    depositNote: car.depositAmount != null
-                        ? `Kaution €${Number(car.depositAmount).toFixed(2)} wird bei Abholung hinterlegt und ist nicht im Gesamtbetrag enthalten.`
-                        : undefined,
-                },
-            };
-            await sendEmail(customer.email, emailTemplates.bookingConfirmation(templateData));
-            await sendEmail(COMPANY_EMAIL, {
-                ...emailTemplates.bookingConfirmation(templateData),
-                subject: `[NEUE RESERVIERUNG] ${templateData.contractNumber} - ${templateData.customer.firstName} ${templateData.customer.lastName}`
-            });
-        } catch (emailError) {
-            console.error("Failed to send pay-on-arrival booking confirmation email:", emailError);
-        }
+        await sendRentalMail(rental.id, { type: 'confirmed' });
     }
 
     await grantBookingView(rental.id);

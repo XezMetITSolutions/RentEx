@@ -21,6 +21,9 @@ import {
     verifyStaffSecondFactor,
 } from '@/lib/totp';
 import { auditLog } from '@/lib/audit';
+import { createSessionToken, verifySessionToken } from '@/lib/sessionToken';
+import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
+import { SITE_URL } from '@/lib/config';
 
 export async function adminLogin(formData: FormData) {
     const email = (formData.get('email') as string)?.trim();
@@ -289,7 +292,7 @@ export async function register(formData: FormData) {
 
     const existing = await prisma.customer.findUnique({ where: { email } });
     if (existing) {
-        redirect(`/register?error=${encodeURIComponent('Diese E-Mail ist bereits registriert.')}`);
+        redirect(`/register?error=${encodeURIComponent('Für diese E-Mail gibt es bereits ein Konto. Über „Passwort vergessen“ auf der Anmeldeseite legen Sie ein Passwort fest.')}`);
     }
 
     const passwordHash = hashPassword(password);
@@ -304,6 +307,86 @@ export async function register(formData: FormData) {
     });
 
     await setSession(customer.id);
+    await sendEmail(customer.email, emailTemplates.welcome(customer));
+    redirect('/dashboard');
+}
+
+const RESET_TTL_MINUTES = 60;
+const MIN_PASSWORD_LENGTH = 8;
+const RESET_SENT_MESSAGE = 'Falls ein Konto mit dieser E-Mail existiert, haben wir Ihnen einen Link zum Zurücksetzen geschickt. Bitte prüfen Sie auch den Spam-Ordner.';
+
+/** Ties the reset link to the current password: once it changes, the link is dead. */
+const resetBinding = (passwordHash: string | null) => passwordHash ?? 'no-password';
+
+/**
+ * Sends a reset link. Always answers the same, so the form does not reveal
+ * which addresses have an account. Guest customers (booked without a
+ * password) can use it to set one.
+ */
+export async function requestPasswordReset(_prev: unknown, formData: FormData): Promise<{ message?: string; error?: string }> {
+    const email = ((formData.get('email') as string) || '').trim().toLowerCase();
+    if (!email.includes('@')) return { error: 'Bitte eine gültige E-Mail-Adresse eingeben.' };
+
+    const ip = await getClientIpFromHeaders();
+    const rl = rateLimit(`pw-reset:${ip}`, RATE_LIMITS.AUTH_PASSWORD);
+    if (!rl.allowed) return { error: rateLimitErrorMessage(rl) };
+    const perEmail = rateLimit(`pw-reset:${email}`, { limit: 3, windowSeconds: 60 * 60 });
+    if (!perEmail.allowed) return { message: RESET_SENT_MESSAGE };
+
+    const customer = await prisma.customer.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' }, isBlacklisted: false },
+    });
+    if (customer) {
+        const token = await createSessionToken('password-reset', customer.id, RESET_TTL_MINUTES * 60, resetBinding(customer.passwordHash));
+        const url = `${SITE_URL}/reset-password?token=${encodeURIComponent(token)}`;
+        await sendEmail(customer.email, emailTemplates.passwordReset(customer, { url, validMinutes: RESET_TTL_MINUTES }));
+        await auditLog({
+            action: 'PASSWORD_RESET_REQUESTED',
+            entityType: 'Customer',
+            entityId: customer.id,
+            actor: { kind: 'system' },
+            description: `Passwort-Reset angefordert für ${customer.email}`,
+        });
+    }
+    return { message: RESET_SENT_MESSAGE };
+}
+
+/** Customer id for a still-valid reset token, or null. */
+export async function checkResetToken(token: string): Promise<number | null> {
+    const idStr = token.split('.')[0];
+    if (!/^\d+$/.test(idStr)) return null;
+    const customer = await prisma.customer.findUnique({ where: { id: Number(idStr) }, select: { passwordHash: true } });
+    if (!customer) return null;
+    return verifySessionToken('password-reset', token, resetBinding(customer.passwordHash));
+}
+
+export async function resetPassword(_prev: unknown, formData: FormData): Promise<{ error?: string }> {
+    const token = (formData.get('token') as string) || '';
+    const password = (formData.get('password') as string) || '';
+    const repeat = (formData.get('passwordRepeat') as string) || '';
+
+    const ip = await getClientIpFromHeaders();
+    const rl = rateLimit(`pw-reset-set:${ip}`, RATE_LIMITS.AUTH_PASSWORD);
+    if (!rl.allowed) return { error: rateLimitErrorMessage(rl) };
+
+    if (password.length < MIN_PASSWORD_LENGTH) return { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen haben.` };
+    if (password !== repeat) return { error: 'Die Passwörter stimmen nicht überein.' };
+
+    const customerId = await checkResetToken(token);
+    if (customerId == null) return { error: 'Der Link ist abgelaufen oder wurde bereits verwendet. Bitte fordern Sie einen neuen an.' };
+
+    await prisma.customer.update({
+        where: { id: customerId },
+        data: { passwordHash: hashPassword(password) },
+    });
+    await auditLog({
+        action: 'PASSWORD_RESET',
+        entityType: 'Customer',
+        entityId: customerId,
+        actor: { kind: 'customer', id: customerId },
+        description: 'Passwort über E-Mail-Link neu gesetzt',
+    });
+    await setSession(customerId);
     redirect('/dashboard');
 }
 

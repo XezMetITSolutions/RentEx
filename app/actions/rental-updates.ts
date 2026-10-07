@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { settleReturnMileage } from "@/lib/returnSettlement";
 import { assertReturnMileage } from "@/lib/rentalGuards";
+import { sendRentalMail } from "@/lib/rentalMail";
 
 export async function updateRentalStatus(id: number, status: string, returnMileageOrFormData?: number | FormData) {
     const session = await requireAdminModule('Reservierungen');
@@ -69,6 +70,7 @@ export async function updateRentalStatus(id: number, status: string, returnMilea
                 currentMileage: finalReturnMileage || undefined,
             }
         });
+        await sendRentalMail(id, { type: 'completed' });
     } else {
         const allowed = ['Pending', 'Confirmed', 'Active', 'Cancelled', 'NoShow'];
         if (!allowed.includes(status)) throw new Error('Unbekannter Status');
@@ -76,6 +78,9 @@ export async function updateRentalStatus(id: number, status: string, returnMilea
             where: { id: id },
             data: { status: status as any }
         });
+        if (status === 'Cancelled' && rental.status !== 'Cancelled') {
+            await sendRentalMail(id, { type: 'cancelled', by: 'company' });
+        }
         if (rental.status === 'Active' && status !== 'Active') {
             const stillOut = await prisma.rental.count({
                 where: { carId: rental.carId, status: 'Active', id: { not: id } },

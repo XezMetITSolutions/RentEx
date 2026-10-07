@@ -7,6 +7,7 @@ import { quoteBooking } from "@/lib/bookingPrice";
 import { chargeableDaysBetween } from "@/lib/bookingUtils";
 import { CAR_BUSY_MESSAGE, lockCarForBooking, overlapWhere } from "@/lib/availability";
 import { bookingRejectedReason } from "@/lib/rentalGuards";
+import { sendRentalMail } from "@/lib/rentalMail";
 
 export async function extendRental(rentalId: number, newEndDate: string, _additionalCost?: number) {
     await requireAdminModule('Reservierungen');
@@ -69,6 +70,12 @@ export async function extendRental(rentalId: number, newEndDate: string, _additi
                     : rental.notes,
             },
         });
+    });
+
+    await sendRentalMail(rentalId, {
+        type: 'changed',
+        previousEnd: new Date(rental.endDate),
+        previousTotal: Number(rental.totalAmount),
     });
 
     revalidatePath(`/admin/reservations/${rentalId}`);

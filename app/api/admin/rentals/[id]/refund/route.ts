@@ -3,6 +3,7 @@ import { requireAdminApiModule } from '@/lib/adminAccess';
 import { refundRental } from '@/lib/refunds';
 import { apiOk, apiUnauthorized, apiValidation, apiError, ERROR_CODES } from '@/lib/apiResponse';
 import { auditLog } from '@/lib/audit';
+import { sendRentalMail } from '@/lib/rentalMail';
 
 
 export async function POST(
@@ -59,6 +60,8 @@ export async function POST(
     ipAddress: req.headers.get('x-forwarded-for') || undefined,
     userAgent: req.headers.get('user-agent') || undefined
   });
+
+  await sendRentalMail(rentalId, { type: 'refunded', amount: result.amount, reason: reason || null });
 
   return apiOk({
     success: true,

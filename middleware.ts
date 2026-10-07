@@ -132,7 +132,9 @@ export async function middleware(request: NextRequest) {
         !pathname.startsWith('/admin') &&
         !pathname.startsWith('/dashboard') &&
         !pathname.startsWith('/login') &&
-        !pathname.startsWith('/register')
+        !pathname.startsWith('/register') &&
+        !pathname.startsWith('/forgot-password') &&
+        !pathname.startsWith('/reset-password')
     ) {
         let targetPath = '/mobile';
         if (pathname === '/') targetPath = '/mobile';

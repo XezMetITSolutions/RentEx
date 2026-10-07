@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import prisma from './prisma';
 import { PENDING_PAYMENT_TTL_MINUTES, RENTAL_TERMS } from './config';
 import { releaseCouponUse } from './coupons';
+import { sendRentalMail } from './rentalMail';
 
 /** Rental statuses that occupy a car for their date range. */
 export const BLOCKING_RENTAL_STATUSES = ['Pending', 'Confirmed', 'Active'];
@@ -113,7 +114,7 @@ export async function lockCarForBooking(tx: Prisma.TransactionClient, carId: num
 export async function cancelStaleUnpaidRentals(db: Db = prisma): Promise<number> {
     const stale = await db.rental.findMany({
         where: staleUnpaidOnline(),
-        select: { id: true, discountReason: true },
+        select: { id: true, discountReason: true, stripeSessionId: true },
     });
     for (const rental of stale) {
         const released = await db.rental.updateMany({
@@ -123,7 +124,11 @@ export async function cancelStaleUnpaidRentals(db: Db = prisma): Promise<number>
                 notes: `Automatisch storniert: Online-Zahlung nicht innerhalb von ${PENDING_PAYMENT_TTL_MINUTES} Minuten abgeschlossen.`,
             },
         });
-        if (released.count > 0) await releaseCouponUse(rental.discountReason);
+        if (released.count > 0) {
+            await releaseCouponUse(rental.discountReason);
+            // Without a Stripe session the customer saw the error on the spot; nothing to remind about.
+            if (rental.stripeSessionId) await sendRentalMail(rental.id, { type: 'paymentExpired' });
+        }
     }
     return stale.length;
 }
@@ -147,7 +152,10 @@ export async function cancelNoShowRentals(): Promise<number> {
                 notes: 'Automatisch storniert: Fahrzeug nicht abgeholt.',
             },
         });
-        if (released.count > 0) await releaseCouponUse(rental.discountReason);
+        if (released.count > 0) {
+            await releaseCouponUse(rental.discountReason);
+            await sendRentalMail(rental.id, { type: 'cancelled', by: 'noShow' });
+        }
     }
     return stale.length;
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
-import { emailTemplates, sendEmail } from '@/lib/notificationTemplates';
 import { cancelRentalForCustomer } from '@/lib/cancellation';
 
 function parseFeatures(features: string | null): string[] | null {
@@ -76,28 +75,6 @@ export async function POST(
     });
     if (!updated) {
       return NextResponse.json({ error: 'Buchung nicht gefunden.' }, { status: 404 });
-    }
-
-    // Send cancellation confirmation email (best-effort)
-    if (updated.customer && updated.car && updated.contractNumber) {
-      sendEmail(updated.customer.email, emailTemplates.cancellationConfirmation({
-        contractNumber: updated.contractNumber,
-        customer: {
-          firstName: updated.customer.firstName,
-          lastName: updated.customer.lastName,
-          email: updated.customer.email,
-        },
-        car: {
-          brand: updated.car.brand,
-          model: updated.car.model,
-          plate: updated.car.plate,
-        },
-        rental: {
-          startDate: updated.startDate,
-          endDate: updated.endDate,
-          totalAmount: Number(updated.totalAmount),
-        },
-      })).catch((e) => console.error('[cancel] Email send failed:', e));
     }
 
     return NextResponse.json(serializeBooking(updated));

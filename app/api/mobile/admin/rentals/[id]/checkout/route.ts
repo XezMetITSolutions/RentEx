@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthStaff } from '@/lib/mobileAuth';
+import { sendRentalMail } from '@/lib/rentalMail';
 
 export async function POST(
   req: NextRequest,
@@ -58,6 +59,7 @@ export async function POST(
       },
     }),
   ]);
+  await sendRentalMail(rentalId, { type: 'completed' });
 
   return NextResponse.json({ success: true });
 }

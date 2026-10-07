@@ -9,6 +9,7 @@ import { Prisma } from "@prisma/client";
 import { RENTAL_TERMS } from "@/lib/config";
 import { settleReturnMileage } from "@/lib/returnSettlement";
 import { assertReturnMileage } from "@/lib/rentalGuards";
+import { sendRentalMail } from "@/lib/rentalMail";
 
 export interface CheckOutInput {
     returnMileage: number;
@@ -122,6 +123,7 @@ export async function performCheckOut(rentalId: number, data: CheckOutInput) {
             currentMileage: returnKm
         }
     });
+    await sendRentalMail(rentalId, { type: 'completed' });
 
     revalidatePath('/admin/check-out');
     revalidatePath('/admin/reservations');
