@@ -28,7 +28,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Adresse</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">Illstraße 75a, 6800 Feldkirch, Österreich</p>
+                                        <a href="https://maps.google.com/?q=Illstraße+75a,+6800+Feldkirch" target="_blank" rel="noopener noreferrer" className="text-gray-900 dark:text-white font-medium hover:underline hover:text-red-500 transition-colors">Illstraße 75a, 6800 Feldkirch, Österreich</a>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -37,7 +37,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Telefon</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">+43 660 9996800</p>
+                                        <a href="tel:+436609996800" className="text-gray-900 dark:text-white font-medium hover:underline hover:text-red-500 transition-colors">+43 660 9996800</a>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -46,7 +46,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">E-Mail</p>
-                                        <p className="text-gray-900 dark:text-white font-medium">info@rent-ex.at</p>
+                                        <a href="mailto:info@rent-ex.at" className="text-gray-900 dark:text-white font-medium hover:underline hover:text-red-500 transition-colors">info@rent-ex.at</a>
                                     </div>
                                 </div>
                             </div>

@@ -17,21 +17,21 @@ export default function MobileContact() {
           <Phone className="w-6 h-6 text-[#E53935]" />
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-[14px]">Telefon</h3>
-            <p className="text-[12px] text-gray-500 dark:text-[#A3A3A3]">+43 660 9996800</p>
+            <a href="tel:+436609996800" className="text-[12px] text-gray-500 dark:text-[#A3A3A3] hover:text-[#E53935] block">+43 660 9996800</a>
           </div>
         </div>
         <div className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors">
           <Mail className="w-6 h-6 text-[#E53935]" />
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-[14px]">E-Mail</h3>
-            <p className="text-[12px] text-gray-500 dark:text-[#A3A3A3]">info@rentex.at</p>
+            <a href="mailto:info@rent-ex.at" className="text-[12px] text-gray-500 dark:text-[#A3A3A3] hover:text-[#E53935] block">info@rent-ex.at</a>
           </div>
         </div>
         <div className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors">
           <MapPin className="w-6 h-6 text-[#E53935]" />
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-[14px]">Adresse</h3>
-            <p className="text-[12px] text-gray-500 dark:text-[#A3A3A3]">Feldkirch, Österreich</p>
+            <a href="https://maps.google.com/?q=Illstraße+75a,+6800+Feldkirch" target="_blank" rel="noopener noreferrer" className="text-[12px] text-gray-500 dark:text-[#A3A3A3] hover:text-[#E53935] block">Illstraße 75a, 6800 Feldkirch, Österreich</a>
           </div>
         </div>
       </div>

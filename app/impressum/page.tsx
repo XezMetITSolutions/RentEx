@@ -21,7 +21,7 @@ export default function ImpressumPage() {
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">RENT-EX GmbH</h3>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <p><strong className="text-gray-900 dark:text-white">Adresse:</strong><br />Illstraße 75a, 6800 Feldkirch, Österreich</p>
+                                <p><strong className="text-gray-900 dark:text-white">Adresse:</strong><br /><a href="https://maps.google.com/?q=Illstraße+75a,+6800+Feldkirch" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-red-500 transition-colors">Illstraße 75a, 6800 Feldkirch, Österreich</a></p>
                                 <p className="mt-4"><strong className="text-gray-900 dark:text-white">Firmensitz:</strong><br />Reichsstraße 126 6820 Feldkirch</p>
                                 <p className="mt-4"><strong className="text-gray-900 dark:text-white">UID-Nummer:</strong> ATU76189189</p>
                                 <p><strong className="text-gray-900 dark:text-white">Firmenbuchnummer:</strong> FN 660833p</p>
@@ -29,7 +29,7 @@ export default function ImpressumPage() {
                             </div>
                             <div>
                                 <p><strong className="text-gray-900 dark:text-white">Kontakt:</strong><br />
-                                    Tel.: 0660 999 6800<br />
+                                    Tel.: <a href="tel:+436609996800" className="hover:underline hover:text-red-500 transition-colors">0660 999 6800</a><br />
                                     E-Mail: <a href="mailto:info@rent-ex.at" className="text-red-500 hover:text-red-600">info@rent-ex.at</a></p>
 
                                 <p className="mt-4"><strong className="text-gray-900 dark:text-white">Mitglied bei:</strong> Wirtschaftskammer Vorarlberg</p>
@@ -48,10 +48,10 @@ export default function ImpressumPage() {
                         </p>
                         <p className="mt-2">
                             <strong>RENT-EX GmbH</strong><br />
-                            Illstraße 75a<br />
-                            6800 Feldkirch<br />
-                            E-Mail-Adresse: info@rent-ex.at<br />
-                            Telefon: 0660 999 6800<br />
+                            <a href="https://maps.google.com/?q=Illstraße+75a,+6800+Feldkirch" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-red-500 transition-colors">Illstraße 75a<br />
+                            6800 Feldkirch</a><br />
+                            E-Mail-Adresse: <a href="mailto:info@rent-ex.at" className="hover:underline hover:text-red-500 transition-colors">info@rent-ex.at</a><br />
+                            Telefon: <a href="tel:+436609996800" className="hover:underline hover:text-red-500 transition-colors">0660 999 6800</a><br />
                             Impressum: <a href="http://rent-ex.at/impressum/" className="text-red-500 hover:text-red-600">http://rent-ex.at/impressum/</a>
                         </p>
                     </section>

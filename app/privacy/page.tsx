@@ -78,7 +78,7 @@ export default function PrivacyPage() {
                         </p>
                         <p className="mt-2">
                             <strong>E-Mail:</strong> <a href="mailto:info@rent-ex.at" className="text-red-500 hover:text-red-600">info@rent-ex.at</a><br />
-                            <strong>Telefon:</strong> 0660 999 6800<br />
+                            <strong>Telefon:</strong> <a href="tel:+436609996800" className="text-red-500 hover:text-red-600">0660 999 6800</a><br />
                             <strong>Impressum:</strong> <Link href="/impressum" className="text-red-500 hover:text-red-600">http://rent-ex.at/impressum/</Link>
                         </p>
                     </section>
