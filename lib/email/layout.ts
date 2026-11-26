@@ -120,9 +120,9 @@ function renderBlockHtml(block: Block): string {
             return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 20px;border-collapse:collapse;">${trs}</table>`;
         }
         case 'button':
-            return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px;">
-<tr><td bgcolor="${C.accent}" style="border-radius:4px;">
-<a href="${esc(block.href)}" style="display:inline-block;padding:13px 22px;font-family:${FONT};font-size:15px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:4px;">${esc(block.label)}</a>
+            return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 28px;width:100%;">
+<tr><td align="center" bgcolor="${C.accent}" style="border-radius:8px;background-color:${C.accent};">
+<a href="${esc(block.href)}" style="display:block;padding:16px 28px;font-family:${FONT};font-size:15px;font-weight:700;line-height:1.2;color:#ffffff;text-decoration:none;border-radius:8px;text-align:center;">${esc(block.label)}</a>
 </td></tr></table>`;
         case 'note':
             return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 20px;">

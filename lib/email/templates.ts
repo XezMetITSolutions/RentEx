@@ -67,7 +67,7 @@ const isTransfer = (r: MailRental) => (r.paymentMethod || '').toLowerCase() === 
 const paymentLabel = (r: MailRental) =>
     isOnline(r) ? 'Online' : isTransfer(r) ? 'Überweisung' : 'Bei Abholung, bar oder mit Karte';
 const openAmount = (r: MailRental) => Math.max(0, Math.round((r.totalAmount - r.paid) * 100) / 100);
-const bookingUrl = (r: MailRental) => `${SITE_URL}/dashboard/rentals/${r.id}`;
+const bookingUrl = (r: MailRental) => `${SITE_URL}/self-checkin/${r.id}`;
 
 function build(subject: string, spec: Parameters<typeof renderEmail>[0]): EmailMessage {
     const { html, text } = renderEmail(spec);
@@ -108,10 +108,18 @@ function handoverNote(r: MailRental, which: 'pickup' | 'return' | 'both'): Block
     const outside =
         (which !== 'return' && r.pickupOutsideHours) || (which !== 'pickup' && r.returnOutsideHours);
     if (!outside) return null;
+
+    // Deterministic 4-digit key safe code based on contract/id (or default PIN)
+    const codeNumber = (Math.abs(r.id * 17 + 8421) % 9000 + 1000).toString();
+
     return {
         kind: 'note',
-        title: 'Übergabe außerhalb der Öffnungszeiten',
-        text: `Bitte rufen Sie uns vorab unter ${BUSINESS.PHONE} an. Wir vereinbaren dann die schlüssellose Übergabe mit Ihnen.`,
+        title: '🔑 24/7 Schlüsseltresor & Übergabe außerhalb der Öffnungszeiten',
+        text: `Ihre Abholung liegt außerhalb unserer Bürozeiten. Ihr Fahrzeugschlüssel ist im **digitalen 24/7 Schlüsseltresor** an unserer Filiale hinterlegt.\n\n` +
+            `**Standort Tresor:** Direkt am Haupteingang (Illstraße 75a, 6800 Feldkirch)\n` +
+            `**Ihr Safe-PIN-Code:** **${codeNumber}**\n\n` +
+            `⚠️ **Wichtige Haftungsregelung (AGB §8):**\n` +
+            `Bitte starten Sie vor Fahrtantritt das digitale Übergabeprotokoll. Ab Entnahme des Schlüssels bis zur Rückgabe haften Sie vollumfänglich für das Fahrzeug. Nicht vor Fahrtantritt per Foto gemeldete Vorschäden können nachträglich nicht anerkannt werden.`,
     };
 }
 
@@ -158,7 +166,11 @@ function bookingConfirmation(r: MailRental, opts: { paid?: boolean } = {}): Emai
             BRING,
             { kind: 'p', text: `Sie erhalten das Fahrzeug vollgetankt und geben es vollgetankt zurück. Fehlender Kraftstoff wird zuzüglich ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)} Servicegebühr verrechnet.` },
             { kind: 'p', text: CANCELLATION_TERMS },
-            r.customer.hasAccount ? { kind: 'button', label: 'Buchung ansehen', href: bookingUrl(r) } : null,
+            { 
+                kind: 'button', 
+                label: r.pickupOutsideHours ? 'Übergabe starten & Fahrzeugzustand prüfen →' : 'Buchungsdetails & Fahrzeugübergabe ansehen →', 
+                href: bookingUrl(r) 
+            },
         ],
         reason: 'Sie erhalten diese E-Mail, weil Sie bei Rent-Ex ein Fahrzeug gebucht haben.',
     });
