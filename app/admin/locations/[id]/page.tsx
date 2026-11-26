@@ -1,8 +1,9 @@
-import { MapPin, Phone, Mail, Clock, Car, Calendar, Edit, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Car, Calendar, Edit, ArrowLeft, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { clsx } from 'clsx';
+import AustrianPlate from '@/components/ui/AustrianPlate';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,110 +72,137 @@ export default async function LocationDetailPage(props: {
     const totalVehicles = uniqueCars.length;
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto space-y-6 pb-16 px-4 sm:px-6 lg:px-8 text-hm-ink">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-hm-rule">
                 <div className="flex items-center gap-4">
                     <Link
                         href="/admin/locations"
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        className="p-2.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule text-hm-muted hover:text-hm-ink transition-colors"
+                        title="Zurück zur Standortübersicht"
                     >
-                        <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        <ArrowLeft className="w-4 h-4" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{location.name}</h1>
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Details und Fahrzeuge dieses Standorts
+                        <div className="flex items-center gap-3">
+                            <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
+                                {location.name}
+                            </h1>
+                            <span className={clsx(
+                                "px-2.5 py-0.5 rounded-[var(--hm-radius-pill)] font-mono text-[11px] font-bold uppercase tracking-wider border",
+                                location.status === 'active'
+                                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                                    : "bg-hm-paper-2 text-hm-muted border-hm-rule"
+                            )}>
+                                {location.status === 'active' ? 'Aktiv' : 'Inaktiv'}
+                            </span>
+                        </div>
+                        <p className="text-xs font-mono text-hm-muted mt-1">
+                            {location.address ? `${location.address}, ${location.city || ''}` : 'Zentraler Betriebsstandort'}
+                            {location.code && ` · Code: ${location.code}`}
                         </p>
                     </div>
                 </div>
-                <Link
-                    href={`/admin/locations/${location.id}/edit`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white font-semibold rounded-lg hover:from-orange-500 hover:to-orange-600 transition-all shadow-lg shadow-orange-500/30"
-                >
-                    <Edit className="w-5 h-5" />
-                    Bearbeiten
-                </Link>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                            <Car className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Fahrzeuge</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalVehicles}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Abholungen</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{location._count.pickups}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                            <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Rückgaben</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{location._count.returns}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                    <div className="flex items-center gap-4">
-                        <div className={clsx(
-                            'p-3 rounded-lg',
-                            location.status === 'active'
-                                ? 'bg-green-100 dark:bg-green-900/30'
-                                : 'bg-gray-100 dark:bg-gray-700'
-                        )}>
-                            <MapPin className={clsx(
-                                'w-6 h-6',
-                                location.status === 'active'
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-gray-600 dark:text-gray-400'
-                            )} />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {location.status === 'active' ? 'Aktiv' : 'Inaktiv'}
-                            </p>
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2.5">
+                    <Link
+                        href={`/admin/locations/${location.id}/edit`}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule text-hm-ink font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs"
+                    >
+                        <Edit className="w-3.5 h-3.5 text-hm-muted" />
+                        Standort bearbeiten
+                    </Link>
                 </div>
             </div>
 
-            {/* Location Details */}
+            {/* KPI Overview Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">
+                            Fahrzeuge vor Ort
+                        </span>
+                        <div className="p-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                            <Car className="w-4 h-4 text-hm-accent" />
+                        </div>
+                    </div>
+                    <p className="hm-display text-2xl font-bold text-hm-ink mt-3 hm-tnum">
+                        {totalVehicles}
+                    </p>
+                    <p className="text-[11px] font-mono text-hm-muted mt-2">
+                        Zugewiesene Flotteneinzelfahrzeuge
+                    </p>
+                </div>
+
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">
+                            Abholungen gesamt
+                        </span>
+                        <div className="p-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                            <Calendar className="w-4 h-4 text-emerald-600" />
+                        </div>
+                    </div>
+                    <p className="hm-display text-2xl font-bold text-hm-ink mt-3 hm-tnum">
+                        {location._count.pickups}
+                    </p>
+                    <p className="text-[11px] font-mono text-hm-muted mt-2">
+                        Erfolgte Fahrzeugübernahmen
+                    </p>
+                </div>
+
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">
+                            Rückgaben gesamt
+                        </span>
+                        <div className="p-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                            <Calendar className="w-4 h-4 text-blue-500" />
+                        </div>
+                    </div>
+                    <p className="hm-display text-2xl font-bold text-hm-ink mt-3 hm-tnum">
+                        {location._count.returns}
+                    </p>
+                    <p className="text-[11px] font-mono text-hm-muted mt-2">
+                        Erfolgte Fahrzeugrückgaben
+                    </p>
+                </div>
+
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-hm-muted">
+                            Betriebsstatus
+                        </span>
+                        <div className="p-2 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-ink">
+                            <MapPin className="w-4 h-4 text-hm-accent" />
+                        </div>
+                    </div>
+                    <p className="hm-display text-2xl font-bold text-hm-ink mt-3">
+                        {location.status === 'active' ? 'Aktiv' : 'Inaktiv'}
+                    </p>
+                    <p className="text-[11px] font-mono text-hm-muted mt-2">
+                        Für Kundenbuchungen freigeschaltet
+                    </p>
+                </div>
+            </div>
+
+            {/* Location Details: Contact & Hours */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Contact & Address */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Kontakt & Adresse</h2>
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule space-y-4">
+                    <span className="font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted flex items-center gap-1.5 pb-2 border-b border-hm-rule">
+                        <Building2 className="w-3.5 h-3.5 text-hm-accent" /> Standort & Kontakt
+                    </span>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 pt-1 text-xs">
                         {location.address && (
                             <div className="flex items-start gap-3">
-                                <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                                <MapPin className="w-4 h-4 text-hm-muted mt-0.5 shrink-0" />
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{location.address}</p>
+                                    <p className="font-semibold text-hm-ink">{location.address}</p>
                                     {location.city && (
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            {location.city}, {location.country}
+                                        <p className="text-hm-muted">
+                                            {location.city}, {location.country || 'Österreich'}
                                         </p>
                                     )}
                                 </div>
@@ -183,10 +211,10 @@ export default async function LocationDetailPage(props: {
 
                         {location.phone && (
                             <div className="flex items-center gap-3">
-                                <Phone className="w-5 h-5 text-gray-400" />
+                                <Phone className="w-4 h-4 text-hm-muted shrink-0" />
                                 <a
                                     href={`tel:${location.phone}`}
-                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                                    className="text-hm-ink font-mono hover:underline"
                                 >
                                     {location.phone}
                                 </a>
@@ -195,10 +223,10 @@ export default async function LocationDetailPage(props: {
 
                         {location.email && (
                             <div className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-gray-400" />
+                                <Mail className="w-4 h-4 text-hm-muted shrink-0" />
                                 <a
                                     href={`mailto:${location.email}`}
-                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                                    className="text-hm-ink font-mono hover:underline"
                                 >
                                     {location.email}
                                 </a>
@@ -207,11 +235,9 @@ export default async function LocationDetailPage(props: {
 
                         {location.code && (
                             <div className="flex items-center gap-3">
-                                <div className="w-5 h-5 flex items-center justify-center">
-                                    <span className="text-gray-400">#</span>
-                                </div>
-                                <span className="text-sm text-gray-900 dark:text-white font-mono">
-                                    Code: {location.code}
+                                <span className="font-mono text-hm-muted">Kürzel:</span>
+                                <span className="font-mono font-bold text-hm-ink bg-hm-paper-2 px-2 py-0.5 rounded border border-hm-rule">
+                                    {location.code}
                                 </span>
                             </div>
                         )}
@@ -219,111 +245,104 @@ export default async function LocationDetailPage(props: {
                 </div>
 
                 {/* Opening Hours */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-red-500" />
-                        Öffnungszeiten
-                    </h2>
+                <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule space-y-4">
+                    <span className="font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted flex items-center gap-1.5 pb-2 border-b border-hm-rule">
+                        <Clock className="w-3.5 h-3.5 text-hm-accent" /> Öffnungszeiten & Check-in
+                    </span>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2.5 pt-1 text-xs font-mono">
                         {location.openingTime && location.closingTime ? (
                             <>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Montag - Freitag</span>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                        {location.openingTime} - {location.closingTime}
+                                <div className="flex justify-between items-center py-1 border-b border-hm-rule">
+                                    <span className="text-hm-muted">Montag – Freitag</span>
+                                    <span className="font-bold text-hm-ink">
+                                        {location.openingTime} – {location.closingTime} Uhr
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Samstag</span>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                        {location.openingTime} - {location.closingTime}
+                                <div className="flex justify-between items-center py-1 border-b border-hm-rule">
+                                    <span className="text-hm-muted">Samstag</span>
+                                    <span className="font-bold text-hm-ink">
+                                        {location.openingTime} – {location.closingTime} Uhr
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Sonntag</span>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                        {location.isOpenSundays ? `${location.openingTime} - ${location.closingTime}` : 'Geschlossen'}
+                                <div className="flex justify-between items-center py-1">
+                                    <span className="text-hm-muted">Sonntag</span>
+                                    <span className="font-bold text-hm-ink">
+                                        {location.isOpenSundays ? `${location.openingTime} – ${location.closingTime} Uhr` : '24/7 Schlüsseltresor'}
                                     </span>
                                 </div>
                             </>
                         ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Keine Öffnungszeiten angegeben
-                            </p>
+                            <div className="p-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-hm-muted">
+                                24/7 Schlüsseltresor aktiv (Kontaktlose Abholung & Rückgabe jederzeit möglich)
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Vehicles */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
-                <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Fahrzeuge an diesem Standort</h2>
+            {/* Vehicles Table */}
+            <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden">
+                <div className="px-5 py-4 border-b border-hm-rule flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted flex items-center gap-1.5">
+                        <Car className="w-3.5 h-3.5 text-hm-accent" />
+                        Fahrzeuge an diesem Standort ({totalVehicles})
+                    </span>
+                    <Link
+                        href="/admin/locations/assign-cars"
+                        className="font-mono text-xs text-hm-accent hover:underline font-semibold"
+                    >
+                        + Fahrzeuge zuweisen
+                    </Link>
                 </div>
 
                 {totalVehicles === 0 ? (
-                    <div className="px-6 py-12 text-center">
-                        <Car className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">Keine Fahrzeuge</h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            An diesem Standort befinden sich derzeit keine Fahrzeuge.
+                    <div className="px-6 py-12 text-center text-hm-muted space-y-2">
+                        <Car className="mx-auto h-8 w-8 text-hm-muted" />
+                        <p className="text-xs font-mono font-semibold uppercase tracking-wider text-hm-ink">Keine Fahrzeuge zugewiesen</p>
+                        <p className="text-xs text-hm-muted">
+                            Diesem Standort sind derzeit keine aktiven Flottenfahrzeuge zugeteilt.
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-gray-900/50">
+                        <table className="w-full text-left text-xs font-mono">
+                            <thead className="bg-hm-paper-2 border-b border-hm-rule text-hm-muted uppercase tracking-wider">
                                 <tr>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                                        Fahrzeug
-                                    </th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                                        Kennzeichen
-                                    </th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                                        Kategorie
-                                    </th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                                        Typ
-                                    </th>
+                                    <th className="px-5 py-3 font-semibold">Fahrzeug</th>
+                                    <th className="px-5 py-3 font-semibold">Kennzeichen</th>
+                                    <th className="px-5 py-3 font-semibold">Kategorie</th>
+                                    <th className="px-5 py-3 font-semibold">Status</th>
+                                    <th className="px-5 py-3 font-semibold">Zuweisung</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-hm-rule">
                                 {uniqueCars.map((car) => (
-                                    <tr key={car.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td className="px-6 py-4">
+                                    <tr key={car.id} className="hover:bg-hm-paper-2/50 transition-colors">
+                                        <td className="px-5 py-3 font-bold text-hm-ink">
                                             <Link
                                                 href={`/admin/fleet/${car.id}`}
-                                                className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                                                className="hover:underline"
                                             >
                                                 {car.brand} {car.model}
                                             </Link>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-900 dark:text-white font-mono">{car.plate}</td>
-                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{car.category}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-3">
+                                            <AustrianPlate plate={car.plate} />
+                                        </td>
+                                        <td className="px-5 py-3 text-hm-muted">{car.category || 'Standard'}</td>
+                                        <td className="px-5 py-3">
                                             <span className={clsx(
-                                                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                                car.status === 'Active' && 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
-                                                car.status === 'Rented' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
-                                                car.status === 'Maintenance' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300',
+                                                'px-2 py-0.5 rounded-[var(--hm-radius-pill)] font-bold uppercase tracking-wider border text-[10px]',
+                                                car.status === 'Active' && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+                                                car.status === 'Rented' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
+                                                car.status === 'Maintenance' && 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
                                             )}>
                                                 {car.status === 'Active' ? 'Verfügbar' : car.status === 'Rented' ? 'Vermietet' : car.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={clsx(
-                                                "px-2 py-1 rounded text-xs font-medium",
-                                                car.isCurrent && car.isHome ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" :
-                                                car.isCurrent ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" :
-                                                "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                                            )}>
-                                                {car.isCurrent && car.isHome ? 'Standort & Heimat' : car.isCurrent ? 'Zu Gast' : 'Unterwegs'}
-                                            </span>
+                                        <td className="px-5 py-3 text-hm-muted">
+                                            {car.isCurrent && car.isHome ? 'Heimat & Aktuell' : car.isCurrent ? 'Aktuell hier' : 'Heimatstandort'}
                                         </td>
                                     </tr>
                                 ))}
