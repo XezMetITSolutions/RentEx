@@ -536,15 +536,26 @@ function staffRentalFacts(r: MailRental): Fact[] {
 const adminRentalLink = (r: MailRental) => ({ label: 'In der Verwaltung öffnen', href: `${SITE_URL}/admin/reservations/${r.id}` });
 
 function staffNewBooking(r: MailRental, opts: { paid: boolean }): EmailMessage {
+    const outsidePickup = r.pickupOutsideHours;
+    const outsideReturn = r.returnOutsideHours;
+    let outsideNote: string | null = null;
+    if (outsidePickup && outsideReturn) {
+        outsideNote = '24/7 Schlüsseltresor: Abholung & Rückgabe außerhalb der Öffnungszeiten (Self Check-in / Check-out).';
+    } else if (outsidePickup) {
+        outsideNote = '24/7 Schlüsseltresor: Abholung außerhalb der Öffnungszeiten (Self Check-in).';
+    } else if (outsideReturn) {
+        outsideNote = '24/7 Schlüsseltresor: Rückgabe außerhalb der Öffnungszeiten (Keybox Einwurf).';
+    }
+
     return staffNotice({
-        subject: `${opts.paid ? 'Bezahlt' : 'Neue Reservierung'}: ${r.contractNumber} – ${name(r)}`,
-        heading: opts.paid ? 'Online-Zahlung eingegangen' : 'Neue Reservierung',
+        subject: `Neue Reservierung (${opts.paid ? 'Bezahlt' : 'Zahlung vor Ort'}): ${r.contractNumber} – ${name(r)}`,
+        heading: opts.paid ? 'Neue Reservierung (Online bezahlt)' : 'Neue Reservierung (Zahlung bei Abholung)',
         text: opts.paid
-            ? `Die Buchung ist bezahlt (${eur(r.paid)}) und bestätigt.`
-            : 'Zahlung bei Abholung.',
+            ? `Eine neue Reservierung wurde online gebucht und erfolgreich bezahlt (${eur(r.paid)}).`
+            : 'Eine neue Reservierung wurde getätigt (Zahlung erfolgt bei Abholung vor Ort).',
         facts: [
             ...staffRentalFacts(r),
-            r.pickupOutsideHours || r.returnOutsideHours ? { label: 'Hinweis', value: 'Übergabe außerhalb der Öffnungszeiten, Kunde ruft an.' } : null,
+            outsideNote ? { label: 'Übergabe', value: outsideNote } : null,
         ],
         link: adminRentalLink(r),
     });
