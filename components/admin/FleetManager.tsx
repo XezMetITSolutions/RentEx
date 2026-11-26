@@ -683,7 +683,7 @@ export function FleetManager({
                             <thead className="text-[11px] font-mono text-hm-muted bg-hm-paper-2 border-b border-hm-rule uppercase tracking-wider">
                                 <tr>
                                     <th className="px-6 py-3 font-semibold">Fahrzeug</th>
-                                    <th className="px-6 py-3 font-semibold">Kennzeichen / VIN</th>
+                                    <th className="px-6 py-3 font-semibold">Kennzeichen</th>
                                     <th className="px-6 py-3 font-semibold">Kategorie & Status</th>
                                     <th className="px-6 py-3 font-semibold">Standort & KM</th>
                                     <th className="px-6 py-3 font-semibold">TÜV (§57a)</th>
@@ -727,16 +727,9 @@ export function FleetManager({
                                                 </Link>
                                             </td>
 
-                                            {/* Plate / VIN */}
+                                            {/* Plate */}
                                             <td className="px-6 py-4 font-mono">
-                                                <div>
-                                                    <AustrianPlate plate={car.plate} size="sm" />
-                                                </div>
-                                                {car.vin && (
-                                                    <div className="text-[10px] text-hm-muted mt-1.5" title={car.vin}>
-                                                        VIN: {car.vin.substring(0, 8)}...
-                                                    </div>
-                                                )}
+                                                <AustrianPlate plate={car.plate} size="sm" />
                                             </td>
 
                                             {/* Category & Status with In-Line Quick Switch */}
