@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import Navbar from '@/components/home/Navbar';
 import Footer from '@/components/home/Footer';
 import CustomerSelfCheckInForm from './CustomerSelfCheckInForm';
+import { getCarTemplateMapping } from '@/lib/carSketches';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,23 +16,50 @@ export default async function CustomerSelfCheckInPage({ params }: { params: Prom
   const rental = await prisma.rental.findUnique({
     where: { id: rentalId },
     include: {
-      car: true,
+      car: {
+        include: {
+          damageRecords: {
+            where: { status: 'open' },
+          },
+        },
+      },
       customer: true,
     },
   });
 
   if (!rental) notFound();
 
+  // Find sketch template name
+  const templateName = rental.car.checkInTemplate || 
+    (rental.car.brand.toLowerCase().includes('skoda') && rental.car.model.toLowerCase().includes('octavia') ? 'Skoda Octavia' :
+     rental.car.brand.toLowerCase().includes('skoda') && rental.car.model.toLowerCase().includes('superb') ? 'Skodo superb' :
+     rental.car.brand.toLowerCase().includes('seat') ? 'Seat Kombi' :
+     rental.car.brand.toLowerCase().includes('ford') && rental.car.model.toLowerCase().includes('mustang') ? 'Ford Mustang normal' :
+     rental.car.brand.toLowerCase().includes('ducato') ? 'Fiat Ducato' : '');
+
+  const sketchMapping = templateName ? await getCarTemplateMapping(templateName) : {};
+
   const serializedRental = {
     id: rental.id,
     contractNumber: rental.contractNumber,
     status: rental.status,
     car: {
+      id: rental.car.id,
       brand: rental.car.brand,
       model: rental.car.model,
       plate: rental.car.plate,
       currentMileage: rental.car.currentMileage,
       imageUrl: rental.car.imageUrl,
+      sketches: sketchMapping,
+      existingDamages: (rental.car.damageRecords || []).map((d) => ({
+        id: d.id,
+        type: d.type,
+        description: d.description,
+        locationOnCar: d.locationOnCar,
+        photoUrl: d.photoUrl,
+        x: d.xPosition ?? null,
+        y: d.yPosition ?? null,
+      })),
     },
     customer: {
       firstName: rental.customer.firstName,

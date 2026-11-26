@@ -23,11 +23,22 @@ interface Props {
     contractNumber: string | null;
     status: string;
     car: {
+      id?: number;
       brand: string;
       model: string;
       plate: string;
       currentMileage: number | null;
       imageUrl: string | null;
+      sketches?: Record<string, string>;
+      existingDamages?: Array<{
+        id: number;
+        type: string;
+        description: string | null;
+        locationOnCar: string | null;
+        photoUrl: string | null;
+        x: number | null;
+        y: number | null;
+      }>;
     };
     customer: {
       firstName: string;
@@ -50,6 +61,7 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
   const [signature, setSignature] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(rental.status === 'Active');
+  const [sketchView, setSketchView] = useState<'front' | 'back' | 'left' | 'right' | 'top'>('front');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUploadTarget, setCurrentUploadTarget] = useState<'mileage' | 'fuel' | 'damage'>('mileage');
@@ -306,44 +318,144 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
         <section className="rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper p-6 space-y-6">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500" />
-            <h3 className="text-lg font-bold">3. Vorschäden dokumentieren</h3>
+            <h3 className="text-lg font-bold">3. Vorschäden & Fahrzeugskizze prüfen</h3>
           </div>
           <p className="text-sm text-hm-ink-2 leading-relaxed">
-            Bitte gehen Sie einmal komplett um das Fahrzeug herum. Wenn Sie Kratzer, Beulen oder Beschädigungen finden, fotografieren Sie diese hier. Wenn das Fahrzeug makellos sauber und unbeschädigt ist, können Sie ohne Fotos fortfahren.
+            Hier sehen Sie die offizielle Fahrzeugskizze und alle im System hinterlegten Vorschäden. Bitte prüfen Sie das Fahrzeug vor Ort. Falls Sie zusätzliche Schäden entdecken, fotografieren und beschreiben Sie diese unten.
           </p>
 
-          <div>
-            <label htmlFor="self-damage-note" className="block text-xs font-semibold text-hm-muted uppercase tracking-wider">Bemerkungen / Beschreibung vorhandener Schäden</label>
-            <textarea
-              id="self-damage-note"
-              rows={3}
-              value={damagesNote}
-              onChange={(e) => setDamagesNote(e.target.value)}
-              className="mt-1.5 w-full rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper-2 px-4 py-3 text-sm text-hm-ink outline-none focus:border-hm-accent"
-              placeholder="Z. B. leichter Kratzer an der Fahrertür unten..."
-            />
-          </div>
+          {/* Vehicle Angle Skizzen Tabs & Display */}
+          {rental.car.sketches && Object.keys(rental.car.sketches).length > 0 && (
+            <div className="rounded-2xl border border-hm-rule bg-hm-paper-2 p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-hm-muted">
+                  Schadensskizze: {rental.car.brand} {rental.car.model}
+                </span>
+                <span className="text-xs font-mono bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-full font-semibold">
+                  {rental.car.existingDamages?.length ? `${rental.car.existingDamages.length} erfasste Vorschäden` : '0 erfasste Vorschäden'}
+                </span>
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-hm-muted uppercase tracking-wider mb-2">Fotos von Vorschäden ({damagePhotos.length} hinzugefügt)</label>
-            <div className="flex flex-wrap gap-3">
-              {damagePhotos.map((url, i) => (
-                <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-hm-rule">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Schaden ${i + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => triggerUpload('damage')}
-                className="w-24 h-24 rounded-lg border-2 border-dashed border-hm-rule hover:border-hm-accent grid place-items-center text-center p-2 text-xs text-hm-muted transition-colors"
-              >
-                + Foto hinzufügen
-              </button>
+              {/* View Selector Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'front', label: 'Vorne' },
+                  { key: 'back', label: 'Hinten' },
+                  { key: 'left', label: 'Links (Fahrerseite)' },
+                  { key: 'right', label: 'Rechts (Beifahrer)' },
+                  { key: 'top', label: 'Draufsicht' },
+                ].map((tab) => {
+                  if (!rental.car.sketches?.[tab.key]) return null;
+                  const isActive = sketchView === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setSketchView(tab.key as any)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-black text-white shadow-sm'
+                          : 'bg-white border border-hm-rule text-hm-ink hover:bg-neutral-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sketch Image Stage */}
+              <div className="relative aspect-[16/10] w-full max-w-lg mx-auto bg-white rounded-xl border border-hm-rule overflow-hidden p-2 flex items-center justify-center">
+                {rental.car.sketches[sketchView] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={rental.car.sketches[sketchView]}
+                    alt={`Skizze ${sketchView}`}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="text-xs text-hm-muted">Keine Skizze für diese Ansicht vorhanden</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Existing Known Damages List */}
+          {rental.car.existingDamages && rental.car.existingDamages.length > 0 ? (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" /> Bereits im System bekannte Vorschäden:
+              </h4>
+              <ul className="divide-y divide-amber-500/10 text-xs">
+                {rental.car.existingDamages.map((dam, idx) => (
+                  <li key={dam.id || idx} className="py-2 flex items-start justify-between gap-3">
+                    <div>
+                      <strong className="text-hm-ink font-semibold">{dam.type || 'Vorschaden'}: </strong>
+                      <span className="text-hm-ink-2">{dam.description || 'Vorab dokumentiert'}</span>
+                      {dam.locationOnCar && <span className="text-hm-muted block text-[11px]">Bereich: {dam.locationOnCar}</span>}
+                    </div>
+                    {dam.photoUrl && (
+                      <a href={dam.photoUrl} target="_blank" rel="noreferrer" className="text-hm-accent font-medium hover:underline text-[11px] shrink-0">
+                        Foto ansehen
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[11px] text-amber-800/80 italic">
+                Hinweis: Diese bekannten Schäden wurden bereits vorab erfasst. Sie müssen hierfür nicht noch einmal haften.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Das Fahrzeug ist laut System bisher schadenfrei und makellos sauber übergeben worden.</span>
+            </div>
+          )}
+
+          {/* Add Additional Damages found by Customer */}
+          <div className="border-t border-hm-rule pt-4 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-hm-muted">
+              Neu entdeckte Schäden hinzufügen (falls vorhanden)
+            </h4>
+
+            <div>
+              <label htmlFor="self-damage-note" className="block text-xs font-semibold text-hm-muted uppercase tracking-wider">
+                Beschreibung neu gefundener Mängel
+              </label>
+              <textarea
+                id="self-damage-note"
+                rows={3}
+                value={damagesNote}
+                onChange={(e) => setDamagesNote(e.target.value)}
+                className="mt-1.5 w-full rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper-2 px-4 py-3 text-sm text-hm-ink outline-none focus:border-hm-accent"
+                placeholder="Z. B. Kratzer an der Beifahrertür vorgefunden..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-hm-muted uppercase tracking-wider mb-2">
+                Fotos neuer Schäden ({damagePhotos.length} hinzugefügt)
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {damagePhotos.map((url, i) => (
+                  <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-hm-rule">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Schaden ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => triggerUpload('damage')}
+                  className="w-24 h-24 rounded-lg border-2 border-dashed border-hm-rule hover:border-hm-accent grid place-items-center text-center p-2 text-xs text-hm-muted transition-colors"
+                >
+                  + Foto hinzufügen
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <button type="button" onClick={() => setStep(2)} className="flex-1 py-3 border border-hm-rule bg-hm-paper-2 rounded-[var(--hm-radius-input)] text-sm font-semibold">Zurück</button>
             <button
               type="button"
