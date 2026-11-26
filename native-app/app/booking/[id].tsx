@@ -100,10 +100,14 @@ export default function BookingDetailScreen() {
 
   async function handleCancel() {
     if (!booking) return;
+    let quote: {fee:number;refund:number;outstanding:number};
+    try { quote = await api.cancellationQuote(booking.id); }
+    catch (err) { const message = err instanceof Error ? err.message : 'Stornokosten konnten nicht geladen werden.'; if (Platform.OS === 'web') alert(message); else Alert.alert('Fehler', message); return; }
+    const summary = `Kostenpflichtig stornieren? Stornokosten: €${quote.fee.toFixed(2)}. Erstattung: €${quote.refund.toFixed(2)}. Noch offen: €${quote.outstanding.toFixed(2)}.`;
     const doCancel = async () => {
       setCancelling(true);
       try {
-        const updated = await api.cancelBooking(booking.id);
+        const updated = await api.cancelBooking(booking.id, quote.fee);
         setBooking(updated);
       } catch (err) {
         const msg = err instanceof ApiError ? err.message : 'Stornierung fehlgeschlagen.';
@@ -114,9 +118,9 @@ export default function BookingDetailScreen() {
       }
     };
     if (Platform.OS === 'web') {
-      if (window.confirm('Buchung wirklich stornieren?')) await doCancel();
+      if (window.confirm(summary)) await doCancel();
     } else {
-      Alert.alert('Stornieren', 'Buchung wirklich stornieren?', [
+      Alert.alert('Stornieren', summary, [
         { text: 'Abbrechen', style: 'cancel' },
         { text: 'Stornieren', style: 'destructive', onPress: doCancel },
       ]);

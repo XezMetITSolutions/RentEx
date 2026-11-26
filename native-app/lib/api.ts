@@ -154,8 +154,12 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
-  async cancelBooking(id: number): Promise<Booking> {
+  async cancellationQuote(id: number): Promise<{fee:number;refund:number;outstanding:number}> {
+    return request(`/api/mobile/bookings/${id}/cancel`, { auth: true });
+  },
+  async cancelBooking(id: number, acceptedFee: number): Promise<Booking> {
     return request<Booking>(`/api/mobile/bookings/${id}/cancel`, {
+      body: JSON.stringify({acceptedFee}),
       method: 'POST',
       auth: true,
     });

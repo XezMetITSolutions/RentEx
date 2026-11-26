@@ -38,19 +38,21 @@ export default function HeroShowroom({
       <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] min-h-[560px] lg:min-h-[620px]">
         {/* Copy */}
         <div className="relative z-10 flex flex-col px-6 pt-10 sm:px-10 sm:pt-14 lg:pl-14 lg:pt-16 lg:pb-32">
-          <p className="hm-tnum inline-flex w-fit items-center gap-2 rounded-[var(--hm-radius-pill)] bg-hm-stage-2 px-3 py-1.5 font-hm-mono text-[11px] text-hm-stage-muted">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-hm-accent" />
+          <p className="hm-tnum inline-flex w-fit items-center gap-2 rounded-[var(--hm-radius-pill)] bg-hm-stage-2 px-3.5 py-1.5 font-hm-mono text-[11px] text-hm-stage-muted border border-hm-rule/40">
+            <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-semibold text-hm-stage-ink">Sofort verfügbar</span>
+            <span className="text-hm-stage-muted/50">|</span>
             {modelCount} Modelle{lowestRate !== null && <> · ab € {formatEuro(lowestRate)} / Tag</>}
           </p>
 
-          <h1 className="hm-display mt-6 text-[length:var(--hm-text-display)] font-[800] leading-[0.9] text-hm-stage-ink">
+          <h1 className="hm-display mt-6 text-[length:var(--hm-text-display)] font-[800] leading-[0.9] text-hm-stage-ink tracking-tight">
             Mietwagen
             <br />
             in Feldkirch<span className="text-hm-accent">.</span>
           </h1>
 
-          <p className="mt-6 max-w-[26rem] text-base sm:text-lg leading-relaxed text-hm-stage-muted">
-            Vom wendigen Kleinwagen bis zum geräumigen Transporter: Einfach online reservieren und direkt an unserem Standort in der Illstraße abholen.
+          <p className="mt-6 max-w-[28rem] text-base sm:text-lg leading-relaxed text-hm-stage-muted">
+            Vom wendigen Kleinwagen bis zum 9-Sitzer Bus: Zuverlässige Fahrzeuge zu fairen Konditionen direkt am Standort in der Illstraße abholen. 24/7 schlüssellose Übergabe möglich.
           </p>
 
           {items.length > 1 && (
