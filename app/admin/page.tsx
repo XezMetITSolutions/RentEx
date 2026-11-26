@@ -72,10 +72,10 @@ async function getStats(locationId?: number | null) {
             icon: Users,
         },
         {
-            name: 'Offene Reservierungen',
+            name: 'Neue Reservierungen',
             value: pendingReservationsCount.toString(),
-            change: 'Warten auf Bearbeitung',
-            trend: 'down',
+            change: 'Ausstehend / Neu',
+            trend: 'neutral',
             icon: CalendarClock,
         },
     ];

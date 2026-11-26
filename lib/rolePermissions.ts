@@ -26,7 +26,6 @@ export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     // Operativ
     { id: 'Reservierungen', name: 'Reservierungen', category: 'Operativ', href: '/admin/reservations', description: 'Buchungsübersicht, Kalender und Detailansicht' },
     { id: 'Kunden', name: 'Kunden', category: 'Operativ', href: '/admin/customers', description: 'Kundenkartei, Verifizierung und Historie' },
-    { id: 'Check-In', name: 'Check-In', category: 'Operativ', href: '/admin/check-in-setup', description: 'Übergabeprotokolle und Check-In Prozess' },
     { id: 'Check-Out', name: 'Check-Out', category: 'Operativ', href: '/admin/check-out', description: 'Anstehende und überfällige Fahrzeugrückgaben' },
     { id: 'Standorte', name: 'Standorte', category: 'Operativ', href: '/admin/locations', description: 'Filialverwaltung und Standortübersicht' },
 
@@ -34,13 +33,11 @@ export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     { id: 'Fahrzeugflotte', name: 'Fahrzeugflotte', category: 'Flotte', href: '/admin/fleet', description: 'Fahrzeugbestand, Tarife und Status' },
     { id: 'GPS Tracking', name: 'GPS Tracking', category: 'Flotte', href: '/admin/tracking', description: 'Live-Telemetrie und Fahrzeugpositionen', badgeKey: 'live' },
     { id: 'Wartung', name: 'Wartung', category: 'Flotte', href: '/admin/maintenance', description: 'Inspektionen, TÜV und Werkstatttermine' },
-    { id: 'KM Transfer', name: 'KM Transfer', category: 'Flotte', href: '/admin/km-transfer', description: 'Kilometer-Kontingente übertragen' },
     { id: 'Strafzettel', name: 'Strafzettel', category: 'Flotte', href: '/admin/strafzettel', description: 'Bußgelder und Behördenanfragen' },
 
     // Preise & Marketing
     { id: 'Marketing', name: 'Marketing', category: 'Preise & Marketing', href: '/admin/marketing', description: 'Gutscheincodes, Rabatte und Kampagnen' },
-    { id: 'Preise & Marktanalyse', name: 'Preise & Marktanalyse', category: 'Preise & Marketing', href: '/admin/pricing', description: 'Dynamische Preisgestaltung und Algorithmen' },
-    { id: 'Mitbewerber', name: 'Mitbewerber', category: 'Preise & Marketing', href: '/admin/competitor-pricing', description: 'Marktvergleich und Konkurrenzpreise' },
+    { id: 'Preise & Marktanalyse', name: 'Preise & Marktanalyse', category: 'Preise & Marketing', href: '/admin/pricing', description: 'Dynamische Preisgestaltung und Marktanalyse' },
     { id: 'Zusatzoptionen', name: 'Zusatzoptionen', category: 'Preise & Marketing', href: '/admin/options', description: 'Extras, Kindersitze und Schutzpakete' },
 
     // Finanzen & Berichte
@@ -50,6 +47,7 @@ export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     { id: 'Berichte', name: 'Berichte', category: 'Finanzen & Berichte', href: '/admin/reports', description: 'Detaillierte Analysen und Exportfunktion' },
 
     // System & Recht
+    { id: 'Check-in-Vorlagen', name: 'Check-in Vorlagen', category: 'System & Recht', href: '/admin/check-in-setup', description: 'Fahrzeugskizzen und Übergabevorlagen (Admin)' },
     { id: 'Mitarbeiter', name: 'Mitarbeiter', category: 'System & Recht', href: '/admin/staff', description: 'Mitarbeiterverwaltung und Zugänge' },
     { id: 'Berechtigungen', name: 'Berechtigungen', category: 'System & Recht', href: '/admin/permissions', description: 'Rollen- und Rechte-Matrix (Superadmin)' },
     { id: 'AGB Versionen', name: 'AGB Versionen', category: 'System & Recht', href: '/admin/agb', description: 'Rechtliche Texte und Vertragsversionen' },
@@ -67,18 +65,18 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
         'Dashboard', 'Aufgaben', 'Benachrichtigungen',
-        'Reservierungen', 'Kunden', 'Check-In', 'Check-Out', 'Standorte',
-        'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'KM Transfer', 'Strafzettel',
+        'Reservierungen', 'Kunden', 'Check-Out', 'Standorte',
+        'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'Strafzettel',
         'Zusatzoptionen',
         'Finanzen', 'Rechnungen', 'Fahrtenbuch', 'Berichte'
     ],
     'MITARBEITER': [
         'Dashboard', 'Aufgaben', 'Benachrichtigungen',
-        'Reservierungen', 'Kunden', 'Check-In', 'Check-Out',
+        'Reservierungen', 'Kunden', 'Check-Out',
         'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'Rechnungen'
     ],
     'FAHRER': [
-        'Dashboard', 'Aufgaben', 'Reservierungen', 'Fahrzeugflotte', 'Check-In', 'Check-Out'
+        'Dashboard', 'Aufgaben', 'Reservierungen', 'Fahrzeugflotte', 'Check-Out'
     ]
 };
 
