@@ -40,7 +40,7 @@ export default function Navbar() {
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex items-center gap-8 ml-8">
                         <Link href="/" title="Startseite" className={desktopLink("/")}>
-                            Home
+                            Startseite
                         </Link>
                         <Link href="/fleet" title="Unsere Fahrzeugflotte ansehen" className={desktopLink("/fleet")}>
                             Fahrzeuge
@@ -93,7 +93,7 @@ export default function Navbar() {
             {isOpen && (
                 <div className="lg:hidden bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-white/5">
                     <div className="px-4 pt-2 pb-6 space-y-1">
-                        <Link href="/" title="Startseite" onClick={() => setIsOpen(false)} className={mobileLink("/")}>Home</Link>
+                        <Link href="/" title="Startseite" onClick={() => setIsOpen(false)} className={mobileLink("/")}>Startseite</Link>
                         <Link href="/fleet" title="Unsere Fahrzeugflotte ansehen" onClick={() => setIsOpen(false)} className={mobileLink("/fleet")}>Fahrzeuge</Link>
                         <Link href="/dashboard" title="Ihre Buchungen verwalten" onClick={() => setIsOpen(false)} className={mobileLink("/dashboard")}>Buchungen</Link>
                         <Link href="/about" title="Erfahren Sie mehr über uns" onClick={() => setIsOpen(false)} className={mobileLink("/about")}>Über uns</Link>

@@ -51,6 +51,7 @@ export async function cancelReservation(formData: FormData) {
     const result = await cancelRentalForCustomer({
         rentalId,
         customerId,
+        acceptedFee: Number(formData.get('acceptedFee')),
         actor: { kind: 'customer', customerId },
     });
     if (!result.ok) return { error: result.error };

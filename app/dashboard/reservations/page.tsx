@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import { CalendarClock, Car, MapPin, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { BUSINESS } from '@/lib/config';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
 
@@ -32,9 +33,11 @@ export default async function ReservationsPage() {
 
     const statusLabels: Record<string, string> = {
         Pending: 'Ausstehend',
+        Confirmed: 'Bestätigt',
         Active: 'Bestätigt',
     };
     const statusColors: Record<string, string> = {
+        Confirmed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
         Pending: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
         Active: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
     };
@@ -79,7 +82,7 @@ export default async function ReservationsPage() {
                                         <div className="mt-2 flex flex-wrap gap-3 text-sm text-zinc-600 dark:text-zinc-400">
                                             <span className="flex items-center gap-1">
                                                 <CalendarClock className="h-3.5 w-3.5" />
-                                                {format(new Date(r.startDate), 'dd.MM.yyyy', { locale: de })} – {format(new Date(r.endDate), 'dd.MM.yyyy', { locale: de })}
+                                                {formatInTimeZone(new Date(r.startDate), BUSINESS.TIME_ZONE, 'dd.MM.yyyy', { locale: de })} – {formatInTimeZone(new Date(r.endDate), BUSINESS.TIME_ZONE, 'dd.MM.yyyy', { locale: de })}
                                             </span>
                                             {(r.pickupLocation?.name || r.returnLocation?.name) && (
                                                 <span className="flex items-center gap-1">

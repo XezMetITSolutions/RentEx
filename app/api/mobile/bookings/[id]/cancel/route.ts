@@ -1,3 +1,4 @@
+import { cancellationQuote, cancellationBlockReason } from '@/lib/cancellationPolicy';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthCustomerId } from '@/lib/mobileAuth';
@@ -59,8 +60,11 @@ export async function POST(
       return NextResponse.json({ error: 'Ungültige ID.' }, { status: 400 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    if (typeof body.acceptedFee !== "number") return NextResponse.json({ error: "Bitte zuerst die Stornokosten abrufen und bestätigen." }, { status: 409 });
     const cancelled = await cancelRentalForCustomer({
       rentalId: bookingId,
+      acceptedFee: body.acceptedFee,
       customerId,
       actor: { kind: 'customer', customerId },
     });
@@ -82,4 +86,13 @@ export async function POST(
     console.error('[POST /api/mobile/bookings/[id]/cancel]', err);
     return NextResponse.json({ error: 'Interner Serverfehler.' }, { status: 500 });
   }
+}
+
+export async function GET(req: NextRequest, context: {params: Promise<{id:string}>}) {
+ const customerId=getAuthCustomerId(req);if(!customerId)return NextResponse.json({error:'Nicht angemeldet.'},{status:401});
+ const {id}=await context.params;const rentalId=Number(id);if(!Number.isSafeInteger(rentalId)||rentalId<=0)return NextResponse.json({error:'Ungültige ID.'},{status:400});
+ const rental=await prisma.rental.findFirst({where:{id:rentalId,customerId},include:{payments:true}});
+ if(!rental)return NextResponse.json({error:'Buchung nicht gefunden.'},{status:404});
+ const blocked=cancellationBlockReason(rental);if(blocked)return NextResponse.json({error:blocked},{status:400});
+ return NextResponse.json(cancellationQuote(rental,rental.payments.reduce((n,p)=>n+Number(p.amount),0)));
 }

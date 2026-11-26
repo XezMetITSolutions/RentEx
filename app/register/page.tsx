@@ -1,9 +1,9 @@
 import Navbar from '@/components/home/Navbar';
 import Footer from '@/components/home/Footer';
-import { register } from '@/app/actions/auth';
+import RegisterForm from '@/components/auth/RegisterForm';
 import Link from 'next/link';
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string; email?: string }> }) {
     const params = await searchParams;
     const error = params.error;
 
@@ -21,73 +21,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
                         </div>
                     )}
 
-                    <form action={register} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vorname *</label>
-                                <input
-                                    id="firstName"
-                                    name="firstName"
-                                    type="text"
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                    placeholder="Max"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nachname *</label>
-                                <input
-                                    id="lastName"
-                                    name="lastName"
-                                    type="text"
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                    placeholder="Mustermann"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail *</label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                autoComplete="email"
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                placeholder="ihre@email.de"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefon</label>
-                            <input
-                                id="phone"
-                                name="phone"
-                                type="tel"
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                placeholder="+43 660 1234567"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Passwort * (min. 6 Zeichen)</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                minLength={6}
-                                autoComplete="new-password"
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                placeholder="••••••••"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors"
-                        >
-                            Konto erstellen
-                        </button>
-                    </form>
+                    <RegisterForm email={params.email} />
 
                     <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
                         Bereits registriert?{' '}

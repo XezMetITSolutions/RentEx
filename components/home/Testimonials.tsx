@@ -36,7 +36,7 @@ const testimonials: Testimonial[] = [
     id: 3,
     name: "Andreas Hofer",
     role: "Privatkunde",
-    comment: "Schon mehrmals hier gemietet. Immer freundlicher Support, faire Tankregelungen und transparente Preise ohne versteckte Kosten. RentEx ist definitiv meine erste Anlaufstelle in Vorarlberg.",
+    comment: "Schon mehrmals hier gemietet. Immer freundlicher Support, faire Tankregelungen und transparente Preise ohne versteckte Kosten. Rent-Ex ist definitiv meine erste Anlaufstelle in Vorarlberg.",
     rating: 5,
     avatarInitials: "AH",
     bgGradient: "from-emerald-500/10 to-teal-500/10",
@@ -76,7 +76,7 @@ export default function Testimonials() {
             Was unsere Kunden sagen
           </h2>
           <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-            Erfahren Sie von unseren Kunden, warum RentEx für exzellente Mobilität steht.
+            Erfahren Sie von unseren Kunden, warum Rent-Ex für verlässliche Mobilität steht.
           </p>
         </div>
 

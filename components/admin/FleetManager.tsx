@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { updateCarQuickStatus, archiveCar, deleteCar, checkCarDeletable } from '@/app/actions/cars';
 import { isPast, differenceInDays } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import AustrianPlate from '@/components/ui/AustrianPlate';
 
 export interface Car {
     id: number;
@@ -102,10 +103,13 @@ export function FleetManager({
     const brands = useMemo(() => Array.from(new Set(cars.map(c => c.brand))).sort(), [cars]);
 
     const categories = useMemo(() => {
+        // Only show categories that are actually in use or defined with existing cars
+        const usedCategories = new Set(cars.map(c => c.category).filter(Boolean) as string[]);
         if (globalCategories && globalCategories.length > 0) {
-            return globalCategories.map(c => c.name);
+            const matched = globalCategories.map(c => c.name).filter(name => usedCategories.has(name));
+            if (matched.length > 0) return matched;
         }
-        return Array.from(new Set(cars.map(c => c.category).filter(Boolean))).sort();
+        return Array.from(usedCategories).sort();
     }, [cars, globalCategories]);
 
     const fuelTypes = useMemo(() => Array.from(new Set(cars.map(c => c.fuelType))).sort(), [cars]);
@@ -679,9 +683,9 @@ export function FleetManager({
 
             {/* List View */}
             {viewMode === 'list' && (
-                <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden">
+                <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule overflow-hidden shadow-xs">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
+                        <table className="w-full text-sm text-left min-w-[900px]">
                             <thead className="text-[11px] font-mono text-hm-muted bg-hm-paper-2 border-b border-hm-rule uppercase tracking-wider">
                                 <tr>
                                     <th className="px-6 py-3 font-semibold">Fahrzeug</th>
@@ -731,11 +735,11 @@ export function FleetManager({
 
                                             {/* Plate / VIN */}
                                             <td className="px-6 py-4 font-mono">
-                                                <span className="inline-block text-[11px] px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink font-semibold">
-                                                    {car.plate}
-                                                </span>
+                                                <div>
+                                                    <AustrianPlate plate={car.plate} size="sm" />
+                                                </div>
                                                 {car.vin && (
-                                                    <div className="text-[10px] text-hm-muted mt-1" title={car.vin}>
+                                                    <div className="text-[10px] text-hm-muted mt-1.5" title={car.vin}>
                                                         VIN: {car.vin.substring(0, 8)}...
                                                     </div>
                                                 )}
@@ -1012,9 +1016,7 @@ export function FleetManager({
                                                     {car.brand} {car.model}
                                                 </h3>
                                                 <div className="mt-1 flex items-center gap-2">
-                                                    <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink">
-                                                        {car.plate}
-                                                    </span>
+                                                    <AustrianPlate plate={car.plate} size="sm" />
                                                     {car.category && (
                                                         <span className="text-[10px] font-mono text-hm-muted uppercase tracking-wider">
                                                             {car.category}

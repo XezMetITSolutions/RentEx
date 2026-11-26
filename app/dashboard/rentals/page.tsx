@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
 import { Car, Calendar, MapPin, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { BUSINESS } from '@/lib/config';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
 
@@ -29,10 +30,12 @@ export default async function RentalsPage() {
     const statusLabels: Record<string, string> = {
         Active: 'Aktiv',
         Pending: 'Ausstehend',
+        Confirmed: 'Bestätigt',
         Completed: 'Abgeschlossen',
         Cancelled: 'Storniert',
     };
     const statusColors: Record<string, string> = {
+        Confirmed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
         Active: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
         Pending: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
         Completed: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300',
@@ -79,7 +82,7 @@ export default async function RentalsPage() {
                                         <div className="mt-2 flex flex-wrap gap-3 text-sm text-zinc-600 dark:text-zinc-400">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="h-3.5 w-3.5" />
-                                                {format(new Date(rental.startDate), 'dd.MM.yyyy', { locale: de })} – {format(new Date(rental.endDate), 'dd.MM.yyyy', { locale: de })}
+                                                {formatInTimeZone(new Date(rental.startDate), BUSINESS.TIME_ZONE, 'dd.MM.yyyy', { locale: de })} – {formatInTimeZone(new Date(rental.endDate), BUSINESS.TIME_ZONE, 'dd.MM.yyyy', { locale: de })}
                                             </span>
                                             {(rental.pickupLocation?.name || rental.returnLocation?.name) && (
                                                 <span className="flex items-center gap-1">

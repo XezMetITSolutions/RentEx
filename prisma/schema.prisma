@@ -325,6 +325,7 @@ model Customer {
 }
 
 model Rental {
+  extensions          RentalExtension[]
   id                  Int                 @id @default(autoincrement())
   carId               Int
   customerId          Int
@@ -394,6 +395,28 @@ model Rental {
   @@index([paymentStatus])
   @@index([startDate, endDate])
   @@index([isOverdue])
+}
+
+model RentalExtension {
+  id                 Int      @id @default(autoincrement())
+  rentalId           Int
+  rental             Rental   @relation(fields: [rentalId], references: [id])
+  status             String   @default("Requested")
+  previousEnd        DateTime
+  newEnd             DateTime
+  previousTotal      Decimal
+  totalAmount        Decimal
+  additionalAmount   Decimal
+  totalDays          Int
+  includedKm         Int
+  extrasCost         Decimal
+  insuranceCost      Decimal
+  stripeSessionId    String?  @unique
+  expiresAt          DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([rentalId, status])
 }
 
 /// Rechnung pro Miete; Registrierkassa / Finanzamt (Österreich)

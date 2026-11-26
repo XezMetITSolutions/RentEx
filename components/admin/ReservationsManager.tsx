@@ -27,6 +27,7 @@ import { format, isToday, isThisWeek, isFuture } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { clsx } from 'clsx';
 import ReservationCalendar from './ReservationCalendar';
+import AustrianPlate from '@/components/ui/AustrianPlate';
 
 export interface RentalItem {
     id: number;
@@ -406,7 +407,7 @@ export default function ReservationsManager({
             ) : (
                 <div className="bg-hm-paper rounded-[var(--hm-radius-card)] border border-hm-rule shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
+                        <table className="w-full text-sm text-left min-w-[950px]">
                             <thead className="text-[11px] font-mono text-hm-muted bg-hm-paper-2 border-b border-hm-rule uppercase tracking-wider">
                                 <tr>
                                     <th className="px-6 py-3 font-semibold">ID</th>
@@ -467,8 +468,8 @@ export default function ReservationsManager({
                                                         <span>{rental.car.brand} {rental.car.model}</span>
                                                         <ArrowUpRight className="w-3 h-3 text-hm-muted opacity-0 group-hover/car:opacity-100 transition-opacity" />
                                                     </Link>
-                                                    <div className="inline-block mt-1 font-mono text-[11px] px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink-2">
-                                                        {rental.car.plate}
+                                                    <div className="mt-1">
+                                                        <AustrianPlate plate={rental.car.plate} size="sm" />
                                                     </div>
                                                 </td>
 
@@ -511,14 +512,20 @@ export default function ReservationsManager({
                                                     <span className={clsx(
                                                         "inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider border",
                                                         rental.status === 'Active' && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+                                                        rental.status === 'Confirmed' && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
                                                         rental.status === 'Completed' && "bg-hm-paper-2 text-hm-muted border-hm-rule",
                                                         rental.status === 'Pending' && "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
-                                                        rental.status === 'Cancelled' && "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"
+                                                        rental.status === 'Cancelled' && "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
+                                                        rental.status === 'NoShow' && "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+                                                        !['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && "bg-hm-paper-2 text-hm-muted border-hm-rule"
                                                     )}>
                                                         {rental.status === 'Active' && 'Aktiv'}
+                                                        {rental.status === 'Confirmed' && 'Bestätigt'}
                                                         {rental.status === 'Completed' && 'Abgeschlossen'}
                                                         {rental.status === 'Pending' && 'Ausstehend'}
                                                         {rental.status === 'Cancelled' && 'Storniert'}
+                                                        {rental.status === 'NoShow' && 'Nicht erschienen'}
+                                                        {!['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && rental.status}
                                                     </span>
                                                 </td>
 

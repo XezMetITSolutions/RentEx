@@ -237,10 +237,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                             </div>
                             <button
                                 onClick={nextStep}
-                                className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-black text-xl shadow-2xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                                className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base shadow-sm flex items-center justify-center gap-2 transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
                             >
-                                CHECK-IN STARTEN
-                                <ChevronRight className="w-6 h-6" />
+                                Übergabe starten
+                                <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                         <div className="relative group">
@@ -316,10 +316,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                         <button
                             disabled={!mileage || !mileagePhoto}
                             onClick={nextStep}
-                            className="w-full py-6 bg-gray-900 rounded-[2rem] text-white font-black text-xl flex items-center justify-center gap-3 disabled:opacity-30 transition-all hover:bg-black"
+                            className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 transition-colors shadow-sm"
                         >
-                            WEITER
-                            <ChevronRight className="w-6 h-6" />
+                            Weiter
+                            <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
                 )}
@@ -374,10 +374,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                         <button
                             disabled={!fuelPhoto}
                             onClick={nextStep}
-                            className="w-full py-6 bg-gray-900 rounded-[2rem] text-white font-black text-xl flex items-center justify-center gap-3 disabled:opacity-30 transition-all hover:bg-black"
+                            className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 transition-colors shadow-sm"
                         >
-                            WEITER
-                            <ChevronRight className="w-6 h-6" />
+                            Weiter
+                            <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
                 )}
@@ -406,20 +406,20 @@ export default function CheckInForm({ rental }: { rental: any }) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+                        <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
                             <button
                                 onClick={prevStep}
-                                className="py-6 bg-gray-100 rounded-[2rem] text-gray-500 font-black text-xl flex items-center justify-center gap-3 hover:bg-gray-200"
+                                className="py-3.5 bg-hm-paper-2 hover:bg-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-medium text-sm flex items-center justify-center gap-2 border border-hm-rule transition-colors"
                             >
-                                <ChevronLeft className="w-6 h-6" />
-                                ZURÜCK
+                                <ChevronLeft className="w-4 h-4" />
+                                Zurück
                             </button>
                             <button
                                 onClick={nextStep}
-                                className="py-6 bg-gray-900 rounded-[2rem] text-white font-black text-xl flex items-center justify-center gap-3 hover:bg-black"
+                                className="py-3.5 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
                             >
-                                WEITER
-                                <ChevronRight className="w-6 h-6" />
+                                Weiter
+                                <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -476,20 +476,20 @@ export default function CheckInForm({ rental }: { rental: any }) {
                             </div>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-3">
                             <button
                                 onClick={prevStep}
-                                className="flex-1 py-6 bg-gray-100 rounded-[2rem] text-gray-500 font-black text-xl flex items-center justify-center gap-3 hover:bg-gray-200"
+                                className="flex-1 py-3.5 bg-hm-paper-2 hover:bg-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-medium text-sm flex items-center justify-center gap-2 border border-hm-rule transition-colors"
                             >
-                                <ChevronLeft className="w-6 h-6" />
-                                ZURÜCK
+                                <ChevronLeft className="w-4 h-4" />
+                                Zurück
                             </button>
                             <button
                                 disabled={isSubmitting || !signature || !agbAccepted}
                                 onClick={handleSubmit}
-                                className="flex-[2] py-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-30 text-white font-black text-xl rounded-[2rem] shadow-2xl shadow-blue-500/30 transition-all flex items-center justify-center gap-3"
+                                className="flex-[2] py-3.5 bg-hm-accent hover:bg-hm-accent-hover disabled:opacity-40 text-hm-accent-ink font-semibold text-sm rounded-[var(--hm-radius-input)] shadow-sm transition-all flex items-center justify-center gap-2"
                             >
-                                {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <><CheckCircle className="w-6 h-6" /> CHECK-IN ABSCHLIESSEN</>}
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4" /> Übergabe abschließen & Miete aktivieren</>}
                             </button>
                         </div>
                     </div>

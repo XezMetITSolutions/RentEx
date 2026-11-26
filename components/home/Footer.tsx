@@ -27,8 +27,7 @@ export default function Footer() {
                             </span>
                         </Link>
                         <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6">
-                            Wir transformieren Ihr Mieterlebnis mit unserer modernen Infrastruktur und großen Fahrzeugflotte.
-                            Sie sind an der richtigen Adresse für sicheres, schnelles und komfortables Fahren.
+                            Ihre zuverlässige Autovermietung in Feldkirch. Gepflegte Fahrzeuge, faire Mietpreise und unkomplizierte Abwicklung direkt in Vorarlberg.
                         </p>
                         <div className="flex gap-4">
                             <a href="https://www.facebook.com/p/Rent_ex-100076092493354/" target="_blank" rel="noopener noreferrer" title="Besuchen Sie uns auf Facebook" className="w-10 h-10 rounded-lg bg-white shadow-sm dark:bg-white/5 dark:shadow-none flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-all" aria-label="Facebook">

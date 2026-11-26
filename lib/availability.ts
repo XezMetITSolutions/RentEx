@@ -59,6 +59,7 @@ export function overlapWhere(start: Date, end: Date, now = new Date()): Prisma.R
             {
                 OR: [
                     { startDate: { lte: windowEnd }, endDate: { gte: windowStart } },
+                    { startDate: { lte: windowEnd }, extensions: { some: { status: 'Approved', expiresAt: { gt: now }, newEnd: { gte: windowStart } } } },
                     { status: 'Active', actualReturnDate: null, endDate: { lt: now } },
                 ],
             },
@@ -99,6 +100,37 @@ export async function isCarAvailable(
         where: { carId, ...overlapWhere(start, end) },
     });
     return conflicts === 0;
+}
+
+/**
+ * Finds an alternative sibling car with the exact same brand and model
+ * (and bookable status) that is free for the requested period.
+ */
+export async function findAvailableSiblingCar(
+    targetCar: { id: number; brand: string; model: string; category: string | null; locationId: number | null },
+    start: Date,
+    end: Date,
+    db: Db = prisma
+): Promise<number | null> {
+    const siblings = await db.car.findMany({
+        where: {
+            id: { not: targetCar.id },
+            brand: targetCar.brand,
+            model: targetCar.model,
+            status: { in: BOOKABLE_CAR_STATUSES },
+            isActive: true,
+            ...(targetCar.locationId ? { locationId: targetCar.locationId } : {}),
+        },
+        select: { id: true },
+        orderBy: { id: 'asc' },
+    });
+
+    for (const sibling of siblings) {
+        if (await isCarAvailable(sibling.id, start, end, db)) {
+            return sibling.id;
+        }
+    }
+    return null;
 }
 
 /**

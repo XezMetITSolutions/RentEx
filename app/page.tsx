@@ -278,7 +278,7 @@ export default async function Home() {
         {/* Why Rent-Ex — bento */}
         <section aria-labelledby="hm-why-heading" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pb-20 lg:pb-28">
           <h2 id="hm-why-heading" className="hm-display max-w-2xl text-[length:var(--hm-text-display-s)] font-[750] leading-[0.95]">
-            Mieten ohne Kleingedrucktes.
+            Transparente Konditionen von Anfang an.
           </h2>
 
           <div className="mt-10 grid grid-cols-1 md:grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-[repeat(4,minmax(0,1fr))] gap-4">
@@ -287,7 +287,7 @@ export default async function Home() {
               <div>
                 <p className="hm-display hm-tnum text-[clamp(4.5rem,9vw,8rem)] font-[800] leading-[0.85]">24/7</p>
                 <p className="mt-4 max-w-sm text-lg text-hm-stage/75">
-                  Erreichbar, wenn Sie uns brauchen — auch am Wochenende und bei Pannen.
+                  Erreichbar, wenn Sie uns brauchen: auch am Wochenende und bei Notfällen.
                 </p>
                 <a
                   href="tel:+436609996800"
@@ -323,7 +323,7 @@ export default async function Home() {
               <div>
                 <MapPin aria-hidden className="w-6 h-6 text-hm-accent-text" />
                 <h3 className="mt-8 text-xl font-bold">Illstraße 75a, 6800 Feldkirch</h3>
-                <p className="mt-2 text-sm text-hm-ink-2">Abholung & Rückgabe — für ganz Vorarlberg.</p>
+                <p className="mt-2 text-sm text-hm-ink-2">Zentraler Standort für ganz Vorarlberg.</p>
               </div>
               <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-hm-ink">
                 Route <ArrowUpRight aria-hidden className="w-4 h-4 transition-transform duration-[var(--hm-dur-short)] ease-hm-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

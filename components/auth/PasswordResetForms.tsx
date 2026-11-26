@@ -11,7 +11,7 @@ const buttonClass =
 const errorClass =
     "mb-4 p-3 rounded-lg bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 text-red-600 dark:text-red-300 text-sm";
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ email = '' }: { email?: string }) {
     const [state, action, pending] = useActionState(requestPasswordReset, null);
 
     if (state?.message) {
@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
             {state?.error && <div role="alert" className={errorClass}>{state.error}</div>}
             <div>
                 <label htmlFor="email" className={labelClass}>E-Mail</label>
-                <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} placeholder="ihre@email.at" />
+                <input id="email" name="email" defaultValue={email} type="email" required autoComplete="email" className={inputClass} placeholder="ihre@email.at" />
             </div>
             <button type="submit" disabled={pending} className={buttonClass}>
                 {pending ? "Wird gesendet …" : "Link senden"}

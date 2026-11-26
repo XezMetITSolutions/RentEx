@@ -263,36 +263,36 @@ export async function login(formData: FormData) {
     redirect(from);
 }
 
-export async function register(formData: FormData) {
+export async function register(_prev: {error?:string}, formData: FormData): Promise<{error?:string}> {
     const firstName = (formData.get('firstName') as string)?.trim();
     const lastName = (formData.get('lastName') as string)?.trim();
-    const email = (formData.get('email') as string)?.trim();
+    const email = (formData.get('email') as string)?.trim().toLowerCase();
     const password = formData.get('password') as string;
     const phone = (formData.get('phone') as string)?.trim() || null;
 
-    if (!firstName || !lastName || !email || !password) {
-        redirect(`/register?error=${encodeURIComponent('Bitte alle Pflichtfelder ausfüllen.')}`);
+    if (!firstName || !lastName || !email || !password || !/^\S+@\S+\.\S+$/.test(email)) {
+        return { error: 'Bitte alle Pflichtfelder ausfüllen.' };
     }
 
     const ip = await getClientIpFromHeaders();
     const rl = rateLimit(`register:${ip}`, RATE_LIMITS.AUTH_REGISTER);
     if (!rl.allowed) {
-        redirect(`/register?error=${encodeURIComponent(rateLimitErrorMessage(rl))}`);
+        return { error: rateLimitErrorMessage(rl) };
     }
 
-    if (password.length < 6) {
-        redirect(`/register?error=${encodeURIComponent('Passwort mindestens 6 Zeichen.')}`);
+    if (password.length < 8) {
+        return { error: 'Passwort mindestens 8 Zeichen.' };
     }
 
     // Sahte / şüpheli isim kontrolü
     const nameCheck = validateName(firstName, lastName);
     if (nameCheck.riskScore >= 60) {
-        redirect(`/register?error=${encodeURIComponent(`Ungültiger Name: ${nameCheck.reasons.join(', ')}`)}`);
+        return { error: `Ungültiger Name: ${nameCheck.reasons.join(', ')}` };
     }
 
     const existing = await prisma.customer.findUnique({ where: { email } });
     if (existing) {
-        redirect(`/register?error=${encodeURIComponent('Für diese E-Mail gibt es bereits ein Konto. Über „Passwort vergessen“ auf der Anmeldeseite legen Sie ein Passwort fest.')}`);
+        return { error: 'Für diese E-Mail gibt es bereits ein Konto. Über „Passwort vergessen“ auf der Anmeldeseite legen Sie ein Passwort fest.' };
     }
 
     const passwordHash = hashPassword(password);

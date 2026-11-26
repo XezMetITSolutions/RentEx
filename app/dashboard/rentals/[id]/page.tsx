@@ -1,3 +1,5 @@
+import ExtensionsPanel from '@/components/dashboard/ExtensionsPanel';
+import { cancellationQuote } from '@/lib/cancellationPolicy';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
@@ -45,6 +47,7 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
     };
     const when = (d: Date) => formatInTimeZone(new Date(d), BUSINESS.TIME_ZONE, "EEEE, dd. MMMM yyyy, HH:mm 'Uhr'", { locale: de });
     const cancelBlock = cancellationBlockReason(rental);
+    const cancelQuote = cancellationQuote(rental, rental.payments.reduce((sum,p)=>sum+Number(p.amount),0));
     const paymentLabels: Record<string, string> = {
         Pending: 'Offen',
         Partial: 'Teilweise bezahlt',
@@ -154,11 +157,13 @@ export default async function RentalDetailPage({ params }: { params: Promise<{ i
                         {cancelBlock ? (
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">{cancelBlock}</p>
                         ) : (
-                            <CancelReservationButton rentalId={rental.id} />
+                            <CancelReservationButton rentalId={rental.id} quote={cancelQuote} />
                         )}
                     </div>
                 )}
             </div>
+            <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6"><h2 className="text-lg font-semibold">Dokumente</h2><p className="mt-2">Rechnung: <strong>In Bearbeitung</strong></p><p>Mietvertrag: <strong>In Bearbeitung</strong></p></section>
+            <ExtensionsPanel rentalId={rental.id} />
         </div>
     );
 }

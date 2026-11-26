@@ -113,10 +113,10 @@ export default async function SuccessPage({ params, searchParams }: { params: Pr
                                     <div className="flex-1">
                                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Exklusive Vorteile sichern!</h3>
                                         <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 leading-relaxed">
-                                            Erstellen Sie jetzt ein Passwort für Ihr Konto, um Ihre Buchungen zu verwalten, Dokumente einzusehen und von <strong>exklusiven Rabatten & Angeboten</strong> zu profitieren.
+                                            Erstellen Sie jetzt ein Passwort für Ihr Konto, um Ihre Buchungen zu verwalten, Ihre Mietdaten einzusehen und von <strong>exklusiven Rabatten & Angeboten</strong> zu profitieren.
                                         </p>
                                         <Link
-                                            href={`/register?email=${encodeURIComponent(rental.customer.email)}`}
+                                            href={`/forgot-password?email=${encodeURIComponent(rental.customer.email)}`}
                                             className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 active:scale-95"
                                         >
                                             Passwort festlegen

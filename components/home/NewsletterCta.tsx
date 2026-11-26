@@ -9,7 +9,7 @@ export default function NewsletterCta() {
             Neue Fahrzeuge zuerst erfahren.
           </h2>
           <p className="mt-5 max-w-md text-hm-ink-2 leading-relaxed">
-            Angebote, Neuzugänge in der Flotte und saisonale Rabatte — selten, aber lohnend.
+            Aktuelle Angebote, Neuzugänge in der Flotte und saisonale Aktionen direkt per E-Mail.
           </p>
         </div>
 

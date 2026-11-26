@@ -52,7 +52,15 @@ async function getRentals(locationId?: number | null): Promise<RentalItem[]> {
 
     return rentals.map(r => ({
         ...r,
-        totalAmount: Number(r.totalAmount)
+        dailyRate: Number(r.dailyRate),
+        totalAmount: Number(r.totalAmount),
+        depositPaid: r.depositPaid != null ? Number(r.depositPaid) : null,
+        depositReturned: r.depositReturned != null ? Number(r.depositReturned) : null,
+        extraCharges: r.extraCharges != null ? Number(r.extraCharges) : 0,
+        discountAmount: r.discountAmount != null ? Number(r.discountAmount) : 0,
+        insuranceCost: r.insuranceCost != null ? Number(r.insuranceCost) : 0,
+        extrasCost: r.extrasCost != null ? Number(r.extrasCost) : 0,
+        fuelCharge: r.fuelCharge != null ? Number(r.fuelCharge) : 0,
     }));
 }
 

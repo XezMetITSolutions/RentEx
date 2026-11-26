@@ -16,8 +16,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
-  description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+  title: "Rent-Ex · Autovermietung in Feldkirch & Vorarlberg",
+  description: "Günstig und unkompliziert Autos, Kombis, Vans und Transporter in Feldkirch mieten. Faire Konditionen, transparente Preise und persönlicher Service vor Ort.",
   alternates: {
     canonical: SITE_URL,
     languages: {
@@ -26,16 +26,16 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
-    description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+    title: "Rent-Ex · Autovermietung in Feldkirch & Vorarlberg",
+    description: "Günstig und unkompliziert Autos, Kombis, Vans und Transporter in Feldkirch mieten. Faire Konditionen, transparente Preise und persönlicher Service vor Ort.",
     url: SITE_URL,
-    siteName: "RentEx",
+    siteName: "Rent-Ex Autovermietung",
     images: [
       {
         url: `${SITE_URL}/assets/logo.png`,
         width: 800,
         height: 600,
-        alt: "RentEx Logo",
+        alt: "Rent-Ex Logo",
       },
     ],
     locale: "de_AT",
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "RentEx - Premium Autovermietung & Fuhrpark-Verwaltungssystem",
-    description: "RentEx ist Ihr professionelles Verwaltungssystem für Autovermietungen. Verwalten Sie Fahrzeuge, Buchungen und Kunden effizient und einfach online.",
+    title: "Rent-Ex · Autovermietung in Feldkirch & Vorarlberg",
+    description: "Günstig und unkompliziert Autos, Kombis, Vans und Transporter in Feldkirch mieten. Faire Konditionen, transparente Preise und persönlicher Service vor Ort.",
     images: [`${SITE_URL}/assets/logo.png`],
   },
   icons: {

@@ -1,3 +1,4 @@
+import { CANCELLATION_TERMS } from '@/lib/cancellationPolicy';
 /**
  * Every e-mail Rent-Ex sends, as content only. Layout lives in ./layout.ts,
  * data loading and sending in lib/rentalMail.ts.
@@ -156,7 +157,7 @@ function bookingConfirmation(r: MailRental, opts: { paid?: boolean } = {}): Emai
             { kind: 'title', text: 'Bitte zur Abholung mitbringen' },
             BRING,
             { kind: 'p', text: `Sie erhalten das Fahrzeug vollgetankt und geben es vollgetankt zurück. Fehlender Kraftstoff wird zuzüglich ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)} Servicegebühr verrechnet.` },
-            { kind: 'p', text: `Bis ${RENTAL_TERMS.FREE_CANCEL_HOURS} Stunden vor der Abholung können Sie kostenlos stornieren${r.customer.hasAccount ? ' – direkt in Ihrem Kundenkonto' : ''}.` },
+            { kind: 'p', text: CANCELLATION_TERMS },
             r.customer.hasAccount ? { kind: 'button', label: 'Buchung ansehen', href: bookingUrl(r) } : null,
         ],
         reason: 'Sie erhalten diese E-Mail, weil Sie bei Rent-Ex ein Fahrzeug gebucht haben.',
@@ -225,7 +226,7 @@ function returnReminder(r: MailRental): EmailMessage {
 
 export type CancelReason = 'customer' | 'company' | 'noShow';
 
-function cancellation(r: MailRental, opts: { by: CancelReason; refundedAmount?: number }): EmailMessage {
+function cancellation(r: MailRental, opts: { by: CancelReason; refundedAmount?: number; cancellationFee?: number; outstanding?: number }): EmailMessage {
     const refunded = opts.refundedAmount ?? 0;
     const intro: Record<CancelReason, string> = {
         customer: 'wie gewünscht haben wir Ihre Buchung storniert.',
@@ -246,6 +247,8 @@ function cancellation(r: MailRental, opts: { by: CancelReason; refundedAmount?: 
                     { label: 'Fahrzeug', value: vehicle(r) },
                     { label: 'Zeitraum', value: `${dateOnly(r.startDate)} – ${dateOnly(r.endDate)}` },
                     refunded > 0 ? { label: 'Erstattet', value: `**${eur(refunded)}**` } : null,
+                    opts.cancellationFee != null ? { label: 'Stornokosten gemäß AGB §7', value: eur(opts.cancellationFee) } : null,
+                    opts.outstanding ? { label: 'Noch zu bezahlen', value: eur(opts.outstanding) } : null,
                 ],
             },
             refunded > 0
@@ -321,7 +324,7 @@ function bookingChanged(r: MailRental, opts: { previousEnd: Date; previousTotal:
                 { label: 'Bisher', value: eur(opts.previousTotal) },
                 open > 0 ? { label: 'Noch offen', value: eur(open) } : null,
             ] },
-            open > 0 ? { kind: 'p', text: 'Den offenen Betrag begleichen Sie bitte bei der Rückgabe.' } : null,
+            open > 0 ? { kind: 'p', text: 'Eine Verlängerung setzt gemäß AGB §7 die Vorauszahlung der zusätzlichen Mietkosten voraus. Bitte begleichen Sie den offenen Betrag vor Beginn des Verlängerungszeitraums.' } : null,
             handoverNote(r, 'return'),
         ],
         reason: 'Sie erhalten diese E-Mail zu Ihrer Buchung bei Rent-Ex.',
@@ -411,8 +414,8 @@ function welcome(c: { firstName: string; lastName: string }): EmailMessage {
         blocks: [
             { kind: 'p', text: 'danke für Ihre Registrierung. In Ihrem Kundenkonto können Sie:' },
             { kind: 'list', items: [
-                'Ihre Buchungen und Rechnungen einsehen',
-                `bis ${RENTAL_TERMS.FREE_CANCEL_HOURS} Stunden vor der Abholung kostenlos stornieren`,
+                'Ihre Buchungen verwalten (Rechnungen und Mietverträge: In Bearbeitung)',
+                CANCELLATION_TERMS,
                 'Ihre Daten und Ihren Führerschein hinterlegen, damit die nächste Buchung schneller geht',
             ] },
             { kind: 'button', label: 'Zum Kundenkonto', href: `${SITE_URL}/dashboard` },
@@ -535,7 +538,7 @@ function staffNewBooking(r: MailRental, opts: { paid: boolean }): EmailMessage {
     });
 }
 
-function staffCancellation(r: MailRental, opts: { by: CancelReason; refundedAmount?: number }): EmailMessage {
+function staffCancellation(r: MailRental, opts: { by: CancelReason; refundedAmount?: number; cancellationFee?: number; outstanding?: number }): EmailMessage {
     const who = { customer: 'vom Kunden', company: 'intern', noShow: 'automatisch (nicht abgeholt)' }[opts.by];
     return staffNotice({
         subject: `Storniert: ${r.contractNumber} – ${name(r)}`,
@@ -544,6 +547,8 @@ function staffCancellation(r: MailRental, opts: { by: CancelReason; refundedAmou
         facts: [
             ...staffRentalFacts(r),
             opts.refundedAmount ? { label: 'Erstattet', value: eur(opts.refundedAmount) } : null,
+            opts.cancellationFee != null ? { label: 'Stornokosten gemäß AGB §7', value: eur(opts.cancellationFee) } : null,
+            opts.outstanding ? { label: 'Noch zu bezahlen', value: eur(opts.outstanding) } : null,
         ],
         link: adminRentalLink(r),
     });

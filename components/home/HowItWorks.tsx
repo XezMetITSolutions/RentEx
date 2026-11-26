@@ -7,7 +7,7 @@ const steps = [
   {
     stage: "2.0",
     title: "Online buchen.",
-    description: "Reservierung und Zahlung in wenigen Schritten — die Bestätigung kommt per E-Mail.",
+    description: "Reservierung in wenigen Schritten abschließen, die Bestätigung kommt sofort per E-Mail.",
   },
   {
     stage: "3.0",

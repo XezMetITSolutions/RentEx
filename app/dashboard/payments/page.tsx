@@ -1,8 +1,9 @@
 import prisma from '@/lib/prisma';
 import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import NoCustomer from '@/components/dashboard/NoCustomer';
-import { CreditCard, CreditCard as CardIcon, Plus, Info, CheckCircle2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { CreditCard, Info } from 'lucide-react';
+import { formatInTimeZone } from 'date-fns-tz';
+import { BUSINESS } from '@/lib/config';
 import { de } from 'date-fns/locale';
 
 const formatCurrency = (amount: number) =>
@@ -68,7 +69,7 @@ export default async function PaymentsPage() {
                                         {payments.map((p) => (
                                             <tr key={p.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30">
                                                 <td className="px-6 py-4 text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
-                                                    {format(new Date(p.paymentDate), 'dd.MM.yy HH:mm', { locale: de })}
+                                                    {formatInTimeZone(new Date(p.paymentDate), BUSINESS.TIME_ZONE, 'dd.MM.yy HH:mm', { locale: de })}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className="font-medium text-zinc-900 dark:text-zinc-50">
@@ -99,36 +100,18 @@ export default async function PaymentsPage() {
                                 <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                 Gespeicherte Zahlungsmittel
                             </h2>
-                            
-                            <div className="space-y-3">
-                                {/* Sample Saved Method */}
-                                <div className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                                            <CardIcon className="h-5 w-5 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">•••• 4242</p>
-                                            <p className="text-xs text-zinc-500">Ablauf: 12/28</p>
-                                        </div>
-                                    </div>
-                                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                                </div>
 
-                                <button className="w-full group mt-4 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 py-6 px-4 text-sm font-medium text-zinc-500 transition-all hover:border-blue-400 hover:text-blue-600 dark:border-zinc-800 dark:hover:border-blue-500 dark:hover:text-blue-400">
-                                    <Plus className="h-5 w-5" />
-                                    Zahlungsart hinzufügen
-                                </button>
-                            </div>
-
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Es sind keine Zahlungsmittel in Ihrem Kundenkonto gespeichert. Kartenzahlungen erfolgen über den sicheren Stripe-Checkout der jeweiligen Buchung.</p>
+                            <p className="mt-4 text-sm">Rechnungen: <strong>In Bearbeitung</strong></p>
+                            <p className="text-sm">Mietverträge: <strong>In Bearbeitung</strong></p>
                             <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
                                 <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-4">Unterstützte Methoden (via Stripe)</p>
                                 <div className="flex flex-wrap gap-3 grayscale opacity-60">
                                     {/* Simulated Mini-Logos or Labels */}
                                     <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-black dark:text-white">VISA</span>
                                     <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-black dark:text-white">MASTERCARD</span>
-                                    <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-blue-600">PayPal</span>
-                                    <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-pink-500">Klarna</span>
+
+
                                     <span className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-800 dark:text-zinc-200">Apple Pay</span>
                                 </div>
                                 <p className="mt-4 text-[11px] text-zinc-500 flex items-center gap-1.5 leading-relaxed">

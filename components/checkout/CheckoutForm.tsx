@@ -1,4 +1,5 @@
 "use client";
+import { CANCELLATION_TERMS } from '@/lib/cancellationPolicy';
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -726,7 +727,7 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
                                 {car.depositAmount != null && <TermRow label="Kaution bei Abholung" value={`${eur(car.depositAmount)} · nicht im Gesamtpreis`} />}
                                 <TermRow label="Tank" value={car.fuelPolicy || `${RENTAL_TERMS.FUEL_POLICY} (sonst Kosten + ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)})`} />
                                 <TermRow label="Abholung" value={`${BUSINESS.PICKUP_ADDRESS}, ${BUSINESS.PICKUP_POSTAL_CODE} ${BUSINESS.PICKUP_CITY}`} />
-                                <TermRow label="Stornierung" value="Kostenlos bis 24 Std. vor Abholung" />
+                                <TermRow label="Stornierung" value={CANCELLATION_TERMS} />
                             </dl>
 
                             <label className="mt-6 flex cursor-pointer items-start gap-3 text-xs text-hm-ink-2">

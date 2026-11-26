@@ -7,6 +7,7 @@ import { notifyCustomer } from '@/lib/pushNotifications';
 import { UNPAID_ONLINE } from '@/lib/availability';
 import { releaseCouponUse } from '@/lib/coupons';
 import { refundRental } from '@/lib/refunds';
+import { completeExtension } from '@/lib/extensions';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -34,6 +35,10 @@ export async function POST(req: Request) {
 
     if (isPaymentEvent) {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.extensionId) {
+            await completeExtension(session);
+            return NextResponse.json({ received: true });
+        }
         const rentalId = session.metadata?.rentalId;
         const id = rentalId ? parseInt(rentalId, 10) : NaN;
 

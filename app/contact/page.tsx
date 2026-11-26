@@ -1,8 +1,11 @@
+import ContactForm from '@/components/ContactForm';
+import { getCurrentCustomer } from '@/lib/dashboardAuth';
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 
-export default function ContactPage() {
+export default async function ContactPage({searchParams}:{searchParams:Promise<{subject?:string}>}) {
+    const [query,customer]=await Promise.all([searchParams,getCurrentCustomer()]);
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-red-500/30">
             <Navbar />
@@ -74,35 +77,7 @@ export default function ContactPage() {
                     {/* Contact Form */}
                     <div className="bg-gray-50 dark:bg-zinc-900/50 p-8 rounded-3xl border border-gray-200 dark:border-white/10">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Nachricht schreiben</h3>
-                        <form className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Vorname</label>
-                                    <input type="text" className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors" placeholder="Max" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Nachname</label>
-                                    <input type="text" className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors" placeholder="Mustermann" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">E-Mail Adresse</label>
-                                <input type="email" className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors" placeholder="max@beispiel.com" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Betreff</label>
-                                <input type="text" className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors" placeholder="Ihre Anfrage" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Nachricht</label>
-                                <textarea rows={4} className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors" placeholder="Wie können wir Ihnen helfen?"></textarea>
-                            </div>
-
-                            <button type="button" className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 mt-2 flex items-center justify-center gap-2">
-                                <Send className="w-4 h-4" />
-                                Nachricht senden
-                            </button>
-                        </form>
+                        <ContactForm subject={query.subject || ""} firstName={customer?.firstName} lastName={customer?.lastName} email={customer?.email} />
                     </div>
                 </div>
             </main>

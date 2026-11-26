@@ -34,6 +34,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
             'reports': 'Berichte',
             'staff': 'Mitarbeiter',
             'settings': 'Einstellungen',
+            'notifications': 'Benachrichtigungen',
+            'pricing': 'Preise',
+            'marketing': 'Marketing',
+            'activity': 'Aktivitäten',
             'new': 'Neu'
         };
         return names[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);

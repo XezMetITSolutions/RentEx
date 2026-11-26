@@ -50,7 +50,7 @@ export default function HeroShowroom({
           </h1>
 
           <p className="mt-6 max-w-[26rem] text-base sm:text-lg leading-relaxed text-hm-stage-muted">
-            Vom Stadtflitzer bis zum Transporter — online gebucht, in der Illstraße abgeholt.
+            Vom wendigen Kleinwagen bis zum geräumigen Transporter: Einfach online reservieren und direkt an unserem Standort in der Illstraße abholen.
           </p>
 
           {items.length > 1 && (

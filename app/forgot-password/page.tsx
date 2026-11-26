@@ -5,7 +5,8 @@ import { ForgotPasswordForm } from '@/components/auth/PasswordResetForms';
 
 export const metadata = { title: 'Passwort vergessen', robots: { index: false } };
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage({searchParams}:{searchParams:Promise<{email?:string}>}) {
+    const {email}=await searchParams;
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white selection:bg-red-500/30 transition-colors">
             <Navbar />
@@ -16,7 +17,7 @@ export default function ForgotPasswordPage() {
                         Geben Sie Ihre E-Mail-Adresse ein. Wir schicken Ihnen einen Link, mit dem Sie ein neues Passwort festlegen.
                         Das funktioniert auch, wenn Sie bisher ohne Passwort gebucht haben.
                     </p>
-                    <ForgotPasswordForm />
+                    <ForgotPasswordForm email={email} />
                     <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
                         <Link href="/login" className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium">
                             Zurück zur Anmeldung

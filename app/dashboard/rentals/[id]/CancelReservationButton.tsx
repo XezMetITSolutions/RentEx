@@ -4,18 +4,20 @@ import { cancelReservation } from '@/app/actions/dashboard';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function CancelReservationButton({ rentalId }: { rentalId: number }) {
+export default function CancelReservationButton({ rentalId, quote }: { rentalId: number; quote: {fee:number;refund:number;outstanding:number} }) {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const router = useRouter();
 
     async function handleClick() {
-        if (!confirm('Reservierung wirklich stornieren?')) return;
+        if (!confirm(`Kostenpflichtig stornieren? Stornokosten: €${quote.fee.toFixed(2)}. Erstattung: €${quote.refund.toFixed(2)}. Noch offen: €${quote.outstanding.toFixed(2)}.`)) return;
         setLoading(true);
         setMessage(null);
         const formData = new FormData();
         formData.set('rentalId', String(rentalId));
-        const result = await cancelReservation(formData);
+        formData.set('acceptedFee', String(quote.fee));
+        let result;
+        try { result = await cancelReservation(formData); } catch { setMessage("Stornierung fehlgeschlagen. Bitte erneut versuchen."); setLoading(false); return; }
         setLoading(false);
         if (result?.error) {
             setMessage(result.error);
@@ -27,6 +29,7 @@ export default function CancelReservationButton({ rentalId }: { rentalId: number
 
     return (
         <div>
+            <p className="mb-3 text-sm">AGB §7: Stornokosten <strong>€{quote.fee.toFixed(2)}</strong> · Erstattung €{quote.refund.toFixed(2)} · Noch offen €{quote.outstanding.toFixed(2)}. Online-Stornierung nur vor Mietbeginn.</p>
             {message && (
                 <p className="mb-3 text-sm text-red-600 dark:text-red-400">{message}</p>
             )}

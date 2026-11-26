@@ -80,7 +80,7 @@ export type RentalMailEvent =
     | { type: 'paid' }
     | { type: 'pickupReminder' }
     | { type: 'returnReminder' }
-    | { type: 'cancelled'; by: CancelReason; refundedAmount?: number }
+    | { type: 'cancelled'; by: CancelReason; refundedAmount?: number; cancellationFee?: number; outstanding?: number }
     | { type: 'paymentExpired' }
     | { type: 'refunded'; amount: number; reason?: string | null }
     | { type: 'changed'; previousEnd: Date; previousTotal: number }

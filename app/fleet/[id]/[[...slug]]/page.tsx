@@ -8,18 +8,60 @@ import { blockingRentalWhere, calendarBlocks } from "@/lib/availability";
 import { bookableOptions } from "@/lib/bookingPrice";
 
 async function getCar(id: number) {
-    return prisma.car.findUnique({
+    const car = await prisma.car.findUnique({
         where: { id },
         include: {
             options: true,
-            // Only the dates leave the server: the calendar needs nothing else
-            // about other customers' bookings.
             rentals: {
                 where: blockingRentalWhere(),
                 select: { startDate: true, endDate: true, status: true, actualReturnDate: true },
             }
         }
     });
+
+    if (!car) return null;
+
+    // Find siblings of the same model and brand
+    const siblings = await prisma.car.findMany({
+        where: {
+            id: { not: car.id },
+            brand: car.brand,
+            model: car.model,
+            status: { in: ['Active', 'Rented'] },
+            isActive: true,
+        },
+        select: {
+            id: true,
+            rentals: {
+                where: blockingRentalWhere(),
+                select: { startDate: true, endDate: true, status: true, actualReturnDate: true },
+            }
+        }
+    });
+
+    // If there are siblings, a date is only blocked if ALL cars of this model are blocked!
+    // If no siblings exist, only this car's rentals block the calendar.
+    let effectiveRentals = car.rentals;
+
+    if (siblings.length > 0) {
+        // Find overlapping rental intervals that cover all siblings simultaneously
+        // Simple and robust: if any sibling is free, effectiveRentals only contains true universal blocks
+        const allCarRentals = [car.rentals, ...siblings.map(s => s.rentals)];
+        // If not all cars are booked, the pool still has availability
+        // Only intervals that intersect across ALL sibling cars remain blocked
+        effectiveRentals = car.rentals.filter(r1 => {
+            return siblings.every(s => 
+                s.rentals.some(r2 => 
+                    new Date(r2.startDate) <= new Date(r1.endDate) && new Date(r2.endDate) >= new Date(r1.startDate)
+                )
+            );
+        });
+    }
+
+    return {
+        ...car,
+        rentals: effectiveRentals
+    };
 }
 
 function slugify(text: string) {
@@ -44,8 +86,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const car = await getCar(carId);
     if (!car) return {};
 
-    const titleStr = `${car.brand} ${car.model} mieten | RentEx`;
-    const descStr = car.description || `${car.brand} ${car.model} mieten in Vorarlberg. Bestpreisgarantie bei RentEx.`;
+    const titleStr = `${car.brand} ${car.model} mieten | Rent-Ex`;
+    const descStr = car.description || `${car.brand} ${car.model} mieten in Vorarlberg bei Rent-Ex in Feldkirch.`;
 
     return {
         title: titleStr,

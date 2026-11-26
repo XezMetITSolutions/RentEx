@@ -1,3 +1,6 @@
+import { formatInTimeZone } from 'date-fns-tz';
+import { BUSINESS } from '@/lib/config';
+import { de } from 'date-fns/locale';
 import { ArrowRight, Car, Calendar, CreditCard, ChevronRight, Clock, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
@@ -10,9 +13,7 @@ const formatCurrency = (amount: number) => {
 };
 
 // Helper function to format date
-const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('de-AT', { dateStyle: 'long', timeStyle: 'short' }).format(date);
-};
+const formatDate = (date: Date) => formatInTimeZone(new Date(date), BUSINESS.TIME_ZONE, 'd. MMMM yyyy, HH:mm', { locale: de });
 
 export default async function DashboardPage() {
     const customer = await getCurrentCustomer();
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
     const activeRentals = await prisma.rental.findMany({
         where: {
             customerId: customer.id,
-            status: { in: ['Active', 'Pending'] } // Assuming 'Active' or 'Pending' means current
+            status: 'Active' // Assuming 'Active' or 'Pending' means current
         },
         include: {
             car: true,
@@ -107,7 +108,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Aktuelle Miete</h2>
                         {activeRental && (
-                            <Link href="/dashboard/rentals" className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-500">
+                            <Link href={`/dashboard/rentals/${activeRental.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-500">
                                 Details ansehen
                             </Link>
                         )}
@@ -183,7 +184,7 @@ export default async function DashboardPage() {
 
                             <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-4 flex justify-between items-center dark:border-zinc-800 dark:bg-zinc-900/50">
                                 <div className="flex gap-6">
-                                    <Link href="/contact?subject=Mietverlängerung" className="text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors">Verlängern</Link>
+                                    <Link href={`/dashboard/rentals/${activeRental.id}#extension`} className="text-sm font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors">Verlängern</Link>
                                     <Link href="/contact?subject=Pannenhilfe" className="text-sm font-medium text-zinc-600 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 transition-colors">Pannenhilfe</Link>
                                 </div>
                                 <a 
@@ -252,7 +253,7 @@ export default async function DashboardPage() {
                         <h3 className="text-lg font-bold">Brauchen Sie Hilfe?</h3>
                         <p className="mt-2 text-sm text-zinc-400">Unser Support-Team ist 24/7 für Sie da.</p>
                         <Link href="/contact" className="mt-4 block w-full text-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-100 dark:bg-zinc-100 dark:hover:bg-zinc-200">
-                            Live-Support starten
+                            Support kontaktieren
                         </Link>
                     </div>
 

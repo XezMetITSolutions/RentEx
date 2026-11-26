@@ -45,8 +45,6 @@ export const RENTAL_TERMS = {
     REFUEL_FEE_EUR: 18,
     EXTRA_KM_RANGE: '0,33 – 0,45 € / km',
     MIN_DRIVER_AGE: 18,
-    /** Paid bookings can be cancelled online until this many hours before pickup. */
-    FREE_CANCEL_HOURS: 24,
     /** Unpaid reservations still Pending this long after pickup are released. */
     NO_SHOW_GRACE_HOURS: 3,
     /** A month is 30 chargeable days when a Monatspreis is configured. */

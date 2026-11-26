@@ -8,6 +8,7 @@ import TodayOverview from '@/components/admin/TodayOverview';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/adminAuth';
+import AustrianPlate from '@/components/ui/AustrianPlate';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,7 +137,7 @@ export default async function AdminDashboard({
                     <div className="flex items-center gap-2">
                         <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
-                            RentEx Ländle Workbench · {staff?.location?.name || 'Alle Standorte'}
+                            Rent-Ex Ländle Workbench · {staff?.location?.name || 'Alle Standorte'}
                         </span>
                     </div>
                     <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
@@ -236,8 +237,8 @@ export default async function AdminDashboard({
                                         <tr key={rental.id} className="hover:bg-hm-paper-2/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-semibold text-hm-ink">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="inline-block mt-1 font-mono text-[11px] px-2 py-0.5 rounded bg-hm-paper-2 border border-hm-rule text-hm-ink-2">
-                                                    {rental.car.plate}
+                                                <div className="mt-1">
+                                                    <AustrianPlate plate={rental.car.plate} size="sm" />
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-hm-ink font-medium">
@@ -248,15 +249,21 @@ export default async function AdminDashboard({
                                                     className={clsx(
                                                         'inline-flex items-center rounded-[var(--hm-radius-pill)] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider border',
                                                         rental.status === 'Active' && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+                                                        rental.status === 'Confirmed' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
                                                         rental.status === 'Completed' && 'bg-hm-paper-2 text-hm-muted border-hm-rule',
                                                         rental.status === 'Pending' && 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
-                                                        rental.status === 'Cancelled' && 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+                                                        rental.status === 'Cancelled' && 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20',
+                                                        rental.status === 'NoShow' && 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
+                                                        !['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && 'bg-hm-paper-2 text-hm-muted border-hm-rule'
                                                     )}
                                                 >
                                                     {rental.status === 'Active' && 'Aktiv'}
+                                                    {rental.status === 'Confirmed' && 'Bestätigt'}
                                                     {rental.status === 'Completed' && 'Abgeschlossen'}
                                                     {rental.status === 'Pending' && 'Ausstehend'}
                                                     {rental.status === 'Cancelled' && 'Storniert'}
+                                                    {rental.status === 'NoShow' && 'Nicht erschienen'}
+                                                    {!['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && rental.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-mono font-bold text-hm-ink text-right hm-tnum">

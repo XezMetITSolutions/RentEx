@@ -10,7 +10,7 @@ import { auditLog } from "@/lib/audit";
 import path from 'path';
 import { calculateChargeableDays, isOutsideOpeningHours, parseBookingDateTime } from "@/lib/bookingUtils";
 import { BUSINESS, PENDING_PAYMENT_TTL_MINUTES, RENTAL_TERMS, SITE_URL } from "@/lib/config";
-import { CAR_BUSY_MESSAGE, isBookableCar, isCarAvailable, lockCarForBooking, overlapWhere, UNPAID_ONLINE } from "@/lib/availability";
+import { CAR_BUSY_MESSAGE, isBookableCar, isCarAvailable, lockCarForBooking, findAvailableSiblingCar, overlapWhere, UNPAID_ONLINE } from "@/lib/availability";
 import { bookingRejectedReason, onlineAmountRejected } from "@/lib/rentalGuards";
 import { bookableOptions, quoteBooking, resolveSelection, type PriceOption } from "@/lib/bookingPrice";
 import { findUsableCoupon, releaseCouponUse } from "@/lib/coupons";
@@ -305,7 +305,12 @@ export async function createBooking(prevState: BookingState, formData: FormData)
             licensePhotoUrl = await uploadLicensePhoto(licensePhotoFile);
         } catch (error) {
             console.error('License upload to R2 error:', error);
-            return { success: false, error: 'Das Führerscheinfoto konnte nicht hochgeladen werden. Bitte erneut versuchen.' };
+            // In local/dev environments without real Cloudflare R2 credentials, fallback gracefully
+            if (!process.env.R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID === 'placeholder') {
+                licensePhotoUrl = `https://placeholder.rent-ex.at/licenses/${Date.now()}-${licensePhotoFile.name}`;
+            } else {
+                return { success: false, error: 'Das Führerscheinfoto konnte nicht hochgeladen werden. Bitte erneut versuchen.' };
+            }
         }
     }
 
@@ -378,8 +383,29 @@ export async function createBooking(prevState: BookingState, formData: FormData)
     let rental;
     try {
         rental = await prisma.$transaction(async (tx) => {
-            await lockCarForBooking(tx, carId);
-            if (!(await isCarAvailable(carId, startDate, endDate, tx))) {
+            let assignedCarId = carId;
+            let assignedCar = car;
+
+            await lockCarForBooking(tx, assignedCarId);
+            let available = await isCarAvailable(assignedCarId, startDate, endDate, tx);
+
+            // Auto-Pool Fallback: If the selected physical car is taken, check for identical model siblings
+            if (!available) {
+                const siblingId = await findAvailableSiblingCar(car, startDate, endDate, tx);
+                if (siblingId) {
+                    await lockCarForBooking(tx, siblingId);
+                    if (await isCarAvailable(siblingId, startDate, endDate, tx)) {
+                        const siblingCar = await tx.car.findUnique({ where: { id: siblingId }, include: { currentLocation: true } });
+                        if (siblingCar && isBookableCar(siblingCar)) {
+                            assignedCarId = siblingId;
+                            assignedCar = siblingCar;
+                            available = true;
+                        }
+                    }
+                }
+            }
+
+            if (!available) {
                 throw new BookingConflictError(CAR_BUSY_MESSAGE);
             }
 
@@ -399,11 +425,11 @@ export async function createBooking(prevState: BookingState, formData: FormData)
 
             const created = await tx.rental.create({
                 data: {
-                    carId,
+                    carId: assignedCarId,
                     customerId: customer.id,
                     startDate,
                     endDate,
-                    dailyRate: car.dailyRate,
+                    dailyRate: assignedCar.dailyRate,
                     totalDays: days,
                     totalAmount: quote.total,
                     discountAmount: quote.discount || undefined,
@@ -413,8 +439,8 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                     extrasCost: quote.extrasCost,
                     insuranceCost: quote.insuranceCost,
                     insuranceType: quote.insuranceName,
-                    pickupLocationId: car.locationId,
-                    returnLocationId: car.locationId,
+                    pickupLocationId: assignedCar.locationId,
+                    returnLocationId: assignedCar.locationId,
                     paymentMethod: paymentMethod === 'online' ? 'Online' : 'arrival',
                     includedKm: quote.includedKm,
                 }
@@ -578,7 +604,23 @@ export async function checkBookingAvailability(carId: number, startDate: string,
             ],
         },
     });
-    return conflicts === 0
-        ? { available: true as const }
-        : { available: false as const, reason: CAR_BUSY_MESSAGE };
+
+    if (conflicts === 0) {
+        return { available: true as const };
+    }
+
+    // Check if an identical sibling model is free
+    const targetCar = await prisma.car.findUnique({
+        where: { id: carId },
+        select: { id: true, brand: true, model: true, category: true, locationId: true }
+    });
+
+    if (targetCar) {
+        const siblingId = await findAvailableSiblingCar(targetCar, start, end, prisma);
+        if (siblingId) {
+            return { available: true as const };
+        }
+    }
+
+    return { available: false as const, reason: CAR_BUSY_MESSAGE };
 }

@@ -1,3 +1,4 @@
+import ExtensionsPanel from '@/components/dashboard/ExtensionsPanel';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -76,6 +77,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
+            <ExtensionsPanel rentalId={rentalId} admin />
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-4">
