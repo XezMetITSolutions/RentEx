@@ -131,17 +131,11 @@ export default function FahrtenbuchClientView({ cars }: FahrtenbuchClientViewPro
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
                 <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
-                            Finanzen & Recht · Konformes Fahrtenbuch
-                        </span>
-                    </div>
                     <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
                         Elektronisches Fahrtenbuch
                     </h1>
                     <p className="text-xs font-mono text-hm-muted uppercase tracking-wider">
-                        Finanzamt-konforme Kilometeraufzeichnung für Dienst- und Privatfahrten (§ 26 EStG / Sachbezug)
+                        Finanzamt-konforme Kilometeraufzeichnung für Dienst- und Privatfahrten
                     </p>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -391,19 +385,6 @@ export default function FahrtenbuchClientView({ cars }: FahrtenbuchClientViewPro
                             </div>
                         ))
                     )}
-                </div>
-            </div>
-
-            {/* Compliance Footer */}
-            <div className="flex items-start gap-3 p-4 bg-hm-paper-2 rounded-[var(--hm-radius-card)] border border-hm-rule">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                <div className="space-y-1">
-                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-hm-ink">
-                        Österreichisches Steuerrecht (§ 26 Z 4 EStG)
-                    </h4>
-                    <p className="text-xs text-hm-muted">
-                        Ein ordnungsgemäßes elektronisches Fahrtenbuch muss fortlaufend, zeitnah und manipulationssicher geführt werden. Zweck, Reiseroute sowie genauer Anfangs- und Endkilometerstand müssen lückenlos dokumentiert sein.
-                    </p>
                 </div>
             </div>
         </div>
