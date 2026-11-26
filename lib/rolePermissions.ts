@@ -20,7 +20,6 @@ export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     // Hauptmenü
     { id: 'Dashboard', name: 'Dashboard', category: 'Hauptmenü', href: '/admin', description: 'Übersicht, Metriken und Schnellzugriff' },
     { id: 'Aufgaben', name: 'Aufgaben', category: 'Hauptmenü', href: '/admin/tasks', description: 'Operatives Aufgaben- & To-Do-Board' },
-    { id: 'Benachrichtigungen', name: 'Benachrichtigungen', category: 'Hauptmenü', href: '/admin/notifications', description: 'System- und Kundenbenachrichtigungen', badgeKey: 'notifications' },
     { id: 'Aktivitätsprotokoll', name: 'Aktivitätsprotokoll', category: 'Hauptmenü', href: '/admin/activity', description: 'Audit-Logs und Systemaktivitäten' },
 
     // Operativ
@@ -64,14 +63,14 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'SUPERADMIN': ['all'],
     'ADMINISTRATOR': ['all'],
     'FILIALLEITER': [
-        'Dashboard', 'Aufgaben', 'Benachrichtigungen',
+        'Dashboard', 'Aufgaben',
         'Reservierungen', 'Kunden', 'Check-Out', 'Standorte',
         'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'Strafzettel',
         'Zusatzoptionen',
         'Finanzen', 'Rechnungen', 'Fahrtenbuch', 'Berichte'
     ],
     'MITARBEITER': [
-        'Dashboard', 'Aufgaben', 'Benachrichtigungen',
+        'Dashboard', 'Aufgaben',
         'Reservierungen', 'Kunden', 'Check-Out',
         'Fahrzeugflotte', 'GPS Tracking', 'Wartung', 'Rechnungen'
     ],

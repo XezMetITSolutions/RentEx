@@ -43,7 +43,6 @@ import {
 const MODULE_ICONS: Record<string, LucideIcon> = {
     Dashboard: LayoutDashboard,
     Aufgaben: Activity,
-    Benachrichtigungen: Bell,
     Aktivitätsprotokoll: FileText,
     Reservierungen: CalendarDays,
     Kunden: Users,
