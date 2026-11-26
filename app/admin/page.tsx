@@ -228,40 +228,53 @@ export default async function AdminDashboard({
                                     </tr>
                                 ) : (
                                     recentRentals.map((rental) => (
-                                        <tr key={rental.id} className="hover:bg-hm-paper-2/50 transition-colors">
+                                        <tr 
+                                            key={rental.id} 
+                                            className="group hover:bg-hm-paper-2 transition-colors cursor-pointer"
+                                        >
                                             <td className="px-6 py-4">
-                                                <div className="font-semibold text-hm-ink">{rental.car.brand} {rental.car.model}</div>
-                                                <div className="mt-1">
-                                                    <AustrianPlate plate={rental.car.plate} size="sm" />
-                                                </div>
+                                                <Link href={`/admin/reservations/${rental.id}`} className="block">
+                                                    <div className="font-semibold text-hm-ink group-hover:text-hm-accent transition-colors">
+                                                        {rental.car.brand} {rental.car.model}
+                                                    </div>
+                                                    <div className="mt-1">
+                                                        <AustrianPlate plate={rental.car.plate} size="sm" />
+                                                    </div>
+                                                </Link>
                                             </td>
                                             <td className="px-6 py-4 text-hm-ink font-medium">
-                                                {rental.customer.firstName} {rental.customer.lastName}
+                                                <Link href={`/admin/reservations/${rental.id}`} className="block">
+                                                    {rental.customer.firstName} {rental.customer.lastName}
+                                                </Link>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span
-                                                    className={clsx(
-                                                        'inline-flex items-center rounded-[var(--hm-radius-pill)] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider border',
-                                                        rental.status === 'Active' && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
-                                                        rental.status === 'Confirmed' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
-                                                        rental.status === 'Completed' && 'bg-hm-paper-2 text-hm-muted border-hm-rule',
-                                                        rental.status === 'Pending' && 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
-                                                        rental.status === 'Cancelled' && 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20',
-                                                        rental.status === 'NoShow' && 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
-                                                        !['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && 'bg-hm-paper-2 text-hm-muted border-hm-rule'
-                                                    )}
-                                                >
-                                                    {rental.status === 'Active' && 'Aktiv'}
-                                                    {rental.status === 'Confirmed' && 'Bestätigt'}
-                                                    {rental.status === 'Completed' && 'Abgeschlossen'}
-                                                    {rental.status === 'Pending' && 'Ausstehend'}
-                                                    {rental.status === 'Cancelled' && 'Storniert'}
-                                                    {rental.status === 'NoShow' && 'Nicht erschienen'}
-                                                    {!['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && rental.status}
-                                                </span>
+                                                <Link href={`/admin/reservations/${rental.id}`} className="block">
+                                                    <span
+                                                        className={clsx(
+                                                            'inline-flex items-center rounded-[var(--hm-radius-pill)] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider border',
+                                                            rental.status === 'Active' && 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+                                                            rental.status === 'Confirmed' && 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
+                                                            rental.status === 'Completed' && 'bg-hm-paper-2 text-hm-muted border-hm-rule',
+                                                            rental.status === 'Pending' && 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+                                                            rental.status === 'Cancelled' && 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20',
+                                                            rental.status === 'NoShow' && 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
+                                                            !['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && 'bg-hm-paper-2 text-hm-muted border-hm-rule'
+                                                        )}
+                                                    >
+                                                        {rental.status === 'Active' && 'Aktiv'}
+                                                        {rental.status === 'Confirmed' && 'Bestätigt'}
+                                                        {rental.status === 'Completed' && 'Abgeschlossen'}
+                                                        {rental.status === 'Pending' && 'Ausstehend'}
+                                                        {rental.status === 'Cancelled' && 'Storniert'}
+                                                        {rental.status === 'NoShow' && 'Nicht erschienen'}
+                                                        {!['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && rental.status}
+                                                    </span>
+                                                </Link>
                                             </td>
                                             <td className="px-6 py-4 font-mono font-bold text-hm-ink text-right hm-tnum">
-                                                {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
+                                                <Link href={`/admin/reservations/${rental.id}`} className="block group-hover:text-hm-accent transition-colors">
+                                                    {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))
