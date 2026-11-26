@@ -121,27 +121,8 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // --- MOBILE REDIRECT ---
-    const userAgent = request.headers.get('user-agent') || '';
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-
-    if (
-        isMobile && 
-        !pathname.startsWith('/mobile') && 
-        !pathname.startsWith('/api') &&
-        !pathname.startsWith('/admin') &&
-        !pathname.startsWith('/dashboard') &&
-        !pathname.startsWith('/login') &&
-        !pathname.startsWith('/register') &&
-        !pathname.startsWith('/forgot-password') &&
-        !pathname.startsWith('/reset-password')
-    ) {
-        let targetPath = '/mobile';
-        if (pathname === '/') targetPath = '/mobile';
-        else if (pathname.startsWith('/fleet')) targetPath = `/mobile${pathname}`;
-        
-        return NextResponse.redirect(new URL(targetPath, request.url));
-    }
+    // --- MOBILE REDIRECT DISABLED ---
+    // User requested full responsive desktop layout on mobile instead of separate /mobile routes.
 
     return response;
 }
