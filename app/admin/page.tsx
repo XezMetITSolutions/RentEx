@@ -137,7 +137,7 @@ export default async function AdminDashboard({
                     <div className="flex items-center gap-2">
                         <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
-                            Rent-Ex Ländle Workbench · {staff?.location?.name || 'Alle Standorte'}
+                            Rent-Ex Flottenverwaltung · {staff?.location?.name || 'Hauptstandort Feldkirch'}
                         </span>
                     </div>
                     <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
