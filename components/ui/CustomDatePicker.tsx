@@ -9,9 +9,10 @@ type Props = {
   min?: string; // YYYY-MM-DD
   className?: string;
   inputClassName?: string;
+  align?: "left" | "right";
 };
 
-export default function CustomDatePicker({ value, onChange, min, className = "", inputClassName = "" }: Props) {
+export default function CustomDatePicker({ value, onChange, min, className = "", inputClassName = "", align = "left" }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => {
     if (value) {
@@ -136,7 +137,7 @@ export default function CustomDatePicker({ value, onChange, min, className = "",
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 p-4 w-72 bg-white dark:bg-[#171717] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150 right-0 left-0 md:left-auto">
+        <div className={`absolute z-50 mt-2 p-4 w-72 bg-white dark:bg-[#171717] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${align === "right" ? "right-0" : "left-0"}`}>
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <button 

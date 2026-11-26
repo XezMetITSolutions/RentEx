@@ -629,8 +629,8 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
 
                 {/* Summary */}
                 <aside className="min-w-0 lg:sticky lg:top-24">
-                    <div className="overflow-hidden rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper">
-                        <div className="hm-stage relative aspect-[16/8]">
+                    <div className="rounded-[var(--hm-radius-card)] border border-hm-rule bg-hm-paper">
+                        <div className="hm-stage relative aspect-[16/8] overflow-hidden rounded-t-[var(--hm-radius-card)]">
                             {car.imageUrl && <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill sizes="400px" className="object-cover" priority />}
                         </div>
                         <div className="p-6">
