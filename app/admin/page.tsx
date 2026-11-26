@@ -131,15 +131,9 @@ export default async function AdminDashboard({
                 </div>
             )}
             
-            {/* Header Area (Workbench style) */}
+            {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-hm-rule">
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent" />
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
-                            Rent-Ex Flottenverwaltung · {staff?.location?.name || 'Hauptstandort Feldkirch'}
-                        </span>
-                    </div>
+                <div className="space-y-1">
                     <h1 className="hm-display text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
                         Willkommen zurück, {staff?.name?.split(' ')[0] || 'Admin'}
                     </h1>

@@ -162,12 +162,6 @@ export default function ReservationsManager({
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-hm-rule">
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <span className="inline-block h-2 w-2 rounded-full bg-hm-accent animate-pulse" />
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-hm-muted">
-                            Operativ · Buchungsmanagement
-                        </span>
-                    </div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-hm-ink">
                         Reservierungen
                     </h1>
