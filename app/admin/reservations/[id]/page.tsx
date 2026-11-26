@@ -17,7 +17,11 @@ import {
     XCircle,
     AlertCircle,
     Receipt,
-    PenTool
+    PenTool,
+    Gauge,
+    Droplets,
+    ShieldCheck,
+    Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -145,6 +149,126 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Digitales Übergabeprotokoll (Self Check-in & Fotos) */}
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2 text-gray-900 dark:text-white font-bold">
+                                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                                Digitales Übergabeprotokoll (Check-in)
+                            </div>
+                            {rental.checkInAt ? (
+                                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-xs font-bold flex items-center gap-1.5">
+                                    <CheckCircle className="w-3.5 h-3.5" /> Durchgeführt am {formatInTimeZone(new Date(rental.checkInAt), BUSINESS.TIME_ZONE, 'dd.MM.yyyy HH:mm', { locale: de })}
+                                </span>
+                            ) : (
+                                <span className="px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 rounded-full text-xs font-bold flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5" /> Noch nicht durchgeführt
+                                </span>
+                            )}
+                        </div>
+
+                        {rental.checkInAt ? (
+                            <div className="space-y-6">
+                                {/* Tacho & Tank */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                                                <Gauge className="w-4 h-4 text-blue-500" /> Kilometerstand
+                                            </span>
+                                            <span className="text-lg font-black text-gray-900 dark:text-white">
+                                                {rental.pickupMileage ? `${rental.pickupMileage.toLocaleString('de-AT')} km` : 'Nicht erfasst'}
+                                            </span>
+                                        </div>
+                                        {rental.mileagePhoto && (
+                                            <div>
+                                                <p className="text-[11px] text-gray-400 mb-1">Fotobeleg Tacho:</p>
+                                                <a href={rental.mileagePhoto} target="_blank" rel="noreferrer" className="block relative aspect-[16/9] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={rental.mileagePhoto} alt="Tacho Beleg" className="w-full h-full object-cover" />
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                                                <Droplets className="w-4 h-4 text-rose-500" /> Tankfüllstand
+                                            </span>
+                                            <span className="text-lg font-black text-gray-900 dark:text-white">
+                                                {rental.fuelLevelPickup || 'Voll'}
+                                            </span>
+                                        </div>
+                                        {rental.fuelPhoto && (
+                                            <div>
+                                                <p className="text-[11px] text-gray-400 mb-1">Fotobeleg Tank:</p>
+                                                <a href={rental.fuelPhoto} target="_blank" rel="noreferrer" className="block relative aspect-[16/9] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={rental.fuelPhoto} alt="Tank Beleg" className="w-full h-full object-cover" />
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Damages Reported by Customer */}
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                                        <Camera className="w-4 h-4 text-amber-500" />
+                                        Beim Check-in gemeldete Schäden ({rental.damageRecords?.length || 0})
+                                    </h4>
+                                    {rental.damageRecords && rental.damageRecords.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {rental.damageRecords.map((dam) => (
+                                                <div key={dam.id} className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/10 space-y-2">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <strong className="text-sm font-bold text-gray-900 dark:text-white">{dam.type}</strong>
+                                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 font-semibold uppercase">
+                                                            {dam.status}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{dam.description || 'Keine Notiz'}</p>
+                                                    {dam.photoUrl && (
+                                                        <div className="pt-2">
+                                                            <a href={dam.photoUrl} target="_blank" rel="noreferrer" className="block relative aspect-[16/9] rounded-lg overflow-hidden border border-amber-200">
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img src={dam.photoUrl} alt="Schadensfoto" className="w-full h-full object-cover" />
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500 italic bg-gray-50 dark:bg-gray-900/40 p-4 rounded-xl border border-dashed border-gray-200">
+                                            Kunde hat keine neuen Vorschäden gemeldet. Fahrzeug wurde schadenfrei übernommen.
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Digital Signature */}
+                                {rental.signature && (
+                                    <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <PenTool className="w-4 h-4 text-gray-500" />
+                                            <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Digitale Unterschrift des Mieters</span>
+                                        </div>
+                                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700 max-w-sm">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={rental.signature} alt="Unterschrift" className="h-20 w-auto object-contain mx-auto" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-gray-500 text-sm">
+                                <p>Der Mieter hat die Fahrzeugübernahme noch nicht online gestartet oder bestätigt.</p>
+                                <p className="text-xs text-gray-400 mt-1">Sobald der Mieter Kilometerstand, Tank und Fotos hochlädt, erscheinen alle Nachweise hier.</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Rental Period & Locations */}
