@@ -300,7 +300,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                     <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg flex items-center gap-2">
                                         <span className="text-amber-600 text-lg">⚠️</span>
                                         <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-tight">
-                                            Kein Foto vorhanden. Für diesen Kunden muss vor dem Check-out bir Foto hochgeladen werden.
+                                            Kein Führerscheinfoto hinterlegt. Für diesen Kunden muss vor der Fahrzeugübergabe ein Fotobeleg erfasst werden.
                                         </p>
                                     </div>
                                 )}
@@ -377,7 +377,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                     </div>
                 ) : (
                     <div className="mb-8 p-6 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben bir Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
+                        <p className="text-sm text-gray-400 font-medium italic">Wählen Sie oben ein Fahrzeug aus, um die Belegungsdaten zu sehen.</p>
                     </div>
                 )}
 
@@ -411,7 +411,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                             <AlertTriangle className="w-6 h-6 text-red-600" />
                             <div>
                                 <p className="text-sm font-bold text-red-800 dark:text-red-200">Achtung: Zeitliche Überschneidung!</p>
-                                <p className="text-xs text-red-700 dark:text-red-300">Das Fahrzeug ist im gewählten Zeitraum bereits belegt veya Wartungda.</p>
+                                <p className="text-xs text-red-700 dark:text-red-300">Das Fahrzeug ist im gewählten Zeitraum bereits belegt oder in der Werkstatt.</p>
                             </div>
                         </div>
                     )}
@@ -448,7 +448,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                         {/* Deposit */}
                         <div className="space-y-4">
                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-                                Kaution (Security Deposit)
+                                Kaution (Sicherheitsleistung)
                             </label>
                             <div className="relative">
                                 <input
@@ -462,7 +462,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</div>
                             </div>
                             <p className="text-[10px] text-gray-500 bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                                {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (3+ Mieten): 250€ Kaution applies.' : 'Neukunde: Standard 750€ Kaution applies.'}
+                                {selectedCustomer?.rentalsCount! >= 3 ? 'Stammkunde (ab 3 Mieten): 250 € Kaution empfohlen.' : 'Neukunde: Standard 750 € Kaution empfohlen.'}
                             </p>
                         </div>
 
@@ -470,7 +470,7 @@ export default function ReservationForm({ cars, customers, locations, options }:
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                                 <CreditCard className="w-4 h-4 text-emerald-500" />
-                                Ödeme Yöntemi
+                                Zahlungsmethode
                             </h3>
                             <div className="grid grid-cols-3 gap-3">
                                 {[
