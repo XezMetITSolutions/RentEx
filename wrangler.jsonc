@@ -2,6 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": "custom-worker.ts",
   "name": "rentex-app",
+  "build": {
+    "command": "npx opennextjs-cloudflare build"
+  },
   "compatibility_date": "2026-09-25",
   "compatibility_flags": [
     "nodejs_compat",
