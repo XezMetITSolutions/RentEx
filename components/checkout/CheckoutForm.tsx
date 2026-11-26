@@ -724,7 +724,9 @@ export default function CheckoutForm({ car, options, initialCustomer, initial }:
                             <dl className="mt-5 space-y-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 p-4 text-xs">
                                 <TermRow label="Inklusive" value={`${quote.includedKm.toLocaleString('de-AT')} km`} />
                                 <TermRow label="Mehrkilometer" value={car.extraKmCost != null ? `${eur(car.extraKmCost)} / km` : RENTAL_TERMS.EXTRA_KM_RANGE} />
-                                {car.depositAmount != null && <TermRow label="Kaution bei Abholung" value={`${eur(car.depositAmount)} · nicht im Gesamtpreis`} />}
+                                {car.depositAmount != null && (
+                                    <TermRow label="Kaution" value={`${eur(car.depositAmount)} · Kreditkarten-Garantie (Freigabe nach Rückgabe)`} />
+                                )}
                                 <TermRow label="Tank" value={car.fuelPolicy || `${RENTAL_TERMS.FUEL_POLICY} (sonst Kosten + ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)})`} />
                                 <TermRow label="Abholung" value={`${BUSINESS.PICKUP_ADDRESS}, ${BUSINESS.PICKUP_POSTAL_CODE} ${BUSINESS.PICKUP_CITY}`} />
                                 <TermRow label="Stornierung" value={CANCELLATION_TERMS} />

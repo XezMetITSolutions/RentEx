@@ -511,15 +511,24 @@ export async function createBooking(prevState: BookingState, formData: FormData)
         const fmt = (d: Date) => formatInTimeZone(d, BUSINESS.TIME_ZONE, 'dd.MM.yyyy HH:mm');
         let sessionUrl: string | null = null;
         try {
+            const depositAmount = car.depositAmount != null ? Number(car.depositAmount) : 300;
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
+                payment_intent_data: {
+                    setup_future_usage: 'off_session',
+                    description: `Miete ${car.brand} ${car.model} (${contractNumber}) inkl. Kautions-Autorisierung (€${depositAmount.toFixed(2)})`,
+                    metadata: {
+                        rentalId: rental.id.toString(),
+                        depositAmount: depositAmount.toString(),
+                    },
+                },
                 line_items: [
                     {
                         price_data: {
                             currency: 'eur',
                             product_data: {
                                 name: `${car.brand} ${car.model} Miete`,
-                                description: `${days} ${days === 1 ? 'Tag' : 'Tage'} · ${fmt(startDate)} – ${fmt(endDate)} · ${contractNumber}`,
+                                description: `${days} ${days === 1 ? 'Tag' : 'Tage'} · ${fmt(startDate)} – ${fmt(endDate)} · ${contractNumber} (Kautionsgarantie: €${depositAmount.toFixed(2)})`,
                             },
                             unit_amount: Math.round(quote.total * 100),
                         },
@@ -535,6 +544,7 @@ export async function createBooking(prevState: BookingState, formData: FormData)
                 locale: 'de',
                 metadata: {
                     rentalId: rental.id.toString(),
+                    depositAmount: depositAmount.toString(),
                 },
             });
 
