@@ -32,6 +32,7 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 import { updatePaymentStatus } from '@/app/actions/rental-updates';
 import RentalActionsClient from '@/components/admin/RentalActionsClient';
+import CheckInLinkShare from '@/components/admin/CheckInLinkShare';
 import AustrianPlate from '@/components/ui/AustrianPlate';
 
 export const dynamic = 'force-dynamic';
@@ -367,24 +368,21 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                 )}
                             </div>
                         ) : (
-                            <div className="p-6 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-dashed border-hm-rule text-center space-y-2">
-                                <Clock className="w-6 h-6 text-hm-muted mx-auto" />
-                                <p className="text-xs font-mono font-semibold uppercase tracking-wider text-hm-ink">
-                                    Check-in ausstehend
-                                </p>
-                                <p className="text-xs text-hm-muted max-w-md mx-auto">
-                                    Der Mieter hat die Fahrzeugübernahme noch nicht abgeschlossen. Sobald der Kunde den Self Check-in Link öffnet und KM, Tank sowie Fotos übermittelt, werden diese hier revisionssicher protokolliert.
-                                </p>
-                                <div className="pt-2">
-                                    <Link
-                                        href={`/self-checkin/${rental.id}`}
-                                        target="_blank"
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule font-mono text-xs font-semibold text-hm-ink transition-colors"
-                                    >
-                                        <ExternalLink className="w-3.5 h-3.5 text-hm-accent" />
-                                        Self Check-in Vorschau öffnen
-                                    </Link>
+                            <div className="p-6 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-dashed border-hm-rule flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                                        <Clock className="w-4 h-4 text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-mono font-bold uppercase tracking-wider text-hm-ink">
+                                            Fahrzeugübernahme (Check-in) ausstehend
+                                        </p>
+                                        <p className="text-xs text-hm-muted mt-0.5">
+                                            Der Kunde hat den digitalen Check-in noch nicht abgeschlossen.
+                                        </p>
+                                    </div>
                                 </div>
+                                <CheckInLinkShare rentalId={rental.id} />
                             </div>
                         )}
                     </div>
@@ -452,11 +450,19 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                             </div>
 
                             {rental.stripeSessionId && (
-                                <div className="p-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule space-y-1">
-                                    <span className="text-[10px] text-hm-muted uppercase tracking-wider block font-bold">Stripe Session:</span>
-                                    <p className="text-[11px] text-hm-ink break-all font-mono">
-                                        {rental.stripeSessionId}
-                                    </p>
+                                <div className="flex items-center justify-between p-2.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span className="text-[11px] text-hm-ink font-semibold">Stripe Checkout</span>
+                                    </div>
+                                    <a
+                                        href={`https://dashboard.stripe.com/test/payments/${rental.stripeSessionId}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 text-[11px] font-mono text-hm-accent hover:underline"
+                                    >
+                                        Im Stripe Dashboard <ExternalLink className="w-3 h-3" />
+                                    </a>
                                 </div>
                             )}
 
@@ -491,21 +497,26 @@ export default async function ReservationDetailPage({ params }: { params: Promis
 
                     {/* Kaution / Sicherheitsleistung Information */}
                     <div className="bg-hm-paper p-5 rounded-[var(--hm-radius-card)] border border-hm-rule space-y-3">
-                        <div className="flex items-center gap-1.5 pb-2 border-b border-hm-rule">
-                            <Shield className="w-3.5 h-3.5 text-hm-accent" />
-                            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted">
-                                Kaution & Vorautorisierung
+                        <div className="flex items-center justify-between pb-2 border-b border-hm-rule">
+                            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-hm-muted flex items-center gap-1.5">
+                                <Shield className="w-3.5 h-3.5 text-hm-accent" /> Kaution
+                            </span>
+                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-[var(--hm-radius-pill)] uppercase border bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+                                Kreditkarte hinterlegt
                             </span>
                         </div>
-                        <div className="text-xs space-y-2 text-hm-muted">
+                        <div className="text-xs space-y-3 text-hm-muted">
                             <div className="flex justify-between items-center font-mono">
                                 <span>Kautionsbetrag:</span>
-                                <span className="font-bold text-hm-ink">€{rental.car.depositAmount ? Number(rental.car.depositAmount).toFixed(2) : '300.00'}</span>
+                                <span className="font-bold text-hm-ink text-sm">€{rental.car.depositAmount ? Number(rental.car.depositAmount).toFixed(2) : '300.00'}</span>
                             </div>
-                            <div className="p-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-[11px] space-y-1.5">
-                                <p className="font-bold text-hm-ink">💡 Stripe Vorautorisierung (Blockieren):</p>
-                                <p className="leading-relaxed">
-                                    Über Stripe kann die Kaution mittels <strong className="text-hm-ink font-mono">capture_method: &apos;manual&apos;</strong> auf der Kreditkarte des Mieters reserviert (blockiert) werden, ohne das Geld direkt einzuziehen. Bei schadenfreier Rückgabe verfällt der Block automatisch.
+                            <div className="p-3 rounded-[var(--hm-radius-input)] bg-hm-paper-2 border border-hm-rule text-[11px] space-y-1">
+                                <div className="flex items-center gap-1.5 text-hm-ink font-semibold">
+                                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Zahlungsmittel autorisiert</span>
+                                </div>
+                                <p className="text-hm-muted leading-relaxed">
+                                    Die Kreditkarte des Mieters ist als Garantie hinterlegt. Die Kaution wird nach der Fahrzeugrückgabe und Prüfung freigegeben oder im Schadensfall belastet.
                                 </p>
                             </div>
                         </div>
