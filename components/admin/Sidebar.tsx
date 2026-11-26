@@ -204,15 +204,19 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
             </div>
 
             <div className="p-3 border-t border-hm-rule bg-hm-paper">
-                <div className="flex items-center gap-2.5 mb-2 px-1">
-                    <div className="h-8 w-8 rounded-[var(--hm-radius-input)] bg-hm-stage-ink flex items-center justify-center text-hm-stage-ink text-white font-mono text-xs font-bold shrink-0">
+                <Link
+                    href="/admin/profile"
+                    className="flex items-center gap-2.5 mb-2 px-1 py-1 rounded-[var(--hm-radius-input)] hover:bg-hm-paper-2 transition-colors group"
+                    title="Mein Profil bearbeiten"
+                >
+                    <div className="h-8 w-8 rounded-[var(--hm-radius-input)] bg-hm-stage-ink flex items-center justify-center text-white font-mono text-xs font-bold shrink-0">
                         {getInitials(staff?.name || 'AD')}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-hm-ink truncate">{staff?.name}</p>
+                        <p className="text-xs font-semibold text-hm-ink truncate group-hover:text-hm-accent transition-colors">{staff?.name}</p>
                         <p className="text-[10px] font-mono text-hm-muted truncate uppercase tracking-tight">{staff?.role}</p>
                     </div>
-                </div>
+                </Link>
                 <form action="/api/admin/logout" method="POST">
                     <button type="submit" className="flex w-full items-center justify-center gap-2 px-3 py-1.5 text-xs font-medium text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 transition-colors rounded-[var(--hm-radius-input)] border border-transparent hover:border-hm-rule">
                         <LogOut className="h-3.5 w-3.5" />

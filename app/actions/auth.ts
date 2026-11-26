@@ -424,3 +424,75 @@ export async function changePassword(formData: FormData) {
     });
     return { success: true };
 }
+
+export async function updateAdminProfile(formData: FormData) {
+    const staff = await getAdminSession();
+    if (!staff) {
+        return { success: false, error: 'Nicht autorisiert.' };
+    }
+
+    const name = (formData.get('name') as string)?.trim();
+    const email = (formData.get('email') as string)?.trim().toLowerCase();
+    const currentPassword = (formData.get('currentPassword') as string) || '';
+    const newPassword = (formData.get('newPassword') as string) || '';
+    const confirmPassword = (formData.get('confirmPassword') as string) || '';
+
+    if (!name || !email) {
+        return { success: false, error: 'Name und E-Mail-Adresse sind erforderlich.' };
+    }
+
+    // Check email uniqueness if changed
+    if (email !== staff.email.toLowerCase()) {
+        const existing = await prisma.staff.findUnique({
+            where: { email },
+        });
+        if (existing && existing.id !== staff.id) {
+            return { success: false, error: 'Diese E-Mail-Adresse wird bereits von einem anderen Benutzer verwendet.' };
+        }
+    }
+
+    let updatedPasswordHash: string | undefined = undefined;
+
+    // Password change logic
+    if (newPassword) {
+        if (!currentPassword) {
+            return { success: false, error: 'Bitte geben Sie Ihr aktuelles Passwort ein, um ein neues zu vergeben.' };
+        }
+        const isCurrentValid = verifyPassword(currentPassword, staff.passwordHash);
+        if (!isCurrentValid) {
+            return { success: false, error: 'Das aktuelle Passwort ist nicht korrekt.' };
+        }
+        if (newPassword.length < 8) {
+            return { success: false, error: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.' };
+        }
+        if (newPassword !== confirmPassword) {
+            return { success: false, error: 'Die Passwörter stimmen nicht überein.' };
+        }
+        updatedPasswordHash = hashPassword(newPassword);
+    }
+
+    try {
+        await prisma.staff.update({
+            where: { id: staff.id },
+            data: {
+                name,
+                email,
+                ...(updatedPasswordHash ? { passwordHash: updatedPasswordHash } : {}),
+            },
+        });
+
+        await auditLog({
+            userId: staff.id,
+            userName: staff.name,
+            action: 'STAFF_PROFILE_UPDATED',
+            entityType: 'Staff',
+            entityId: staff.id,
+            description: `Admin-Profil aktualisiert (Passwort geändert: ${Boolean(updatedPasswordHash)})`,
+        });
+
+        return { success: true, message: 'Profil erfolgreich gespeichert!' };
+    } catch (err) {
+        console.error('Failed to update admin profile:', err);
+        return { success: false, error: 'Fehler beim Speichern des Profils.' };
+    }
+}

@@ -103,6 +103,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
                             <Bell className="h-4 w-4" />
                             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-hm-accent ring-2 ring-hm-paper"></span>
                         </Link>
+
+                        <Link
+                            href="/admin/profile"
+                            aria-label="Mein Profil"
+                            title="Mein Profil & Kontoeinstellungen"
+                            className="rounded-[var(--hm-radius-input)] p-2 text-hm-muted hover:text-hm-ink hover:bg-hm-paper-2 transition-colors border border-transparent hover:border-hm-rule flex items-center gap-1.5 font-mono text-xs font-semibold"
+                        >
+                            <UserCircle className="h-4 w-4 text-hm-accent" />
+                            <span className="hidden sm:inline">Mein Profil</span>
+                        </Link>
                     </div>
                 </div>
             </header>
