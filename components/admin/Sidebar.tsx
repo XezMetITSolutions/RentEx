@@ -107,7 +107,7 @@ export default function Sidebar({ activeRentals, todayRevenue, pendingNotificati
 
     return (
         <aside className={clsx(
-            "fixed inset-y-0 left-0 z-50 w-64 bg-hm-paper text-hm-ink transition-transform duration-[var(--hm-dur-med)] ease-hm-out lg:static lg:inset-0 flex flex-col border-r border-hm-rule shadow-sm",
+            "fixed inset-y-0 left-0 z-50 w-64 bg-hm-paper text-hm-ink transition-transform duration-[var(--hm-dur-med)] ease-hm-out lg:sticky lg:top-0 lg:h-screen flex flex-col border-r border-hm-rule shadow-sm shrink-0",
             isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}>
             <div className="flex items-center justify-between h-20 border-b border-hm-rule px-5 bg-hm-paper">
