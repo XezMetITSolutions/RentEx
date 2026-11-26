@@ -19,7 +19,7 @@ const steps = [
     title: "Online buchen & zahlen",
     description: "In unter 2 Minuten reserviert. Bezahlen Sie bequem per Kreditkarte oder wählen Sie bei Abholung die Bar-/Kartenzahlung vor Ort.",
     icon: CalendarCheck,
-    badge: "Storno bis 48h kostenfrei",
+    badge: "Faire AGB §7 Stornoregelung",
     highlight: "Sofortige Bestätigung per E-Mail",
     accentColor: "from-blue-500/10 to-cyan-500/10",
   },
