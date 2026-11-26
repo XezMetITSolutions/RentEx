@@ -5,8 +5,9 @@ import {
     Clock,
     CheckCircle,
     XCircle,
-    PenTool,
     RotateCcw,
+    Key,
+    ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 import { updateRentalStatus } from '@/app/actions/rental-updates';
@@ -16,10 +17,11 @@ import { toast } from 'sonner';
 export default function RentalActionsClient({ rental }: { rental: any }) {
     const [showExtendModal, setShowExtendModal] = useState(false);
     const [refunding, setRefunding] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     async function handleRefund() {
-        const reason = window.prompt('Erstattungsgrund (optional):') ?? '';
-        if (!window.confirm(`Wirklich eine Erstattung von €${Number(rental.totalAmount).toFixed(2)} durchführen?`)) return;
+        const reason = window.prompt('Erstattungsgrund für Stripe / Buchhaltung (optional):') ?? '';
+        if (!window.confirm(`Möchten Sie wirklich eine Stripe-Erstattung von €${Number(rental.totalAmount).toFixed(2)} an den Kunden durchführen?`)) return;
         setRefunding(true);
         try {
             const res = await fetch(`/api/admin/rentals/${rental.id}/refund`, {
@@ -28,8 +30,8 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                 body: JSON.stringify({ reason }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Fehler');
-            toast.success(data.message || 'Erstattung erfolgreich.');
+            if (!res.ok) throw new Error(data.error || 'Fehler bei der Erstattung');
+            toast.success(data.message || 'Stripe-Erstattung erfolgreich durchgeführt.');
             window.location.reload();
         } catch (err: any) {
             toast.error(err.message);
@@ -38,86 +40,107 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
         }
     }
 
+    async function handleCancel() {
+        if (!window.confirm(`Reservierung #${rental.id} wirklich stornieren?`)) return;
+        setIsCancelling(true);
+        try {
+            await updateRentalStatus(rental.id, 'Cancelled');
+            toast.success('Reservierung erfolgreich storniert.');
+            window.location.reload();
+        } catch (err: any) {
+            toast.error(err.message || 'Fehler beim Stornieren');
+        } finally {
+            setIsCancelling(false);
+        }
+    }
+
     return (
-        <div className="flex flex-wrap gap-2">
-            {rental.status === 'Pending' && (
-                <>
-                    <Link
-                        href={`/admin/reservations/${rental.id}/check-in`}
-                        className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-zinc-900/10"
-                    >
-                        <PenTool className="w-4 h-4" />
-                        Digitaler Check-In
-                    </Link>
-                    <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
-                        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                            <CheckCircle className="w-4 h-4" />
-                            Direkt Aktivieren
-                        </button>
-                    </form>
-                </>
+        <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Link to Customer Self Check-In */}
+            <Link
+                href={`/self-checkin/${rental.id}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 hover:bg-hm-paper border border-hm-rule text-hm-ink font-mono text-xs font-semibold uppercase tracking-wider transition-colors"
+                title="Kunden-Check-in-Link öffnen"
+            >
+                <Key className="w-3.5 h-3.5 text-hm-accent" />
+                <span>Self Check-in Link</span>
+                <ExternalLink className="w-3 h-3 text-hm-muted" />
+            </Link>
+
+            {(rental.status === 'Pending' || rental.status === 'Confirmed') && (
+                <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
+                    <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--hm-radius-input)] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Aktivieren
+                    </button>
+                </form>
             )}
 
-            {(rental.status === 'Active' || rental.status === 'Pending') && (
+            {(rental.status === 'Active' || rental.status === 'Confirmed' || rental.status === 'Pending') && (
                 <button
                     onClick={() => setShowExtendModal(true)}
-                    className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule text-hm-ink font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer"
                 >
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-3.5 h-3.5 text-hm-muted" />
                     Verlängern
                 </button>
             )}
 
             {rental.status === 'Active' && (
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1.5">
                     <input
                         id={`returnMileage-${rental.id}`}
                         type="number"
-                        placeholder="KM-Stand"
-                        className="w-24 px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-green-500"
-                        defaultValue={rental.car.currentMileage}
+                        placeholder="End-KM"
+                        className="w-24 px-2.5 py-1.5 bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono font-bold text-hm-ink outline-none focus:ring-1 focus:ring-hm-accent"
+                        defaultValue={rental.car?.currentMileage || ''}
                     />
                     <button
                         onClick={async () => {
                             const input = document.getElementById(`returnMileage-${rental.id}`) as HTMLInputElement;
                             const mileage = parseInt(input.value);
                             if (isNaN(mileage)) {
-                                toast.error('Bitte gültigen KM-Stand eingeben.');
+                                toast.error('Bitte gültigen Endkilometerstand eingeben.');
                                 return;
                             }
-                            if (mileage < rental.pickupMileage) {
+                            if (rental.pickupMileage && mileage < rental.pickupMileage) {
                                 toast.error(`KM-Stand kann nicht niedriger als bei Abholung (${rental.pickupMileage}) sein.`);
                                 return;
                             }
-                            if (confirm(`Miete abschließen? KM-Stand: ${mileage}`)) {
+                            if (confirm(`Fahrzeugrückgabe abschließen? Endkilometer: ${mileage} km`)) {
                                 await updateRentalStatus(rental.id, 'Completed', mileage);
+                                window.location.reload();
                             }
                         }}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-green-500/10"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer"
                     >
-                        <CheckCircle className="w-4 h-4" />
-                        Abschließen
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Rückgabe buchen
                     </button>
                 </div>
             )}
 
             {rental.status !== 'Cancelled' && rental.status !== 'Completed' && (
-                <form action={updateRentalStatus.bind(null, rental.id, 'Cancelled')}>
-                    <button className="flex items-center gap-2 bg-white dark:bg-gray-700 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                        <XCircle className="w-4 h-4" />
-                        Stornieren
-                    </button>
-                </form>
+                <button
+                    onClick={handleCancel}
+                    disabled={isCancelling}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-rose-50 border border-hm-rule hover:border-rose-300 text-rose-700 font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                    <XCircle className="w-3.5 h-3.5" />
+                    Stornieren
+                </button>
             )}
 
             {rental.paymentStatus === 'Paid' && (
                 <button
                     onClick={handleRefund}
                     disabled={refunding}
-                    className="flex items-center gap-2 bg-white dark:bg-gray-700 border border-purple-200 text-purple-600 hover:bg-purple-50 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-purple-50 border border-hm-rule hover:border-purple-300 text-purple-700 font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                    title="Online-Zahlung via Stripe zurückerstatten"
                 >
-                    <RotateCcw className="w-4 h-4" />
-                    {refunding ? 'Wird erstattet…' : 'Erstatten'}
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {refunding ? 'Stripe Erstattung läuft…' : 'Stripe Erstatten'}
                 </button>
             )}
 
