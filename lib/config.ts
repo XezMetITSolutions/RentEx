@@ -1,6 +1,6 @@
 /** Public origin of the site, used for canonical URLs, sitemap, emails and Stripe redirects. */
-const rawUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rent-ex.at';
-export const SITE_URL = rawUrl.startsWith('http') ? rawUrl.replace(/\/$/, '') : `https://${rawUrl.replace(/\/$/, '')}`;
+const rawUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rentex-app.icy-band-753d.workers.dev';
+export const SITE_URL = (rawUrl.includes('localhost') ? 'https://rentex-app.icy-band-753d.workers.dev' : rawUrl).replace(/\/$/, '');
 
 export const AUTH_CONFIG = {
     CUSTOMER_SESSION_TTL: 60 * 60 * 24 * 30,
