@@ -7,7 +7,6 @@ import {
     Gauge,
     Droplets,
     ClipboardCheck,
-    PenTool,
     ArrowLeft,
     CheckCircle,
     Info,
@@ -16,19 +15,28 @@ import {
     Check,
     ChevronRight,
     ChevronLeft,
-    AlertCircle
+    AlertCircle,
+    ShieldCheck
 } from 'lucide-react';
 import OdometerOCR from '@/components/admin/OdometerOCR';
-import Link from 'next/link';
 import SignaturePad from '@/components/admin/SignaturePad';
 import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
+import CameraModal from '@/components/checkin/CameraModal';
 import { performCheckIn } from '@/app/actions/check-in';
 import { detectMileageFromImage } from '@/lib/ocr';
 import { toast } from 'sonner';
 
-type Step = 'SUMMARY' | 'MILEAGE' | 'FUEL' | 'DAMAGE_FRONT' | 'DAMAGE_BACK' | 'DAMAGE_LEFT' | 'DAMAGE_RIGHT' | 'SIGNATURE';
+type Step = 'SUMMARY' | 'MILEAGE' | 'FUEL' | 'DAMAGE' | 'SIGNATURE';
 
-const STEPS: Step[] = ['SUMMARY', 'MILEAGE', 'FUEL', 'DAMAGE_FRONT', 'DAMAGE_BACK', 'DAMAGE_LEFT', 'DAMAGE_RIGHT', 'SIGNATURE'];
+const STEP_LABELS: Record<Step, string> = {
+    SUMMARY: 'Übersicht',
+    MILEAGE: 'Kilometerstand',
+    FUEL: 'Tankfüllung',
+    DAMAGE: 'Zustand & Schäden',
+    SIGNATURE: 'Unterschrift'
+};
+
+const STEPS: Step[] = ['SUMMARY', 'MILEAGE', 'FUEL', 'DAMAGE', 'SIGNATURE'];
 
 export default function CheckInForm({ rental }: { rental: any }) {
     const router = useRouter();
@@ -47,11 +55,11 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const [agbAccepted, setAgbAccepted] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Camera Modal State
+    const [cameraTarget, setCameraTarget] = useState<'mileage' | 'fuel' | null>(null);
 
     const checkInTemplate = rental.car.checkInTemplate;
     const stepIndex = STEPS.indexOf(currentStep);
-    const progress = ((stepIndex + 1) / STEPS.length) * 100;
 
     const nextStep = () => {
         const nextIdx = stepIndex + 1;
@@ -74,8 +82,6 @@ export default function CheckInForm({ rental }: { rental: any }) {
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-
-                    // Max dimensions 1920px
                     const MAX_WIDTH = 1920;
                     const MAX_HEIGHT = 1920;
 
@@ -99,49 +105,43 @@ export default function CheckInForm({ rental }: { rental: any }) {
                     canvas.toBlob((blob) => {
                         if (blob) resolve(blob);
                         else reject(new Error('Canvas to Blob failed'));
-                    }, 'image/jpeg', 0.7); // 70% quality
+                    }, 'image/jpeg', 0.7);
                 };
             };
             reader.onerror = (error) => reject(error);
         });
     };
 
-    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'mileage' | 'fuel') => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleCameraCapture = async (file: File, type: 'mileage' | 'fuel') => {
         setUploadingPhoto(type);
         try {
-            // If it's a mileage photo, try to detect the mileage immediately
             if (type === 'mileage') {
                 setIsRecognizing(true);
                 detectMileageFromImage(file).then((detected: string | null) => {
-                    if (detected) {
-                        setMileage(detected);
-                    }
-                })
-                    .catch((err: unknown) => console.error("Auto-OCR failed", err))
-                    .finally(() => setIsRecognizing(false));
+                    if (detected) setMileage(detected);
+                }).catch((err: unknown) => console.error("Auto-OCR failed", err))
+                  .finally(() => setIsRecognizing(false));
             }
 
-            // Compress image if it's too large or just as a precaution
             const compressedBlob = await compressImage(file);
-
             const formData = new FormData();
-            formData.append('file', compressedBlob, 'upload.jpg');
+            formData.append('file', compressedBlob, `${type}.jpg`);
 
             const res = await fetch('/api/admin/cars/upload', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.url) {
                 if (type === 'mileage') setMileagePhoto(data.url);
                 else setFuelPhoto(data.url);
+                toast.success(type === 'mileage' ? 'Tachobild erfasst' : 'Tankstand-Foto erfasst');
+            } else {
+                throw new Error(data.error || 'Upload failed');
             }
         } catch (error) {
             console.error('Upload Error:', error);
-            toast.error('Upload fehlgeschlagen — das Bild ist evtl. zu groß.');
-            setIsRecognizing(false);
+            toast.error('Foto-Upload fehlgeschlagen');
         } finally {
             setUploadingPhoto(null);
+            setCameraTarget(null);
         }
     };
 
@@ -150,7 +150,6 @@ export default function CheckInForm({ rental }: { rental: any }) {
 
         setIsSubmitting(true);
         try {
-            // Combine proof photos with damages for record keeping
             const allDamages = [...damages];
             if (mileagePhoto) {
                 allDamages.push({ id: 'proof-mileage', side: 'front', x: 0, y: 0, reason: 'PROOF_MILEAGE', location: `Kilometerstand Foto: ${mileage} km`, photoUrl: mileagePhoto });
@@ -175,6 +174,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
                     yPosition: d.y
                 }))
             });
+            toast.success('Übergabe erfolgreich abgeschlossen');
             router.push(`/admin/reservations/${rental.id}`);
         } catch (error) {
             console.error(error);
@@ -185,301 +185,384 @@ export default function CheckInForm({ rental }: { rental: any }) {
     };
 
     return (
-        <div className="max-w-6xl mx-auto pb-20 px-4">
-            {/* Professional Progress Bar */}
-            <div className="mb-8 sticky top-0 z-50 bg-gray-50/80 backdrop-blur-md pt-4 pb-2">
+        <div className="max-w-4xl mx-auto pb-24 px-4 pt-4">
+            {/* Header Navigation */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-4 mb-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <button onClick={() => stepIndex === 0 ? router.back() : prevStep()} className="p-2 hover:bg-white rounded-full transition-colors">
-                        <ArrowLeft className="w-6 h-6 text-gray-400" />
+                    <button
+                        onClick={() => stepIndex === 0 ? router.back() : prevStep()}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Zurück
                     </button>
                     <div className="text-center">
-                        <h2 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Check-In Funnel</h2>
-                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Schritt {stepIndex + 1} von {STEPS.length}</p>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Übergabeprotokoll</span>
+                        <h1 className="text-base font-bold text-gray-900 leading-tight">
+                            {rental.car.brand} {rental.car.model} · {rental.car.plate}
+                        </h1>
                     </div>
-                    <div className="w-10" />
+                    <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">
+                        Schritt {stepIndex + 1} von {STEPS.length}
+                    </span>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-blue-600 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-                        style={{ width: `${progress}%` }}
-                    />
+
+                {/* Stepper Tabs */}
+                <div className="grid grid-cols-5 gap-1 pt-2 border-t border-gray-100">
+                    {STEPS.map((s, idx) => {
+                        const isCurrent = currentStep === s;
+                        const isPast = idx < stepIndex;
+                        return (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => {
+                                    if (idx <= stepIndex) setCurrentStep(s);
+                                }}
+                                className={`text-center py-1.5 px-1 rounded transition-colors ${
+                                    isCurrent ? 'font-bold text-blue-700 bg-blue-50/80' :
+                                    isPast ? 'text-gray-600 font-medium hover:bg-gray-50' :
+                                    'text-gray-400 font-normal cursor-not-allowed'
+                                }`}
+                            >
+                                <div className={`h-1 w-full rounded-full mb-1.5 ${
+                                    isCurrent ? 'bg-blue-600' :
+                                    isPast ? 'bg-green-600' :
+                                    'bg-gray-200'
+                                }`} />
+                                <span className="text-[11px] block truncate">{STEP_LABELS[s]}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Step Content */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-sm">
+                {/* 1. ÜBERSICHT */}
                 {currentStep === 'SUMMARY' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                                <Car className="w-3 h-3" />
-                                Bereit für Übergabe
+                    <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                            <div>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 mb-2">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    Übergabe vor Ort
+                                </span>
+                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                                    {rental.car.brand} {rental.car.model}
+                                </h2>
+                                <p className="text-sm text-gray-500">Amtliches Kennzeichen: <span className="font-bold text-gray-900">{rental.car.plate}</span></p>
                             </div>
-                            <h1 className="text-5xl font-black text-gray-900 leading-none mb-6 tracking-tighter">
-                                {rental.car.brand} <br />
-                                <span className="text-blue-600 font-outline-2">{rental.car.model}</span>
-                            </h1>
-                            <div className="space-y-4 mb-8">
-                                <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                                    <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><Gauge className="w-6 h-6" /></div>
-                                    <div>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Letzter KM-Stand</p>
-                                        <p className="text-xl font-black text-gray-900">{rental.car.currentMileage?.toLocaleString()} km</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                                    <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><Droplets className="w-6 h-6" /></div>
-                                    <div>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kunde</p>
-                                        <p className="text-xl font-black text-gray-900">{rental.customer.firstName} {rental.customer.lastName}</p>
-                                    </div>
+                            <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 text-right sm:text-left">
+                                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Mieter</span>
+                                <span className="text-base font-bold text-gray-900 block">{rental.customer.firstName} {rental.customer.lastName}</span>
+                                <span className="text-xs text-gray-500">{rental.customer.phone || rental.customer.email}</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Letzter Kilometerstand</span>
+                                <div className="flex items-center gap-2">
+                                    <Gauge className="w-5 h-5 text-gray-500" />
+                                    <span className="text-xl font-black text-gray-900">{rental.car.currentMileage?.toLocaleString() || '0'} km</span>
                                 </div>
                             </div>
+                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Kautionsstatus</span>
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                                    <span className="text-sm font-bold text-gray-900">Vor Ort zu hinterlegen / autorisiert</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-blue-900 leading-relaxed">
+                            <strong>Ablauf der Übergabe:</strong> Erfassen Sie in den folgenden Schritten gemeinsam mit dem Kunden den aktuellen Kilometerstand, den Tankstand sowie vorhandene Vorschäden. Am Ende unterzeichnet der Mieter das digitale Protokoll.
+                        </div>
+
+                        <div className="pt-4 flex justify-end">
                             <button
                                 onClick={nextStep}
-                                className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover active:translate-y-px text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base shadow-sm flex items-center justify-center gap-2 transition-[background-color,transform] duration-[var(--hm-dur-short)] ease-hm-out"
+                                className="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm shadow-sm inline-flex items-center justify-center gap-2 transition-colors"
                             >
                                 Übergabe starten
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="relative group">
-                            <img src={rental.car.imageUrl || "/assets/cars/skoda_superb.png"} className="w-full h-auto rounded-[3rem] shadow-2xl transition-transform group-hover:scale-[1.02] duration-700" alt="Car" />
-                            <div className="absolute top-8 right-8 px-6 py-3 bg-white/90 backdrop-blur rounded-full shadow-lg font-black text-gray-900 tracking-tighter">
-                                {rental.car.plate}
-                            </div>
-                        </div>
                     </div>
                 )}
 
+                {/* 2. KILOMETERSTAND */}
                 {currentStep === 'MILEAGE' && (
-                    <div className="max-w-2xl mx-auto space-y-8">
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <Gauge className="w-10 h-10 text-blue-600" />
-                            </div>
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Kilometerstand</h2>
-                            <p className="text-gray-500 font-medium">Bitte fotografieren Sie das Dashboard und bestätigen Sie den Wert.</p>
+                    <div className="space-y-6">
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight">1. Kilometerstand dokumentieren</h2>
+                            <p className="text-xs text-gray-500 mt-1">Fotografieren Sie den Tacho und tragen Sie den abgelesenen Wert ein.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Aktueller Wert (km)</label>
-                                <div className="flex gap-2 relative">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                                    Aktueller Kilometerstand (km)
+                                </label>
+                                <div className="relative">
                                     <input
                                         type="number"
                                         value={mileage}
                                         onChange={(e) => setMileage(e.target.value)}
-                                        className="flex-1 px-8 py-6 bg-white border-2 border-gray-100 rounded-[2rem] text-3xl font-black text-gray-900 outline-none focus:border-blue-500 transition-all placeholder:text-gray-200"
-                                        placeholder="00000"
+                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-2xl font-black text-gray-900 outline-none focus:border-blue-600 transition-colors"
+                                        placeholder="z. B. 45200"
                                     />
                                     {isRecognizing && (
-                                        <div className="absolute right-20 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white/90 px-3 py-2 rounded-xl shadow-sm border border-blue-100 animate-in fade-in zoom-in duration-300">
-                                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                            <span className="text-xs font-bold text-blue-600">Lese...</span>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-md text-xs font-semibold text-blue-700 border border-blue-200">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Lese Tacho...
                                         </div>
                                     )}
-                                    <OdometerOCR onDetected={setMileage} className="p-6 bg-blue-50 text-blue-600 rounded-[2rem] hover:bg-blue-100 transition-colors border-2 border-blue-100" />
                                 </div>
-                                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
-                                    <Info className="w-5 h-5 text-amber-600 shrink-0" />
-                                    <p className="text-xs text-amber-800 font-bold">Bitte stellen Sie sicher, dass der Kilometerstand korrekt gelesen wurde.</p>
+                                <div className="flex gap-2">
+                                    <OdometerOCR onDetected={setMileage} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors border border-gray-200" />
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Fotonachweis</label>
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                                    Tacho-Foto (Live-Kamera)
+                                </label>
                                 <div
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className={`relative h-[200px] rounded-[2.5rem] border-2 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition-all ${mileagePhoto ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-400 bg-white'}`}
+                                    onClick={() => setCameraTarget('mileage')}
+                                    className={`h-40 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+                                        mileagePhoto ? 'border-emerald-500 bg-emerald-50/40' : 'border-gray-300 hover:border-blue-500 bg-gray-50'
+                                    }`}
                                 >
                                     {uploadingPhoto === 'mileage' ? (
-                                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                                        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                                     ) : mileagePhoto ? (
-                                        <>
-                                            <img src={mileagePhoto} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                <Camera className="w-8 h-8 text-white" />
-                                            </div>
-                                        </>
+                                        <div className="relative w-full h-full p-2 flex items-center justify-center">
+                                            <img src={mileagePhoto} className="max-h-full max-w-full rounded-lg object-contain" alt="Tacho" />
+                                            <span className="absolute bottom-3 right-3 text-[10px] font-bold bg-white/90 text-emerald-800 px-2 py-0.5 rounded shadow">Neu aufnehmen</span>
+                                        </div>
                                     ) : (
-                                        <div className="text-center">
-                                            <Camera className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tippen zum Fotografieren</p>
+                                        <div className="text-center p-4">
+                                            <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1.5" />
+                                            <span className="text-xs font-bold text-gray-700 block">Kamera öffnen</span>
+                                            <span className="text-[10px] text-gray-400">Live-Foto vom Tacho aufnehmen</span>
                                         </div>
                                     )}
-                                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'mileage')} />
                                 </div>
                             </div>
                         </div>
 
-                        <button
-                            disabled={!mileage || !mileagePhoto}
-                            onClick={nextStep}
-                            className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 transition-colors shadow-sm"
-                        >
-                            Weiter
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
+                        <div className="pt-4 flex justify-between gap-3 border-t border-gray-100">
+                            <button
+                                onClick={prevStep}
+                                className="px-5 py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                Zurück
+                            </button>
+                            <button
+                                disabled={!mileage}
+                                onClick={nextStep}
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                            >
+                                Weiter zum Tankstand
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
 
+                {/* 3. TANKFÜLLUNG */}
                 {currentStep === 'FUEL' && (
-                    <div className="max-w-2xl mx-auto space-y-8">
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <Droplets className="w-10 h-10 text-blue-600" />
-                            </div>
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Tankfüllung</h2>
-                            <p className="text-gray-500 font-medium">Wählen Sie den Füllstand und machen Sie ein Beweisfoto.</p>
+                    <div className="space-y-6">
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight">2. Tankfüllung dokumentieren</h2>
+                            <p className="text-xs text-gray-500 mt-1">Wählen Sie den Füllstand aus und machen Sie optional ein Foto der Tankanzeige.</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            {['Full', '3/4', '1/2', '1/4', 'Empty'].map((level) => (
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                            {[
+                                { key: 'Full', label: 'Voll (100%)' },
+                                { key: '3/4', label: '3/4 Voll' },
+                                { key: '1/2', label: '1/2 Voll' },
+                                { key: '1/4', label: '1/4 Voll' },
+                                { key: 'Empty', label: 'Reserve / Leer' },
+                            ].map((lvl) => (
                                 <button
-                                    key={level}
-                                    onClick={() => setFuelLevel(level)}
-                                    className={`py-6 rounded-[2rem] text-xl font-black border-4 transition-all ${fuelLevel === level ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]' : 'bg-white border-gray-100 text-gray-400 hover:border-blue-100'}`}
+                                    key={lvl.key}
+                                    type="button"
+                                    onClick={() => setFuelLevel(lvl.key)}
+                                    className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
+                                        fuelLevel === lvl.key
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                                            : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+                                    }`}
                                 >
-                                    {level === 'Full' ? 'VOLL (100%)' : level === 'Empty' ? 'LEER' : level}
+                                    {lvl.label}
                                 </button>
                             ))}
                         </div>
 
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Fotonachweis (Tankanzeige)</label>
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                                Foto der Tankanzeige (optional)
+                            </label>
                             <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className={`relative h-[200px] rounded-[2.5rem] border-2 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition-all ${fuelPhoto ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-400 bg-white'}`}
+                                onClick={() => setCameraTarget('fuel')}
+                                className={`h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+                                    fuelPhoto ? 'border-emerald-500 bg-emerald-50/40' : 'border-gray-300 hover:border-blue-500 bg-gray-50'
+                                }`}
                             >
                                 {uploadingPhoto === 'fuel' ? (
-                                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                                    <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                                 ) : fuelPhoto ? (
-                                    <>
-                                        <img src={fuelPhoto} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                            <Camera className="w-8 h-8 text-white" />
-                                        </div>
-                                    </>
+                                    <div className="relative w-full h-full p-2 flex items-center justify-center">
+                                        <img src={fuelPhoto} className="max-h-full max-w-full rounded-lg object-contain" alt="Tank" />
+                                        <span className="absolute bottom-3 right-3 text-[10px] font-bold bg-white/90 text-emerald-800 px-2 py-0.5 rounded shadow">Neu aufnehmen</span>
+                                    </div>
                                 ) : (
-                                    <div className="text-center">
-                                        <Camera className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tippen zum Fotografieren</p>
+                                    <div className="text-center p-4">
+                                        <Camera className="w-7 h-7 text-gray-400 mx-auto mb-1" />
+                                        <span className="text-xs font-bold text-gray-700 block">Kamera öffnen</span>
+                                        <span className="text-[10px] text-gray-400">Tankanzeige fotografieren</span>
                                     </div>
                                 )}
-                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, 'fuel')} />
                             </div>
                         </div>
 
-                        <button
-                            disabled={!fuelPhoto}
-                            onClick={nextStep}
-                            className="w-full py-4 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 transition-colors shadow-sm"
-                        >
-                            Weiter
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
-
-                {currentStep.startsWith('DAMAGE_') && (
-                    <div className="space-y-6">
-                        <div className="text-center">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase mb-2">
-                                {currentStep === 'DAMAGE_FRONT' && 'Vorderseite'}
-                                {currentStep === 'DAMAGE_BACK' && 'Rückseite'}
-                                {currentStep === 'DAMAGE_LEFT' && 'Linke Seite'}
-                                {currentStep === 'DAMAGE_RIGHT' && 'Rechte Seite'}
-                            </h2>
-                            <p className="text-gray-500 font-medium">Markieren Sie vorhandene oder neue Schäden durch Tippen auf das Bild.</p>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-[3rem] shadow-xl border border-gray-100">
-                            <CheckInDamageSelector
-                                templateFolder={checkInTemplate || 'default'}
-                                onChange={setDamages}
-                                externalView={
-                                    currentStep === 'DAMAGE_FRONT' ? 'front' :
-                                        currentStep === 'DAMAGE_BACK' ? 'back' :
-                                            currentStep === 'DAMAGE_LEFT' ? 'left' : 'right'
-                                }
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+                        <div className="pt-4 flex justify-between gap-3 border-t border-gray-100">
                             <button
                                 onClick={prevStep}
-                                className="py-3.5 bg-hm-paper-2 hover:bg-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-medium text-sm flex items-center justify-center gap-2 border border-hm-rule transition-colors"
+                                className="px-5 py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 Zurück
                             </button>
                             <button
                                 onClick={nextStep}
-                                className="py-3.5 bg-hm-accent hover:bg-hm-accent-hover text-hm-accent-ink rounded-[var(--hm-radius-input)] font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
                             >
-                                Weiter
+                                Weiter zur Zustandsskizze
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
                 )}
 
-                {currentStep === 'SIGNATURE' && (
-                    <div className="max-w-3xl mx-auto space-y-8">
-                        <div className="text-center">
-                            <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase mb-4 tracking-tighter">Abschluss & Unterschrift</h2>
-                            <div className="prose prose-sm max-w-none text-left bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 max-h-[300px] overflow-y-auto mb-8 shadow-inner">
-                                <h3 className="text-xl font-black uppercase mb-4 text-gray-900">Mietvertragsprotokoll</h3>
-                                <div className="space-y-4 text-gray-600 leading-relaxed font-medium">
-                                    <p>Der Mieter bestätigt den Erhalt des Fahrzeugs <strong>{rental.car.brand} {rental.car.model} ({rental.car.plate})</strong> im protokollierten Zustand.</p>
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-white rounded-2xl border border-gray-100">
-                                        <div>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase">Kilometerstand</p>
-                                            <p className="text-lg font-black text-gray-900">{mileage} km</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase">Tankfüllung</p>
-                                            <p className="text-lg font-black text-gray-900">{fuelLevel}</p>
-                                        </div>
-                                    </div>
-                                    <p>Die Allgemeinen Geschäftsbedingungen wurden zur Kenntnis genommen. Der Mieter haftet für alle nicht im Protokoll vermerkten Schäden bei Rückgabe.</p>
-                                </div>
-                            </div>
+                {/* 4. SCHÄDEN & KROKI */}
+                {currentStep === 'DAMAGE' && (
+                    <div className="space-y-6">
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight">3. Fahrzeugzustand & Vorschäden</h2>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Wählen Sie die Ansicht (Front, Heck, Links, Rechts) und tippen Sie auf die Skizze, um einen Schaden zu markieren.
+                            </p>
                         </div>
 
-                        <div className="space-y-6">
-                            <label className="flex items-start gap-5 cursor-pointer group p-6 bg-white rounded-[2rem] border-2 border-transparent hover:border-blue-100 transition-all">
-                                <input
-                                    type="checkbox"
-                                    required
-                                    checked={agbAccepted}
-                                    onChange={(e) => setAgbAccepted(e.target.checked)}
-                                    className="peer sr-only"
-                                />
-                                <div className="w-8 h-8 border-4 border-gray-100 rounded-xl group-hover:border-blue-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 transition-all shadow-sm">
-                                    <Check className="w-6 h-6 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
-                                </div>
-                                <span className="text-sm font-bold text-gray-600 leading-relaxed pt-1">
-                                    Ich bestätige die Richtigkeit der Angaben und akzeptiere die geltenden AGB sowie die Datenschutzerklärung.
-                                </span>
+                        <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+                            <CheckInDamageSelector
+                                templateFolder={checkInTemplate || 'Seat Ibiza'}
+                                onChange={setDamages}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                                Zusätzliche Bemerkungen / Notizen zum Zustand
                             </label>
-
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Unterschrift des mieters</label>
-                                <div className="bg-white p-2 rounded-[2.5rem] border border-gray-100 shadow-xl">
-                                    <SignaturePad
-                                        onSave={setSignature}
-                                        onClear={() => setSignature('')}
-                                    />
-                                </div>
-                            </div>
+                            <textarea
+                                value={damageNotes}
+                                onChange={(e) => setDamageNotes(e.target.value)}
+                                rows={2}
+                                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:border-blue-600 transition-colors"
+                                placeholder="z. B. Fahrzeug frisch gereinigt, leichter Steinschlag Windschutzscheibe außerhalb Sichtfeld..."
+                            />
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="pt-4 flex justify-between gap-3 border-t border-gray-100">
                             <button
                                 onClick={prevStep}
-                                className="flex-1 py-3.5 bg-hm-paper-2 hover:bg-hm-rule text-hm-ink rounded-[var(--hm-radius-input)] font-medium text-sm flex items-center justify-center gap-2 border border-hm-rule transition-colors"
+                                className="px-5 py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                Zurück
+                            </button>
+                            <button
+                                onClick={nextStep}
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                            >
+                                Weiter zur Unterschrift
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. UNTERSCHRIFT & ABSCHLUSS */}
+                {currentStep === 'SIGNATURE' && (
+                    <div className="space-y-6">
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight">4. Protokoll & Kundenunterschrift</h2>
+                            <p className="text-xs text-gray-500 mt-1">Prüfen Sie die Zusammenfassung und lassen Sie den Mieter digital gegenzeichnen.</p>
+                        </div>
+
+                        {/* Protokoll Card */}
+                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-700 space-y-3">
+                            <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                                <span className="font-bold text-gray-900">Mietvertrag {rental.id} · {rental.car.brand} {rental.car.model}</span>
+                                <span className="font-bold text-gray-900">{rental.car.plate}</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <div>
+                                    <span className="text-[10px] uppercase text-gray-400 font-bold block">Kilometerstand</span>
+                                    <span className="font-bold text-gray-900">{mileage || '—'} km</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase text-gray-400 font-bold block">Tankstand</span>
+                                    <span className="font-bold text-gray-900">{fuelLevel}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] uppercase text-gray-400 font-bold block">Erfasste Schäden</span>
+                                    <span className="font-bold text-gray-900">{damages.length} Markierung(en)</span>
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-gray-500 pt-1 border-t border-gray-200">
+                                Der Mieter bestätigt den ordnungsgemäßen Empfang des Fahrzeugs im dokumentierten Zustand gemäß den Allgemeinen Geschäftsbedingungen von Rent-Ex.
+                            </p>
+                        </div>
+
+                        {/* AGB Checkbox */}
+                        <label className="flex items-start gap-3 p-3.5 bg-gray-50/80 rounded-xl border border-gray-200 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={agbAccepted}
+                                onChange={(e) => setAgbAccepted(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-xs font-medium text-gray-700">
+                                Ich bestätige die Richtigkeit aller protokollierten Angaben und akzeptiere die geltenden Mietbedingungen.
+                            </span>
+                        </label>
+
+                        {/* Signature Pad */}
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                                Digitale Unterschrift des Mieters
+                            </label>
+                            <div className="bg-white rounded-xl border border-gray-300 overflow-hidden shadow-inner">
+                                <SignaturePad
+                                    onSave={setSignature}
+                                    onClear={() => setSignature('')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="pt-4 flex justify-between gap-3 border-t border-gray-100">
+                            <button
+                                onClick={prevStep}
+                                className="px-5 py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 Zurück
@@ -487,27 +570,26 @@ export default function CheckInForm({ rental }: { rental: any }) {
                             <button
                                 disabled={isSubmitting || !signature || !agbAccepted}
                                 onClick={handleSubmit}
-                                className="flex-[2] py-3.5 bg-hm-accent hover:bg-hm-accent-hover disabled:opacity-40 text-hm-accent-ink font-semibold text-sm rounded-[var(--hm-radius-input)] shadow-sm transition-all flex items-center justify-center gap-2"
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4" /> Übergabe abschließen & Miete aktivieren</>}
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                                Übergabe abschließen & Fahrzeug aktivieren
                             </button>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Hidden damage notes field for internal use */}
-            {currentStep === 'SIGNATURE' && (
-                <div className="mt-8 max-w-3xl mx-auto">
-                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Interne Notizen / Schäden Beschreibung</label>
-                    <textarea
-                        value={damageNotes}
-                        onChange={(e) => setDamageNotes(e.target.value)}
-                        rows={3}
-                        className="w-full px-8 py-6 bg-white border-2 border-gray-100 rounded-[2rem] text-sm font-medium text-gray-700 outline-none focus:border-blue-500 transition-all mt-2"
-                        placeholder="Zusätzliche Anmerkungen zum Fahrzeugzustand..."
-                    />
-                </div>
+            {/* Live Camera Modal */}
+            {cameraTarget && (
+                <CameraModal
+                    isOpen={true}
+                    onClose={() => setCameraTarget(null)}
+                    onCapture={(file) => handleCameraCapture(file, cameraTarget)}
+                    target={cameraTarget}
+                    title={cameraTarget === 'mileage' ? 'Kilometerstand fotografieren' : 'Tankanzeige fotografieren'}
+                    guidelineText={cameraTarget === 'mileage' ? 'Halten Sie den Tacho gut lesbar in den Rahmen.' : 'Fotografieren Sie die Tankanzeige im Cockpit.'}
+                />
             )}
         </div>
     );

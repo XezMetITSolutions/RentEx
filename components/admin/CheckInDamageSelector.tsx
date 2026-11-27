@@ -10,7 +10,7 @@ import {
     Plus,
     Loader2
 } from 'lucide-react';
-import { getTemplateMapping } from '@/app/actions/check-in-setup';
+import { getStaticVehicleSketch } from '@/lib/vehicleSketchData';
 import { toast } from 'sonner';
 
 export interface Damage {
@@ -49,21 +49,11 @@ export default function CheckInDamageSelector({ templateFolder, onChange, extern
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Effort to map folder contents to front/back/left/right automatically
-    // In this premium version, we'll use our pre-mapped logic or a convention
+    // Load static sketch mapping directly (bundled, zero latency, 100% reliable)
     useEffect(() => {
-        const loadImages = async () => {
-            setLoading(true);
-            try {
-                const mapping = await getTemplateMapping(templateFolder);
-                setViewImages(mapping);
-            } catch (error) {
-                console.error("Failed to load template images");
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadImages();
+        const mapping = getStaticVehicleSketch(templateFolder);
+        setViewImages(mapping);
+        setLoading(false);
     }, [templateFolder]);
 
     const handleImageClick = (e: React.MouseEvent<HTMLDivElement>, side: Damage['side']) => {
