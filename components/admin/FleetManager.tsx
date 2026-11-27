@@ -62,7 +62,13 @@ export function FleetManager({
 }) {
     const router = useRouter();
     const [cars, setCars] = useState<Car[]>(initialCars);
-    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setViewMode('list');
+        }
+    }, []);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [brandFilter, setBrandFilter] = useState<string>('all');

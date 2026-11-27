@@ -273,9 +273,9 @@ export default function ReservationsManager({
                 </div>
 
                 <div className="bg-hm-paper rounded-[var(--hm-radius-card)] p-4 border border-hm-rule shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono uppercase tracking-wider text-hm-muted">Umsatzvolumen</span>
-                        <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                    <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-hm-muted truncate min-w-0">Umsatzvolumen</span>
+                        <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
                             <TrendingUp className="w-4 h-4" />
                         </div>
                     </div>
@@ -312,9 +312,9 @@ export default function ReservationsManager({
                         )}
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap overflow-x-auto pb-1 max-w-full">
                         {/* Status Filter */}
-                        <div className="inline-flex rounded-[var(--hm-radius-input)] p-1 bg-hm-paper-2 border border-hm-rule text-xs font-semibold">
+                        <div className="inline-flex rounded-[var(--hm-radius-input)] p-1 bg-hm-paper-2 border border-hm-rule text-xs font-semibold shrink-0">
                             <button
                                 onClick={() => setStatusFilter('all')}
                                 className={clsx(

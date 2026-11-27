@@ -12,9 +12,10 @@ export const COMPANY = {
     CITY: `${BUSINESS.PICKUP_POSTAL_CODE} ${BUSINESS.PICKUP_CITY}`,
     PHONE: BUSINESS.PHONE,
     PHONE_TEL: BUSINESS.PHONE_TEL,
-    EMAIL: process.env.COMPANY_EMAIL || 'rent-ex@metechnik.at',
+    EMAIL: process.env.COMPANY_EMAIL || 'info@rent-ex.at',
     REGISTER: 'FN 660833p, Landesgericht Feldkirch',
     VAT: 'ATU76189189',
+    WEBSITE: 'rent-ex.at',
 } as const;
 
 /** Single row of a facts table. `strong` draws a total line above it. */
@@ -203,7 +204,7 @@ ${signoff ? `<p style="margin:8px 0 16px;font-size:14px;line-height:1.6;color:${
 </td></tr>
 <tr><td class="px" style="padding:22px 36px 28px;border-top:1px solid ${C.rule};font-size:12px;line-height:1.6;color:${C.muted};">
 <strong style="color:${C.text};font-weight:600;">${esc(COMPANY.NAME)}</strong> · ${esc(COMPANY.STREET)} · ${esc(COMPANY.CITY)}<br>
-<a href="tel:${esc(COMPANY.PHONE_TEL)}" style="color:${C.muted};text-decoration:none;">${esc(COMPANY.PHONE)}</a> · <a href="mailto:${esc(COMPANY.EMAIL)}" style="color:${C.muted};text-decoration:none;">${esc(COMPANY.EMAIL)}</a> · <a href="${esc(SITE_URL)}" style="color:${C.muted};text-decoration:none;">${esc(SITE_URL.replace(/^https?:\/\//, ''))}</a><br>
+<a href="tel:${esc(COMPANY.PHONE_TEL)}" style="color:${C.muted};text-decoration:none;">${esc(COMPANY.PHONE)}</a> · <a href="mailto:${esc(COMPANY.EMAIL)}" style="color:${C.muted};text-decoration:none;">${esc(COMPANY.EMAIL)}</a> · <a href="https://${esc(COMPANY.WEBSITE)}" style="color:${C.muted};text-decoration:none;">${esc(COMPANY.WEBSITE)}</a><br>
 ${esc(COMPANY.REGISTER)} · UID ${esc(COMPANY.VAT)}
 ${spec.reason ? `<br><br>${esc(spec.reason)}` : ''}
 </td></tr>
@@ -223,7 +224,7 @@ ${spec.reason ? `<br><br>${esc(spec.reason)}` : ''}
         '',
         '--',
         `${COMPANY.NAME}, ${COMPANY.STREET}, ${COMPANY.CITY}`,
-        `${COMPANY.PHONE} · ${COMPANY.EMAIL} · ${SITE_URL}`,
+        `${COMPANY.PHONE} · ${COMPANY.EMAIL} · https://${COMPANY.WEBSITE}`,
         `${COMPANY.REGISTER} · UID ${COMPANY.VAT}`,
         spec.reason ? `\n${spec.reason}` : '',
     ].filter((line) => line !== undefined).join('\n').replace(/\n{3,}/g, '\n\n').trim();

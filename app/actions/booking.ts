@@ -68,7 +68,8 @@ async function uploadLicensePhoto(file: File): Promise<string> {
         Body: buffer,
         ContentType: file.type || 'image/jpeg',
     }));
-    return R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${key}` : `https://${R2_BUCKET_NAME}.r2.dev/${key}`;
+    // Return through the authenticated document proxy to keep documents private
+    return `/api/documents/${key}`;
 }
 
 /** Bookable options of a car as plain numbers. */

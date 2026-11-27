@@ -41,13 +41,11 @@ export async function POST(request: NextRequest) {
             ContentType: mime,
         }));
 
-        const publicUrl = R2_PUBLIC_URL
-            ? `${R2_PUBLIC_URL}/${key}`
-            : `https://${R2_BUCKET_NAME}.r2.dev/${key}`;
+        const documentUrl = `/api/documents/${key}`;
 
         return NextResponse.json({
             success: true,
-            url: publicUrl
+            url: documentUrl
         });
     } catch (error) {
         console.error('[mobile-upload]', error);

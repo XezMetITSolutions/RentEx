@@ -37,8 +37,21 @@ async function getCustomers(): Promise<Customer[]> {
     return customers.map(customer => {
         const totalRentals = customer._count.rentals;
         const totalRevenue = customer.rentals.reduce((sum, r) => sum + Number(r.totalAmount), 0);
-        const lastRental = customer.rentals[0];
-        const daysSinceLastRental = lastRental ? differenceInDays(new Date(), new Date(lastRental.createdAt)) : null;
+        const rawLastRental = customer.rentals[0];
+        const daysSinceLastRental = rawLastRental ? differenceInDays(new Date(), new Date(rawLastRental.createdAt)) : null;
+
+        const lastRental = rawLastRental ? {
+            ...rawLastRental,
+            dailyRate: Number(rawLastRental.dailyRate),
+            totalAmount: Number(rawLastRental.totalAmount),
+            depositPaid: rawLastRental.depositPaid != null ? Number(rawLastRental.depositPaid) : null,
+            depositReturned: rawLastRental.depositReturned != null ? Number(rawLastRental.depositReturned) : null,
+            extraCharges: rawLastRental.extraCharges != null ? Number(rawLastRental.extraCharges) : 0,
+            discountAmount: rawLastRental.discountAmount != null ? Number(rawLastRental.discountAmount) : 0,
+            insuranceCost: rawLastRental.insuranceCost != null ? Number(rawLastRental.insuranceCost) : 0,
+            extrasCost: rawLastRental.extrasCost != null ? Number(rawLastRental.extrasCost) : 0,
+            fuelCharge: rawLastRental.fuelCharge != null ? Number(rawLastRental.fuelCharge) : 0,
+        } : undefined;
 
         let tier: 'VIP' | 'Stammkunde' | 'Neukunde' = 'Neukunde';
         if (totalRentals >= 10) tier = 'VIP';

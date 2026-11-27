@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import AustrianPlate from '@/components/ui/AustrianPlate';
 import SignaturePad from '@/components/admin/SignaturePad';
+import CameraModal from '@/components/checkin/CameraModal';
+import { detectMileageFromImage } from '@/lib/ocr';
 
 interface Props {
   rental: {
@@ -65,11 +67,45 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUploadTarget, setCurrentUploadTarget] = useState<'mileage' | 'fuel' | 'damage'>('mileage');
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [ocrStatus, setOcrStatus] = useState<string | null>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleCapturedPhoto = async (file: File) => {
+    // 1. Photo validation check
+    const valData = new FormData();
+    valData.append('file', file);
+    valData.append('target', currentUploadTarget);
+    valData.append('expectedMinMileage', rental.car.currentMileage?.toString() || '0');
 
+    try {
+      const valRes = await fetch('/api/checkin/validate-photo', { method: 'POST', body: valData });
+      const valJson = await valRes.json();
+      if (!valJson.ok) {
+        alert(valJson.error || 'Fotovalidierung fehlgeschlagen.');
+        return;
+      }
+    } catch (e) {
+      console.warn('Validation error', e);
+    }
+
+    // 2. OCR recognition for mileage
+    if (currentUploadTarget === 'mileage') {
+      setOcrStatus('Lese Tachostand automatisch...');
+      try {
+        const detected = await detectMileageFromImage(file);
+        if (detected) {
+          setMileage(detected);
+          setOcrStatus(`Tachostand automatisch erkannt: ${detected} km`);
+        } else {
+          setOcrStatus(null);
+        }
+      } catch (e) {
+        console.error('OCR error', e);
+        setOcrStatus(null);
+      }
+    }
+
+    // 3. Upload to server
     const formData = new FormData();
     formData.append('file', file);
 
@@ -83,12 +119,13 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
       }
     } catch (err) {
       console.error('Upload error', err);
+      alert('Upload fehlgeschlagen. Bitte erneut versuchen.');
     }
   };
 
   const triggerUpload = (target: 'mileage' | 'fuel' | 'damage') => {
     setCurrentUploadTarget(target);
-    fileInputRef.current?.click();
+    setIsCameraOpen(true);
   };
 
   const handleComplete = async () => {
@@ -147,8 +184,18 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
 
   return (
     <div className="space-y-8">
-      {/* Hidden File Input */}
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} />
+      {/* Hidden File Input as fallback */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) await handleCapturedPhoto(file);
+        }}
+      />
 
       {/* Header */}
       <div>
@@ -220,6 +267,11 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
                 className="mt-1.5 w-full rounded-[var(--hm-radius-input)] border border-hm-rule bg-hm-paper-2 px-4 py-3 text-xl font-bold text-hm-ink outline-none focus:border-hm-accent"
                 placeholder="z. B. 45200"
               />
+              {ocrStatus && (
+                <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> {ocrStatus}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-hm-muted uppercase tracking-wider mb-2">Foto des Tachometers (Pflicht)</label>
@@ -512,6 +564,28 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
           </div>
         </section>
       )}
+
+      {/* Live In-Browser Camera Modal (No gallery selection possible) */}
+      <CameraModal
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCapturedPhoto}
+        target={currentUploadTarget}
+        title={
+          currentUploadTarget === 'mileage'
+            ? 'Tachometer live fotografieren'
+            : currentUploadTarget === 'fuel'
+            ? 'Tankanzeige live fotografieren'
+            : 'Fahrzeugschaden live fotografieren'
+        }
+        guidelineText={
+          currentUploadTarget === 'mileage'
+            ? 'Bitte fotografieren Sie den Kilometerstand direkt im Armaturenbrett.'
+            : currentUploadTarget === 'fuel'
+            ? 'Bitte erfassen Sie die Tankanzeige gut beleuchtet.'
+            : 'Halten Sie die Kamera ca. 1 Meter vom Schaden entfernt.'
+        }
+      />
     </div>
   );
 }

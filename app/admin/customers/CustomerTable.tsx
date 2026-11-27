@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: custom (brand red) · tokens: /tokens.css */
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
     Mail, Phone, Crown, Star, Award, FileText,
     ToggleLeft, ToggleRight, Trash2, Loader2,
@@ -49,7 +49,14 @@ export default function CustomerTable({ initialCustomers }: CustomerTableProps) 
     const [tierFilter, setTierFilter] = useState<'all' | 'VIP' | 'Stammkunde' | 'Neukunde'>('all');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [voucherOnly, setVoucherOnly] = useState(false);
-    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+    // Default to card grid on mobile screens (< 768px), table on desktop
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setViewMode('table');
+        }
+    }, []);
 
     // Action states
     const [processingId, setProcessingId] = useState<number | null>(null);
@@ -517,7 +524,7 @@ export default function CustomerTable({ initialCustomers }: CustomerTableProps) 
                                                 {/* Customer Info */}
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-9 w-9 rounded-full bg-hm-paper-2 flex items-center justify-center text-hm-ink font-mono font-bold text-xs border border-hm-rule">
+                                                        <div className="h-9 w-9 rounded-full bg-hm-paper-2 flex items-center justify-center text-hm-ink font-mono font-bold text-xs border border-hm-rule shrink-0">
                                                             {customer.firstName[0]}{customer.lastName[0]}
                                                         </div>
                                                         <div>

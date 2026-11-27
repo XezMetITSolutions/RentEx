@@ -165,10 +165,17 @@ function bookingConfirmation(r: MailRental, opts: { paid?: boolean } = {}): Emai
             { kind: 'title', text: 'Bitte zur Abholung mitbringen' },
             BRING,
             { kind: 'p', text: `Sie erhalten das Fahrzeug vollgetankt und geben es vollgetankt zurück. Fehlender Kraftstoff wird zuzüglich ${eur(RENTAL_TERMS.REFUEL_FEE_EUR)} Servicegebühr verrechnet.` },
-            { kind: 'p', text: CANCELLATION_TERMS },
+            { 
+                kind: 'p', 
+                text: paid 
+                    ? CANCELLATION_TERMS 
+                    : 'Stornierung: Sollten Sie die Fahrt nicht antreten können, bitten wir um rechtzeitige Absage bis spätestens 2 Stunden vor Abholung per E-Mail oder Telefon.' 
+            },
             { 
                 kind: 'button', 
-                label: r.pickupOutsideHours ? 'Übergabe starten & Fahrzeugzustand prüfen →' : 'Buchungsdetails & Fahrzeugübergabe ansehen →', 
+                label: paid
+                    ? (r.pickupOutsideHours ? 'Übergabe starten & Fahrzeugzustand prüfen →' : 'Buchungsdetails & Fahrzeugübergabe ansehen →')
+                    : 'Ihre Buchungsübersicht ansehen →', 
                 href: bookingUrl(r) 
             },
         ],

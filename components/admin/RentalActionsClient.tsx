@@ -56,26 +56,28 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
 
     return (
         <div className="flex flex-wrap items-center gap-2">
-            {/* Quick Link to Customer Self Check-In */}
+            {/* Primary Action: Vor-Ort Übergabe / Check-in */}
+            {(rental.status === 'Pending' || rental.status === 'Confirmed') && (
+                <Link
+                    href={`/admin/reservations/${rental.id}/check-in`}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm shadow-red-600/20"
+                >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Übergabe mit Mieter starten</span>
+                </Link>
+            )}
+
+            {/* Secondary Action: Digital Self Check-in Link only as fallback/share */}
             <Link
                 href={`/self-checkin/${rental.id}`}
                 target="_blank"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 hover:bg-hm-paper border border-hm-rule text-hm-ink font-mono text-xs font-semibold uppercase tracking-wider transition-colors"
-                title="Kunden-Check-in-Link öffnen"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold transition-colors"
+                title="Self Check-in Vorschau öffnen"
             >
-                <Key className="w-3.5 h-3.5 text-hm-accent" />
-                <span>Self Check-in Link</span>
-                <ExternalLink className="w-3 h-3 text-hm-muted" />
+                <Key className="w-3.5 h-3.5 text-gray-500" />
+                <span>Kunden-Link (Self Check-in)</span>
+                <ExternalLink className="w-3 h-3 text-gray-400" />
             </Link>
-
-            {(rental.status === 'Pending' || rental.status === 'Confirmed') && (
-                <form action={updateRentalStatus.bind(null, rental.id, 'Active')}>
-                    <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--hm-radius-input)] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Aktivieren
-                    </button>
-                </form>
-            )}
 
             {(rental.status === 'Active' || rental.status === 'Confirmed' || rental.status === 'Pending') && (
                 <button

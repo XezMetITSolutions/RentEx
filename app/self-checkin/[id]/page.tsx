@@ -29,13 +29,20 @@ export default async function CustomerSelfCheckInPage({ params }: { params: Prom
 
   if (!rental) notFound();
 
-  // Find sketch template name
+  // Find sketch template name with smart fallback for VW Polo / Kleinwagen / Seat Ibiza
+  const brand = (rental.car.brand || '').toLowerCase();
+  const model = (rental.car.model || '').toLowerCase();
+
   const templateName = rental.car.checkInTemplate || 
-    (rental.car.brand.toLowerCase().includes('skoda') && rental.car.model.toLowerCase().includes('octavia') ? 'Skoda Octavia' :
-     rental.car.brand.toLowerCase().includes('skoda') && rental.car.model.toLowerCase().includes('superb') ? 'Skodo superb' :
-     rental.car.brand.toLowerCase().includes('seat') ? 'Seat Kombi' :
-     rental.car.brand.toLowerCase().includes('ford') && rental.car.model.toLowerCase().includes('mustang') ? 'Ford Mustang normal' :
-     rental.car.brand.toLowerCase().includes('ducato') ? 'Fiat Ducato' : '');
+    (brand.includes('skoda') && model.includes('octavia') ? 'Skoda Octavia' :
+     brand.includes('skoda') && model.includes('superb') ? 'Skodo superb' :
+     brand.includes('seat') && model.includes('ibiza') ? 'Seat Ibiza' :
+     brand.includes('seat') ? 'Seat Kombi' :
+     brand.includes('ford') && model.includes('mustang') ? 'Ford Mustang normal' :
+     brand.includes('ford') ? 'Ford 616' :
+     brand.includes('ducato') || model.includes('ducato') ? 'Fiat Ducato' :
+     brand.includes('vw') || brand.includes('volkswagen') || model.includes('polo') || model.includes('golf') ? 'Seat Ibiza' :
+     'Seat Ibiza'); // Universal hatchback fallback if no exact sketch exists
 
   const sketchMapping = templateName ? await getCarTemplateMapping(templateName) : {};
 

@@ -34,24 +34,26 @@ export default function AdminLayoutWrapper({ children, stats, staff, permissions
 
     return (
         <div className={`hm-admin flex min-h-screen bg-hm-paper-2 text-hm-ink font-sans ${hmFontVariables}`}>
-            {/* Sidebar with mobile toggle logic */}
-            <Sidebar
-                activeRentals={stats.activeRentals}
-                todayRevenue={stats.todayRevenue}
-                pendingNotifications={stats.pendingNotifications}
-                isOpen={isSidebarOpen}
-                onClose={() => setIsSidebarOpen(false)}
-                staff={staff}
-                permissions={permissions}
-            />
-
-            {/* Mobile Backdrop */}
+            {/* Mobile Backdrop - ensure z-50 to cover the sticky header (z-40) */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden"
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
+
+            {/* Sidebar with mobile toggle logic (z-[60] so it sits above backdrop) */}
+            <div className="relative z-[60]">
+                <Sidebar
+                    activeRentals={stats.activeRentals}
+                    todayRevenue={stats.todayRevenue}
+                    pendingNotifications={stats.pendingNotifications}
+                    isOpen={isSidebarOpen}
+                    onClose={() => setIsSidebarOpen(false)}
+                    staff={staff}
+                    permissions={permissions}
+                />
+            </div>
 
             <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
                 <Header onMenuClick={() => setIsSidebarOpen(true)} />

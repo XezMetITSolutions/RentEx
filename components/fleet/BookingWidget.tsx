@@ -40,6 +40,39 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
     const [totalDays, setTotalDays] = useState<number>(1);
     const [rateNote, setRateNote] = useState('Tagespreis');
     const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+    const [availabilityReason, setAvailabilityReason] = useState<string | null>(null);
+
+    // Filter available pickup times so users cannot select past hours for today
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    const isToday = startDate === todayStr;
+
+    // A pickup must be at least in the present/future (or e.g. current hour + next 30 min slot)
+    const availablePickupTimes = timeOptions.filter((t) => {
+        if (!isToday) return true;
+        const [h, m] = t.split(':').map(Number);
+        const slotTime = new Date();
+        slotTime.setHours(h, m, 0, 0);
+        return slotTime.getTime() >= now.getTime();
+    });
+
+    // Auto-adjust pickupTime if user selected today and current pickupTime is in the past
+    useEffect(() => {
+        if (isToday && availablePickupTimes.length > 0) {
+            const [curH, curM] = pickupTime.split(':').map(Number);
+            const curSlot = new Date();
+            curSlot.setHours(curH, curM, 0, 0);
+            if (curSlot.getTime() < now.getTime()) {
+                setPickupTime(availablePickupTimes[0]);
+            }
+        }
+    }, [isToday, startDate]);
+
+    // Check if the selected time is strictly in the past
+    const isPickupInPast = (() => {
+        const selectedStart = parseBookingDateTime(startDate, pickupTime);
+        return selectedStart.getTime() < Date.now();
+    })();
 
     const isPickupOutside = isOutsideOpeningHours(startDate, pickupTime);
     const isReturnOutside = isOutsideOpeningHours(endDate, returnTime);
@@ -48,15 +81,28 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
     useEffect(() => {
         let cancelled = false;
         setIsAvailable(null);
+        setAvailabilityReason(null);
+
+        if (isPickupInPast) {
+            setIsAvailable(false);
+            setAvailabilityReason('Der Abholzeitpunkt liegt in der Vergangenheit.');
+            return;
+        }
+
         const t = setTimeout(async () => {
             const res = await checkBookingAvailability(Number(car.id), startDate, pickupTime, endDate, returnTime);
-            if (!cancelled) setIsAvailable(res.available);
+            if (!cancelled) {
+                setIsAvailable(res.available);
+                if (!res.available && 'reason' in res) {
+                    setAvailabilityReason(res.reason || null);
+                }
+            }
         }, 300);
         return () => {
             cancelled = true;
             clearTimeout(t);
         };
-    }, [car.id, startDate, pickupTime, endDate, returnTime]);
+    }, [car.id, startDate, pickupTime, endDate, returnTime, isPickupInPast]);
 
     useEffect(() => {
         const validDays = calculateChargeableDays(startDate, pickupTime, endDate, returnTime);
@@ -162,7 +208,7 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                                     onChange={(e) => setPickupTime(e.target.value)}
                                     className="w-full bg-transparent text-gray-900 dark:text-white border-none focus:ring-0 p-0 text-sm outline-none appearance-none cursor-pointer"
                                 >
-                                    {timeOptions.map(t => (
+                                    {availablePickupTimes.map(t => (
                                         <option key={t} value={t} className="bg-white dark:bg-zinc-900 text-gray-950 dark:text-white">{t} Uhr</option>
                                     ))}
                                 </select>
@@ -227,8 +273,10 @@ export default function BookingWidget({ car, options, startDate, endDate, setSta
                         "Verfügbarkeit wird geprüft…"
                     ) : isAvailable ? (
                         "Jetzt Reservieren"
+                    ) : isPickupInPast ? (
+                        "Zeitpunkt liegt in der Vergangenheit"
                     ) : (
-                        "Zeitraum belegt"
+                        availabilityReason || "Zeitraum belegt"
                     )}
                 </button>
                 <p className="text-center text-xs text-gray-500 mt-3">
