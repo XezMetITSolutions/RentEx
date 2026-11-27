@@ -386,9 +386,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                                 Zurück
                             </button>
                             <button
-                                disabled={!mileage}
+                                disabled={!mileage || !mileagePhoto}
                                 onClick={nextStep}
                                 className="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                                title={!mileagePhoto ? 'Bitte fotografieren Sie den Tacho per Live-Kamera' : undefined}
                             >
                                 Weiter zum Tankstand
                                 <ChevronRight className="w-4 h-4" />
@@ -464,8 +465,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                                 Zurück
                             </button>
                             <button
+                                disabled={!fuelPhoto}
                                 onClick={nextStep}
-                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                                title={!fuelPhoto ? 'Bitte fotografieren Sie den Tankstand per Live-Kamera' : undefined}
                             >
                                 Weiter zur Zustandsskizze
                                 <ChevronRight className="w-4 h-4" />

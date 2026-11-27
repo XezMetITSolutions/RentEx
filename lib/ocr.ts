@@ -161,13 +161,21 @@ function preprocessImage(file: File): Promise<string> {
             try {
                 const canvas = document.createElement('canvas');
                 const scale = Math.min(1, 2000 / img.width);
-                canvas.width = img.width * scale;
-                canvas.height = img.height * scale;
+                const fullWidth = img.width * scale;
+                const fullHeight = img.height * scale;
+
+                // IMPORTANT: Exclude the bottom 10% of the image during OCR to prevent
+                // reading our own security watermark banner (timestamp, contract, plate numbers) as odometer digits!
+                const cropHeight = Math.floor(fullHeight * 0.90);
+
+                canvas.width = fullWidth;
+                canvas.height = cropHeight;
 
                 const ctx = canvas.getContext('2d');
                 if (!ctx) { resolve(url); return; }
 
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Draw only the upper 90% (the actual dashboard / cluster)
+                ctx.drawImage(img, 0, 0, img.width, img.height * 0.90, 0, 0, fullWidth, cropHeight);
 
                 // Grayscale + Contrast tuning for odometer/dashboard recognition
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
