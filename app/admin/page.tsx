@@ -143,25 +143,11 @@ export default async function AdminDashboard({
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
                     <Link 
-                        href="/admin/check-in-setup"
-                        className="inline-flex items-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-hm-ink transition-colors shadow-xs"
-                    >
-                        <Car className="h-3.5 w-3.5 text-hm-muted" />
-                        Fahrzeugrückgabe
-                    </Link>
-                    <Link 
-                        href="/admin/rechnungen"
-                        className="inline-flex items-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-hm-ink transition-colors shadow-xs"
-                    >
-                        <Wallet className="h-3.5 w-3.5 text-hm-muted" />
-                        Rechnung erstellen
-                    </Link>
-                    <Link 
                         href="/admin/reservations/new"
-                        className="inline-flex items-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover px-4 py-2 text-xs font-semibold uppercase tracking-wider text-hm-accent-ink transition-colors shadow-xs"
+                        className="inline-flex items-center gap-2 rounded-[var(--hm-radius-input)] bg-hm-accent hover:bg-hm-accent-hover px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-hm-accent-ink transition-colors shadow-xs"
                     >
-                        <Plus className="h-3.5 w-3.5" />
-                        Neue Reservierung
+                        <Plus className="h-4 w-4" />
+                        Neue Reservierung anlegen
                     </Link>
                 </div>
             </div>
@@ -215,14 +201,16 @@ export default async function AdminDashboard({
                                 <tr>
                                     <th className="px-6 py-3 font-semibold">Fahrzeug</th>
                                     <th className="px-6 py-3 font-semibold">Kunde</th>
+                                    <th className="px-6 py-3 font-semibold">Mietzeitraum</th>
                                     <th className="px-6 py-3 font-semibold">Status</th>
                                     <th className="px-6 py-3 font-semibold text-right">Betrag</th>
+                                    <th className="px-6 py-3 font-semibold text-right">Aktion</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-hm-rule">
                                 {recentRentals.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-sm font-mono text-hm-muted">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-sm font-mono text-hm-muted">
                                             Keine aktuellen Vermietungen vorhanden.
                                         </td>
                                     </tr>
@@ -247,6 +235,12 @@ export default async function AdminDashboard({
                                                     {rental.customer.firstName} {rental.customer.lastName}
                                                 </Link>
                                             </td>
+                                            <td className="px-6 py-4 text-xs font-mono text-hm-muted">
+                                                <Link href={`/admin/reservations/${rental.id}`} className="block">
+                                                    <div>{format(new Date(rental.startDate), 'dd.MM.yy HH:mm')}</div>
+                                                    <div className="text-[11px] text-hm-ink mt-0.5">bis {format(new Date(rental.endDate), 'dd.MM.yy HH:mm')}</div>
+                                                </Link>
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <Link href={`/admin/reservations/${rental.id}`} className="block">
                                                     <span
@@ -261,10 +255,10 @@ export default async function AdminDashboard({
                                                             !['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && 'bg-hm-paper-2 text-hm-muted border-hm-rule'
                                                         )}
                                                     >
-                                                        {rental.status === 'Active' && 'Aktiv'}
+                                                        {rental.status === 'Active' && 'Aktiv (Fahrzeug unterwegs)'}
                                                         {rental.status === 'Confirmed' && 'Bestätigt'}
                                                         {rental.status === 'Completed' && 'Abgeschlossen'}
-                                                        {rental.status === 'Pending' && 'Ausstehend'}
+                                                        {rental.status === 'Pending' && 'Ausstehend (Check-in offen)'}
                                                         {rental.status === 'Cancelled' && 'Storniert'}
                                                         {rental.status === 'NoShow' && 'Nicht erschienen'}
                                                         {!['Active', 'Confirmed', 'Completed', 'Pending', 'Cancelled', 'NoShow'].includes(rental.status) && rental.status}
@@ -275,6 +269,30 @@ export default async function AdminDashboard({
                                                 <Link href={`/admin/reservations/${rental.id}`} className="block group-hover:text-hm-accent transition-colors">
                                                     {new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(rental.totalAmount))}
                                                 </Link>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                {rental.status === 'Active' ? (
+                                                    <Link
+                                                        href={`/admin/reservations/${rental.id}/check-out`}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors"
+                                                    >
+                                                        Rücknahme
+                                                    </Link>
+                                                ) : rental.status === 'Pending' ? (
+                                                    <Link
+                                                        href={`/admin/reservations/${rental.id}/check-in`}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors"
+                                                    >
+                                                        Check-in
+                                                    </Link>
+                                                ) : (
+                                                    <Link
+                                                        href={`/admin/reservations/${rental.id}`}
+                                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-hm-muted hover:text-hm-ink transition-colors"
+                                                    >
+                                                        Öffnen <ChevronRight className="w-3.5 h-3.5" />
+                                                    </Link>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
