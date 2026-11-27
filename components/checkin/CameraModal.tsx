@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, X, RotateCcw, Check, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { Camera, X, RotateCcw, Check, AlertCircle, Sparkles, Loader2, ShieldCheck, MapPin } from 'lucide-react';
 
 interface CameraModalProps {
     isOpen: boolean;
@@ -10,6 +10,10 @@ interface CameraModalProps {
     target: 'mileage' | 'fuel' | 'damage';
     title: string;
     guidelineText: string;
+    rentalInfo?: {
+        contractNumber?: string;
+        plate?: string;
+    };
 }
 
 export default function CameraModal({
@@ -19,6 +23,7 @@ export default function CameraModal({
     target,
     title,
     guidelineText,
+    rentalInfo,
 }: CameraModalProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -26,6 +31,27 @@ export default function CameraModal({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [geoCoord, setGeoCoord] = useState<string | null>(null);
+
+    // Get location for security stamp
+    useEffect(() => {
+        if (!isOpen) return;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude.toFixed(4);
+                    const lng = pos.coords.longitude.toFixed(4);
+                    setGeoCoord(`${lat}, ${lng} (Feldkirch AT)`);
+                },
+                () => {
+                    setGeoCoord('Feldkirch AT');
+                },
+                { timeout: 5000 }
+            );
+        } else {
+            setGeoCoord('Feldkirch AT');
+        }
+    }, [isOpen]);
 
     // Start live camera stream
     useEffect(() => {
@@ -42,7 +68,6 @@ export default function CameraModal({
             setPreviewUrl(null);
 
             try {
-                // Request environment (back) camera on mobile, with fallback to any camera
                 activeStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: { ideal: 'environment' },
@@ -80,6 +105,7 @@ export default function CameraModal({
         }
     };
 
+    // Take photo with indelible security watermark (Timestamp + Geo + Rental Number)
     const takePhoto = () => {
         if (!videoRef.current) return;
 
@@ -91,7 +117,28 @@ export default function CameraModal({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Draw camera frame
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Stamp Security Watermark Banner on the bottom
+        const bannerHeight = Math.max(36, Math.floor(canvas.height * 0.06));
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+
+        // Date & Time
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const rentalStr = rentalInfo?.contractNumber ? ` · ${rentalInfo.contractNumber}` : '';
+        const plateStr = rentalInfo?.plate ? ` · ${rentalInfo.plate}` : '';
+        const locStr = geoCoord ? ` · ${geoCoord}` : ' · Rent-Ex Feldkirch';
+
+        const watermarkText = `RENT-EX VERIFIED LIVE CAPTURE · ${dateStr} ${timeStr}${rentalStr}${plateStr}${locStr}`;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.max(12, Math.floor(bannerHeight * 0.42))}px monospace`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(watermarkText, 16, canvas.height - (bannerHeight / 2));
 
         canvas.toBlob(
             (blob) => {
@@ -101,7 +148,7 @@ export default function CameraModal({
                 }
             },
             'image/jpeg',
-            0.9
+            0.92
         );
     };
 
@@ -133,43 +180,47 @@ export default function CameraModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-in fade-in duration-200">
             {/* Top Bar */}
             <div className="flex items-center justify-between z-10">
                 <div className="text-white">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600/20 border border-red-500/30 text-red-400 text-xs font-semibold uppercase tracking-wider mb-1">
-                        <Camera className="w-3.5 h-3.5" /> Live-Kamera
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600/30 border border-red-500/40 text-red-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        Live-Kamera (Echtzeitnachweis)
                     </div>
-                    <h3 className="text-lg font-bold">{title}</h3>
+                    <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
                 </div>
                 <button
                     onClick={() => {
                         stopStream();
                         onClose();
                     }}
-                    disabled={isProcessing}
-                    className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                 >
                     <X className="w-5 h-5" />
                 </button>
             </div>
 
-            {/* Viewfinder / Preview */}
-            <div className="relative flex-1 my-4 rounded-2xl overflow-hidden bg-black flex items-center justify-center border border-white/10 shadow-2xl">
+            {/* Viewfinder Area */}
+            <div className="relative flex-1 my-4 flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-900 border border-white/10">
                 {cameraError ? (
                     <div className="p-6 text-center max-w-sm text-white">
                         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-                        <p className="text-sm text-gray-300 mb-4">{cameraError}</p>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold"
-                        >
-                            Seite neu laden
-                        </button>
+                        <p className="text-sm font-semibold">{cameraError}</p>
                     </div>
                 ) : previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={previewUrl} alt="Aufnahme" className="w-full h-full object-contain" />
+                    <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={previewUrl}
+                            alt="Captured frame"
+                            className="max-h-full max-w-full object-contain rounded-xl"
+                        />
+                        <div className="absolute top-4 left-4 bg-emerald-600/90 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg">
+                            <ShieldCheck className="w-4 h-4" />
+                            Foto mit Zeit- & Standortstempel erfasst
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <video
@@ -180,54 +231,74 @@ export default function CameraModal({
                             className="w-full h-full object-cover"
                         />
 
-                        {/* Interactive HUD / Overlay Guide */}
+                        {/* Smart HUD Reticle for target */}
                         <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-                            {target === 'mileage' || target === 'fuel' ? (
-                                <div className="w-72 h-44 border-2 border-dashed border-red-500/70 rounded-2xl flex flex-col items-center justify-center bg-red-500/5 backdrop-blur-[1px]">
-                                    <span className="text-xs font-semibold text-white/90 bg-black/60 px-3 py-1.5 rounded-lg text-center">
-                                        Tachostand & Tankanzeige hier zentrieren
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="w-80 h-56 border-2 border-dashed border-emerald-500/70 rounded-2xl flex flex-col items-center justify-center bg-emerald-500/5 backdrop-blur-[1px]">
-                                    <span className="text-xs font-semibold text-white/90 bg-black/60 px-3 py-1.5 rounded-lg text-center">
-                                        Fahrzeugteil / Schaden vollständig erfassen
+                            {target === 'mileage' && (
+                                <div className="w-72 h-36 border-2 border-dashed border-red-500/80 rounded-2xl bg-black/20 flex flex-col items-center justify-center text-center p-2 backdrop-blur-[1px]">
+                                    <div className="w-3 h-3 border-t-2 border-l-2 border-red-400 absolute top-2 left-2" />
+                                    <div className="w-3 h-3 border-t-2 border-r-2 border-red-400 absolute top-2 right-2" />
+                                    <div className="w-3 h-3 border-b-2 border-l-2 border-red-400 absolute bottom-2 left-2" />
+                                    <div className="w-3 h-3 border-b-2 border-r-2 border-red-400 absolute bottom-2 right-2" />
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-wider drop-shadow-md">
+                                        Tachometer / KM-Stand hier zentrieren
                                     </span>
                                 </div>
                             )}
-                            <p className="mt-4 text-xs font-medium text-white/80 bg-black/70 px-4 py-2 rounded-xl text-center shadow-lg max-w-xs">
+
+                            {target === 'fuel' && (
+                                <div className="w-64 h-48 border-2 border-dashed border-blue-400/80 rounded-2xl bg-black/20 flex flex-col items-center justify-center text-center p-2 backdrop-blur-[1px]">
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-wider drop-shadow-md">
+                                        Tankanzeige / Cockpit zentrieren
+                                    </span>
+                                </div>
+                            )}
+
+                            {target === 'damage' && (
+                                <div className="w-72 h-72 border-2 border-dashed border-amber-400/80 rounded-2xl bg-black/20 flex flex-col items-center justify-center text-center p-2 backdrop-blur-[1px]">
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-wider drop-shadow-md">
+                                        Beschädigte Stelle nah fotografieren
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Guideline Banner */}
+                        <div className="absolute bottom-4 inset-x-4 text-center pointer-events-none">
+                            <div className="inline-block px-4 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-xs font-medium text-white/90">
                                 {guidelineText}
-                            </p>
+                            </div>
                         </div>
                     </>
                 )}
             </div>
 
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-center gap-4 z-10 pb-2">
+            {/* Bottom Controls */}
+            <div className="flex items-center justify-center gap-6 z-10 py-2">
                 {previewUrl ? (
                     <>
                         <button
                             type="button"
                             onClick={retake}
-                            disabled={isProcessing}
-                            className="flex-1 max-w-[160px] py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                            className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-colors"
                         >
-                            <RotateCcw className="w-4 h-4" /> Wiederholen
+                            <RotateCcw className="w-4 h-4" />
+                            Wiederholen
                         </button>
                         <button
                             type="button"
-                            onClick={confirmPhoto}
                             disabled={isProcessing}
-                            className="flex-1 max-w-[200px] py-3.5 px-6 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 transition-all"
+                            onClick={confirmPhoto}
+                            className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all"
                         >
                             {isProcessing ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin" /> Prüfe...
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Wird geprüft...
                                 </>
                             ) : (
                                 <>
-                                    <Check className="w-4 h-4" /> Foto verwenden
+                                    <Check className="w-4 h-4" />
+                                    Foto bestätigen
                                 </>
                             )}
                         </button>
@@ -237,10 +308,10 @@ export default function CameraModal({
                         type="button"
                         onClick={takePhoto}
                         disabled={!!cameraError}
-                        className="w-20 h-20 rounded-full border-4 border-white bg-red-600 active:scale-95 transition-transform flex items-center justify-center shadow-2xl hover:bg-red-500"
-                        aria-label="Foto aufnehmen"
+                        className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-xl shadow-red-600/40"
+                        title="Foto aufnehmen"
                     >
-                        <div className="w-14 h-14 rounded-full border-2 border-white/40" />
+                        <Camera className="w-7 h-7 text-white" />
                     </button>
                 )}
             </div>

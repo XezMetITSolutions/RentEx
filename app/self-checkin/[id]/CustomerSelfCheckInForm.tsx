@@ -17,7 +17,7 @@ import {
 import AustrianPlate from '@/components/ui/AustrianPlate';
 import SignaturePad from '@/components/admin/SignaturePad';
 import CameraModal from '@/components/checkin/CameraModal';
-import { detectMileageFromImage } from '@/lib/ocr';
+import { detectMileageAdvanced } from '@/lib/ocr';
 
 interface Props {
   rental: {
@@ -88,20 +88,22 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
       console.warn('Validation error', e);
     }
 
-    // 2. OCR recognition for mileage
+    // 2. Strict OCR recognition for mileage (reject irrelevant items like toys, floor, plain objects)
     if (currentUploadTarget === 'mileage') {
       setOcrStatus('Lese Tachostand automatisch...');
       try {
-        const detected = await detectMileageFromImage(file);
-        if (detected) {
-          setMileage(detected);
-          setOcrStatus(`Tachostand automatisch erkannt: ${detected} km`);
+        const detection = await detectMileageAdvanced(file, Number(rental.car.currentMileage || 0));
+        if (detection.success && detection.detectedMileage) {
+          setMileage(detection.detectedMileage);
+          setOcrStatus(`Tachostand automatisch erkannt: ${detection.detectedMileage} km`);
         } else {
-          setOcrStatus(null);
+          alert('Kein Tachometer erkannt! Bitte fotografieren Sie das Armaturenbrett / die KM-Anzeige deutlich.');
+          return;
         }
       } catch (e) {
         console.error('OCR error', e);
-        setOcrStatus(null);
+        alert('Tachostand konnte nicht verifiziert werden. Bitte fotografieren Sie den Tacho erneut.');
+        return;
       }
     }
 
@@ -585,6 +587,10 @@ export default function CustomerSelfCheckInForm({ rental }: Props) {
             ? 'Bitte erfassen Sie die Tankanzeige gut beleuchtet.'
             : 'Halten Sie die Kamera ca. 1 Meter vom Schaden entfernt.'
         }
+        rentalInfo={{
+          contractNumber: rental.contractNumber || `#${rental.id}`,
+          plate: rental.car.plate,
+        }}
       />
     </div>
   );

@@ -23,7 +23,7 @@ import SignaturePad from '@/components/admin/SignaturePad';
 import CheckInDamageSelector, { Damage } from '@/components/admin/CheckInDamageSelector';
 import CameraModal from '@/components/checkin/CameraModal';
 import { performCheckIn } from '@/app/actions/check-in';
-import { detectMileageFromImage } from '@/lib/ocr';
+import { detectMileageAdvanced } from '@/lib/ocr';
 import { toast } from 'sonner';
 
 type Step = 'SUMMARY' | 'MILEAGE' | 'FUEL' | 'DAMAGE' | 'SIGNATURE';
@@ -115,12 +115,35 @@ export default function CheckInForm({ rental }: { rental: any }) {
     const handleCameraCapture = async (file: File, type: 'mileage' | 'fuel') => {
         setUploadingPhoto(type);
         try {
+            // 1. Strict Validation via validate-photo API
+            const valData = new FormData();
+            valData.append('file', file);
+            valData.append('target', type);
+            valData.append('expectedMinMileage', rental.car.currentMileage?.toString() || '0');
+
+            const valRes = await fetch('/api/checkin/validate-photo', { method: 'POST', body: valData });
+            const valJson = await valRes.json();
+
+            if (!valRes.ok || !valJson.ok) {
+                toast.error(valJson.error || 'Ungültiges Foto erkannt.');
+                setUploadingPhoto(null);
+                return;
+            }
+
+            // 2. Mileage OCR Detection & Verification
             if (type === 'mileage') {
                 setIsRecognizing(true);
-                detectMileageFromImage(file).then((detected: string | null) => {
-                    if (detected) setMileage(detected);
-                }).catch((err: unknown) => console.error("Auto-OCR failed", err))
-                  .finally(() => setIsRecognizing(false));
+                const detection = await detectMileageAdvanced(file, Number(rental.car.currentMileage || 0));
+                setIsRecognizing(false);
+
+                if (!detection.success || !detection.detectedMileage) {
+                    toast.error('Kein Tachometer erkannt! Bitte fotografieren Sie das Armaturenbrett / die KM-Anzeige deutlich.');
+                    setUploadingPhoto(null);
+                    return;
+                }
+
+                setMileage(detection.detectedMileage);
+                toast.success(`Tachostand erkannt: ${detection.detectedMileage} km`);
             }
 
             const compressedBlob = await compressImage(file);
@@ -132,7 +155,7 @@ export default function CheckInForm({ rental }: { rental: any }) {
             if (data.url) {
                 if (type === 'mileage') setMileagePhoto(data.url);
                 else setFuelPhoto(data.url);
-                toast.success(type === 'mileage' ? 'Tachobild erfasst' : 'Tankstand-Foto erfasst');
+                toast.success(type === 'mileage' ? 'Tachobild verifiziert & gespeichert' : 'Tankstand-Foto erfasst');
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
@@ -589,6 +612,10 @@ export default function CheckInForm({ rental }: { rental: any }) {
                     target={cameraTarget}
                     title={cameraTarget === 'mileage' ? 'Kilometerstand fotografieren' : 'Tankanzeige fotografieren'}
                     guidelineText={cameraTarget === 'mileage' ? 'Halten Sie den Tacho gut lesbar in den Rahmen.' : 'Fotografieren Sie die Tankanzeige im Cockpit.'}
+                    rentalInfo={{
+                        contractNumber: rental.contractNumber || `#${rental.id}`,
+                        plate: rental.car.plate
+                    }}
                 />
             )}
         </div>
