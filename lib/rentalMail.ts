@@ -46,6 +46,8 @@ export async function loadMailRental(rentalId: number): Promise<MailRental | nul
 
     return {
         id: rental.id,
+        customerId: rental.customerId,
+        createdAt: rental.createdAt,
         contractNumber: rental.contractNumber ?? `#${rental.id}`,
         customer: {
             firstName: rental.customer.firstName,

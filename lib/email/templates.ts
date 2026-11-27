@@ -8,6 +8,8 @@ import { de } from 'date-fns/locale';
 import { BUSINESS, RENTAL_TERMS, SITE_URL } from '@/lib/config';
 import { COMPANY, renderEmail, type Block, type Fact } from './layout';
 
+import { getCheckInToken } from '@/lib/checkInSecurity';
+
 export interface EmailMessage {
     subject: string;
     /** Plain-text part. */
@@ -18,6 +20,8 @@ export interface EmailMessage {
 /** A rental, flattened to what the e-mails show. Built by lib/rentalMail.ts. */
 export interface MailRental {
     id: number;
+    customerId?: number;
+    createdAt?: Date | string;
     contractNumber: string;
     customer: { firstName: string; lastName: string; email: string; hasAccount: boolean };
     car: { brand: string; model: string; plate: string };
@@ -67,7 +71,13 @@ const isTransfer = (r: MailRental) => (r.paymentMethod || '').toLowerCase() === 
 const paymentLabel = (r: MailRental) =>
     isOnline(r) ? 'Online' : isTransfer(r) ? 'Überweisung' : 'Bei Abholung, bar oder mit Karte';
 const openAmount = (r: MailRental) => Math.max(0, Math.round((r.totalAmount - r.paid) * 100) / 100);
-const bookingUrl = (r: MailRental) => `${SITE_URL}/self-checkin/${r.id}`;
+const bookingUrl = (r: MailRental) => {
+    if (r.customerId && r.createdAt) {
+        const token = getCheckInToken(r.id, r.customerId, r.createdAt);
+        return `${SITE_URL}/self-checkin/${r.id}?token=${encodeURIComponent(token)}`;
+    }
+    return `${SITE_URL}/self-checkin/${r.id}`;
+};
 
 function build(subject: string, spec: Parameters<typeof renderEmail>[0]): EmailMessage {
     const { html, text } = renderEmail(spec);

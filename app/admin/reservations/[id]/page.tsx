@@ -32,6 +32,7 @@ import { updatePaymentStatus } from '@/app/actions/rental-updates';
 import RentalActionsClient from '@/components/admin/RentalActionsClient';
 import CheckInLinkShare from '@/components/admin/CheckInLinkShare';
 import AustrianPlate from '@/components/ui/AustrianPlate';
+import { getCheckInToken } from '@/lib/checkInSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -380,7 +381,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                         <CheckCircle2 className="w-4 h-4" />
                                         <span>Vor-Ort Check-in starten</span>
                                     </Link>
-                                    <CheckInLinkShare rentalId={rental.id} />
+                                    <CheckInLinkShare rentalId={rental.id} token={getCheckInToken(rental.id, rental.customerId, rental.createdAt)} />
                                 </div>
                             </div>
                         )}

@@ -4,17 +4,18 @@ import React, { useState } from 'react';
 import { Copy, Check, ExternalLink, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function CheckInLinkShare({ rentalId }: { rentalId: number }) {
+export default function CheckInLinkShare({ rentalId, token }: { rentalId: number; token?: string }) {
     const [copied, setCopied] = useState(false);
+    const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : '';
     const link = typeof window !== 'undefined'
-        ? `${window.location.origin}/self-checkin/${rentalId}`
-        : `/self-checkin/${rentalId}`;
+        ? `${window.location.origin}/self-checkin/${rentalId}${tokenQuery}`
+        : `/self-checkin/${rentalId}${tokenQuery}`;
 
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(link);
             setCopied(true);
-            toast.success('Self Check-in Link kopiert!');
+            toast.success('Sicherer Self Check-in Link kopiert!');
             setTimeout(() => setCopied(false), 2000);
         } catch {
             toast.error('Link konnte nicht kopiert werden.');
@@ -26,20 +27,20 @@ export default function CheckInLinkShare({ rentalId }: { rentalId: number }) {
             <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper hover:bg-hm-paper-2 border border-hm-rule font-mono text-xs font-semibold text-hm-ink transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
             >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-hm-accent" />}
-                <span>{copied ? 'Kopiert!' : 'Link kopieren'}</span>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-gray-500" />}
+                <span>{copied ? 'Kopiert!' : 'Sicheren Link kopieren'}</span>
             </button>
             <a
                 href={link}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-hm-paper-2 hover:bg-hm-paper border border-hm-rule font-mono text-xs font-semibold text-hm-ink transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 transition-colors"
             >
-                <Key className="w-3.5 h-3.5 text-hm-muted" />
+                <Key className="w-3.5 h-3.5 text-gray-500" />
                 <span>Vorschau öffnen</span>
-                <ExternalLink className="w-3 h-3 text-hm-muted" />
+                <ExternalLink className="w-3 h-3 text-gray-400" />
             </a>
         </div>
     );
