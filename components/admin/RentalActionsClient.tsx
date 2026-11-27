@@ -89,37 +89,16 @@ export default function RentalActionsClient({ rental }: { rental: any }) {
                 </button>
             )}
 
+            {/* Return / Check-Out Actions */}
             {rental.status === 'Active' && (
-                <div className="flex items-center gap-1.5">
-                    <input
-                        id={`returnMileage-${rental.id}`}
-                        type="number"
-                        placeholder="End-KM"
-                        className="w-24 px-2.5 py-1.5 bg-hm-paper border border-hm-rule rounded-[var(--hm-radius-input)] text-xs font-mono font-bold text-hm-ink outline-none focus:ring-1 focus:ring-hm-accent"
-                        defaultValue={rental.car?.currentMileage || ''}
-                    />
-                    <button
-                        onClick={async () => {
-                            const input = document.getElementById(`returnMileage-${rental.id}`) as HTMLInputElement;
-                            const mileage = parseInt(input.value);
-                            if (isNaN(mileage)) {
-                                toast.error('Bitte gültigen Endkilometerstand eingeben.');
-                                return;
-                            }
-                            if (rental.pickupMileage && mileage < rental.pickupMileage) {
-                                toast.error(`KM-Stand kann nicht niedriger als bei Abholung (${rental.pickupMileage}) sein.`);
-                                return;
-                            }
-                            if (confirm(`Fahrzeugrückgabe abschließen? Endkilometer: ${mileage} km`)) {
-                                await updateRentalStatus(rental.id, 'Completed', mileage);
-                                window.location.reload();
-                            }
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--hm-radius-input)] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold uppercase tracking-wider transition-colors shadow-xs cursor-pointer"
+                <div className="flex items-center gap-2">
+                    <Link
+                        href={`/admin/reservations/${rental.id}/check-out`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm shadow-emerald-600/20"
                     >
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Rückgabe buchen
-                    </button>
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Rücknahme starten (Protokoll)</span>
+                    </Link>
                 </div>
             )}
 

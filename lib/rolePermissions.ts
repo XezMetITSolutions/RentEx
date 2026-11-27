@@ -25,7 +25,6 @@ export const ALL_ADMIN_MODULES: AdminModuleItem[] = [
     // Operativ
     { id: 'Reservierungen', name: 'Reservierungen', category: 'Operativ', href: '/admin/reservations', description: 'Buchungsübersicht, Kalender und Detailansicht' },
     { id: 'Kunden', name: 'Kunden', category: 'Operativ', href: '/admin/customers', description: 'Kundenkartei, Verifizierung und Historie' },
-    { id: 'Check-Out', name: 'Check-Out', category: 'Operativ', href: '/admin/check-out', description: 'Anstehende und überfällige Fahrzeugrückgaben' },
     { id: 'Standorte', name: 'Standorte', category: 'Operativ', href: '/admin/locations', description: 'Filialverwaltung und Standortübersicht' },
 
     // Flotte

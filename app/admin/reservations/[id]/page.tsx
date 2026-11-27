@@ -52,6 +52,11 @@ async function getRental(id: number) {
             returnLocation: true,
             payments: true,
             damageRecords: true,
+            options: {
+                include: {
+                    option: true,
+                },
+            },
         },
     });
 }
@@ -405,9 +410,36 @@ export default async function ReservationDetailPage({ params }: { params: Promis
                                 <span>Schutzpaket ({rental.insuranceType || 'Basis-Schutz'})</span>
                                 <span className="font-semibold text-gray-900">€{Number(rental.insuranceCost || 0).toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between items-center text-gray-600">
-                                <span>Gewählte Extras</span>
-                                <span className="font-semibold text-gray-900">€{Number(rental.extrasCost || 0).toFixed(2)}</span>
+                            <div className="border-b border-gray-100 pb-2">
+                                <div className="flex justify-between items-center text-gray-600">
+                                    <span className="font-medium text-gray-700">Gewählte Extras</span>
+                                    <span className="font-semibold text-gray-900">€{Number(rental.extrasCost || 0).toFixed(2)}</span>
+                                </div>
+                                {((rental.options && rental.options.length > 0) || rental.hasGPS || rental.hasChildSeat || rental.hasSkiRack) && (
+                                    <div className="mt-2 pl-2 space-y-1 border-l-2 border-gray-100">
+                                        {rental.options?.map((ro: any) => (
+                                            <div key={ro.id} className="flex justify-between items-center text-[11px] text-gray-500">
+                                                <span>• {ro.option?.name || `Option #${ro.optionId}`}</span>
+                                                <span className="font-medium text-gray-700">€{Number(ro.option?.price || 0).toFixed(2)}</span>
+                                            </div>
+                                        ))}
+                                        {rental.hasGPS && (
+                                            <div className="flex justify-between items-center text-[11px] text-gray-500">
+                                                <span>• GPS Navigationssystem</span>
+                                            </div>
+                                        )}
+                                        {rental.hasChildSeat && (
+                                            <div className="flex justify-between items-center text-[11px] text-gray-500">
+                                                <span>• Kindersitz</span>
+                                            </div>
+                                        )}
+                                        {rental.hasSkiRack && (
+                                            <div className="flex justify-between items-center text-[11px] text-gray-500">
+                                                <span>• Skiträger</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             {rental.discountAmount && Number(rental.discountAmount) > 0 && (
                                 <div className="flex justify-between items-center text-emerald-700 font-semibold">
