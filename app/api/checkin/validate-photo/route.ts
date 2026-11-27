@@ -80,6 +80,16 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        if (target === 'driver_license' || target === 'passport' || target === 'id_card') {
+            // Documents require sharp resolution and high detail (minimum 40 KB genuine photo)
+            if (buffer.length < 40000) {
+                return NextResponse.json({
+                    ok: false,
+                    error: 'Das Dokumentenfoto ist zu unscharf oder hat zu geringe Auflösung. Bitte fotografieren Sie den Ausweis / Führerschein nah und gut lesbar.',
+                }, { status: 422 });
+            }
+        }
+
         return NextResponse.json({
             ok: true,
             detectedType: target,

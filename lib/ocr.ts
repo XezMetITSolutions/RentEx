@@ -85,6 +85,125 @@ export async function detectMileageAdvanced(file: File, expectedMinMileage: numb
     }
 }
 
+export interface DocumentVerificationResult {
+    valid: boolean;
+    type: 'driver_license' | 'passport' | 'id_card' | 'unknown';
+    confidence: number;
+    extractedInfo?: {
+        name?: string;
+        licenseNumber?: string;
+        passportNumber?: string;
+        birthDate?: string;
+        expiryDate?: string;
+        country?: string;
+    };
+    errorMessage?: string;
+}
+
+/**
+ * Validates driver licenses (Führerschein) and passports/ID cards:
+ * 1. Checks for European Driving Licence keywords (Führerschein, Driving Licence, Permis de conduire, Category B)
+ * 2. Checks for Passport / ID MRZ (Machine Readable Zone: P<AUT, IDAUT, 2-3 lines of chevron separated characters)
+ * 3. Rejects non-document photos (office rooms, blank papers, walls, arbitrary objects)
+ */
+export async function detectIdentityDocument(
+    file: File,
+    expectedType: 'driver_license' | 'passport_or_id'
+): Promise<DocumentVerificationResult> {
+    if (typeof window === 'undefined') {
+        return { valid: false, type: 'unknown', confidence: 0, errorMessage: 'Server side execution' };
+    }
+
+    try {
+        const worker = await createWorker(['deu', 'eng']);
+        const imageUrl = await preprocessImage(file);
+
+        const { data: { text } } = await worker.recognize(imageUrl);
+        await worker.terminate();
+
+        const lowerText = text.toLowerCase();
+        const upperText = text.toUpperCase();
+
+        // 1. Driver License Verification
+        if (expectedType === 'driver_license') {
+            const licenseKeywords = [
+                'führerschein', 'fuhrerschein', 'driving licence', 'driving license',
+                'permis de conduire', 'patente di guida', 'kba', 'bundesrepublik',
+                'republik österreich', 'osterreich', 'austria', 'ausweis', 'klasse b',
+                'category b', 'cat. b', 'b1', 'am', '1.', '2.', '3.', '4a.', '4b.', '5.'
+            ];
+
+            const foundKeywords = licenseKeywords.filter(kw => lowerText.includes(kw));
+
+            // Check if document has typical license structure
+            const hasLicenseFormat = foundKeywords.length >= 2 ||
+                (lowerText.includes('b') && (lowerText.includes('führerschein') || lowerText.includes('licence')));
+
+            if (!hasLicenseFormat) {
+                return {
+                    valid: false,
+                    type: 'unknown',
+                    confidence: 0,
+                    errorMessage: 'Kein gültiger Führerschein erkannt! Bitte fotografieren Sie die Vorderseite Ihres Original-Führerscheins deutlich und ohne Spiegelung.'
+                };
+            }
+
+            // Extract license number pattern if present (e.g., 8-10 alphanumeric characters)
+            const licenseNoMatch = upperText.match(/\b([A-Z0-9]{8,12})\b/);
+
+            return {
+                valid: true,
+                type: 'driver_license',
+                confidence: Math.min(100, foundKeywords.length * 25),
+                extractedInfo: {
+                    licenseNumber: licenseNoMatch ? licenseNoMatch[1] : undefined
+                }
+            };
+        }
+
+        // 2. Passport or National ID Card Verification
+        if (expectedType === 'passport_or_id') {
+            // Check for MRZ (Machine Readable Zone: P<AUT, IDAUT, I<AUT, chevron lines with <<<)
+            const hasChevronLines = text.includes('<<<') || text.includes('<<');
+            const hasPassportKeywords =
+                lowerText.includes('reisepass') ||
+                lowerText.includes('passport') ||
+                lowerText.includes('personalausweis') ||
+                lowerText.includes('identity card') ||
+                lowerText.includes('republik österreich');
+
+            // Passport MRZ typically matches: P<AUTSURNAME<<GIVENNAME<<<<<<<<<<<<<
+            const mrzRegex = /[A-Z0-9<]{9,44}/g;
+            const mrzCandidates = (upperText.match(mrzRegex) || []).filter(line => line.includes('<') && line.length >= 15);
+
+            if (!hasPassportKeywords && !hasChevronLines && mrzCandidates.length === 0) {
+                return {
+                    valid: false,
+                    type: 'unknown',
+                    confidence: 0,
+                    errorMessage: 'Kein Ausweis oder Reisepass erkannt! Bitte fotografieren Sie die Seite mit dem Passfoto und der maschinenlesbaren Zone (<<<).'
+                };
+            }
+
+            return {
+                valid: true,
+                type: lowerText.includes('reisepass') || lowerText.includes('passport') ? 'passport' : 'id_card',
+                confidence: hasChevronLines ? 95 : 80
+            };
+        }
+
+        return { valid: false, type: 'unknown', confidence: 0, errorMessage: 'Unbekannter Dokumententyp' };
+    } catch (err: any) {
+        console.error('Identity Document Detection Error:', err);
+        return {
+            valid: false,
+            type: 'unknown',
+            confidence: 0,
+            errorMessage: 'Dokumentenprüfung fehlgeschlagen. Bitte fotografieren Sie das Dokument erneut bei gutem Licht.'
+        };
+    }
+}
+
 export async function detectMileageFromImage(file: File): Promise<string | null> {
     const res = await detectMileageAdvanced(file);
     return res.detectedMileage;
